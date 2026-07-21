@@ -46,13 +46,15 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  --radius-sm: calc(var(--radius) * 0.6);
-  --radius-md: calc(var(--radius) * 0.8);
+  /* Radius scale is deliberately tight: every corner sits between 4px and
+     6px (larger steps are clamped to 6px). Only true circles are exempt. */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.3125rem;
   --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) * 1.4);
-  --radius-2xl: calc(var(--radius) * 1.8);
-  --radius-3xl: calc(var(--radius) * 2.2);
-  --radius-4xl: calc(var(--radius) * 2.6);
+  --radius-xl: var(--radius);
+  --radius-2xl: var(--radius);
+  --radius-3xl: var(--radius);
+  --radius-4xl: var(--radius);
 }
 
 :root {
@@ -79,7 +81,7 @@
   --chart-3: oklch(0.63 0.2 355);
   --chart-4: oklch(0.76 0.14 85);
   --chart-5: oklch(0.6 0.17 300);
-  --radius: 0.75rem;
+  --radius: 0.375rem;
   --sidebar: oklch(0.966 0.004 95);
   --sidebar-foreground: oklch(0.235 0.006 95);
   --sidebar-primary: oklch(0.36 0.06 155);

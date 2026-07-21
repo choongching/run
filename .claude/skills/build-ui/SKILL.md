@@ -33,9 +33,11 @@ Goal: zero re-derivation, zero styling drift.
 - **Icon sizing:** `size-4.5 stroke-[1.75]` in nav, `size-4` in dense contexts.
   Icon tint pattern: `[&_svg]:text-sidebar-foreground/70` at rest, full ink on
   hover/active via stacked variants like `hover:[&_svg]:text-sidebar-foreground`.
-- **Radii:** menu buttons/sub-buttons/row actions are exactly `rounded-[8px]`.
-  Buttons, inputs, tooltips `rounded-lg`. Cards `rounded-xl`. Never rounder than
-  `rounded-xl` except true circles.
+- **Radii:** every corner sits between 4px and 6px, enforced by the token scale
+  in `globals.css` (`sm` 4px, `md` 5px, `lg` and above clamped to 6px). Use
+  `rounded-lg` for buttons/inputs/menu items, `rounded-md` for badges and small
+  controls, `rounded-xl` for cards (renders 6px). NEVER write raw
+  `rounded-[Npx]`; only true circles use `rounded-full`.
 - **Type:** `text-sm` is retuned to 15px app-wide via the `--text-sm` token in
   `globals.css`. Use `text-sm` as body size; do not compensate per component.
   Page title `text-3xl font-bold tracking-tight`, subtitle

@@ -14,6 +14,21 @@ committed on the `phase-2` branch, awaiting review and merge to `main`. Phase 3
 
 ---
 
+## 2026-07-21: Radius tightening across the whole UI
+
+- New design rule: every corner in the app sits between 4px and 6px (only true
+  circles like avatars are exempt). The token scale in `globals.css` enforces
+  it (small 4px, medium 5px, large and above clamped to 6px), so every
+  component inherited the change from one place: buttons, inputs, textareas,
+  selects and their dropdowns, dialogs, cards, badges, tabs, tooltips, and
+  sidebar menu items.
+- Removed the last hardcoded radius values (the sidebar menu's 8px) in favor
+  of the token scale, and updated both the style guide and the build-ui skill
+  so the rule is enforced in future work: never write raw pixel radii.
+- Visually verified across the login screen, agent cards, menu items, the
+  model dropdown, and the generate dialog. No console errors; lint and
+  TypeScript checks clean.
+
 ## 2026-07-21: Agent lifecycle redesign (post-review hardening)
 
 - After a design deep dive on the archive bug, replaced the crude `is_active`

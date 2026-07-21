@@ -48,14 +48,19 @@ primary flips to a lighter green with dark text.
 
 ## 4. Radii
 
-Base `--radius: 0.75rem` (12px) — the reference is noticeably round.
+Base `--radius: 0.375rem` (6px). **Every corner in the app sits between 4px and
+6px**; the token scale enforces it (`sm` 4px, `md` 5px, `lg` and everything
+above clamped to 6px), so `rounded-xl` and larger render at 6px too.
 
-- Buttons, inputs, tooltips: `rounded-lg` (12px).
-- Cards, sidebar card, main content card, toasts: `rounded-xl` (~17px).
-- Nav menu items (buttons, sub-buttons, row actions): exactly **8px** (`rounded-[8px]`) —
-  anything rounder reads as a pill on 36px rows.
-- Count badges, checkboxes, segmented controls: `rounded-md` (~10px).
-- Avatars and FAB: `rounded-full`.
+- Buttons, inputs, selects, tooltips, nav menu items: `rounded-lg` (6px).
+- Cards, sidebar card, main content card, dialogs, toasts: `rounded-xl`
+  (renders 6px via the clamp; keep the class for semantic grouping).
+- Count badges, checkboxes, segmented controls, small/xs buttons:
+  `rounded-md` (5px).
+- Kbd chips and the tightest details: `rounded-sm` (4px).
+- Never write a raw `rounded-[Npx]`; always go through the scale so the
+  4-to-6px rule holds everywhere at once.
+- Only exception: true circles (avatars, FAB, status dots) stay `rounded-full`.
 - Tooltips: dark ink bubble — `bg-foreground text-background rounded-lg px-3 py-2 text-sm font-medium`.
 
 ## 5. Spacing & layout
@@ -97,7 +102,7 @@ Base `--radius: 0.75rem` (12px) — the reference is noticeably round.
 
 - Do keep green rare: one primary action per screen + status accents.
 - Do use `--sidebar` canvas + white cards for any new full-screen layout.
-- Don't reintroduce colored/filled icons, pure-gray-cold neutrals, or radii above
-  `rounded-xl` (except circles).
+- Don't reintroduce colored/filled icons, pure-gray-cold neutrals, raw
+  `rounded-[Npx]` values, or any corner outside the 4-6px range (except circles).
 - Don't restyle ad-hoc in pages — change tokens here + `globals.css` so it applies
   everywhere.
