@@ -18,6 +18,14 @@ assigned to the member test user) and three archived test agents.
 
 ---
 
+## 2026-07-22: Sidebar fix, duplicate Usage entry removed
+
+- Admins used to see Usage twice (main nav and the Admin section), a leftover
+  from the reference spec, and both would highlight at once on the Usage page.
+  Removed the Admin-section copy so Usage lives in the main nav for every role,
+  and dropped the highlight workaround that papered over the duplicate. The
+  Admin group now holds only admin-exclusive destinations.
+
 ## 2026-07-21: Agent card overflow menu and meta chips
 
 - Card actions moved into a kebab overflow menu (Edit, a new Duplicate action,

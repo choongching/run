@@ -41,7 +41,6 @@ const adminNav = [
   { href: '/admin/company', label: 'Company', icon: CompanyIcon },
   { href: '/admin/users', label: 'Users', icon: UsersIcon },
   { href: '/admin/integrations', label: 'Integrations', icon: IntegrationsIcon },
-  { href: '/usage', label: 'Usage', icon: UsageIcon },
 ]
 
 type AppSidebarProps = {
@@ -96,7 +95,7 @@ export function AppSidebar({ role, displayName, email, avatarUrl }: AppSidebarPr
                 {adminNav.map((item) => (
                   <SidebarMenuItem key={item.label}>
                     <SidebarMenuButton
-                      isActive={pathname.startsWith(item.href) && item.href !== '/usage'}
+                      isActive={pathname.startsWith(item.href)}
                       render={<Link href={item.href} />}
                     >
                       <item.icon className="size-4.5 shrink-0" />
