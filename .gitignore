@@ -39,6 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+!.env.local.example
 
 # internal plans and docs — never push these; only the public styleguide is tracked
 docs/*
