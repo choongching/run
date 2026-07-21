@@ -39,3 +39,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# internal plans and docs — never push these; only the public styleguide is tracked
+docs/*
+!docs/styleguide.md
