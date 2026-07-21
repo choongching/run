@@ -1,7 +1,7 @@
 # Run
 
 Run is a single-company web dashboard where admins configure AI agents and
-employees brief them to get work done — with outputs saved as Google Docs,
+employees brief them to get work done, with outputs saved as Google Docs,
 Google Sheets, or PDFs.
 
 Built with Next.js 16, React 19, Tailwind CSS v4, Supabase (auth + database),
@@ -12,19 +12,20 @@ and the Anthropic API.
 **Current status:** Phase 1 (foundation and app shell) is complete and merged to
 `main`. Phase 2 (admin configuration) is next, on the `phase-2` branch.
 
-The full, detailed history of what has been done — session by session, in plain
-English — lives in **[PROGRESS.md](./PROGRESS.md)**. It is updated at the end of
-every work session, so it always reflects exactly where the project left off.
+The full, detailed history of what has been done, session by session and in
+plain English, lives in **[PROGRESS.md](./PROGRESS.md)**. It is updated at the
+end of every work session, so it always reflects exactly where the project
+left off.
 
 Done so far, at a glance:
 
-- ✅ **Phase 1 — Foundation and app shell:** Supabase email/password auth,
+- ✅ **Phase 1, foundation and app shell:** Supabase email/password auth,
   admin/user roles, protected routes, and the full sidebar/dashboard shell with
   placeholder pages for every section.
 - ✅ **Visual restyle:** the whole app follows a token-driven design system
-  (warm canvas, floating white cards, forest-green accents, Lucide icons) —
+  (warm canvas, floating white cards, forest-green accents, Lucide icons),
   documented in [docs/styleguide.md](./docs/styleguide.md).
-- 🔜 **Phase 2 — Admin configuration:** company settings, agent
+- 🔜 **Phase 2, admin configuration:** company settings, agent
   create/edit/archive, AI-assisted prompt writing, and assigning agents to users.
 - ⬜ **Phase 3:** Google Drive integration and agent knowledge files.
 - ⬜ **Phase 4:** the Missions board with real agent runs.

@@ -1,10 +1,10 @@
-# Run — Progress Log
+# Run Progress Log
 
 A running, plain-English record of what has been done on this project, so anyone
 (including future us) can open this file and know exactly where we left off.
 
 **How this file works:** every work session ends by adding a new dated entry at the
-top of the log below, written point by point. Never delete old entries — this is
+top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
@@ -14,11 +14,11 @@ No Phase 2 code has been written yet.
 
 ---
 
-## 2026-07-21 — Repo published, history cleaned, Phase 1 merged to main
+## 2026-07-21: Repo published, history cleaned, Phase 1 merged to main
 
 - Created the public GitHub repository and connected the local project to it.
 - Before the first push, scanned the entire git history to confirm no secret keys,
-  tokens, or credentials had ever been committed — the scan came back clean. Real
+  tokens, or credentials had ever been committed. The scan came back clean. Real
   secrets live only in `.env.local`, which is ignored by git and never leaves the
   machine.
 - Pushed the work to GitHub across three branches: `main`, `phase-1`, and
@@ -39,7 +39,7 @@ No Phase 2 code has been written yet.
 - The old `phase-1` and `design/reference-styleguide` branches are fully contained
   in `main` and safe to delete on GitHub whenever convenient.
 
-## 2026-07-21 — Phase 1 final review (earlier the same day)
+## 2026-07-21: Phase 1 final review (earlier the same day)
 
 - Re-audited Phase 1 against the roadmap checklist instead of trusting memory.
   Every deliverable is present:
@@ -56,17 +56,17 @@ No Phase 2 code has been written yet.
   - Signed-out visitors are redirected to the login page from every protected route.
   - An already-signed-in visitor to the login page is bounced into the app.
   - A regular member sees no Admin section in the sidebar, and typing an admin URL
-    directly redirects them away — access control holds at the route level, not
+    directly redirects them away. Access control holds at the route level, not
     just in the UI.
   - No browser console errors anywhere.
 - Verdict: **Phase 1 is 100% done.**
 
-## 2026-07-21 — Visual restyle to match the reference design
+## 2026-07-21: Visual restyle to match the reference design
 
 - Studied the supplied reference screenshots and distilled them into a reusable
   style guide (`docs/styleguide.md`) covering colors, typography, spacing, corner
   radii, iconography, and component recipes.
-- Restyled the whole app through design tokens only — no page content or
+- Restyled the whole app through design tokens only. No page content or
   structure was changed:
   - Warm paper-gray canvas with the sidebar and main content floating as white
     rounded cards; deep forest green as the single strong brand color.
@@ -77,7 +77,7 @@ No Phase 2 code has been written yet.
     sidebar narrowed to 240px.
 - Every iteration was verified live in the browser against the screenshots.
 
-## Earlier — Phase 1: Foundation and app shell (completed 2026-07-21)
+## Earlier: Phase 1 foundation and app shell (completed 2026-07-21)
 
 - Set up the Next.js 16 project with Tailwind v4, strict TypeScript, and the
   shadcn/base-nova component library.
@@ -94,7 +94,7 @@ No Phase 2 code has been written yet.
 
 ## Next up (high level)
 
-- **Phase 2 — Admin configuration:** company settings and agent management
+- **Phase 2, admin configuration:** company settings and agent management
   (create/edit/archive agents, AI-assisted prompt writing, assigning agents to
   users). Work happens on the `phase-2` branch.
 - Later phases: Google Drive integration and knowledge files, the Missions board
