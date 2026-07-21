@@ -8,9 +8,13 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** Phase 2 (admin configuration) is built, fully tested, and
-committed on the `phase-2` branch, awaiting review and merge to `main`. Phase 3
-(Google Drive integration) has not been started.
+**Where we left off:** Phase 2 (admin configuration) is complete on the
+`phase-2` branch: all features built and verified, the agent lifecycle schema
+redesigned, and a UI polish pass done (4-6px radii app-wide, agent listing
+anatomy, card overflow menus with a Duplicate action, meta chips). Everything
+is pushed. The next step is merging `phase-2` to `main`, then Phase 3 (Google
+Drive integration). Dev data note: one active agent (Marketing Writer,
+assigned to the member test user) and three archived test agents.
 
 ---
 
