@@ -8,11 +8,46 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** Phase 1 is fully complete and merged to `main`. A fresh
-`phase-2` branch has been created for the next stage of work (admin configuration).
-No Phase 2 code has been written yet.
+**Where we left off:** Phase 2 (admin configuration) is built, fully tested, and
+committed on the `phase-2` branch, awaiting review and merge to `main`. Phase 3
+(Google Drive integration) has not been started.
 
 ---
+
+## 2026-07-21: Phase 2, admin configuration, built and verified
+
+- Applied five database migrations to Supabase: `agents` (with row security so
+  only admins can change them), `company_settings` (a single shared row of
+  company context), `user_agents` (which agents each user has in their squad),
+  a function hardening fix from the security advisor, and an extra policy so
+  admins can see archived agents.
+- Verified the installed Anthropic SDK before writing code, which caught two
+  differences from the reference spec: the system prompt field is named
+  `system`, and updates need the agent's current version number. Also switched
+  the default model to `claude-sonnet-5` (the spec named an older model).
+- Built six server API routes, each enforcing admin authorization itself:
+  list/create agents, update/archive an agent (create and update write to both
+  Supabase and the Claude Managed Agents API, so every agent has a linked
+  Claude agent with the full toolset), AI prompt generation, company context
+  read/save, and squad assign/remove.
+- Built the admin screens: an agent card grid with a New Agent flow, an agent
+  form with model picker and an Edit/Preview system prompt editor (markdown
+  preview), a Generate with AI dialog that warns when no company context is
+  saved, the Company context editor, a Users table with role badges and squad
+  counts, and a per-user squad assignment screen.
+- Found and fixed a real bug during testing: archiving an agent was rejected by
+  the database because making it inactive also made it invisible to the admin
+  under the row security rules, which the database refuses. An added policy now
+  lets admins see all agents, which also makes the Archived badge work.
+- Full live verification in the browser: company context saves; AI generation
+  produced an on-brand prompt using the saved context; agent create, edit, and
+  archive all round-trip to Anthropic (verified the linked agent id in the
+  database); squad assign and unassign both work; a signed-in member gets 403
+  from all five admin APIs, is redirected away from admin pages, and sees no
+  Admin menu; signed-out requests get 401; no browser console errors; lint and
+  TypeScript checks clean.
+- Test data left in place: one real agent (Marketing Writer, assigned to the
+  member test user), one archived throwaway agent, and a sample company context.
 
 ## 2026-07-21: Progress log, README, and reusable skills added
 
