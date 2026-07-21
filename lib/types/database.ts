@@ -1,5 +1,6 @@
 export type UserRole = 'admin' | 'user'
 export type OutputType = 'doc' | 'sheet' | 'text'
+export type AgentStatus = 'draft' | 'active' | 'paused' | 'archived'
 
 // Hand-authored to match supabase/migrations/*.sql.
 // Regenerate with the Supabase CLI/MCP type generator as the schema grows.
@@ -38,7 +39,10 @@ export type Database = {
           description: string | null
           system_prompt: string | null
           model: string
-          is_active: boolean
+          status: AgentStatus
+          archived_at: string | null
+          claude_version: number | null
+          synced_at: string | null
           default_output_type: OutputType | null
           created_at: string
           updated_at: string
@@ -50,7 +54,10 @@ export type Database = {
           description?: string | null
           system_prompt?: string | null
           model?: string
-          is_active?: boolean
+          status?: AgentStatus
+          archived_at?: string | null
+          claude_version?: number | null
+          synced_at?: string | null
           default_output_type?: OutputType | null
           created_at?: string
           updated_at?: string
@@ -62,7 +69,10 @@ export type Database = {
           description?: string | null
           system_prompt?: string | null
           model?: string
-          is_active?: boolean
+          status?: AgentStatus
+          archived_at?: string | null
+          claude_version?: number | null
+          synced_at?: string | null
           default_output_type?: OutputType | null
           created_at?: string
           updated_at?: string
@@ -124,6 +134,7 @@ export type Database = {
     }
     Enums: {
       user_role: UserRole
+      agent_status: AgentStatus
     }
     CompositeTypes: Record<string, never>
   }

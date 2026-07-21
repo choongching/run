@@ -14,6 +14,26 @@ committed on the `phase-2` branch, awaiting review and merge to `main`. Phase 3
 
 ---
 
+## 2026-07-21: Agent lifecycle redesign (post-review hardening)
+
+- After a design deep dive on the archive bug, replaced the crude `is_active`
+  boolean with a proper lifecycle status (`draft`, `active`, `paused`,
+  `archived`) plus an `archived_at` timestamp, matching how the Anthropic API
+  itself models agents.
+- Reshaped the agents row security into two audience-scoped policies: admins
+  manage everything; regular users can read only active agents that are
+  actually assigned to them. The design rule adopted: row security answers
+  "who are you", queries answer "what state do you want", and a row's mutable
+  state must never control visibility for the role that changes it.
+- Added sync metadata for the Claude dual-write (`claude_version`,
+  `synced_at`), so updates no longer need an extra read from Anthropic and
+  drift between the two systems is detectable. Updates fall back gracefully
+  if the stored version is stale.
+- Migration was dry-run in rolled-back transactions first, with security
+  probes for the admin archive case, member visibility, and member write
+  attempts, before being applied for real. All live flows then re-verified in
+  the browser.
+
 ## 2026-07-21: Phase 2, admin configuration, built and verified
 
 - Applied five database migrations to Supabase: `agents` (with row security so

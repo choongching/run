@@ -41,23 +41,44 @@ export async function PATCH(
   const model = typeof body?.model === 'string' && body.model ? body.model : existing.model
 
   // Dual-write. The Anthropic update API needs the agent's current version
-  // (optimistic concurrency), so retrieve first. Always resend the toolset so
-  // agents created before it was added get backfilled.
+  // (optimistic concurrency). Use the stored version when we have it; on a
+  // mismatch (drift from an out-of-band edit) retrieve and retry once. Always
+  // resend the toolset so agents created before it was added get backfilled.
+  let newClaudeVersion: number | null = existing.claude_version
   if (existing.claude_agent_id) {
     try {
       const anthropic = getAnthropicClient()
-      const current = await anthropic.beta.agents.retrieve(existing.claude_agent_id, {
-        betas: [MANAGED_AGENTS_BETA],
-      })
-      await anthropic.beta.agents.update(existing.claude_agent_id, {
-        version: current.version,
+      const updateParams = {
         name,
         model,
         description,
         system: systemPrompt,
         tools: AGENT_TOOLSET,
         betas: [MANAGED_AGENTS_BETA],
-      })
+      }
+      let version = existing.claude_version
+      if (version == null) {
+        const current = await anthropic.beta.agents.retrieve(existing.claude_agent_id, {
+          betas: [MANAGED_AGENTS_BETA],
+        })
+        version = current.version
+      }
+      let updated
+      try {
+        updated = await anthropic.beta.agents.update(existing.claude_agent_id, {
+          version,
+          ...updateParams,
+        })
+      } catch {
+        const current = await anthropic.beta.agents.retrieve(existing.claude_agent_id, {
+          betas: [MANAGED_AGENTS_BETA],
+        })
+        updated = await anthropic.beta.agents.update(existing.claude_agent_id, {
+          version: current.version,
+          ...updateParams,
+        })
+      }
+      newClaudeVersion = updated.version
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Claude agent update failed'
       return NextResponse.json({ error: message }, { status: 502 })
@@ -66,7 +87,14 @@ export async function PATCH(
 
   const { data: agent, error: dbError } = await supabase
     .from('agents')
-    .update({ name, description, system_prompt: systemPrompt, model })
+    .update({
+      name,
+      description,
+      system_prompt: systemPrompt,
+      model,
+      claude_version: newClaudeVersion,
+      synced_at: new Date().toISOString(),
+    })
     .eq('id', id)
     .select()
     .single()
@@ -87,7 +115,7 @@ export async function DELETE(
 
   const { data: existing } = await supabase
     .from('agents')
-    .select('id, claude_agent_id, is_active')
+    .select('id, claude_agent_id, status')
     .eq('id', id)
     .single()
   if (!existing) {
@@ -95,7 +123,7 @@ export async function DELETE(
   }
 
   // Soft delete locally, archive on Anthropic. Archive failures are tolerated:
-  // the local flag is what hides the agent from users.
+  // the local status is what hides the agent from users.
   if (existing.claude_agent_id) {
     try {
       const anthropic = getAnthropicClient()
@@ -109,7 +137,7 @@ export async function DELETE(
 
   const { error: dbError } = await supabase
     .from('agents')
-    .update({ is_active: false })
+    .update({ status: 'archived', archived_at: new Date().toISOString() })
     .eq('id', id)
 
   if (dbError) {

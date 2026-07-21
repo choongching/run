@@ -38,8 +38,10 @@ export async function POST(request: Request) {
   const model = typeof body?.model === 'string' && body.model ? body.model : DEFAULT_AGENT_MODEL
 
   // Dual-write: Anthropic first so we never store an agent without its
-  // claude_agent_id link. Supabase remains the source of truth.
+  // claude_agent_id link. Supabase remains the source of truth; the returned
+  // version is kept so later updates can skip a retrieve round-trip.
   let claudeAgentId: string
+  let claudeVersion: number
   try {
     const anthropic = getAnthropicClient()
     const claudeAgent = await anthropic.beta.agents.create({
@@ -51,6 +53,7 @@ export async function POST(request: Request) {
       betas: [MANAGED_AGENTS_BETA],
     })
     claudeAgentId = claudeAgent.id
+    claudeVersion = claudeAgent.version
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Claude agent creation failed'
     return NextResponse.json({ error: message }, { status: 502 })
@@ -60,6 +63,8 @@ export async function POST(request: Request) {
     .from('agents')
     .insert({
       claude_agent_id: claudeAgentId,
+      claude_version: claudeVersion,
+      synced_at: new Date().toISOString(),
       name,
       description,
       system_prompt: systemPrompt,

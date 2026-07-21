@@ -19,7 +19,7 @@ export default async function ManageUserPage({
       supabase
         .from('agents')
         .select('*')
-        .eq('is_active', true)
+        .eq('status', 'active')
         .order('name'),
       supabase.from('user_agents').select('agent_id').eq('user_id', id),
     ])

@@ -40,11 +40,18 @@ export function AgentList({ agents }: { agents: Agent[] }) {
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
       {agents.map((agent) => (
-        <Card key={agent.id} className={agent.is_active ? undefined : 'opacity-60'}>
+        <Card
+          key={agent.id}
+          className={agent.status === 'archived' ? 'opacity-60' : undefined}
+        >
           <CardHeader>
             <div className="flex items-start justify-between gap-2">
               <CardTitle>{agent.name}</CardTitle>
-              {!agent.is_active && <Badge variant="secondary">Archived</Badge>}
+              {agent.status !== 'active' && (
+                <Badge variant="secondary" className="capitalize">
+                  {agent.status}
+                </Badge>
+              )}
             </div>
             <CardDescription>
               {agent.description || 'No description yet.'}
@@ -63,7 +70,7 @@ export function AgentList({ agents }: { agents: Agent[] }) {
               <Pencil data-icon="inline-start" />
               Edit
             </Link>
-            {agent.is_active && (
+            {agent.status !== 'archived' && (
               <Button
                 variant="ghost"
                 size="sm"
