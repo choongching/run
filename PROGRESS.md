@@ -14,6 +14,21 @@ committed on the `phase-2` branch, awaiting review and merge to `main`. Phase 3
 
 ---
 
+## 2026-07-21: Agent card overflow menu and meta chips
+
+- Card actions moved into a kebab overflow menu (Edit, a new Duplicate action,
+  and Archive as a red destructive item always last, after a separator). While
+  a card's menu is open the card shows a subtle selected ring.
+- Duplicate is a real feature: it creates a full copy of the agent (name plus
+  "(copy)", same prompt and model) through the normal dual-write, so the copy
+  is immediately linked to its own Claude agent.
+- The card base now carries outlined meta chips instead of a text line: a
+  status chip with a colored dot (green active, muted archived), the creation
+  date, and the model. Both patterns are recorded in the style guide.
+- Verified live: menu, selected ring, duplicate (copy appeared active and the
+  count row updated), then archiving the copy re-sorted it to the back
+  instantly. No console errors.
+
 ## 2026-07-21: Agent listing page anatomy
 
 - Agents are now sorted by lifecycle: active agents always lead the grid and

@@ -99,6 +99,16 @@ above clamped to 6px), so `rounded-xl` and larger render at 6px too.
   + trailing hairline — `flex items-center gap-3`, `text-sm font-medium` count,
   `text-sm text-muted-foreground` meta, then `h-px flex-1 bg-border`. Sort
   listings so working items lead and archived items always sit at the back.
+- **Card overflow menu:** actions live in a kebab (`Ellipsis` icon, ghost
+  `icon-sm` button, `text-muted-foreground`) in `CardAction`, opening a
+  `DropdownMenu` — routine actions first, then a separator and the destructive
+  action (`variant="destructive"`) always last. While the menu is open the
+  card shows a selected state: `ring-ring/50 shadow-sm`.
+- **Meta chips** (card base): `h-6 rounded-md border border-border
+  bg-background px-2 text-xs text-muted-foreground` with 12px icons
+  (`[&_svg]:size-3`); status chips lead with a `size-1.5 rounded-full` dot in
+  a data color (`chart-1` green for active, amber `chart-4` paused, muted for
+  archived). Pin the chip row to the card bottom (`mt-auto`).
 - **Selection toast:** centered bottom `bg-card rounded-xl border shadow-lg px-4 py-3`.
 - **FAB:** fixed bottom-right `size-13 rounded-full bg-primary text-primary-foreground shadow-lg`.
 
