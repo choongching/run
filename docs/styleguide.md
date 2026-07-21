@@ -95,6 +95,10 @@ above clamped to 6px), so `rounded-xl` and larger render at 6px too.
   2px green underline.
 - **Table:** semibold ink header row, hover row wash `bg-muted/50`, green checkboxes,
   kebab (`⋮`) as `icon-sm` ghost/outline button, circular initial avatars in chart colors.
+- **Listing section row** (between page header and a grid/table): count + meta
+  + trailing hairline — `flex items-center gap-3`, `text-sm font-medium` count,
+  `text-sm text-muted-foreground` meta, then `h-px flex-1 bg-border`. Sort
+  listings so working items lead and archived items always sit at the back.
 - **Selection toast:** centered bottom `bg-card rounded-xl border shadow-lg px-4 py-3`.
 - **FAB:** fixed bottom-right `size-13 rounded-full bg-primary text-primary-foreground shadow-lg`.
 

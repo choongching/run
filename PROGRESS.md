@@ -14,6 +14,17 @@ committed on the `phase-2` branch, awaiting review and merge to `main`. Phase 3
 
 ---
 
+## 2026-07-21: Agent listing page anatomy
+
+- Agents are now sorted by lifecycle: active agents always lead the grid and
+  archived ones automatically move to the back (drafts and paused in between),
+  newest first within each group.
+- Added a listing section row between the header and the grid: agent count
+  plus active count with a trailing hairline, adapted from a reference design
+  but expressed in our own tokens. The pattern is recorded in the style guide
+  for reuse on future listing pages. Grid now steps up to four columns on very
+  wide screens.
+
 ## 2026-07-21: Agent card polish
 
 - Fixed the agent cards so the action row is always pinned to the bottom and
