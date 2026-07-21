@@ -79,7 +79,7 @@ export function AppSidebar({ role, displayName, email, avatarUrl }: AppSidebarPr
                     isActive={pathname === item.href}
                     render={<Link href={item.href} />}
                   >
-                    <item.icon className="size-4 shrink-0" />
+                    <item.icon className="size-4.5 shrink-0" />
                     <span>{item.label}</span>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -99,7 +99,7 @@ export function AppSidebar({ role, displayName, email, avatarUrl }: AppSidebarPr
                       isActive={pathname.startsWith(item.href) && item.href !== '/usage'}
                       render={<Link href={item.href} />}
                     >
-                      <item.icon className="size-4 shrink-0" />
+                      <item.icon className="size-4.5 shrink-0" />
                       <span>{item.label}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
@@ -117,7 +117,7 @@ export function AppSidebar({ role, displayName, email, avatarUrl }: AppSidebarPr
               isActive={pathname === '/dashboard'}
               render={<Link href="/dashboard" />}
             >
-              <SettingsIcon className="size-4 shrink-0" />
+              <SettingsIcon className="size-4.5 shrink-0" />
               <span>Settings</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
@@ -126,7 +126,9 @@ export function AppSidebar({ role, displayName, email, avatarUrl }: AppSidebarPr
         <div className="flex items-center gap-2 px-2 py-1.5">
           <Avatar className="size-8">
             {avatarUrl && <AvatarImage src={avatarUrl} alt={name} />}
-            <AvatarFallback>{initials}</AvatarFallback>
+            <AvatarFallback className="bg-chart-3 text-xs font-medium text-white">
+              {initials}
+            </AvatarFallback>
           </Avatar>
           <div className="flex min-w-0 flex-1 flex-col leading-tight">
             <span className="truncate text-sm font-medium">{name}</span>
@@ -139,7 +141,7 @@ export function AppSidebar({ role, displayName, email, avatarUrl }: AppSidebarPr
           <SidebarMenuItem>
             <form action={logout}>
               <SidebarMenuButton render={<button type="submit" className="w-full" />}>
-                <LogOut className="size-4 shrink-0 text-muted-foreground" />
+                <LogOut className="size-4.5 shrink-0" />
                 <span>Sign out</span>
               </SidebarMenuButton>
             </form>
