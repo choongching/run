@@ -44,3 +44,6 @@ next-env.d.ts
 # internal plans and docs — never push these; only the public styleguide is tracked
 docs/*
 !docs/styleguide.md
+
+# local Claude Code settings stay local; shared skills are tracked
+.claude/settings.local.json

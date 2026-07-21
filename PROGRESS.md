@@ -14,6 +14,21 @@ No Phase 2 code has been written yet.
 
 ---
 
+## 2026-07-21: Progress log, README, and reusable skills added
+
+- Created this progress log and rewrote the README with a project intro and an
+  at-a-glance progress section, so the current status is always visible on
+  GitHub and locally.
+- Analysed all past work sessions to find repeated, token-expensive workflows,
+  then captured the two most valuable ones as reusable Claude Code skills in
+  `.claude/skills/`:
+  - `build-ui`: how to build UI the styleguide way, including every component,
+    icon, radius, and CSS convention already verified in this codebase.
+  - `phase-gate`: the full phase-end verification ritual (lint, typecheck,
+    route-protection matrix, role-based browser smoke test, console check).
+- These skills load on demand in future sessions instead of re-deriving the
+  procedures each time. No credentials are stored in them; the repo is public.
+
 ## 2026-07-21: Repo published, history cleaned, Phase 1 merged to main
 
 - Created the public GitHub repository and connected the local project to it.
