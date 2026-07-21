@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Archive, Pencil } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import type { Agent } from '@/lib/types/database'
 import { Badge } from '@/components/ui/badge'
 import { Button, buttonVariants } from '@/components/ui/button'
@@ -39,51 +40,64 @@ export function AgentList({ agents }: { agents: Agent[] }) {
 
   return (
     <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-      {agents.map((agent) => (
-        <Card
-          key={agent.id}
-          className={agent.status === 'archived' ? 'opacity-60' : undefined}
-        >
-          <CardHeader>
-            <div className="flex items-start justify-between gap-2">
-              <CardTitle>{agent.name}</CardTitle>
-              {agent.status !== 'active' && (
-                <Badge variant="secondary" className="capitalize">
-                  {agent.status}
-                </Badge>
-              )}
-            </div>
-            <CardDescription>
-              {agent.description || 'No description yet.'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Model: <span className="text-foreground">{agent.model}</span>
-            </p>
-          </CardContent>
-          <CardFooter className="gap-2">
-            <Link
-              href={`/admin/agents/${agent.id}`}
-              className={buttonVariants({ variant: 'outline', size: 'sm' })}
-            >
-              <Pencil data-icon="inline-start" />
-              Edit
-            </Link>
-            {agent.status !== 'archived' && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleArchive(agent)}
-                disabled={archivingId === agent.id}
-              >
-                <Archive data-icon="inline-start" />
-                {archivingId === agent.id ? 'Archiving...' : 'Archive'}
-              </Button>
+      {agents.map((agent) => {
+        const archived = agent.status === 'archived'
+        return (
+          <Card
+            key={agent.id}
+            className={cn(
+              'h-full transition-[box-shadow,background-color] duration-150',
+              archived
+                ? 'bg-muted/40 ring-foreground/5'
+                : 'hover:shadow-sm hover:ring-foreground/20'
             )}
-          </CardFooter>
-        </Card>
-      ))}
+          >
+            <CardHeader>
+              <div className="flex items-start justify-between gap-2">
+                <CardTitle className={archived ? 'text-muted-foreground' : undefined}>
+                  {agent.name}
+                </CardTitle>
+                {agent.status !== 'active' && (
+                  <Badge variant="secondary" className="capitalize">
+                    {agent.status}
+                  </Badge>
+                )}
+              </div>
+              <CardDescription>
+                {agent.description || 'No description yet.'}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Model:{' '}
+                <span className={archived ? undefined : 'text-foreground'}>
+                  {agent.model}
+                </span>
+              </p>
+            </CardContent>
+            <CardFooter className={cn('mt-auto gap-2', archived && 'bg-transparent')}>
+              <Link
+                href={`/admin/agents/${agent.id}`}
+                className={buttonVariants({ variant: 'outline', size: 'sm' })}
+              >
+                <Pencil data-icon="inline-start" />
+                Edit
+              </Link>
+              {!archived && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleArchive(agent)}
+                  disabled={archivingId === agent.id}
+                >
+                  <Archive data-icon="inline-start" />
+                  {archivingId === agent.id ? 'Archiving...' : 'Archive'}
+                </Button>
+              )}
+            </CardFooter>
+          </Card>
+        )
+      })}
     </div>
   )
 }

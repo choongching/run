@@ -14,6 +14,15 @@ committed on the `phase-2` branch, awaiting review and merge to `main`. Phase 3
 
 ---
 
+## 2026-07-21: Agent card polish
+
+- Fixed the agent cards so the action row is always pinned to the bottom and
+  all cards in a row share the same height, regardless of description length.
+- Replaced the blunt faded look on archived cards with a proper disabled
+  treatment: a subtle muted background wash, muted title, and no hover
+  response. Active cards now lift gently on hover (slightly stronger outline
+  plus a soft shadow), all through existing color tokens.
+
 ## 2026-07-21: Radius tightening across the whole UI
 
 - New design rule: every corner in the app sits between 4px and 6px (only true
