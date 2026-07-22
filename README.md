@@ -9,8 +9,8 @@ and the Anthropic API.
 
 ## Project progress
 
-**Current status:** Phase 2 (admin configuration) is built and verified on the
-`phase-2` branch, awaiting merge. Phase 3 (Google Drive integration) is next.
+**Current status:** Phase 2 (admin configuration) is complete and merged to
+`main`. Phase 3 (Google Drive integration) is next.
 
 The full, detailed history of what has been done, session by session and in
 plain English, lives in **[PROGRESS.md](./PROGRESS.md)**. It is updated at the

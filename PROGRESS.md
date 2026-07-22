@@ -8,13 +8,14 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** Phase 2 (admin configuration) is complete on the
-`phase-2` branch: all features built and verified, the agent lifecycle schema
-redesigned, and a UI polish pass done (4-6px radii app-wide, agent listing
-anatomy, card overflow menus with a Duplicate action, meta chips). Everything
-is pushed. The next step is merging `phase-2` to `main`, then Phase 3 (Google
-Drive integration). Dev data note: one active agent (Marketing Writer,
-assigned to the member test user) and three archived test agents.
+**Where we left off:** Phase 2 (admin configuration) is merged to `main` via
+pull request #2, including the agent lifecycle schema redesign and the full
+design-system pass (Geist typography at reference token sizes, 4-6px radii,
+listing anatomy, card overflow menus, meta chips). Next up: Phase 3, Google
+Drive integration via Pipedream, which needs Pipedream credentials in
+`.env.local` before work can start. Dev data note: one active agent
+(Marketing Writer, assigned to the member test user) and three archived test
+agents.
 
 ---
 
