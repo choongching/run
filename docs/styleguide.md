@@ -36,26 +36,43 @@ primary flips to a lighter green with dark text.
 
 ## 3. Typography
 
-- **Family:** Inter (`--font-sans`), Geist Mono for code. No serif anywhere.
-- **`text-sm` is retuned to 15px/1.4rem** in globals.css — the reference runs body and
-  menu type slightly larger than Tailwind's 14px default. Use `text-sm` as the body size.
-- Page title: `text-3xl font-bold tracking-tight` (~30px) — e.g. "Campaigns".
-- Page subtitle: `text-base text-muted-foreground`, `mt-2` under the title.
-- Section/tab labels: `text-sm font-medium`; card titles `text-lg font-semibold`.
+Matched to the reference design tokens (Geist-based scale).
+
+- **Family:** Geist (`--font-sans`, variable), Geist Mono for code. No serif.
+- **Scale** (Tailwind classes → reference tokens):
+  - `text-xs` = caption/label, 12px with a retuned **18px** line-height
+    (`--text-xs--line-height` in globals.css).
+  - `text-sm` = body-sm, **14px/20px** (Tailwind default; the old 15px retune
+    is gone). This is the body size: nav items, table cells, controls.
+  - `text-base` = body-md, 16px/24px — page subtitles, prose.
+  - `text-xl` = body-xl, 20px — auth-card titles and similar.
+  - `text-2xl` = display-xs, **24px/32px** — page titles. Nothing on an app
+    page renders larger than 24px.
+- **Weights:** 400 body, 500 medium (active nav, labels, chips), 600 semibold
+  (page titles, card titles, table headers), 700 reserved for rare emphasis.
+- **Letter-spacing:** none at app sizes; negative tracking only at display
+  sizes ≥36px, which the app does not use.
+- Page title: `text-2xl font-semibold`; subtitle `text-base text-muted-foreground mt-1.5`.
+- Section/tab labels: `text-sm font-medium`; card titles `text-base font-medium`
+  or `text-lg font-semibold` for prominent panels.
 - Table header: `text-sm font-semibold` in full ink (not muted).
-- Body, nav items, table cells: `text-sm` (15px); nav items `font-medium` when active.
-- Meta text (timestamps, group labels): `text-sm` muted or `text-xs` (group labels).
+- Meta text (timestamps, group labels, chips): `text-xs` muted.
 
 ## 4. Radii
 
-Base `--radius: 0.75rem` (12px) — the reference is noticeably round.
+Base `--radius: 0.375rem` (6px). **Every corner in the app sits between 4px and
+6px**; the token scale enforces it (`sm` 4px, `md` 5px, `lg` and everything
+above clamped to 6px), so `rounded-xl` and larger render at 6px too.
 
-- Buttons, inputs, tooltips: `rounded-lg` (12px).
-- Cards, sidebar card, main content card, toasts: `rounded-xl` (~17px).
-- Nav menu items (buttons, sub-buttons, row actions): exactly **8px** (`rounded-[8px]`) —
-  anything rounder reads as a pill on 36px rows.
-- Count badges, checkboxes, segmented controls: `rounded-md` (~10px).
-- Avatars and FAB: `rounded-full`.
+- Buttons, inputs, selects, tooltips, nav menu items: `rounded-lg` (6px).
+- Cards, sidebar card, main content card, dialogs, toasts: `rounded-xl`
+  (renders 6px via the clamp; keep the class for semantic grouping).
+- Count badges, checkboxes, segmented controls, small/xs buttons:
+  `rounded-md` (5px).
+- Kbd chips and the tightest details: `rounded-sm` (4px).
+- Never write a raw `rounded-[Npx]`; always go through the scale so the
+  4-to-6px rule holds everywhere at once.
+- Only exception: true circles (avatars, FAB, status dots) stay `rounded-full`.
 - Tooltips: dark ink bubble — `bg-foreground text-background rounded-lg px-3 py-2 text-sm font-medium`.
 
 ## 5. Spacing & layout
@@ -90,6 +107,20 @@ Base `--radius: 0.75rem` (12px) — the reference is noticeably round.
   2px green underline.
 - **Table:** semibold ink header row, hover row wash `bg-muted/50`, green checkboxes,
   kebab (`⋮`) as `icon-sm` ghost/outline button, circular initial avatars in chart colors.
+- **Listing section row** (between page header and a grid/table): count + meta
+  + trailing hairline — `flex items-center gap-3`, `text-sm font-medium` count,
+  `text-sm text-muted-foreground` meta, then `h-px flex-1 bg-border`. Sort
+  listings so working items lead and archived items always sit at the back.
+- **Card overflow menu:** actions live in a kebab (`Ellipsis` icon, ghost
+  `icon-sm` button, `text-muted-foreground`) in `CardAction`, opening a
+  `DropdownMenu` — routine actions first, then a separator and the destructive
+  action (`variant="destructive"`) always last. While the menu is open the
+  card shows a selected state: `ring-ring/50 shadow-sm`.
+- **Meta chips** (card base): `h-6 rounded-md border border-border
+  bg-background px-2 text-xs text-muted-foreground` with 12px icons
+  (`[&_svg]:size-3`); status chips lead with a `size-1.5 rounded-full` dot in
+  a data color (`chart-1` green for active, amber `chart-4` paused, muted for
+  archived). Pin the chip row to the card bottom (`mt-auto`).
 - **Selection toast:** centered bottom `bg-card rounded-xl border shadow-lg px-4 py-3`.
 - **FAB:** fixed bottom-right `size-13 rounded-full bg-primary text-primary-foreground shadow-lg`.
 
@@ -97,7 +128,7 @@ Base `--radius: 0.75rem` (12px) — the reference is noticeably round.
 
 - Do keep green rare: one primary action per screen + status accents.
 - Do use `--sidebar` canvas + white cards for any new full-screen layout.
-- Don't reintroduce colored/filled icons, pure-gray-cold neutrals, or radii above
-  `rounded-xl` (except circles).
+- Don't reintroduce colored/filled icons, pure-gray-cold neutrals, raw
+  `rounded-[Npx]` values, or any corner outside the 4-6px range (except circles).
 - Don't restyle ad-hoc in pages — change tokens here + `globals.css` so it applies
   everywhere.

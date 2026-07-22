@@ -1,9 +1,9 @@
 import { requireAdminPage } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import { PageHeader } from '@/components/page-header'
-import { CompanyContextForm } from '@/components/company/company-context-form'
+import { AgentForm } from '@/components/agents/agent-form'
 
-export default async function CompanyPage() {
+export default async function NewAgentPage() {
   await requireAdminPage()
   const supabase = await createClient()
   const { data: settings } = await supabase
@@ -15,10 +15,13 @@ export default async function CompanyPage() {
   return (
     <>
       <PageHeader
-        title="Company"
-        description="Brand voice and context injected into every agent at runtime."
+        title="New Agent"
+        description="Define the agent's role, model, and system prompt"
       />
-      <CompanyContextForm initialContext={settings?.company_context ?? null} />
+      <AgentForm
+        mode="create"
+        hasCompanyContext={Boolean(settings?.company_context?.trim())}
+      />
     </>
   )
 }

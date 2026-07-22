@@ -8,11 +8,145 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** Phase 1 is fully complete and merged to `main`. A fresh
-`phase-2` branch has been created for the next stage of work (admin configuration).
-No Phase 2 code has been written yet.
+**Where we left off:** Phase 2 (admin configuration) is complete on the
+`phase-2` branch: all features built and verified, the agent lifecycle schema
+redesigned, and a UI polish pass done (4-6px radii app-wide, agent listing
+anatomy, card overflow menus with a Duplicate action, meta chips). Everything
+is pushed. The next step is merging `phase-2` to `main`, then Phase 3 (Google
+Drive integration). Dev data note: one active agent (Marketing Writer,
+assigned to the member test user) and three archived test agents.
 
 ---
+
+## 2026-07-22: Typography matched to the reference design tokens
+
+- Studied a full set of design tokens extracted from the reference app and
+  applied the typography faithfully: the font family is now Geist (with Geist
+  Mono for code), replacing Inter.
+- Corrected the type scale against the real tokens: body text returns to
+  14px/20px (the earlier 15px eyeball retune was wrong), captions get an 18px
+  line-height, and page titles step down from 30px bold to 24px semibold,
+  which is the largest size the reference ever uses on an app page. Letter
+  spacing at app sizes is removed (the reference only tightens display sizes
+  36px and up).
+- Deliberately NOT adopted from the tokens: their 8px and 12px corner radii
+  (our 4-6px rule stands) and their color palette (ours already matches their
+  warm neutral + green system almost value for value).
+- Style guide and the build-ui skill updated to the new scale; verified live
+  across pages with no console errors.
+
+## 2026-07-22: Sidebar fix, duplicate Usage entry removed
+
+- Admins used to see Usage twice (main nav and the Admin section), a leftover
+  from the reference spec, and both would highlight at once on the Usage page.
+  Removed the Admin-section copy so Usage lives in the main nav for every role,
+  and dropped the highlight workaround that papered over the duplicate. The
+  Admin group now holds only admin-exclusive destinations.
+
+## 2026-07-21: Agent card overflow menu and meta chips
+
+- Card actions moved into a kebab overflow menu (Edit, a new Duplicate action,
+  and Archive as a red destructive item always last, after a separator). While
+  a card's menu is open the card shows a subtle selected ring.
+- Duplicate is a real feature: it creates a full copy of the agent (name plus
+  "(copy)", same prompt and model) through the normal dual-write, so the copy
+  is immediately linked to its own Claude agent.
+- The card base now carries outlined meta chips instead of a text line: a
+  status chip with a colored dot (green active, muted archived), the creation
+  date, and the model. Both patterns are recorded in the style guide.
+- Verified live: menu, selected ring, duplicate (copy appeared active and the
+  count row updated), then archiving the copy re-sorted it to the back
+  instantly. No console errors.
+
+## 2026-07-21: Agent listing page anatomy
+
+- Agents are now sorted by lifecycle: active agents always lead the grid and
+  archived ones automatically move to the back (drafts and paused in between),
+  newest first within each group.
+- Added a listing section row between the header and the grid: agent count
+  plus active count with a trailing hairline, adapted from a reference design
+  but expressed in our own tokens. The pattern is recorded in the style guide
+  for reuse on future listing pages. Grid now steps up to four columns on very
+  wide screens.
+
+## 2026-07-21: Agent card polish
+
+- Fixed the agent cards so the action row is always pinned to the bottom and
+  all cards in a row share the same height, regardless of description length.
+- Replaced the blunt faded look on archived cards with a proper disabled
+  treatment: a subtle muted background wash, muted title, and no hover
+  response. Active cards now lift gently on hover (slightly stronger outline
+  plus a soft shadow), all through existing color tokens.
+
+## 2026-07-21: Radius tightening across the whole UI
+
+- New design rule: every corner in the app sits between 4px and 6px (only true
+  circles like avatars are exempt). The token scale in `globals.css` enforces
+  it (small 4px, medium 5px, large and above clamped to 6px), so every
+  component inherited the change from one place: buttons, inputs, textareas,
+  selects and their dropdowns, dialogs, cards, badges, tabs, tooltips, and
+  sidebar menu items.
+- Removed the last hardcoded radius values (the sidebar menu's 8px) in favor
+  of the token scale, and updated both the style guide and the build-ui skill
+  so the rule is enforced in future work: never write raw pixel radii.
+- Visually verified across the login screen, agent cards, menu items, the
+  model dropdown, and the generate dialog. No console errors; lint and
+  TypeScript checks clean.
+
+## 2026-07-21: Agent lifecycle redesign (post-review hardening)
+
+- After a design deep dive on the archive bug, replaced the crude `is_active`
+  boolean with a proper lifecycle status (`draft`, `active`, `paused`,
+  `archived`) plus an `archived_at` timestamp, matching how the Anthropic API
+  itself models agents.
+- Reshaped the agents row security into two audience-scoped policies: admins
+  manage everything; regular users can read only active agents that are
+  actually assigned to them. The design rule adopted: row security answers
+  "who are you", queries answer "what state do you want", and a row's mutable
+  state must never control visibility for the role that changes it.
+- Added sync metadata for the Claude dual-write (`claude_version`,
+  `synced_at`), so updates no longer need an extra read from Anthropic and
+  drift between the two systems is detectable. Updates fall back gracefully
+  if the stored version is stale.
+- Migration was dry-run in rolled-back transactions first, with security
+  probes for the admin archive case, member visibility, and member write
+  attempts, before being applied for real. All live flows then re-verified in
+  the browser.
+
+## 2026-07-21: Phase 2, admin configuration, built and verified
+
+- Applied five database migrations to Supabase: `agents` (with row security so
+  only admins can change them), `company_settings` (a single shared row of
+  company context), `user_agents` (which agents each user has in their squad),
+  a function hardening fix from the security advisor, and an extra policy so
+  admins can see archived agents.
+- Verified the installed Anthropic SDK before writing code, which caught two
+  differences from the reference spec: the system prompt field is named
+  `system`, and updates need the agent's current version number. Also switched
+  the default model to `claude-sonnet-5` (the spec named an older model).
+- Built six server API routes, each enforcing admin authorization itself:
+  list/create agents, update/archive an agent (create and update write to both
+  Supabase and the Claude Managed Agents API, so every agent has a linked
+  Claude agent with the full toolset), AI prompt generation, company context
+  read/save, and squad assign/remove.
+- Built the admin screens: an agent card grid with a New Agent flow, an agent
+  form with model picker and an Edit/Preview system prompt editor (markdown
+  preview), a Generate with AI dialog that warns when no company context is
+  saved, the Company context editor, a Users table with role badges and squad
+  counts, and a per-user squad assignment screen.
+- Found and fixed a real bug during testing: archiving an agent was rejected by
+  the database because making it inactive also made it invisible to the admin
+  under the row security rules, which the database refuses. An added policy now
+  lets admins see all agents, which also makes the Archived badge work.
+- Full live verification in the browser: company context saves; AI generation
+  produced an on-brand prompt using the saved context; agent create, edit, and
+  archive all round-trip to Anthropic (verified the linked agent id in the
+  database); squad assign and unassign both work; a signed-in member gets 403
+  from all five admin APIs, is redirected away from admin pages, and sees no
+  Admin menu; signed-out requests get 401; no browser console errors; lint and
+  TypeScript checks clean.
+- Test data left in place: one real agent (Marketing Writer, assigned to the
+  member test user), one archived throwaway agent, and a sample company context.
 
 ## 2026-07-21: Progress log, README, and reusable skills added
 

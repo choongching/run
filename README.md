@@ -9,8 +9,8 @@ and the Anthropic API.
 
 ## Project progress
 
-**Current status:** Phase 1 (foundation and app shell) is complete and merged to
-`main`. Phase 2 (admin configuration) is next, on the `phase-2` branch.
+**Current status:** Phase 2 (admin configuration) is built and verified on the
+`phase-2` branch, awaiting merge. Phase 3 (Google Drive integration) is next.
 
 The full, detailed history of what has been done, session by session and in
 plain English, lives in **[PROGRESS.md](./PROGRESS.md)**. It is updated at the
@@ -25,9 +25,10 @@ Done so far, at a glance:
 - ✅ **Visual restyle:** the whole app follows a token-driven design system
   (warm canvas, floating white cards, forest-green accents, Lucide icons),
   documented in [docs/styleguide.md](./docs/styleguide.md).
-- 🔜 **Phase 2, admin configuration:** company settings, agent
-  create/edit/archive, AI-assisted prompt writing, and assigning agents to users.
-- ⬜ **Phase 3:** Google Drive integration and agent knowledge files.
+- ✅ **Phase 2, admin configuration:** company settings, agent
+  create/edit/archive with Claude Managed Agents dual-write, AI-assisted prompt
+  writing, and assigning agents to users.
+- 🔜 **Phase 3:** Google Drive integration and agent knowledge files.
 - ⬜ **Phase 4:** the Missions board with real agent runs.
 - ⬜ **Phase 5:** usage tracking, profiles, and production hardening.
 
