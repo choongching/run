@@ -38,10 +38,12 @@ Goal: zero re-derivation, zero styling drift.
   `rounded-lg` for buttons/inputs/menu items, `rounded-md` for badges and small
   controls, `rounded-xl` for cards (renders 6px). NEVER write raw
   `rounded-[Npx]`; only true circles use `rounded-full`.
-- **Type:** `text-sm` is retuned to 15px app-wide via the `--text-sm` token in
-  `globals.css`. Use `text-sm` as body size; do not compensate per component.
-  Page title `text-3xl font-bold tracking-tight`, subtitle
-  `text-base text-muted-foreground mt-2` (use `components/page-header.tsx`).
+- **Type:** family is Geist (`--font-geist-sans`); body is `text-sm` at
+  Tailwind's default 14px/20px (do NOT retune it); `text-xs` has an 18px
+  line-height token. Page title `text-2xl font-semibold` (24px is the page
+  maximum, no tracking classes), subtitle `text-base text-muted-foreground
+  mt-1.5` (use `components/page-header.tsx`). Weights: 500 for active/labels,
+  600 for titles, 700 rare.
 - **CSS overrides:** Tailwind v4 cascade layers mean the utilities layer beats
   `@layer components` regardless of selector specificity. Any custom rule that
   must override a utility-classed element goes in `@layer utilities` in

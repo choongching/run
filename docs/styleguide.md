@@ -36,15 +36,27 @@ primary flips to a lighter green with dark text.
 
 ## 3. Typography
 
-- **Family:** Inter (`--font-sans`), Geist Mono for code. No serif anywhere.
-- **`text-sm` is retuned to 15px/1.4rem** in globals.css — the reference runs body and
-  menu type slightly larger than Tailwind's 14px default. Use `text-sm` as the body size.
-- Page title: `text-3xl font-bold tracking-tight` (~30px) — e.g. "Campaigns".
-- Page subtitle: `text-base text-muted-foreground`, `mt-2` under the title.
-- Section/tab labels: `text-sm font-medium`; card titles `text-lg font-semibold`.
+Matched to the reference design tokens (Geist-based scale).
+
+- **Family:** Geist (`--font-sans`, variable), Geist Mono for code. No serif.
+- **Scale** (Tailwind classes → reference tokens):
+  - `text-xs` = caption/label, 12px with a retuned **18px** line-height
+    (`--text-xs--line-height` in globals.css).
+  - `text-sm` = body-sm, **14px/20px** (Tailwind default; the old 15px retune
+    is gone). This is the body size: nav items, table cells, controls.
+  - `text-base` = body-md, 16px/24px — page subtitles, prose.
+  - `text-xl` = body-xl, 20px — auth-card titles and similar.
+  - `text-2xl` = display-xs, **24px/32px** — page titles. Nothing on an app
+    page renders larger than 24px.
+- **Weights:** 400 body, 500 medium (active nav, labels, chips), 600 semibold
+  (page titles, card titles, table headers), 700 reserved for rare emphasis.
+- **Letter-spacing:** none at app sizes; negative tracking only at display
+  sizes ≥36px, which the app does not use.
+- Page title: `text-2xl font-semibold`; subtitle `text-base text-muted-foreground mt-1.5`.
+- Section/tab labels: `text-sm font-medium`; card titles `text-base font-medium`
+  or `text-lg font-semibold` for prominent panels.
 - Table header: `text-sm font-semibold` in full ink (not muted).
-- Body, nav items, table cells: `text-sm` (15px); nav items `font-medium` when active.
-- Meta text (timestamps, group labels): `text-sm` muted or `text-xs` (group labels).
+- Meta text (timestamps, group labels, chips): `text-xs` muted.
 
 ## 4. Radii
 

@@ -18,6 +18,23 @@ assigned to the member test user) and three archived test agents.
 
 ---
 
+## 2026-07-22: Typography matched to the reference design tokens
+
+- Studied a full set of design tokens extracted from the reference app and
+  applied the typography faithfully: the font family is now Geist (with Geist
+  Mono for code), replacing Inter.
+- Corrected the type scale against the real tokens: body text returns to
+  14px/20px (the earlier 15px eyeball retune was wrong), captions get an 18px
+  line-height, and page titles step down from 30px bold to 24px semibold,
+  which is the largest size the reference ever uses on an app page. Letter
+  spacing at app sizes is removed (the reference only tightens display sizes
+  36px and up).
+- Deliberately NOT adopted from the tokens: their 8px and 12px corner radii
+  (our 4-6px rule stands) and their color palette (ours already matches their
+  warm neutral + green system almost value for value).
+- Style guide and the build-ui skill updated to the new scale; verified live
+  across pages with no console errors.
+
 ## 2026-07-22: Sidebar fix, duplicate Usage entry removed
 
 - Admins used to see Usage twice (main nav and the Admin section), a leftover
