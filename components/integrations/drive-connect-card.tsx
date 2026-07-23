@@ -21,6 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 
 const POLL_INTERVAL_MS = 3000
 const POLL_MAX_ATTEMPTS = 40
@@ -328,67 +329,83 @@ export function DriveConnectCard({
             </div>
           </DialogHeader>
 
-          <div className="grid gap-5 py-1">
-            <p className="text-sm text-muted-foreground">
-              Run uses this one connection for the whole company. Admins pin
-              Drive files to an agent as knowledge, and the agent reads them
-              before working on every mission.
-            </p>
+          <Tabs defaultValue="overview" className="gap-4">
+            <TabsList variant="line" className="border-b border-border">
+              <TabsTrigger value="overview" className="after:bg-primary">
+                Overview
+              </TabsTrigger>
+              <TabsTrigger value="connection" className="after:bg-primary">
+                Connection
+              </TabsTrigger>
+            </TabsList>
 
-            <div className="grid gap-2">
-              <h3 className="text-sm font-medium">Connection details</h3>
-              <dl className="divide-y divide-border rounded-lg border border-border">
-                {accountId && (
-                  <MetaRow label="Account ID" value={accountId} mono copyable />
-                )}
-                {connectorId && (
-                  <MetaRow label="Connector ID" value={connectorId} mono copyable />
-                )}
-                {connectedAt && (
-                  <MetaRow
-                    label="Connected on"
-                    value={connectedAt.slice(0, 10).replaceAll('-', '/')}
-                  />
-                )}
-                {connectedByName && (
-                  <MetaRow label="Connected by" value={connectedByName} />
-                )}
-                <MetaRow label="Environment" value={environment} />
-                <MetaRow label="Provider" value="Pipedream Connect" />
-              </dl>
-            </div>
-
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div className="grid content-start gap-1.5">
-                <h3 className="text-sm font-medium">What agents can read</h3>
+            <TabsContent value="overview" keepMounted>
+              <div className="grid min-h-56 content-start gap-4">
                 <p className="text-sm text-muted-foreground">
-                  Google Docs, Google Sheets, Word documents, PDFs, and plain
-                  text or CSV files. Excel files need converting to Google
-                  Sheets first.
+                  Run uses this one connection for the whole company. Admins
+                  pin Drive files to an agent as knowledge, and the agent
+                  reads them before working on every mission.
+                </p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid content-start gap-1.5">
+                    <h3 className="text-sm font-medium">What agents can read</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Google Docs, Google Sheets, Word documents, PDFs, and
+                      plain text or CSV files. Excel files need converting to
+                      Google Sheets first.
+                    </p>
+                  </div>
+                  <div className="grid content-start gap-1.5">
+                    <h3 className="text-sm font-medium">What Run stores</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Only file names and ids, never copies of your files.
+                      Contents are read fresh from Drive at mission time, so
+                      agents always see the latest version.
+                    </p>
+                  </div>
+                </div>
+                <div className="grid gap-1.5">
+                  <h3 className="text-sm font-medium">Access and disconnecting</h3>
+                  <p className="text-sm text-muted-foreground">
+                    Google credentials stay with Pipedream, our OAuth
+                    provider; Run never sees them. Disconnecting revokes
+                    access immediately. Pinned file lists are kept, but
+                    agents cannot read them until Drive is reconnected.
+                  </p>
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="connection" keepMounted>
+              <div className="grid min-h-56 content-start gap-2">
+                <dl className="divide-y divide-border rounded-lg border border-border">
+                  {accountId && (
+                    <MetaRow label="Account ID" value={accountId} mono copyable />
+                  )}
+                  {connectorId && (
+                    <MetaRow label="Connector ID" value={connectorId} mono copyable />
+                  )}
+                  {connectedAt && (
+                    <MetaRow
+                      label="Connected on"
+                      value={connectedAt.slice(0, 10).replaceAll('-', '/')}
+                    />
+                  )}
+                  {connectedByName && (
+                    <MetaRow label="Connected by" value={connectedByName} />
+                  )}
+                  <MetaRow label="Environment" value={environment} />
+                  <MetaRow label="Provider" value="Pipedream Connect" />
+                </dl>
+                <p className="text-xs text-muted-foreground">
+                  These identifiers are safe to share with support; they grant
+                  no access on their own.
                 </p>
               </div>
-              <div className="grid content-start gap-1.5">
-                <h3 className="text-sm font-medium">What Run stores</h3>
-                <p className="text-sm text-muted-foreground">
-                  Only file names and ids, never copies of your files.
-                  Contents are read fresh from Drive at mission time, so
-                  agents always see the latest version.
-                </p>
-              </div>
-            </div>
+            </TabsContent>
+          </Tabs>
 
-            <div className="grid gap-1.5">
-              <h3 className="text-sm font-medium">Access and disconnecting</h3>
-              <p className="text-sm text-muted-foreground">
-                Google credentials stay with Pipedream, our OAuth provider;
-                Run never sees them. Disconnecting revokes access immediately.
-                Pinned file lists are kept, but agents cannot read them until
-                Drive is reconnected.
-              </p>
-            </div>
-
-            {error && <p className="text-sm text-destructive">{error}</p>}
-          </div>
+          {error && <p className="text-sm text-destructive">{error}</p>}
 
           <DialogFooter className="-mx-6 -mb-6 px-6 py-4">
             {confirmingDisconnect ? (

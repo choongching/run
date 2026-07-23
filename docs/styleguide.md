@@ -151,15 +151,18 @@ above clamped to 6px), so `rounded-xl` and larger render at 6px too.
   trigger (`role="button"`, hover lift, a `text-xs` "View details" + chevron
   affordance); destructive/config actions live in the modal, not on the card.
   Modal anatomy (`sm:max-w-xl p-6`): header row of logo tile + title + status
-  chip; a lead sentence; a "Connection details" metadata panel (`dl` with
+  chip; then two line-variant tabs so prose and metadata never share one
+  scroll: **Overview** (a lead sentence plus titled explainer sections,
+  `text-sm font-medium` heading and muted `text-sm` body, short ones paired
+  in a `sm:grid-cols-2` grid) and **Connection** (a metadata `dl` with
   `rounded-lg border divide-y`, rows `min-h-9 px-3 flex justify-between`,
   muted `text-sm` label left, value right, ids in `font-mono text-xs` with a
-  ghost `icon-xs` Copy button that toasts on copy); then titled explainer
-  sections (`text-sm font-medium` heading, muted `text-sm` body), pairing
-  short ones in a `sm:grid-cols-2` grid; footer holds Disconnect (outline
-  with `text-destructive`) + Close, swapping in place to the two-step
-  confirm (Keep connected / destructive Confirm) rather than stacking a
-  second modal.
+  ghost `icon-xs` Copy button that toasts on copy, plus a reassuring
+  `text-xs` caption). Give both panels a matching `min-h` so switching tabs
+  does not resize the modal. Footer holds Disconnect (outline with
+  `text-destructive`) + Close, swapping in place to the two-step confirm
+  (Keep connected / destructive Confirm) rather than stacking a second
+  modal.
 - **Selection toast:** centered bottom `bg-card rounded-xl border shadow-lg px-4 py-3`.
 - **FAB:** fixed bottom-right `size-13 rounded-full bg-primary text-primary-foreground shadow-lg`.
 
