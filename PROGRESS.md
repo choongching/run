@@ -8,14 +8,73 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** Phase 2 (admin configuration) is merged to `main` via
-pull request #2, including the agent lifecycle schema redesign and the full
-design-system pass (Geist typography at reference token sizes, 4-6px radii,
-listing anatomy, card overflow menus, meta chips). Next up: Phase 3, Google
-Drive integration via Pipedream, which needs Pipedream credentials in
-`.env.local` before work can start. Dev data note: one active agent
-(Marketing Writer, assigned to the member test user) and three archived test
-agents.
+**Where we left off:** Phase 3 (Google Drive integration via Pipedream) is
+built, tested end to end against a real Drive connection, and committed on the
+`phase-3` branch, ready to merge to `main`. The agent detail page also got a
+full redesign (breadcrumb, status chip, section tabs). Next up: merge
+`phase-3`, then Phase 4, the Missions board with real agent runs. Dev data
+note: Google Drive is connected live, and the Marketing Writer agent has ten
+real knowledge files pinned.
+
+---
+
+## 2026-07-23: Phase 3, Google Drive integration, built and verified
+
+- Applied migration 008: the company settings row now stores the Pipedream
+  connection (account id and who connected it), and a new agent_knowledge
+  table stores which Drive files are pinned to each agent (names and ids
+  only, never file contents). Row security follows the Phase 2 design rule:
+  admins manage everything, members can only read knowledge for active
+  agents assigned to them, verified with database probes for an assigned
+  member, an unassigned user, and a blocked member write.
+- Built the org-level Google Drive connection through Pipedream Connect: an
+  admin clicks Connect, approves Google access on Pipedream's hosted page,
+  and is redirected back to the app with the connection confirmed. Google
+  credentials stay with Pipedream; the app never sees them.
+- Built the Drive file listing API (supported formats only, paginated) and
+  the per-agent knowledge API, plus the file picker on the agent page:
+  search, file type icons, auto-saving checkboxes, a pinned count, and Load
+  more. Verified against a real Drive with over 100 files, including that
+  pinned selections survive reloads.
+- Built server-side text extraction so agent knowledge can be mounted into
+  Claude sessions as readable text: Google Docs and Sheets, Word documents,
+  PDFs, and plain text or CSV. Verified live on real files of each type.
+  One unreadable file can never abort a mission; it becomes an explanatory
+  note instead.
+- Found a real blocker during testing: the Pipedream proxy only allows the
+  Drive API domain, so the reference spec's plan of calling the native
+  Google Docs and Sheets APIs cannot work. Fixed by reading both through
+  Drive's export endpoint, which is simpler anyway. Recorded the constraint
+  for Phase 4, since mission outputs must respect the same rule.
+- Hardened the integration against the official Pipedream docs: account
+  selection now prefers healthy accounts and ignores dead ones, stale
+  accounts from reconnects are cleaned up, duplicate pins in one save are
+  deduped, and broken-connection errors tell the admin how to fix them.
+- Fixed the reconnect experience after user feedback: the page you land on
+  after Google consent now completes the connection itself and the app
+  gained a proper toast system, so connecting, failing, and disconnecting
+  all give clear feedback instead of requiring a manual refresh.
+- Closed the phase with the full gate: lint and TypeScript clean, no
+  console errors, member gets 403 from all six new endpoints and is
+  redirected away from admin pages.
+
+## 2026-07-23: Agent detail page redesigned, connector UI polished
+
+- Redesigned the agent detail page taking structural cues from a reference
+  product: a breadcrumb back to the listing, the agent name as the title
+  with a live status chip, and the form split into three tabs
+  (Configuration, System prompt, Knowledge) with Save and Cancel always
+  visible beside the tabs. The system prompt editor gained a toolbar with
+  Generate with AI on the left and the Edit/Preview toggle on the right.
+- The Google Drive connector now shows its official logo, and its empty
+  state is a proper centered hero with friendly copy and one clear action,
+  echoed by a mini version on the agent Knowledge tab.
+- Clicking the connected Drive card opens a detail overlay modal explaining
+  what agents can read, what Run stores, and how access and disconnecting
+  work, with disconnect (two-step confirm) living in the modal footer.
+- All the new patterns (detail page anatomy, empty-state hero, connector
+  detail modal, brand logo exception) are recorded in the style guide so
+  future screens inherit them.
 
 ---
 
