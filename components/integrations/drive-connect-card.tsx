@@ -340,30 +340,31 @@ export function DriveConnectCard({
             </TabsList>
 
             <TabsContent value="overview" keepMounted>
-              <div className="grid min-h-56 content-start gap-4">
+              <div className="grid min-h-56 content-start gap-5">
                 <p className="text-sm text-muted-foreground">
                   One connection for the whole company. Pin Drive files to an
                   agent, and it reads them before every mission.
                 </p>
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="grid content-start gap-1.5">
-                    <h3 className="text-sm font-medium">What agents read</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Docs, Sheets, Word, PDF, text, and CSV files. Convert
-                      Excel files to Google Sheets first.
-                    </p>
-                  </div>
-                  <div className="grid content-start gap-1.5">
-                    <h3 className="text-sm font-medium">What Run keeps</h3>
-                    <p className="text-sm text-muted-foreground">
-                      File names and ids only, never copies. Contents are
-                      read fresh from Drive at mission time.
-                    </p>
-                  </div>
-                </div>
-                <div className="grid gap-1.5">
-                  <h3 className="text-sm font-medium">Access</h3>
-                  <p className="text-sm text-muted-foreground">
+                {/* Same label-left rhythm as the Connection tab's rows. */}
+                <div className="grid gap-1 sm:grid-cols-[8.5rem_1fr] sm:gap-x-6 sm:gap-y-0">
+                  <h3 className="text-sm font-medium sm:py-1.5">
+                    What agents read
+                  </h3>
+                  <p className="text-sm text-muted-foreground sm:py-1.5">
+                    Docs, Sheets, Word, PDF, text, and CSV files. Convert
+                    Excel files to Google Sheets first.
+                  </p>
+                  <h3 className="mt-3 text-sm font-medium sm:mt-0 sm:py-1.5">
+                    What Run keeps
+                  </h3>
+                  <p className="text-sm text-muted-foreground sm:py-1.5">
+                    File names and ids only, never copies. Contents are read
+                    fresh from Drive at mission time.
+                  </p>
+                  <h3 className="mt-3 text-sm font-medium sm:mt-0 sm:py-1.5">
+                    Access
+                  </h3>
+                  <p className="text-sm text-muted-foreground sm:py-1.5">
                     Google credentials stay with Pipedream; Run never sees
                     them. Disconnecting revokes access instantly. Pinned
                     files stay listed but unreadable until you reconnect.

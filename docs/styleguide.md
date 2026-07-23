@@ -152,9 +152,10 @@ above clamped to 6px), so `rounded-xl` and larger render at 6px too.
   affordance); destructive/config actions live in the modal, not on the card.
   Modal anatomy (`sm:max-w-xl p-6`): header row of logo tile + title + status
   chip; then two line-variant tabs so prose and metadata never share one
-  scroll: **Overview** (a lead sentence plus titled explainer sections,
-  `text-sm font-medium` heading and muted `text-sm` body, short ones paired
-  in a `sm:grid-cols-2` grid) and **Connection** (a metadata `dl` with
+  scroll: **Overview** (a lead sentence, then explainer rows in a
+  label-left grid `sm:grid-cols-[8.5rem_1fr]`, `text-sm font-medium` label
+  and muted `text-sm` body, echoing the metadata rows so both tabs share
+  one rhythm) and **Connection** (a metadata `dl` with
   `rounded-lg border divide-y`, rows `min-h-9 px-3 flex justify-between`,
   muted `text-sm` label left, value right, ids in `font-mono text-xs` with a
   ghost `icon-xs` Copy button that toasts on copy, plus a reassuring
