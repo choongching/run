@@ -1,0 +1,367 @@
+'use client'
+
+import { useEffect, useRef, useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { toast } from 'sonner'
+import { ChevronRight, FileSpreadsheet, FileText, LoaderCircle } from 'lucide-react'
+import { GoogleDriveIcon } from '@/components/icons/google-drive'
+import { Button } from '@/components/ui/button'
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card'
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+
+const POLL_INTERVAL_MS = 3000
+const POLL_MAX_ATTEMPTS = 40
+
+export function DriveConnectCard({
+  connected,
+  connectedByName,
+  oauthResult = null,
+}: {
+  connected: boolean
+  connectedByName: string | null
+  oauthResult?: 'connected' | 'error' | null
+}) {
+  const router = useRouter()
+  const [phase, setPhase] = useState<'idle' | 'starting' | 'waiting'>('idle')
+  const [detailsOpen, setDetailsOpen] = useState(false)
+  const [confirmingDisconnect, setConfirmingDisconnect] = useState(false)
+  const [disconnecting, setDisconnecting] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const pollTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const handledOauthResult = useRef(false)
+
+  useEffect(() => {
+    return () => {
+      if (pollTimer.current) clearTimeout(pollTimer.current)
+    }
+  }, [])
+
+  // Pipedream redirects back here with a marker after its hosted OAuth flow.
+  // This tab is freshly loaded (no polling), so finish the handshake now.
+  useEffect(() => {
+    if (!oauthResult || handledOauthResult.current) return
+    handledOauthResult.current = true
+
+    async function finalize() {
+      // Wait a tick so the root-layout Toaster has subscribed; effects in the
+      // page subtree run before the layout sibling's on a fresh load, and a
+      // toast fired before subscription is silently dropped.
+      await new Promise((resolve) => setTimeout(resolve, 50))
+      if (oauthResult === 'error') {
+        toast.error('Google Drive connection failed or was cancelled.')
+      } else if (connected) {
+        toast.success('Google Drive connected.')
+      } else {
+        try {
+          const res = await fetch('/api/integrations/drive', { method: 'POST' })
+          const data = await res.json()
+          if (res.ok && data.connected) {
+            toast.success('Google Drive connected.')
+          } else {
+            toast.error(
+              'Could not confirm the Google Drive connection. Try reloading this page.'
+            )
+          }
+        } catch {
+          toast.error(
+            'Could not confirm the Google Drive connection. Try reloading this page.'
+          )
+        }
+      }
+      // Drop the marker from the URL and re-render with fresh server state.
+      router.replace('/admin/integrations')
+      router.refresh()
+    }
+    finalize()
+  }, [oauthResult, connected, router])
+
+  function stopPolling() {
+    if (pollTimer.current) clearTimeout(pollTimer.current)
+    pollTimer.current = null
+    setPhase('idle')
+  }
+
+  async function handleConnect() {
+    setError(null)
+    setPhase('starting')
+    try {
+      const res = await fetch('/api/integrations/drive')
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Could not start the connection')
+      window.open(data.connect_url, '_blank', 'noopener')
+      setPhase('waiting')
+      poll(0)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Could not start the connection')
+      setPhase('idle')
+    }
+  }
+
+  function poll(attempt: number) {
+    pollTimer.current = setTimeout(async () => {
+      try {
+        const res = await fetch('/api/integrations/drive', { method: 'POST' })
+        const data = await res.json()
+        if (res.ok && data.connected) {
+          stopPolling()
+          toast.success('Google Drive connected.')
+          router.refresh()
+          return
+        }
+      } catch {
+        // Transient network failure; keep polling until attempts run out.
+      }
+      if (attempt + 1 >= POLL_MAX_ATTEMPTS) {
+        stopPolling()
+        setError(
+          'Timed out waiting for Google authorization. If you finished connecting, reload this page.'
+        )
+        return
+      }
+      poll(attempt + 1)
+    }, POLL_INTERVAL_MS)
+  }
+
+  async function handleDisconnect() {
+    setDisconnecting(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/integrations/drive', { method: 'DELETE' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error ?? 'Disconnect failed')
+      setConfirmingDisconnect(false)
+      setDetailsOpen(false)
+      toast.success('Google Drive disconnected.')
+      router.refresh()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Disconnect failed')
+    } finally {
+      setDisconnecting(false)
+    }
+  }
+
+  if (!connected) {
+    // Hero empty state: icon cluster, friendly why, one clear action.
+    return (
+      <Card className="max-w-3xl">
+        <CardContent className="flex flex-col items-center px-6 py-14 text-center">
+          <div aria-hidden className="flex items-end">
+            <div className="z-0 flex size-11 -rotate-6 translate-x-1.5 items-center justify-center rounded-lg border border-border bg-background shadow-xs">
+              <FileText className="size-5 stroke-[1.75] text-muted-foreground" />
+            </div>
+            <div className="z-10 flex size-12 -translate-y-1 items-center justify-center rounded-lg border border-border bg-background shadow-xs">
+              <GoogleDriveIcon className="size-5.5" />
+            </div>
+            <div className="z-0 flex size-11 rotate-6 -translate-x-1.5 items-center justify-center rounded-lg border border-border bg-background shadow-xs">
+              <FileSpreadsheet className="size-5 stroke-[1.75] text-muted-foreground" />
+            </div>
+          </div>
+          <h2 className="mt-6 text-xl font-semibold">
+            Google Drive isn&apos;t connected yet
+          </h2>
+          <p className="mt-2 max-w-lg text-sm text-muted-foreground">
+            Connect your company&apos;s Google Drive so agents can read your
+            shared knowledge files and save finished work back as Docs, Sheets,
+            and PDFs.
+          </p>
+          <div className="mt-6">
+            {phase === 'waiting' ? (
+              <div className="flex flex-col items-center gap-3">
+                <p className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+                  <LoaderCircle className="size-4 animate-spin" />
+                  Waiting for Google authorization in the other tab...
+                </p>
+                <Button variant="outline" size="sm" onClick={stopPolling}>
+                  Cancel
+                </Button>
+              </div>
+            ) : (
+              <Button onClick={handleConnect} disabled={phase === 'starting'}>
+                {phase === 'starting' ? 'Preparing...' : 'Connect Google Drive'}
+                <ChevronRight data-icon="inline-end" />
+              </Button>
+            )}
+          </div>
+          {phase !== 'waiting' && (
+            <p className="mt-3 text-xs text-muted-foreground">
+              Google sign-in opens in a new tab. One admin connects once, and
+              the whole team is covered.
+            </p>
+          )}
+          {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
+        </CardContent>
+      </Card>
+    )
+  }
+
+  // Connected: the card is a clickable summary; details and disconnect live
+  // in the overlay modal.
+  return (
+    <>
+      <Card
+        role="button"
+        tabIndex={0}
+        aria-haspopup="dialog"
+        onClick={() => setDetailsOpen(true)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            setDetailsOpen(true)
+          }
+        }}
+        className="max-w-3xl cursor-pointer transition-[box-shadow,background-color] hover:shadow-sm hover:ring-foreground/20 focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
+      >
+        <CardHeader>
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-background">
+                <GoogleDriveIcon className="size-4.5" />
+              </div>
+              <div className="grid gap-1.5">
+                <CardTitle>Google Drive</CardTitle>
+                <CardDescription>
+                  One company-wide connection. Agents read pinned knowledge
+                  files from Drive, and missions save their outputs there.
+                </CardDescription>
+              </div>
+            </div>
+            <span className="inline-flex h-6 shrink-0 items-center gap-1.5 rounded-md border border-border bg-background px-2 text-xs text-muted-foreground">
+              <span aria-hidden className="size-1.5 rounded-full bg-chart-1" />
+              Connected
+            </span>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-end text-muted-foreground">
+            <span className="inline-flex items-center gap-0.5 text-xs">
+              View details
+              <ChevronRight className="size-3.5 stroke-[1.75]" />
+            </span>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Dialog
+        open={detailsOpen}
+        onOpenChange={(open) => {
+          setDetailsOpen(open)
+          if (!open) {
+            setConfirmingDisconnect(false)
+            setError(null)
+          }
+        }}
+      >
+        <DialogContent className="gap-5 p-6 sm:max-w-lg">
+          <DialogHeader>
+            <div className="flex items-center gap-3 pr-8">
+              <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border bg-background">
+                <GoogleDriveIcon className="size-5" />
+              </div>
+              <DialogTitle>Google Drive</DialogTitle>
+              <span className="ml-auto inline-flex h-6 shrink-0 items-center gap-1.5 rounded-md border border-border bg-background px-2 text-xs text-muted-foreground">
+                <span aria-hidden className="size-1.5 rounded-full bg-chart-1" />
+                Connected
+              </span>
+            </div>
+          </DialogHeader>
+
+          <div className="grid gap-4 py-1">
+            <p className="text-sm text-muted-foreground">
+              Run uses this one connection for the whole company. Admins pin
+              Drive files to an agent as knowledge, and the agent reads them
+              before working on every mission.
+            </p>
+            <div className="grid gap-1.5">
+              <h3 className="text-sm font-medium">What agents can read</h3>
+              <p className="text-sm text-muted-foreground">
+                Google Docs, Google Sheets, Word documents, PDFs, and plain
+                text or CSV files. Excel files need converting to Google
+                Sheets first.
+              </p>
+            </div>
+            <div className="grid gap-1.5">
+              <h3 className="text-sm font-medium">What Run stores</h3>
+              <p className="text-sm text-muted-foreground">
+                Only file names and ids, never copies of your files. Contents
+                are read fresh from Drive at mission time, so agents always
+                see the latest version.
+              </p>
+            </div>
+            <div className="grid gap-1.5">
+              <h3 className="text-sm font-medium">Access and disconnecting</h3>
+              <p className="text-sm text-muted-foreground">
+                Google credentials stay with Pipedream, our OAuth provider;
+                Run never sees them. Disconnecting revokes access immediately.
+                Pinned file lists are kept, but agents cannot read them until
+                Drive is reconnected.
+              </p>
+            </div>
+            {connectedByName && (
+              <p className="text-xs text-muted-foreground">
+                Connected by {connectedByName}.
+              </p>
+            )}
+            {error && <p className="text-sm text-destructive">{error}</p>}
+          </div>
+
+          <DialogFooter className="-mx-6 -mb-6 px-6 py-4">
+            {confirmingDisconnect ? (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={() => setConfirmingDisconnect(false)}
+                  disabled={disconnecting}
+                >
+                  Keep connected
+                </Button>
+                <Button
+                  variant="destructive"
+                  onClick={handleDisconnect}
+                  disabled={disconnecting}
+                >
+                  {disconnecting ? (
+                    <>
+                      <LoaderCircle
+                        data-icon="inline-start"
+                        className="animate-spin"
+                      />
+                      Disconnecting...
+                    </>
+                  ) : (
+                    'Confirm disconnect'
+                  )}
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button
+                  variant="outline"
+                  className="text-destructive"
+                  onClick={() => setConfirmingDisconnect(true)}
+                >
+                  Disconnect
+                </Button>
+                <DialogClose render={<Button variant="outline" />}>
+                  Close
+                </DialogClose>
+              </>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  )
+}
