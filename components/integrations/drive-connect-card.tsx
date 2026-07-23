@@ -342,8 +342,8 @@ export function DriveConnectCard({
             <TabsContent value="overview" keepMounted>
               <div className="grid min-h-56 content-start gap-5">
                 <p className="text-sm text-muted-foreground">
-                  One connection for the whole company. Pin Drive files to an
-                  agent, and it reads them before every mission.
+                  Your whole company shares this one connection. Pin Drive
+                  files to an agent, and it reads them before every mission.
                 </p>
                 {/* Same label-left rhythm as the Connection tab's rows. */}
                 <div className="grid gap-1 sm:grid-cols-[8.5rem_1fr] sm:gap-x-6 sm:gap-y-0">
@@ -351,23 +351,23 @@ export function DriveConnectCard({
                     What agents read
                   </h3>
                   <p className="text-sm text-muted-foreground sm:py-1.5">
-                    Docs, Sheets, Word, PDF, text, and CSV files. Convert
-                    Excel files to Google Sheets first.
+                    Docs, Sheets, Word, PDF, text, and CSV files. Excel works
+                    too, once you convert it to a Google Sheet.
                   </p>
                   <h3 className="mt-3 text-sm font-medium sm:mt-0 sm:py-1.5">
                     What Run keeps
                   </h3>
                   <p className="text-sm text-muted-foreground sm:py-1.5">
-                    File names and ids only, never copies. Contents are read
-                    fresh from Drive at mission time.
+                    Just file names and ids, nothing more. Your files stay
+                    in Drive, and agents always read the latest version.
                   </p>
                   <h3 className="mt-3 text-sm font-medium sm:mt-0 sm:py-1.5">
                     Access
                   </h3>
                   <p className="text-sm text-muted-foreground sm:py-1.5">
-                    Google credentials stay with Pipedream; Run never sees
-                    them. Disconnecting revokes access instantly. Pinned
-                    files stay listed but unreadable until you reconnect.
+                    Your Google sign-in lives with Pipedream, never in Run.
+                    Disconnect anytime to cut access on the spot; your
+                    pinned files will be waiting when you reconnect.
                   </p>
                 </div>
               </div>
@@ -395,8 +395,8 @@ export function DriveConnectCard({
                   <MetaRow label="Provider" value="Pipedream Connect" />
                 </dl>
                 <p className="text-xs text-muted-foreground">
-                  These identifiers are safe to share with support; they grant
-                  no access on their own.
+                  Safe to share with support. On their own, these ids
+                  can&apos;t open anything.
                 </p>
               </div>
             </TabsContent>
