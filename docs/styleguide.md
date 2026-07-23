@@ -179,6 +179,18 @@ above clamped to 6px), so `rounded-xl` and larger render at 6px too.
   to action itself (outline sm "+ Assign agents") instead of muted placeholder
   text. Keep the selected record in state after close so the exit animation
   keeps its content.
+- **Kanban board** (first use: Missions): a toolbar row above the grid
+  (count + meta + hairline, primary action pinned right), then
+  `grid gap-4 md:grid-cols-3`. Columns are soft washes, not cards:
+  `rounded-xl bg-muted/40 p-3 min-h-44` with a `text-sm font-medium` title +
+  `text-xs` muted count header and a `gap-3` card stack. Empty columns show a
+  dashed `rounded-lg border-dashed text-xs` placeholder naming the state
+  ("Nothing queued"), never blank space. Cards are white, `py-4 px-4 gap-3`,
+  whole card clickable to the detail page; the per-state action lives
+  bottom-right of the card (primary Run when actionable, muted
+  spinner + label while working, outline link button when done) with the
+  identity chip bottom-left. Board state is client-authoritative after
+  mount: cards move columns from the API response, not a refetch.
 - **Selection toast:** centered bottom `bg-card rounded-xl border shadow-lg px-4 py-3`.
 - **FAB:** fixed bottom-right `size-13 rounded-full bg-primary text-primary-foreground shadow-lg`.
 

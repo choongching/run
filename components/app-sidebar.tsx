@@ -1,11 +1,16 @@
 'use client'
 
+import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { LogOut } from 'lucide-react'
 
 import { logout } from '@/app/actions/auth'
+import {
+  AgentPersonaliseDrawer,
+  type SquadMember,
+} from '@/components/squad/agent-personalise-drawer'
 import {
   AgentsIcon,
   CompanyIcon,
@@ -48,12 +53,25 @@ type AppSidebarProps = {
   displayName: string
   email: string
   avatarUrl: string | null
+  squad: SquadMember[]
 }
 
-export function AppSidebar({ role, displayName, email, avatarUrl }: AppSidebarProps) {
+export function AppSidebar({
+  role,
+  displayName,
+  email,
+  avatarUrl,
+  squad,
+}: AppSidebarProps) {
   const pathname = usePathname()
   const name = displayName || email
   const initials = name.slice(0, 2).toUpperCase()
+  // Keep the selected member after close so the drawer's exit animation
+  // keeps its content.
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null)
+  const [drawerOpen, setDrawerOpen] = useState(false)
+  const selectedMember =
+    squad.find((m) => m.agent_id === selectedAgentId) ?? null
 
   return (
     <Sidebar variant="inset">
@@ -86,6 +104,32 @@ export function AppSidebar({ role, displayName, email, avatarUrl }: AppSidebarPr
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {squad.length > 0 && (
+          <SidebarGroup>
+            <SidebarGroupLabel>My Squad</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                {squad.map((member) => (
+                  <SidebarMenuItem key={member.agent_id}>
+                    <SidebarMenuButton
+                      isActive={
+                        drawerOpen && selectedAgentId === member.agent_id
+                      }
+                      onClick={() => {
+                        setSelectedAgentId(member.agent_id)
+                        setDrawerOpen(true)
+                      }}
+                    >
+                      <AgentsIcon className="size-4.5 shrink-0" />
+                      <span className="truncate">{member.name}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                ))}
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
 
         {role === 'admin' && (
           <SidebarGroup>
@@ -147,6 +191,12 @@ export function AppSidebar({ role, displayName, email, avatarUrl }: AppSidebarPr
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
+
+      <AgentPersonaliseDrawer
+        member={selectedMember}
+        open={drawerOpen}
+        onOpenChange={setDrawerOpen}
+      />
     </Sidebar>
   )
 }

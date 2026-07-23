@@ -8,14 +8,62 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** Phase 3 (Google Drive integration via Pipedream) is
-merged to `main` via pull request #3, tested end to end against a real Drive
-connection. The agent detail page also got a full redesign (breadcrumb,
-status chip, section tabs), and the connector detail modal grew into a
-proper two-tab SaaS surface. Next up: Phase 4, the Missions board with real
-agent runs, on a fresh `phase-4` branch. Dev data note: Google Drive is
-connected live, and the Marketing Writer agent has ten real knowledge files
-pinned.
+**Where we left off:** Phase 4 (the Missions board with real agent runs) is
+built and verified live on the `phase-4` branch, together with a redesigned
+Users page (squad chips in the table, side-drawer assignment). Missions run
+through Claude Managed Agents Sessions with knowledge files mounted, and
+outputs land in Google Drive as real Docs and Sheets. Next up: review and
+merge `phase-4`, then Phase 5 (usage tracking, profiles, production
+hardening).
+
+---
+
+## 2026-07-24: Phase 4, the Missions board with real agent runs
+
+- New `missions` table (migration 010) with status and output-type enums,
+  owner-scoped row security (admins can read all missions but the board is
+  always personal), plus a column for the shared Claude runtime environment.
+- One-time runtime setup: an "Agent runtime" card on Admin > Integrations
+  creates the Claude cloud environment with one click and shows its ID once
+  ready. All mission sessions run inside this shared environment.
+- The mission run pipeline, verified with three real live runs:
+  - Each pinned knowledge file is extracted to text, uploaded, and mounted
+    into the session container; the agent is told the real mounted paths.
+    In the live test the agent correctly cited one of the ten mounted files.
+  - Company context and the user's personal agent instructions are folded
+    into every kickoff message. Verified live: a "Prepared by Run" sign-off
+    instruction saved in the drawer appeared as the final row of a
+    generated spreadsheet.
+  - Outputs: Google Doc, Google Sheet, PDF (a Doc served via Drive's PDF
+    export link), or plain text. Docs and Sheets are created through
+    Drive's upload-with-conversion endpoint because the Pipedream proxy
+    only allows the Drive API domain, so the spec's Docs/Sheets write APIs
+    could not be used. The mechanism was proven with a live probe first.
+  - Failed runs revert the mission to queued without losing the brief, and
+    the session ID is kept for inspection in the Anthropic Console.
+- The Missions page is now a real Kanban: Queued, In progress, Completed
+  columns, mission cards with agent chip and brief preview, a Run button on
+  queued cards, and New/Edit/Delete mission dialogs (editing only while
+  queued). Every mission has a detail page with the brief, the output (text
+  preview plus a link to the Drive file), and the run reference.
+- "My Squad" now lives in the sidebar: each assigned agent opens a
+  personalisation drawer where the user keeps standing instructions for
+  that agent.
+- Edge cases tested through the API: running or editing a non-queued
+  mission returns 409, invalid payloads return 400, agents outside your
+  squad are rejected, and row security probes passed (a member sees only
+  their own missions and cannot forge rows for someone else).
+
+## 2026-07-24: Users page redesign, squads at a glance
+
+- The Users table now shows each person's actual squad as agent name chips
+  (with a +n overflow), and an empty squad renders an inline "Assign
+  agents" button, so the gap and the fix are the same control.
+- Assignment moved from a separate manage page into a right-side drawer:
+  click any row, toggle agents in and out, changes save instantly and the
+  chips update behind the drawer. The old per-user page was removed.
+- The drawer pattern joined the style guide and became the base for the
+  Phase 4 squad personalisation drawer.
 
 ---
 

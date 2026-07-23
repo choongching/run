@@ -7,6 +7,22 @@ type AdminCheck =
   | { error: NextResponse; supabase: null; userId: null }
   | { error: null; supabase: SupabaseServerClient; userId: string }
 
+// Any signed-in user (missions are per-user; RLS scopes the queries).
+export async function requireUser(): Promise<AdminCheck> {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) {
+    return {
+      error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
+      supabase: null,
+      userId: null,
+    }
+  }
+  return { error: null, supabase, userId: user.id }
+}
+
 // Route handlers must enforce authorization themselves, never rely on the
 // dashboard shell having done it.
 export async function requireAdmin(): Promise<AdminCheck> {
