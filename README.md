@@ -9,9 +9,9 @@ and the Anthropic API.
 
 ## Project progress
 
-**Current status:** Phase 3 (Google Drive integration) is complete on the
-`phase-3` branch and verified against a live Drive connection. Phase 4 (the
-Missions board) is next.
+**Current status:** Phase 3 (Google Drive integration) is complete and merged
+to `main`, verified against a live Drive connection. Phase 4 (the Missions
+board) is next.
 
 The full, detailed history of what has been done, session by session and in
 plain English, lives in **[PROGRESS.md](./PROGRESS.md)**. It is updated at the

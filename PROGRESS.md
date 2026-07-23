@@ -9,12 +9,13 @@ the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
 **Where we left off:** Phase 3 (Google Drive integration via Pipedream) is
-built, tested end to end against a real Drive connection, and committed on the
-`phase-3` branch, ready to merge to `main`. The agent detail page also got a
-full redesign (breadcrumb, status chip, section tabs). Next up: merge
-`phase-3`, then Phase 4, the Missions board with real agent runs. Dev data
-note: Google Drive is connected live, and the Marketing Writer agent has ten
-real knowledge files pinned.
+merged to `main` via pull request #3, tested end to end against a real Drive
+connection. The agent detail page also got a full redesign (breadcrumb,
+status chip, section tabs), and the connector detail modal grew into a
+proper two-tab SaaS surface. Next up: Phase 4, the Missions board with real
+agent runs, on a fresh `phase-4` branch. Dev data note: Google Drive is
+connected live, and the Marketing Writer agent has ten real knowledge files
+pinned.
 
 ---
 
