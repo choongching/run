@@ -342,35 +342,31 @@ export function DriveConnectCard({
             <TabsContent value="overview" keepMounted>
               <div className="grid min-h-56 content-start gap-4">
                 <p className="text-sm text-muted-foreground">
-                  Run uses this one connection for the whole company. Admins
-                  pin Drive files to an agent as knowledge, and the agent
-                  reads them before working on every mission.
+                  One connection for the whole company. Pin Drive files to an
+                  agent, and it reads them before every mission.
                 </p>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="grid content-start gap-1.5">
-                    <h3 className="text-sm font-medium">What agents can read</h3>
+                    <h3 className="text-sm font-medium">What agents read</h3>
                     <p className="text-sm text-muted-foreground">
-                      Google Docs, Google Sheets, Word documents, PDFs, and
-                      plain text or CSV files. Excel files need converting to
-                      Google Sheets first.
+                      Docs, Sheets, Word, PDF, text, and CSV files. Convert
+                      Excel files to Google Sheets first.
                     </p>
                   </div>
                   <div className="grid content-start gap-1.5">
-                    <h3 className="text-sm font-medium">What Run stores</h3>
+                    <h3 className="text-sm font-medium">What Run keeps</h3>
                     <p className="text-sm text-muted-foreground">
-                      Only file names and ids, never copies of your files.
-                      Contents are read fresh from Drive at mission time, so
-                      agents always see the latest version.
+                      File names and ids only, never copies. Contents are
+                      read fresh from Drive at mission time.
                     </p>
                   </div>
                 </div>
                 <div className="grid gap-1.5">
-                  <h3 className="text-sm font-medium">Access and disconnecting</h3>
+                  <h3 className="text-sm font-medium">Access</h3>
                   <p className="text-sm text-muted-foreground">
-                    Google credentials stay with Pipedream, our OAuth
-                    provider; Run never sees them. Disconnecting revokes
-                    access immediately. Pinned file lists are kept, but
-                    agents cannot read them until Drive is reconnected.
+                    Google credentials stay with Pipedream; Run never sees
+                    them. Disconnecting revokes access instantly. Pinned
+                    files stay listed but unreadable until you reconnect.
                   </p>
                 </div>
               </div>
