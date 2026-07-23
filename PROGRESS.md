@@ -18,6 +18,24 @@ real knowledge files pinned.
 
 ---
 
+## 2026-07-23: Connector detail modal polished into a proper SaaS surface
+
+- The Google Drive modal now has two inner tabs: Overview (what the
+  connection does, in plain language) and Connection (the technical record:
+  account ID and connector ID with copy buttons, connected date, connected
+  by, environment, and provider). A new migration stores the connect
+  timestamp, captured from Pipedream's own account record.
+- Both tabs share one layout rhythm: section labels in a fixed left column
+  with content aligned beside them, so switching tabs feels like two views
+  of one surface. Spacing across the modal was widened so nothing crowds
+  the close button.
+- All the copy was rewritten twice over: first cut roughly a third shorter,
+  then warmed up from spec-speak to product voice ("Just file names and
+  ids, nothing more. Your files stay in Drive."). The front card was also
+  simplified to a single View details affordance.
+- Every state verified live in the browser along the way, with the copy
+  buttons confirming via toast and no console errors.
+
 ## 2026-07-23: Phase 3, Google Drive integration, built and verified
 
 - Applied migration 008: the company settings row now stores the Pipedream
