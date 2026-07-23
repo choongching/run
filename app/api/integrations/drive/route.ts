@@ -67,7 +67,12 @@ export async function POST() {
 
     const { error: dbError } = await supabase
       .from('company_settings')
-      .update({ pipedream_account_id: account.id, pipedream_connected_by: userId })
+      .update({
+        pipedream_account_id: account.id,
+        pipedream_connected_by: userId,
+        pipedream_connected_at:
+          account.createdAt?.toISOString() ?? new Date().toISOString(),
+      })
       .not('id', 'is', null)
     if (dbError) {
       return NextResponse.json({ error: dbError.message }, { status: 500 })
@@ -117,7 +122,11 @@ export async function DELETE() {
 
   const { error: dbError } = await supabase
     .from('company_settings')
-    .update({ pipedream_account_id: null, pipedream_connected_by: null })
+    .update({
+      pipedream_account_id: null,
+      pipedream_connected_by: null,
+      pipedream_connected_at: null,
+    })
     .not('id', 'is', null)
   if (dbError) {
     return NextResponse.json({ error: dbError.message }, { status: 500 })

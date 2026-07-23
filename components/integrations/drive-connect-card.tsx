@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { ChevronRight, FileSpreadsheet, FileText, LoaderCircle } from 'lucide-react'
+import { ChevronRight, Copy, FileSpreadsheet, FileText, LoaderCircle } from 'lucide-react'
 import { GoogleDriveIcon } from '@/components/icons/google-drive'
 import { Button } from '@/components/ui/button'
 import {
@@ -25,13 +25,63 @@ import {
 const POLL_INTERVAL_MS = 3000
 const POLL_MAX_ATTEMPTS = 40
 
+function MetaRow({
+  label,
+  value,
+  mono = false,
+  copyable = false,
+}: {
+  label: string
+  value: string
+  mono?: boolean
+  copyable?: boolean
+}) {
+  return (
+    <div className="flex min-h-9 items-center justify-between gap-4 px-3 py-1.5">
+      <dt className="shrink-0 text-sm text-muted-foreground">{label}</dt>
+      <dd className="flex min-w-0 items-center gap-1">
+        <span className={mono ? 'truncate font-mono text-xs' : 'truncate text-sm'}>
+          {value}
+        </span>
+        {copyable && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon-xs"
+            className="shrink-0 text-muted-foreground"
+            aria-label={`Copy ${label}`}
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(value)
+                toast.success(`${label} copied.`)
+              } catch {
+                toast.error('Could not copy to clipboard.')
+              }
+            }}
+          >
+            <Copy />
+          </Button>
+        )}
+      </dd>
+    </div>
+  )
+}
+
 export function DriveConnectCard({
   connected,
   connectedByName,
+  accountId = null,
+  connectorId = null,
+  connectedAt = null,
+  environment = 'Development',
   oauthResult = null,
 }: {
   connected: boolean
   connectedByName: string | null
+  accountId?: string | null
+  connectorId?: string | null
+  connectedAt?: string | null
+  environment?: string
   oauthResult?: 'connected' | 'error' | null
 }) {
   const router = useRouter()
@@ -264,7 +314,7 @@ export function DriveConnectCard({
           }
         }}
       >
-        <DialogContent className="gap-5 p-6 sm:max-w-lg">
+        <DialogContent className="gap-5 p-6 sm:max-w-xl">
           <DialogHeader>
             <div className="flex items-center gap-3 pr-8">
               <div className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border bg-background">
@@ -278,28 +328,55 @@ export function DriveConnectCard({
             </div>
           </DialogHeader>
 
-          <div className="grid gap-4 py-1">
+          <div className="grid gap-5 py-1">
             <p className="text-sm text-muted-foreground">
               Run uses this one connection for the whole company. Admins pin
               Drive files to an agent as knowledge, and the agent reads them
               before working on every mission.
             </p>
-            <div className="grid gap-1.5">
-              <h3 className="text-sm font-medium">What agents can read</h3>
-              <p className="text-sm text-muted-foreground">
-                Google Docs, Google Sheets, Word documents, PDFs, and plain
-                text or CSV files. Excel files need converting to Google
-                Sheets first.
-              </p>
+
+            <div className="grid gap-2">
+              <h3 className="text-sm font-medium">Connection details</h3>
+              <dl className="divide-y divide-border rounded-lg border border-border">
+                {accountId && (
+                  <MetaRow label="Account ID" value={accountId} mono copyable />
+                )}
+                {connectorId && (
+                  <MetaRow label="Connector ID" value={connectorId} mono copyable />
+                )}
+                {connectedAt && (
+                  <MetaRow
+                    label="Connected on"
+                    value={connectedAt.slice(0, 10).replaceAll('-', '/')}
+                  />
+                )}
+                {connectedByName && (
+                  <MetaRow label="Connected by" value={connectedByName} />
+                )}
+                <MetaRow label="Environment" value={environment} />
+                <MetaRow label="Provider" value="Pipedream Connect" />
+              </dl>
             </div>
-            <div className="grid gap-1.5">
-              <h3 className="text-sm font-medium">What Run stores</h3>
-              <p className="text-sm text-muted-foreground">
-                Only file names and ids, never copies of your files. Contents
-                are read fresh from Drive at mission time, so agents always
-                see the latest version.
-              </p>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid content-start gap-1.5">
+                <h3 className="text-sm font-medium">What agents can read</h3>
+                <p className="text-sm text-muted-foreground">
+                  Google Docs, Google Sheets, Word documents, PDFs, and plain
+                  text or CSV files. Excel files need converting to Google
+                  Sheets first.
+                </p>
+              </div>
+              <div className="grid content-start gap-1.5">
+                <h3 className="text-sm font-medium">What Run stores</h3>
+                <p className="text-sm text-muted-foreground">
+                  Only file names and ids, never copies of your files.
+                  Contents are read fresh from Drive at mission time, so
+                  agents always see the latest version.
+                </p>
+              </div>
             </div>
+
             <div className="grid gap-1.5">
               <h3 className="text-sm font-medium">Access and disconnecting</h3>
               <p className="text-sm text-muted-foreground">
@@ -309,11 +386,7 @@ export function DriveConnectCard({
                 Drive is reconnected.
               </p>
             </div>
-            {connectedByName && (
-              <p className="text-xs text-muted-foreground">
-                Connected by {connectedByName}.
-              </p>
-            )}
+
             {error && <p className="text-sm text-destructive">{error}</p>}
           </div>
 

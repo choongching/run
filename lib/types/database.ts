@@ -85,6 +85,7 @@ export type Database = {
           company_context: string | null
           pipedream_account_id: string | null
           pipedream_connected_by: string | null
+          pipedream_connected_at: string | null
           updated_at: string
         }
         Insert: {
@@ -92,6 +93,7 @@ export type Database = {
           company_context?: string | null
           pipedream_account_id?: string | null
           pipedream_connected_by?: string | null
+          pipedream_connected_at?: string | null
           updated_at?: string
         }
         Update: {
@@ -99,6 +101,7 @@ export type Database = {
           company_context?: string | null
           pipedream_account_id?: string | null
           pipedream_connected_by?: string | null
+          pipedream_connected_at?: string | null
           updated_at?: string
         }
         Relationships: []

@@ -16,7 +16,7 @@ export default async function IntegrationsPage({
 
   const { data: settings } = await supabase
     .from('company_settings')
-    .select('pipedream_account_id, pipedream_connected_by')
+    .select('pipedream_account_id, pipedream_connected_by, pipedream_connected_at')
     .not('id', 'is', null)
     .limit(1)
     .single()
@@ -42,6 +42,14 @@ export default async function IntegrationsPage({
           settings?.pipedream_account_id && settings.pipedream_connected_by
         )}
         connectedByName={connectedByName}
+        accountId={settings?.pipedream_account_id ?? null}
+        connectorId={settings?.pipedream_connected_by ?? null}
+        connectedAt={settings?.pipedream_connected_at ?? null}
+        environment={
+          process.env.PIPEDREAM_ENVIRONMENT === 'production'
+            ? 'Production'
+            : 'Development'
+        }
         oauthResult={oauthResult}
       />
     </>

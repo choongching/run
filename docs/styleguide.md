@@ -150,12 +150,16 @@ above clamped to 6px), so `rounded-xl` and larger render at 6px too.
 - **Connector detail modal:** a connected integration card is itself the
   trigger (`role="button"`, hover lift, a `text-xs` "View details" + chevron
   affordance); destructive/config actions live in the modal, not on the card.
-  Modal anatomy: header row of logo tile + title + one-line subtitle + status
-  chip; a lead sentence; then 2-3 titled sections (`text-sm font-medium`
-  heading, muted `text-sm` body) answering what it reads, what we store, and
-  how access/disconnect works; footer holds Disconnect (outline with
-  `text-destructive`) + Close, swapping in place to the two-step confirm
-  (Keep connected / destructive Confirm) rather than stacking a second modal.
+  Modal anatomy (`sm:max-w-xl p-6`): header row of logo tile + title + status
+  chip; a lead sentence; a "Connection details" metadata panel (`dl` with
+  `rounded-lg border divide-y`, rows `min-h-9 px-3 flex justify-between`,
+  muted `text-sm` label left, value right, ids in `font-mono text-xs` with a
+  ghost `icon-xs` Copy button that toasts on copy); then titled explainer
+  sections (`text-sm font-medium` heading, muted `text-sm` body), pairing
+  short ones in a `sm:grid-cols-2` grid; footer holds Disconnect (outline
+  with `text-destructive`) + Close, swapping in place to the two-step
+  confirm (Keep connected / destructive Confirm) rather than stacking a
+  second modal.
 - **Selection toast:** centered bottom `bg-card rounded-xl border shadow-lg px-4 py-3`.
 - **FAB:** fixed bottom-right `size-13 rounded-full bg-primary text-primary-foreground shadow-lg`.
 
