@@ -164,6 +164,21 @@ above clamped to 6px), so `rounded-xl` and larger render at 6px too.
   `text-destructive`) + Close, swapping in place to the two-step confirm
   (Keep connected / destructive Confirm) rather than stacking a second
   modal.
+- **Side drawer (Sheet):** for editing one row's details without leaving a
+  listing (first use: squad editing on Users). Right side, `sm:max-w-md`,
+  `gap-0` with header and footer split off by `border-b`/`border-t` hairlines
+  and a scrollable `flex-1 overflow-y-auto p-5` body. Header: identity row
+  (avatar/logo + `SheetTitle` + badge) over a one-line `SheetDescription`
+  naming the job to be done; `pr-12` clears the X button. Body lists are the
+  standard `divide-y rounded-xl border` rows with per-row toggle buttons that
+  auto-save instantly (outline "+ Assign" ↔ secondary "✓ In squad", spinner
+  while pending, toast only on failure) — no Save button, no dirty state, safe
+  to close anytime. Footer: a single full-width outline "Done". The trigger
+  row in the listing stays clickable end to end (`cursor-pointer`), with the
+  explicit button as the discoverable affordance; empty cells render the call
+  to action itself (outline sm "+ Assign agents") instead of muted placeholder
+  text. Keep the selected record in state after close so the exit animation
+  keeps its content.
 - **Selection toast:** centered bottom `bg-card rounded-xl border shadow-lg px-4 py-3`.
 - **FAB:** fixed bottom-right `size-13 rounded-full bg-primary text-primary-foreground shadow-lg`.
 
