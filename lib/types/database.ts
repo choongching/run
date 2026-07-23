@@ -83,17 +83,53 @@ export type Database = {
         Row: {
           id: string
           company_context: string | null
+          pipedream_account_id: string | null
+          pipedream_connected_by: string | null
+          pipedream_connected_at: string | null
           updated_at: string
         }
         Insert: {
           id?: string
           company_context?: string | null
+          pipedream_account_id?: string | null
+          pipedream_connected_by?: string | null
+          pipedream_connected_at?: string | null
           updated_at?: string
         }
         Update: {
           id?: string
           company_context?: string | null
+          pipedream_account_id?: string | null
+          pipedream_connected_by?: string | null
+          pipedream_connected_at?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      agent_knowledge: {
+        Row: {
+          id: string
+          agent_id: string
+          file_id: string
+          file_name: string
+          file_mime_type: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          agent_id: string
+          file_id: string
+          file_name: string
+          file_mime_type: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          agent_id?: string
+          file_id?: string
+          file_name?: string
+          file_mime_type?: string
+          created_at?: string
         }
         Relationships: []
       }
@@ -144,3 +180,4 @@ export type Profile = Database['public']['Tables']['profiles']['Row']
 export type Agent = Database['public']['Tables']['agents']['Row']
 export type CompanySettings = Database['public']['Tables']['company_settings']['Row']
 export type UserAgent = Database['public']['Tables']['user_agents']['Row']
+export type AgentKnowledge = Database['public']['Tables']['agent_knowledge']['Row']

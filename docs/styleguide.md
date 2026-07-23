@@ -91,6 +91,11 @@ above clamped to 6px), so `rounded-xl` and larger render at 6px too.
 - Icons inherit text color: ink in nav, muted in secondary contexts.
 - App nav icons live in `components/nav-icons.tsx` as re-exported lucide icons —
   swap there, never inline new icon styles in pages.
+- **Exception, connector logos:** third-party integrations (Google Drive, etc.)
+  show their official multicolor product mark, inlined as an SVG component in
+  `components/icons/`. Users recognise services by their real logo; never
+  substitute a generic monochrome stand-in for a named connector, and never
+  use brand marks for anything that is not that brand's connector.
 
 ## 7. Component recipes
 
@@ -104,7 +109,28 @@ above clamped to 6px), so `rounded-xl` and larger render at 6px too.
   + `font-medium`. Sub-items: `h-8`, same pill states, indented behind a 1px left rail.
   Count badge: `chart-2` blue text on a pale blue tint, `h-5 min-w-5 rounded-md text-xs`.
 - **Tabs:** plain text `text-sm font-medium text-muted-foreground`; active = ink text +
-  2px green underline.
+  2px green underline (line-variant `TabsList` with `after:bg-primary` on triggers).
+- **Detail page anatomy** (a record's own page, e.g. an agent): breadcrumb
+  (`Breadcrumb`, parent listing as a link, current name as `BreadcrumbPage`),
+  then title row `text-2xl font-semibold` name + status meta chip
+  (`AgentStatusChip` pattern), description as the standard subtitle. Below,
+  an inner nav row `border-b border-border` splitting the page into section
+  tabs (line variant, 16px leading icons via `data-icon="inline-start"`) with
+  the primary actions (Save + Cancel, `size="sm"`) pinned right of the same
+  row so they stay visible from every tab. One card per tab; narrow forms cap
+  at `max-w-3xl`, editors run full width. Sections that need a saved record
+  first (e.g. Knowledge on the create page) render as disabled tabs, not
+  hidden ones, so the flow stays discoverable.
+- **Empty-state hero** (a feature with nothing in it yet, e.g. no connections):
+  centered inside the card (`flex flex-col items-center py-14 text-center`).
+  Anatomy top to bottom: a cluster of three tilted icon tiles (`size-11/12`
+  `rounded-lg border border-border bg-background shadow-xs`, outer tiles
+  `-rotate-6`/`rotate-6` and nudged inward, center tile raised and on top,
+  monochrome Lucide icons in muted ink); headline `text-xl font-semibold`;
+  one friendly sentence of why (`text-sm text-muted-foreground max-w-lg`)
+  naming the concrete benefit; a single primary CTA with a trailing
+  `ChevronRight`; then a `text-xs` muted caption defusing the scary part
+  (what happens next, who has to do it). Never two competing actions.
 - **Table:** semibold ink header row, hover row wash `bg-muted/50`, green checkboxes,
   kebab (`⋮`) as `icon-sm` ghost/outline button, circular initial avatars in chart colors.
 - **Listing section row** (between page header and a grid/table): count + meta
@@ -121,6 +147,23 @@ above clamped to 6px), so `rounded-xl` and larger render at 6px too.
   (`[&_svg]:size-3`); status chips lead with a `size-1.5 rounded-full` dot in
   a data color (`chart-1` green for active, amber `chart-4` paused, muted for
   archived). Pin the chip row to the card bottom (`mt-auto`).
+- **Connector detail modal:** a connected integration card is itself the
+  trigger (`role="button"`, hover lift, a `text-xs` "View details" + chevron
+  affordance); destructive/config actions live in the modal, not on the card.
+  Modal anatomy (`sm:max-w-xl p-6`): header row of logo tile + title + status
+  chip; then two line-variant tabs so prose and metadata never share one
+  scroll: **Overview** (a lead sentence, then explainer rows in a
+  label-left grid `sm:grid-cols-[8.5rem_1fr]`, `text-sm font-medium` label
+  and muted `text-sm` body, echoing the metadata rows so both tabs share
+  one rhythm) and **Connection** (a metadata `dl` with
+  `rounded-lg border divide-y`, rows `min-h-9 px-3 flex justify-between`,
+  muted `text-sm` label left, value right, ids in `font-mono text-xs` with a
+  ghost `icon-xs` Copy button that toasts on copy, plus a reassuring
+  `text-xs` caption). Give both panels a matching `min-h` so switching tabs
+  does not resize the modal. Footer holds Disconnect (outline with
+  `text-destructive`) + Close, swapping in place to the two-step confirm
+  (Keep connected / destructive Confirm) rather than stacking a second
+  modal.
 - **Selection toast:** centered bottom `bg-card rounded-xl border shadow-lg px-4 py-3`.
 - **FAB:** fixed bottom-right `size-13 rounded-full bg-primary text-primary-foreground shadow-lg`.
 

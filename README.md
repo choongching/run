@@ -9,8 +9,9 @@ and the Anthropic API.
 
 ## Project progress
 
-**Current status:** Phase 2 (admin configuration) is complete and merged to
-`main`. Phase 3 (Google Drive integration) is next.
+**Current status:** Phase 3 (Google Drive integration) is complete on the
+`phase-3` branch and verified against a live Drive connection. Phase 4 (the
+Missions board) is next.
 
 The full, detailed history of what has been done, session by session and in
 plain English, lives in **[PROGRESS.md](./PROGRESS.md)**. It is updated at the
@@ -28,8 +29,10 @@ Done so far, at a glance:
 - ✅ **Phase 2, admin configuration:** company settings, agent
   create/edit/archive with Claude Managed Agents dual-write, AI-assisted prompt
   writing, and assigning agents to users.
-- 🔜 **Phase 3:** Google Drive integration and agent knowledge files.
-- ⬜ **Phase 4:** the Missions board with real agent runs.
+- ✅ **Phase 3, Google Drive and knowledge:** org-level Drive connection via
+  Pipedream Connect, per-agent knowledge files picked from Drive, and
+  server-side text extraction for Docs, Sheets, DOCX, PDF, TXT, and CSV.
+- 🔜 **Phase 4:** the Missions board with real agent runs.
 - ⬜ **Phase 5:** usage tracking, profiles, and production hardening.
 
 ## Getting started
