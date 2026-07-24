@@ -9,10 +9,9 @@ and the Anthropic API.
 
 ## Project progress
 
-**Current status:** Phase 4 (the Missions board with real agent runs) is
-complete and merged to `main`: missions run through Claude Managed Agents
-Sessions with knowledge files mounted, and outputs land in Google Drive as
-real Docs, Sheets, and PDFs. Phase 5 (usage, profiles, hardening) is next.
+**Current status:** Phase 5 (usage tracking, profile settings, and
+production hardening) is built and verified live on the `phase-5` branch,
+pending merge. All five roadmap phases are now built.
 
 The full, detailed history of what has been done, session by session and in
 plain English, lives in **[PROGRESS.md](./PROGRESS.md)**. It is updated at the
@@ -37,7 +36,10 @@ Done so far, at a glance:
   through Claude Managed Agents Sessions with mounted knowledge, Google
   Doc/Sheet/PDF outputs saved to Drive, and the My Squad sidebar with
   per-agent personal instructions.
-- ⬜ **Phase 5:** usage tracking, profiles, and production hardening.
+- 🔄 **Phase 5, usage and hardening (on `phase-5`, pending merge):** token
+  and cost tracking per mission run and prompt generation, the role-aware
+  Usage page, profile settings with avatar upload, and the production
+  hardening pass (403 sweep, secret-leak scan, deployment docs).
 
 ## Getting started
 
@@ -56,4 +58,27 @@ Anthropic keys, then open [http://localhost:3000](http://localhost:3000).
 ```bash
 npm run lint       # ESLint
 npx tsc --noEmit   # TypeScript
+npm run build      # production build
 ```
+
+## Deploying
+
+The app is a standard Next.js project and deploys cleanly to Vercel:
+
+1. **Supabase:** create a project and apply every migration in
+   `supabase/migrations/` in filename order (SQL editor or CLI). Turn email
+   confirmation on or off to taste under Auth settings.
+2. **Vercel:** import the repo and set the environment variables from
+   `.env.local.example`. `NEXT_PUBLIC_APP_URL` must be the deployed URL
+   (it is used for the Google Drive OAuth redirect).
+3. **Pipedream:** set `PIPEDREAM_ENVIRONMENT=production` and make sure the
+   Pipedream project has a production environment configured in its
+   dashboard, then reconnect Google Drive once from Admin > Integrations.
+4. **First run:** sign up (the first account can be promoted to admin by
+   setting `profiles.role = 'admin'` in Supabase), create the agent runtime
+   under Admin > Integrations, connect Google Drive, create an agent, and
+   run a mission.
+
+Mission runs are synchronous and can take a few minutes; the run route sets
+`maxDuration = 300`, which needs a Vercel plan that allows 300-second
+function durations (or lower the value and keep briefs small).

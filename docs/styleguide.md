@@ -191,6 +191,12 @@ above clamped to 6px), so `rounded-xl` and larger render at 6px too.
   spinner + label while working, outline link button when done) with the
   identity chip bottom-left. Board state is client-authoritative after
   mount: cards move columns from the API response, not a refetch.
+- **Stat cards** (first use: Usage): a `grid gap-4 sm:grid-cols-3` row above
+  the detail table. Each card `rounded-xl border bg-card p-5 shadow-xs`,
+  muted `text-sm` label, `text-2xl font-semibold` value, optional `text-xs`
+  muted caption for the breakdown. Numeric table columns under stat cards
+  are right-aligned `tabular-nums`; any estimated figure gets a `text-xs`
+  muted disclaimer under the table, not in the cells.
 - **Selection toast:** centered bottom `bg-card rounded-xl border shadow-lg px-4 py-3`.
 - **FAB:** fixed bottom-right `size-13 rounded-full bg-primary text-primary-foreground shadow-lg`.
 

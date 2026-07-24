@@ -8,11 +8,37 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** Phase 4 (the Missions board with real agent runs) is
-merged to `main` via pull request #4, verified live across all four output
-types, together with a redesigned Users page (squad chips in the table,
-side-drawer assignment). Next up: Phase 5 (usage tracking, profiles, and
-production hardening) on the `phase-5` branch.
+**Where we left off:** Phase 5 (usage tracking, profile settings, and
+production hardening) is built and verified live on the `phase-5` branch.
+Every roadmap phase is now built; what remains is reviewing and merging
+`phase-5`, then deployment whenever we are ready.
+
+---
+
+## 2026-07-24: Phase 5, usage tracking, profiles, and hardening
+
+- New `usage_events` table (migration 011): every mission run and AI prompt
+  writing session records its model, token counts, and an estimated cost.
+  Rows are written server-side with the service role key (there is
+  deliberately no insert policy); admins can read everything, users only
+  their own rows. Verified live: both event types recorded with exact
+  cost math, and a member probe sees zero of another user's events.
+- The Usage page is real now: stat cards (mission runs, tokens used,
+  estimated cost) over an events table, admins see the whole company with
+  a User column, members see just themselves. Costs are labeled as
+  estimates based on public per-token rates. A failed run still records
+  the tokens it burned before failing.
+- Settings grew a real profile card: display name editing and avatar
+  upload to a public Supabase Storage bucket, with writes locked to each
+  user's own folder. The sidebar picks the new picture up immediately.
+  Verification caught a real bug here: the storage insert failed because
+  reading the new row back needs a SELECT policy (the same Postgres lesson
+  as our agent policies in migration 007); migration 013 fixed it.
+- Hardening pass: member 403 sweep across all admin endpoints (including
+  the new environment route), a production build scan proving no server
+  secret values appear in any client bundle, and a Deploying section in
+  the README covering Vercel, Supabase migrations, Pipedream production
+  mode, and the mission run duration limit.
 
 ---
 
