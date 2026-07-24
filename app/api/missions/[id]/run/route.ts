@@ -5,6 +5,7 @@ import { getAnthropicClient, MANAGED_AGENTS_BETA } from '@/lib/anthropic/client'
 import { assertAgentInSquad } from '@/lib/missions'
 import { readDriveFile } from '@/lib/drive/read-file'
 import { createDriveFile } from '@/lib/drive/create-file'
+import { recordUsage } from '@/lib/usage'
 import type { Mission } from '@/lib/types/database'
 
 // The core of the product: run a queued mission through a Managed Agents
@@ -46,7 +47,7 @@ export async function POST(
 
   const { data: mission } = await supabase
     .from('missions')
-    .select('*, agents(id, name, status, claude_agent_id)')
+    .select('*, agents(id, name, status, model, claude_agent_id)')
     .eq('id', id)
     .eq('user_id', userId)
     .maybeSingle()
@@ -65,6 +66,7 @@ export async function POST(
     id: string
     name: string
     status: string
+    model: string
     claude_agent_id: string | null
   } | null
 
@@ -143,6 +145,9 @@ export async function POST(
   const anthropic = getAnthropicClient()
   const uploadedFileIds: string[] = []
   let sessionId: string | null = null
+  // Outside the try so a failed run still records the tokens it consumed.
+  let inputTokens = 0
+  let outputTokens = 0
 
   async function cleanupUploads() {
     await Promise.all(
@@ -228,8 +233,6 @@ export async function POST(
     })
 
     const agentMessages: string[] = []
-    let inputTokens = 0
-    let outputTokens = 0
     let sessionError: string | null = null
 
     for await (const event of stream) {
@@ -296,6 +299,16 @@ export async function POST(
 
     if (dbError) throw new Error(dbError.message)
 
+    void recordUsage({
+      userId,
+      agentId: agent.id,
+      missionId: id,
+      model: agent.model,
+      inputTokens,
+      outputTokens,
+      eventType: 'mission_run',
+    })
+
     // The session keeps its own copies of mounted files; the originals in the
     // Files API are no longer needed. Session is NOT archived — it stays
     // inspectable in the Console.
@@ -307,6 +320,19 @@ export async function POST(
     })
   } catch (err) {
     await cleanupUploads()
+    // A failed run still consumed whatever tokens were streamed before the
+    // failure; record them so usage stays honest.
+    if (inputTokens > 0 || outputTokens > 0) {
+      void recordUsage({
+        userId,
+        agentId: agent.id,
+        missionId: id,
+        model: agent.model,
+        inputTokens,
+        outputTokens,
+        eventType: 'mission_run',
+      })
+    }
     // Revert to queued so the brief is never lost; keep the session id (if
     // one was created) so the failed run stays inspectable.
     await supabase

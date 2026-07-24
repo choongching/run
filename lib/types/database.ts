@@ -3,6 +3,7 @@ export type OutputType = 'doc' | 'sheet' | 'text'
 export type AgentStatus = 'draft' | 'active' | 'paused' | 'archived'
 export type MissionStatus = 'needs_attention' | 'in_progress' | 'completed'
 export type MissionOutputType = 'doc' | 'sheet' | 'text' | 'pdf'
+export type UsageEventType = 'mission_run' | 'prompt_generation'
 
 // Hand-authored to match supabase/migrations/*.sql.
 // Regenerate with the Supabase CLI/MCP type generator as the schema grows.
@@ -201,6 +202,67 @@ export type Database = {
           },
         ]
       }
+      usage_events: {
+        Row: {
+          id: string
+          user_id: string
+          agent_id: string | null
+          mission_id: string | null
+          model: string
+          input_tokens: number
+          output_tokens: number
+          cost_usd: number
+          event_type: UsageEventType
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          agent_id?: string | null
+          mission_id?: string | null
+          model: string
+          input_tokens?: number
+          output_tokens?: number
+          cost_usd?: number
+          event_type: UsageEventType
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          agent_id?: string | null
+          mission_id?: string | null
+          model?: string
+          input_tokens?: number
+          output_tokens?: number
+          cost_usd?: number
+          event_type?: UsageEventType
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'usage_events_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'usage_events_agent_id_fkey'
+            columns: ['agent_id']
+            isOneToOne: false
+            referencedRelation: 'agents'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'usage_events_mission_id_fkey'
+            columns: ['mission_id']
+            isOneToOne: false
+            referencedRelation: 'missions'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       user_agents: {
         Row: {
           id: string
@@ -267,3 +329,4 @@ export type CompanySettings = Database['public']['Tables']['company_settings']['
 export type UserAgent = Database['public']['Tables']['user_agents']['Row']
 export type AgentKnowledge = Database['public']['Tables']['agent_knowledge']['Row']
 export type Mission = Database['public']['Tables']['missions']['Row']
+export type UsageEvent = Database['public']['Tables']['usage_events']['Row']

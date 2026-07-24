@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server'
 import { requireAdmin } from '@/lib/api-helpers'
 import { getAnthropicClient } from '@/lib/anthropic/client'
+import { recordUsage } from '@/lib/usage'
 
 const GENERATION_MODEL = 'claude-sonnet-5'
 
 export async function POST(request: Request) {
-  const { error, supabase } = await requireAdmin()
+  const { error, supabase, userId } = await requireAdmin()
   if (error) return error
 
   const body = await request.json().catch(() => null)
@@ -55,6 +56,14 @@ export async function POST(request: Request) {
       .map((block) => block.text)
       .join('\n')
       .trim()
+
+    void recordUsage({
+      userId,
+      model: GENERATION_MODEL,
+      inputTokens: response.usage.input_tokens,
+      outputTokens: response.usage.output_tokens,
+      eventType: 'prompt_generation',
+    })
 
     return NextResponse.json({ system_prompt: systemPrompt })
   } catch (err) {
