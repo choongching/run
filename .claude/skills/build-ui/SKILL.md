@@ -52,6 +52,15 @@ Goal: zero re-derivation, zero styling drift.
   `.dark` block in `globals.css`.
 - **Sidebar shell:** `variant="inset"`; sidebar width token is 15rem. Do not
   restyle the shell per page.
+- **Overlay forms (Dialog/Sheet):** React 19's `react-hooks/set-state-in-effect`
+  lint forbids seeding form state from props in an effect. Instead, put the
+  form state in an inner child component rendered inside
+  DialogContent/SheetContent with `key={recordId}`: base-nova unmounts closed
+  overlay content, so the `useState` initializers re-seed fresh on every open
+  (see `MissionDialogBody` and the squad drawer's `DrawerBody`).
+- **Overlay exit animations:** keep the selected record in state after close
+  (a separate `open` boolean drives visibility) so the overlay keeps its
+  content through the exit transition instead of flashing empty.
 
 ## 3. Verify visually before declaring done
 
