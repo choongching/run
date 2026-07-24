@@ -31,6 +31,8 @@ Deploying section) whenever we are ready.
 
 ## 2026-07-24: Phase 5, usage tracking, profiles, and hardening
 
+Merged to `main` via pull request #5.
+
 - New `usage_events` table (migration 011): every mission run and AI prompt
   writing session records its model, token counts, and an estimated cost.
   Rows are written server-side with the service role key (there is
@@ -57,6 +59,9 @@ Deploying section) whenever we are ready.
 ---
 
 ## 2026-07-24: Phase 4, the Missions board with real agent runs
+
+Merged to `main` via pull request #4, together with the Users page
+redesign below.
 
 - New `missions` table (migration 010) with status and output-type enums,
   owner-scoped row security (admins can read all missions but the board is
