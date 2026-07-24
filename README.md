@@ -9,10 +9,10 @@ and the Anthropic API.
 
 ## Project progress
 
-**Current status:** Phase 4 (the Missions board with real agent runs) is built
-and verified live on the `phase-4` branch: missions run through Claude Managed
-Agents Sessions with knowledge files mounted, and outputs land in Google Drive.
-Awaiting review and merge, then Phase 5.
+**Current status:** Phase 4 (the Missions board with real agent runs) is
+complete and merged to `main`: missions run through Claude Managed Agents
+Sessions with knowledge files mounted, and outputs land in Google Drive as
+real Docs, Sheets, and PDFs. Phase 5 (usage, profiles, hardening) is next.
 
 The full, detailed history of what has been done, session by session and in
 plain English, lives in **[PROGRESS.md](./PROGRESS.md)**. It is updated at the
@@ -33,10 +33,10 @@ Done so far, at a glance:
 - ✅ **Phase 3, Google Drive and knowledge:** org-level Drive connection via
   Pipedream Connect, per-agent knowledge files picked from Drive, and
   server-side text extraction for Docs, Sheets, DOCX, PDF, TXT, and CSV.
-- 🔄 **Phase 4, missions and agent runs (on `phase-4`, pending merge):** the
-  Missions Kanban, mission runs through Claude Managed Agents Sessions with
-  mounted knowledge, Google Doc/Sheet/PDF outputs saved to Drive, and the
-  My Squad sidebar with per-agent personal instructions.
+- ✅ **Phase 4, missions and agent runs:** the Missions Kanban, mission runs
+  through Claude Managed Agents Sessions with mounted knowledge, Google
+  Doc/Sheet/PDF outputs saved to Drive, and the My Squad sidebar with
+  per-agent personal instructions.
 - ⬜ **Phase 5:** usage tracking, profiles, and production hardening.
 
 ## Getting started

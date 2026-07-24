@@ -9,12 +9,10 @@ the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
 **Where we left off:** Phase 4 (the Missions board with real agent runs) is
-built and verified live on the `phase-4` branch, together with a redesigned
-Users page (squad chips in the table, side-drawer assignment). Missions run
-through Claude Managed Agents Sessions with knowledge files mounted, and
-outputs land in Google Drive as real Docs and Sheets. Next up: review and
-merge `phase-4`, then Phase 5 (usage tracking, profiles, production
-hardening).
+merged to `main` via pull request #4, verified live across all four output
+types, together with a redesigned Users page (squad chips in the table,
+side-drawer assignment). Next up: Phase 5 (usage tracking, profiles, and
+production hardening) on the `phase-5` branch.
 
 ---
 
