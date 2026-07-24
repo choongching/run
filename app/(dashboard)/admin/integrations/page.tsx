@@ -2,6 +2,7 @@ import { PageHeader } from '@/components/page-header'
 import { requireAdminPage } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import { DriveConnectCard } from '@/components/integrations/drive-connect-card'
+import { EnvironmentCard } from '@/components/integrations/environment-card'
 
 export default async function IntegrationsPage({
   searchParams,
@@ -16,7 +17,9 @@ export default async function IntegrationsPage({
 
   const { data: settings } = await supabase
     .from('company_settings')
-    .select('pipedream_account_id, pipedream_connected_by, pipedream_connected_at')
+    .select(
+      'pipedream_account_id, pipedream_connected_by, pipedream_connected_at, anthropic_environment_id'
+    )
     .not('id', 'is', null)
     .limit(1)
     .single()
@@ -52,6 +55,11 @@ export default async function IntegrationsPage({
         }
         oauthResult={oauthResult}
       />
+      <div className="mt-4">
+        <EnvironmentCard
+          environmentId={settings?.anthropic_environment_id ?? null}
+        />
+      </div>
     </>
   )
 }
