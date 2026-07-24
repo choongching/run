@@ -37,7 +37,7 @@ export function CompanyContextForm({ initialContext }: { initialContext: string 
         <CardTitle>Company context</CardTitle>
         <CardDescription>
           Brand guidelines, tone of voice, product facts. Injected verbatim into
-          AI prompt generation and, later, mission runs.
+          AI prompt generation and every mission run.
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-4">

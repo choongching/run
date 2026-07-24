@@ -6,7 +6,7 @@ import { Check, ChevronRight, LoaderCircle, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 import type { Agent, Profile } from '@/lib/types/database'
 import { AgentsIcon } from '@/components/nav-icons'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
@@ -70,6 +70,7 @@ export function SquadDrawer({
         <SheetHeader className="border-b border-border p-5 pr-12">
           <div className="flex items-center gap-3">
             <Avatar className="size-9">
+              {user.avatar_url && <AvatarImage src={user.avatar_url} alt={name} />}
               <AvatarFallback
                 className={`${avatarColor} text-xs font-medium text-white`}
               >

@@ -17,6 +17,18 @@ Deploying section) whenever we are ready.
 
 ---
 
+## 2026-07-24: Final QA pass, every roadmap requirement now verified
+
+- Closed the last three open verification items from the test plan in one
+  live run: web search produced a real current headline with a named
+  source, and the brand context demonstrably shaped the output (correct
+  company facts with no knowledge files mounted, and the saved voice rules
+  followed to the letter).
+- Full click-through of every screen against the design system. Two small
+  finds, both fixed: the Company page copy still called mission runs a
+  future feature, and uploaded profile pictures were not shown on the
+  Users page or in the squad drawer (only initials).
+
 ## 2026-07-24: Phase 5, usage tracking, profiles, and hardening
 
 - New `usage_events` table (migration 011): every mission run and AI prompt

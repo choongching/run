@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Plus } from 'lucide-react'
 import type { Agent, Profile } from '@/lib/types/database'
-import { Avatar, AvatarFallback } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { SquadDrawer } from '@/components/users/squad-drawer'
@@ -126,6 +126,12 @@ export function UsersTable({
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
                       <Avatar>
+                        {profile.avatar_url && (
+                          <AvatarImage
+                            src={profile.avatar_url}
+                            alt={profile.display_name ?? ''}
+                          />
+                        )}
                         <AvatarFallback
                           className={`${AVATAR_COLORS[i % AVATAR_COLORS.length]} text-xs font-medium text-white`}
                         >
