@@ -8,10 +8,12 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** Phase 5 (usage tracking, profile settings, and
-production hardening) is built and verified live on the `phase-5` branch.
-Every roadmap phase is now built; what remains is reviewing and merging
-`phase-5`, then deployment whenever we are ready.
+**Where we left off:** Phase 5 is merged to `main` via pull request #5.
+All five roadmap phases are complete: auth and the app shell, admin
+configuration, Google Drive knowledge, the Missions board with real agent
+runs, and usage tracking with production hardening. The app is
+feature-complete for v1; next step is deployment (see the README's
+Deploying section) whenever we are ready.
 
 ---
 

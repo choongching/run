@@ -9,9 +9,9 @@ and the Anthropic API.
 
 ## Project progress
 
-**Current status:** Phase 5 (usage tracking, profile settings, and
-production hardening) is built and verified live on the `phase-5` branch,
-pending merge. All five roadmap phases are now built.
+**Current status:** All five roadmap phases are complete and merged to
+`main`. The app is feature-complete for v1 and ready to deploy (see
+Deploying below).
 
 The full, detailed history of what has been done, session by session and in
 plain English, lives in **[PROGRESS.md](./PROGRESS.md)**. It is updated at the
@@ -36,10 +36,10 @@ Done so far, at a glance:
   through Claude Managed Agents Sessions with mounted knowledge, Google
   Doc/Sheet/PDF outputs saved to Drive, and the My Squad sidebar with
   per-agent personal instructions.
-- 🔄 **Phase 5, usage and hardening (on `phase-5`, pending merge):** token
-  and cost tracking per mission run and prompt generation, the role-aware
-  Usage page, profile settings with avatar upload, and the production
-  hardening pass (403 sweep, secret-leak scan, deployment docs).
+- ✅ **Phase 5, usage and hardening:** token and cost tracking per mission
+  run and prompt generation, the role-aware Usage page, profile settings
+  with avatar upload, and the production hardening pass (403 sweep,
+  secret-leak scan, deployment docs).
 
 ## Getting started
 
