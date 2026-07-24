@@ -26,7 +26,8 @@ hardening).
 - One-time runtime setup: an "Agent runtime" card on Admin > Integrations
   creates the Claude cloud environment with one click and shows its ID once
   ready. All mission sessions run inside this shared environment.
-- The mission run pipeline, verified with three real live runs:
+- The mission run pipeline, verified with four real live runs (one per
+  output type):
   - Each pinned knowledge file is extracted to text, uploaded, and mounted
     into the session container; the agent is told the real mounted paths.
     In the live test the agent correctly cited one of the ten mounted files.
@@ -35,10 +36,11 @@ hardening).
     instruction saved in the drawer appeared as the final row of a
     generated spreadsheet.
   - Outputs: Google Doc, Google Sheet, PDF (a Doc served via Drive's PDF
-    export link), or plain text. Docs and Sheets are created through
-    Drive's upload-with-conversion endpoint because the Pipedream proxy
-    only allows the Drive API domain, so the spec's Docs/Sheets write APIs
-    could not be used. The mechanism was proven with a live probe first.
+    export link, confirmed to serve real PDF bytes), or plain text. Docs
+    and Sheets are created through Drive's upload-with-conversion endpoint
+    because the Pipedream proxy only allows the Drive API domain, so the
+    spec's Docs/Sheets write APIs could not be used. The mechanism was
+    proven with a live probe first.
   - Failed runs revert the mission to queued without losing the brief, and
     the session ID is kept for inspection in the Anthropic Console.
 - The Missions page is now a real Kanban: Queued, In progress, Completed
