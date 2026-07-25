@@ -9,8 +9,8 @@ and the Anthropic API.
 
 ## Project progress
 
-**Current status:** All five roadmap phases are complete and merged to
-`main`. The app is feature-complete for v1 and ready to deploy (see
+**Current status:** All five v1 roadmap phases plus Phase 6 (observable
+runs) are complete and merged to `main`. The app is ready to deploy (see
 Deploying below).
 
 The full, detailed history of what has been done, session by session and in
@@ -40,6 +40,11 @@ Done so far, at a glance:
   run and prompt generation, the role-aware Usage page, profile settings
   with avatar upload, and the production hardening pass (403 sweep,
   secret-leak scan, deployment docs).
+- ✅ **Phase 6, observable runs:** every mission run now streams a live
+  Activity timeline (tool calls, web searches, the agent's own words) on the
+  mission page, with a real Stop control that halts the agent mid-run,
+  follow-up refinements in the same session, and honest Stopped and
+  "Did not finish" states that keep the brief re-runnable.
 
 ## Getting started
 

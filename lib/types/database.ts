@@ -1,7 +1,20 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
 export type UserRole = 'admin' | 'user'
 export type OutputType = 'doc' | 'sheet' | 'text'
 export type AgentStatus = 'draft' | 'active' | 'paused' | 'archived'
-export type MissionStatus = 'needs_attention' | 'in_progress' | 'completed'
+export type MissionStatus =
+  | 'needs_attention'
+  | 'in_progress'
+  | 'completed'
+  | 'stopped'
+  | 'failed'
 export type MissionOutputType = 'doc' | 'sheet' | 'text' | 'pdf'
 export type UsageEventType = 'mission_run' | 'prompt_generation'
 
@@ -152,6 +165,7 @@ export type Database = {
           output_text: string | null
           anthropic_run_id: string | null
           web_search: boolean
+          error_message: string | null
           created_at: string
           completed_at: string | null
         }
@@ -167,6 +181,7 @@ export type Database = {
           output_text?: string | null
           anthropic_run_id?: string | null
           web_search?: boolean
+          error_message?: string | null
           created_at?: string
           completed_at?: string | null
         }
@@ -182,6 +197,7 @@ export type Database = {
           output_text?: string | null
           anthropic_run_id?: string | null
           web_search?: boolean
+          error_message?: string | null
           created_at?: string
           completed_at?: string | null
         }
@@ -263,6 +279,38 @@ export type Database = {
           },
         ]
       }
+      mission_events: {
+        Row: {
+          id: number
+          mission_id: string
+          event_type: string
+          payload: Json
+          created_at: string
+        }
+        Insert: {
+          id?: never
+          mission_id: string
+          event_type: string
+          payload?: Json
+          created_at?: string
+        }
+        Update: {
+          id?: never
+          mission_id?: string
+          event_type?: string
+          payload?: Json
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'mission_events_mission_id_fkey'
+            columns: ['mission_id']
+            isOneToOne: false
+            referencedRelation: 'missions'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       user_agents: {
         Row: {
           id: string
@@ -329,4 +377,5 @@ export type CompanySettings = Database['public']['Tables']['company_settings']['
 export type UserAgent = Database['public']['Tables']['user_agents']['Row']
 export type AgentKnowledge = Database['public']['Tables']['agent_knowledge']['Row']
 export type Mission = Database['public']['Tables']['missions']['Row']
+export type MissionEvent = Database['public']['Tables']['mission_events']['Row']
 export type UsageEvent = Database['public']['Tables']['usage_events']['Row']

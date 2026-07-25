@@ -15,9 +15,11 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import type { MissionStatus } from '@/lib/types/database'
 import {
   MISSION_COLUMNS,
+  MISSION_COLUMN_FOR_STATUS,
+  MISSION_STATUS_DOT,
+  MISSION_STATUS_LABEL,
   OUTPUT_TYPE_LABEL,
   type MissionWithAgent,
   type SquadAgent,
@@ -78,26 +80,14 @@ export function MissionsBoard({
     setDialogOpen(true)
   }
 
-  async function runMission(mission: MissionWithAgent) {
+  // Start the run and go straight to the live Activity view; the run keeps
+  // executing server-side and the detail page tails its event feed.
+  function runMission(mission: MissionWithAgent) {
     upsertMission({ ...mission, status: 'in_progress' })
-    try {
-      const res = await fetch(`/api/missions/${mission.id}/run`, {
-        method: 'POST',
-      })
-      const body = await res.json().catch(() => null)
-      if (!res.ok) {
-        throw new Error(body?.error ?? `Run failed (${res.status})`)
-      }
-      upsertMission(body.mission as MissionWithAgent)
-      toast.success(`"${mission.title}" is done.`)
-      router.refresh()
-    } catch (err) {
-      upsertMission({ ...mission, status: 'needs_attention' })
-      toast.error(
-        err instanceof Error ? err.message : 'The mission run failed.'
-      )
-      router.refresh()
-    }
+    void fetch(`/api/missions/${mission.id}/run`, { method: 'POST' }).catch(
+      () => undefined
+    )
+    router.push(`/missions/${mission.id}`)
   }
 
   async function confirmDelete() {
@@ -156,7 +146,9 @@ export function MissionsBoard({
 
       <div className="grid gap-4 md:grid-cols-3">
         {MISSION_COLUMNS.map((column) => {
-          const columnMissions = missions.filter((m) => m.status === column.status)
+          const columnMissions = missions.filter(
+            (m) => MISSION_COLUMN_FOR_STATUS[m.status] === column.status
+          )
           return (
             <section
               key={column.status}
@@ -182,7 +174,6 @@ export function MissionsBoard({
                     <MissionCard
                       key={mission.id}
                       mission={mission}
-                      status={column.status}
                       menuOpen={openMenuId === mission.id}
                       onMenuOpenChange={(open) =>
                         setOpenMenuId(open ? mission.id : null)
@@ -242,7 +233,6 @@ export function MissionsBoard({
 
 function MissionCard({
   mission,
-  status,
   menuOpen,
   onMenuOpenChange,
   onRun,
@@ -250,7 +240,6 @@ function MissionCard({
   onDelete,
 }: {
   mission: MissionWithAgent
-  status: MissionStatus
   menuOpen: boolean
   onMenuOpenChange: (open: boolean) => void
   onRun: () => void
@@ -258,9 +247,13 @@ function MissionCard({
   onDelete: () => void
 }) {
   const router = useRouter()
+  // Card treatment follows the mission's real status: stopped and failed
+  // runs share the Completed column but keep their own chip and a re-run.
+  const status = mission.status
   const queued = status === 'needs_attention'
   const running = status === 'in_progress'
   const completed = status === 'completed'
+  const halted = status === 'stopped' || status === 'failed'
 
   return (
     <Card
@@ -280,7 +273,7 @@ function MissionCard({
     >
       <CardHeader className="px-4">
         <CardTitle className="text-sm leading-snug">{mission.title}</CardTitle>
-        {(queued || completed) && (
+        {(queued || completed || halted) && (
           <CardAction>
             <DropdownMenu open={menuOpen} onOpenChange={onMenuOpenChange}>
               <DropdownMenuTrigger
@@ -326,7 +319,7 @@ function MissionCard({
               {mission.agents?.name ?? 'Unknown agent'}
             </span>
           </span>
-          {queued && (
+          {(queued || halted) && (
             <Button
               size="sm"
               onClick={(e) => {
@@ -335,8 +328,20 @@ function MissionCard({
               }}
             >
               <Play data-icon="inline-start" />
-              Run
+              {queued ? 'Run' : 'Run again'}
             </Button>
+          )}
+          {halted && (
+            <span className="inline-flex h-6 items-center gap-1.5 rounded-md border border-border bg-background px-2 text-xs text-muted-foreground">
+              <span
+                aria-hidden
+                className={cn(
+                  'size-1.5 rounded-full',
+                  MISSION_STATUS_DOT[status]
+                )}
+              />
+              {MISSION_STATUS_LABEL[status]}
+            </span>
           )}
           {running && (
             <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">

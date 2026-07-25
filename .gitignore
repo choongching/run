@@ -47,3 +47,11 @@ docs/*
 
 # local Claude Code settings stay local; shared skills are tracked
 .claude/settings.local.json
+
+# third-party skills installed via `npx skills` stay local
+.agents/
+.claude/skills/llm-council
+skills-lock.json
+
+# llm-council run artifacts stay local
+/llm-council/

@@ -3,6 +3,7 @@ import { toFile } from '@anthropic-ai/sdk'
 import { requireUser } from '@/lib/api-helpers'
 import { getAnthropicClient, MANAGED_AGENTS_BETA } from '@/lib/anthropic/client'
 import { assertAgentInSquad } from '@/lib/missions'
+import { recordMissionEvent } from '@/lib/missions/events'
 import { readDriveFile } from '@/lib/drive/read-file'
 import { createDriveFile } from '@/lib/drive/create-file'
 import { recordUsage } from '@/lib/usage'
@@ -55,9 +56,11 @@ export async function POST(
   if (!mission) {
     return NextResponse.json({ error: 'Mission not found' }, { status: 404 })
   }
-  if (mission.status !== 'needs_attention') {
+  // Stopped and failed runs stay re-runnable: the brief is never lost.
+  const RUNNABLE: Mission['status'][] = ['needs_attention', 'stopped', 'failed']
+  if (!RUNNABLE.includes(mission.status)) {
     return NextResponse.json(
-      { error: 'Only queued missions can be run' },
+      { error: 'This mission is already running or finished' },
       { status: 409 }
     )
   }
@@ -138,9 +141,18 @@ export async function POST(
 
   await supabase
     .from('missions')
-    .update({ status: 'in_progress' })
+    .update({ status: 'in_progress', error_message: null })
     .eq('id', id)
     .eq('user_id', userId)
+
+  // Timeline marker: the Activity view renders events after the latest
+  // 'run.started', so a re-run naturally begins a fresh timeline while older
+  // attempts stay in the log.
+  await recordMissionEvent(supabase, id, 'run.started', {
+    agent_name: agent.name,
+    web_search: mission.web_search,
+    output_type: mission.output_type,
+  })
 
   const anthropic = getAnthropicClient()
   const uploadedFileIds: string[] = []
@@ -192,6 +204,14 @@ export async function POST(
     })
     sessionId = session.id
 
+    // Persist the session id immediately (not only on completion) so the
+    // stop and refine routes can reach the session while the run is live.
+    await supabase
+      .from('missions')
+      .update({ anthropic_run_id: session.id })
+      .eq('id', id)
+      .eq('user_id', userId)
+
     // The API re-roots mount paths (under /mnt/session/uploads/...), so the
     // kickoff message must list the resolved paths, not the requested ones.
     const mountedPaths = session.resources
@@ -236,6 +256,9 @@ export async function POST(
     let sessionError: string | null = null
 
     for await (const event of stream) {
+      // Every event lands in the timeline; inserts are awaited so row order
+      // matches event order, and recordMissionEvent never throws.
+      await recordMissionEvent(supabase, id, event.type, event)
       if (event.type === 'agent.message') {
         const text = event.content
           .filter((b) => b.type === 'text')
@@ -256,6 +279,34 @@ export async function POST(
       ) {
         break
       }
+    }
+
+    // If the user pressed Stop, the interrupt ended the turn above. The stop
+    // route owns the terminal status; this route only preserves whatever
+    // partial output exists and settles usage.
+    const { data: current } = await supabase
+      .from('missions')
+      .select('status')
+      .eq('id', id)
+      .single()
+    if (current?.status === 'stopped') {
+      const partial = agentMessages.at(-1) ?? null
+      await supabase
+        .from('missions')
+        .update({ output_text: partial })
+        .eq('id', id)
+        .eq('user_id', userId)
+      void recordUsage({
+        userId,
+        agentId: agent.id,
+        missionId: id,
+        model: agent.model,
+        inputTokens,
+        outputTokens,
+        eventType: 'mission_run',
+      })
+      await cleanupUploads()
+      return NextResponse.json({ stopped: true })
     }
 
     const finalText = agentMessages.at(-1) ?? ''
@@ -299,6 +350,11 @@ export async function POST(
 
     if (dbError) throw new Error(dbError.message)
 
+    await recordMissionEvent(supabase, id, 'run.completed', {
+      output_type: mission.output_type,
+      output_url: outputUrl,
+    })
+
     void recordUsage({
       userId,
       agentId: agent.id,
@@ -333,18 +389,29 @@ export async function POST(
         eventType: 'mission_run',
       })
     }
-    // Revert to queued so the brief is never lost; keep the session id (if
-    // one was created) so the failed run stays inspectable.
-    await supabase
-      .from('missions')
-      .update({
-        status: 'needs_attention',
-        ...(sessionId ? { anthropic_run_id: sessionId } : {}),
-      })
-      .eq('id', id)
-      .eq('user_id', userId)
-
     const message = err instanceof Error ? err.message : 'Unknown error'
+    // A stopped run's early return never throws, so reaching here means a
+    // real failure: mark it 'failed' (still re-runnable, the brief is kept)
+    // instead of silently reverting to queued, and say why on the run page.
+    // Do not clobber a concurrent stop.
+    const { data: current } = await supabase
+      .from('missions')
+      .select('status')
+      .eq('id', id)
+      .single()
+    if (current?.status !== 'stopped') {
+      await supabase
+        .from('missions')
+        .update({
+          status: 'failed',
+          error_message: message,
+          ...(sessionId ? { anthropic_run_id: sessionId } : {}),
+        })
+        .eq('id', id)
+        .eq('user_id', userId)
+      await recordMissionEvent(supabase, id, 'run.failed', { message })
+    }
+
     return NextResponse.json(
       { error: `Mission run failed: ${message}` },
       { status: 500 }
