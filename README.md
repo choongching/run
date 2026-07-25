@@ -1,18 +1,22 @@
 # Run
 
-Run is a single-company web dashboard where admins configure AI agents and
-employees brief them to get work done, with outputs saved as Google Docs,
-Google Sheets, or PDFs.
+Run is a simple AI agent builder. You describe what you want on the home
+screen, Run creates an agent, and you work with it in a live chat where it can
+read and act on your own Gmail and Google Drive, always asking before it
+writes anything.
 
 Built with Next.js 16, React 19, Tailwind CSS v4, Supabase (auth + database),
-and the Anthropic API.
+the Anthropic API (Managed Agents), and Pipedream Connect.
 
 ## Project progress
 
-**Current status:** The full re-plan is complete: Phases 6 through 9
-(observable runs, open agent building, the guided builder wizard, and
-the Runs rename with onboarding copy) are merged to `main` on top of the
-five v1 phases. The app is ready to deploy (see Deploying below).
+**Current status:** The app has been revamped into a prompt-first personal
+agent builder. Revamp Phases 1 through 3b are merged: the prompt-first home
+and chat shell, the live streaming chat loop, per-user Gmail and Drive
+connections with read tools, and write tools gated behind an in-chat approval.
+The earlier admin-configured build (Phases 1 through 9 below) still exists
+underneath and is being replaced surface by surface. Next: connect a real
+Gmail and dogfood the whole loop end to end.
 
 The full, detailed history of what has been done, session by session and in
 plain English, lives in **[PROGRESS.md](./PROGRESS.md)**. It is updated at the

@@ -8,16 +8,58 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** The full re-plan is built and merged. Phases 6
-through 9 landed in two days: observable runs (PR #6), open agent
-building with ownership and sharing (PR #7), the guided builder wizard
-(PR #8), and the Missions to Runs rename with onboarding copy (PR #9).
-Two small items from the plan were deliberately deferred: the seeded
-starter agent for brand-new companies and the per-agent run history tab.
-Next step: the private staging deploy (Vercel, see the README) and a
-reaction test with the first users whose feedback started the re-plan.
+**Where we left off:** The product was revamped into a prompt-first personal
+agent builder. You describe what you want on the home screen, Run creates an
+agent, and you work with it in a live streaming chat that can read and act on
+your own Gmail and Drive, always asking permission before it writes anything.
+Revamp Phases 1 through 3b are merged (the chat shell, the streaming loop,
+per-user connections and read tools, and write tools with an approval gate),
+plus a copy pass. Next step: connect a real Gmail and dogfood the inbox
+summary and draft flow end to end, then decide between scheduled runs and
+further polish.
 
 ---
+
+## 2026-07-25: The revamp, a prompt-first personal agent builder
+
+A deliberate pause and reset of the product's shape. After the guided
+wizard and Runs work, we stepped back and rebuilt the experience around a
+single idea: Run is a simple AI agent builder you talk to. Direction
+validated by a deep-research sweep of the mid-2026 agent-builder market
+(prompt-first won, the visual canvas approach failed at OpenAI, proactive
+runs and human approval on writes are now table stakes) and by reference
+screens from Jinba, Superagent, SureThing, and AirOps.
+
+- Phase 1, the prompt-first shell: the home is one prompt box ("What do you
+  want to create today?") with example chips; submitting creates an agent
+  and opens its chat. The sidebar became the list of your agents, each an
+  ongoing chat thread. New threads and messages tables. Merged via PR #11.
+- Phase 2, the live chat loop: each agent is something you talk to, with a
+  thinking shimmer, token-by-token streaming, and a Send/Stop composer,
+  built on a custom chat UI (react-markdown, use-stick-to-bottom) driven by
+  our own streamed events from a Managed Agents session per thread. Multi
+  turn memory works because the session persists. Merged via PR #12.
+- Phase 3a, per-user connections and read tools: each person connects their
+  own Gmail and Drive; when an agent needs a connection it hasn't got, an
+  inline connect card appears in the thread. Four read tools (search inbox,
+  read email, list and read Drive files) run through the Pipedream proxy.
+  Custom tools were chosen over MCP so writes could be approval-gated.
+  Merged via PR #13.
+- Phase 3b, write tools that ask first: agents can draft emails, but the run
+  loop pauses before any write and shows an approval card with a full
+  preview. Nothing runs until you approve. A shared run-loop helper powers
+  both a new message and an approval decision. Merged via PR #14.
+- A copy pass toward a warmer, concrete voice (Jinba-inspired): an
+  invitational hero, an example-led placeholder, verb-first chips, and a
+  "Build my agent" action. Merged via PR #15.
+- Every phase was verified live in the browser. The old wizard, Runs, and
+  dashboard pages still exist but are unlinked, to be deleted in a later
+  cleanup phase. The Phase 7 ownership and sharing backend is kept dormant
+  under the personal UX.
+
+Deferred by choice: scheduled proactive runs (the data model is ready), the
+full config side panel, and agent naming (clean auto-names plus inline
+rename). Next: connect a real Gmail and dogfood the whole loop.
 
 ## 2026-07-25: Phases 8 and 9, the guided builder and the Runs rename
 
