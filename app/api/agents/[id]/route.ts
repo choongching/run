@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { requireAdmin } from '@/lib/api-helpers'
+import { requireAgentEditor } from '@/lib/api-helpers'
 import {
   AGENT_TOOLSET,
   MANAGED_AGENTS_BETA,
@@ -10,18 +10,9 @@ export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { error, supabase } = await requireAdmin()
-  if (error) return error
   const { id } = await params
-
-  const { data: existing } = await supabase
-    .from('agents')
-    .select('*')
-    .eq('id', id)
-    .single()
-  if (!existing) {
-    return NextResponse.json({ error: 'Agent not found' }, { status: 404 })
-  }
+  const { error, supabase, agent: existing } = await requireAgentEditor(id)
+  if (error) return error
 
   const body = await request.json().catch(() => null)
   const name =
@@ -109,18 +100,9 @@ export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { error, supabase } = await requireAdmin()
-  if (error) return error
   const { id } = await params
-
-  const { data: existing } = await supabase
-    .from('agents')
-    .select('id, claude_agent_id, status')
-    .eq('id', id)
-    .single()
-  if (!existing) {
-    return NextResponse.json({ error: 'Agent not found' }, { status: 404 })
-  }
+  const { error, supabase, agent: existing } = await requireAgentEditor(id)
+  if (error) return error
 
   // Soft delete locally, archive on Anthropic. Archive failures are tolerated:
   // the local status is what hides the agent from users.

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/api-helpers'
-import { assertAgentInSquad, MISSION_OUTPUT_TYPES } from '@/lib/missions'
+import { assertAgentRunnable, MISSION_OUTPUT_TYPES } from '@/lib/missions'
 import type { Database, MissionOutputType } from '@/lib/types/database'
 
 // Editing is only allowed while a mission is queued: an in-progress mission
@@ -54,7 +54,7 @@ export async function PATCH(
       return NextResponse.json({ error: 'Invalid agent_id' }, { status: 400 })
     }
     if (body.agent_id !== mission.agent_id) {
-      const squadError = await assertAgentInSquad(supabase, userId, body.agent_id)
+      const squadError = await assertAgentRunnable(supabase, body.agent_id)
       if (squadError) return squadError
     }
     updates.agent_id = body.agent_id

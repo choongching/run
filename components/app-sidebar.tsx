@@ -36,13 +36,14 @@ import {
 } from '@/components/ui/sidebar'
 import type { UserRole } from '@/lib/types/database'
 
+// Agents sits in the main group: building is every member's right (phase 7).
 const mainNav = [
   { href: '/missions', label: 'Missions', icon: MissionsIcon },
+  { href: '/agents', label: 'Agents', icon: AgentsIcon },
   { href: '/usage', label: 'Usage', icon: UsageIcon },
 ]
 
 const adminNav = [
-  { href: '/admin/agents', label: 'Agents', icon: AgentsIcon },
   { href: '/admin/company', label: 'Company', icon: CompanyIcon },
   { href: '/admin/users', label: 'Users', icon: UsersIcon },
   { href: '/admin/integrations', label: 'Integrations', icon: IntegrationsIcon },

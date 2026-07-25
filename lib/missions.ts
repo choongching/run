@@ -11,24 +11,22 @@ export const MISSION_OUTPUT_TYPES: MissionOutputType[] = [
 
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>
 
-// The mission's agent must be active and in the caller's squad. Admins can
-// see all agents, so this cannot be left to RLS.
-export async function assertAgentInSquad(
+// The mission's agent must be active and visible to the caller: owned by
+// them, company-visible, or shared to them. Agents RLS encodes exactly that
+// audience rule, so a scoped select IS the authorization check.
+export async function assertAgentRunnable(
   supabase: SupabaseServerClient,
-  userId: string,
   agentId: string
 ): Promise<NextResponse | null> {
   const { data } = await supabase
-    .from('user_agents')
-    .select('agent_id, is_active, agents!inner(status)')
-    .eq('user_id', userId)
-    .eq('agent_id', agentId)
-    .eq('is_active', true)
-    .eq('agents.status', 'active')
+    .from('agents')
+    .select('id')
+    .eq('id', agentId)
+    .eq('status', 'active')
     .maybeSingle()
   if (!data) {
     return NextResponse.json(
-      { error: 'That agent is not in your squad' },
+      { error: 'That agent is not available to you' },
       { status: 400 }
     )
   }

@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation'
 import { getUserProfile } from '@/lib/auth'
 
 export default async function HomePage() {
-  const { profile } = await getUserProfile()
-  redirect(profile?.role === 'admin' ? '/admin/agents' : '/missions')
+  await getUserProfile()
+  // One landing for everyone: the role split retired with phase 7.
+  redirect('/missions')
 }
