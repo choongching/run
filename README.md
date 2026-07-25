@@ -40,10 +40,10 @@ home and chat shell, the live streaming chat loop, per-user Gmail and Drive
 connections, read tools (search and read your inbox and Drive), and write tools
 gated behind an in-chat approval.
 
-Still to come: scheduled runs, so an agent can work on its own (for example a
-daily inbox summary that arrives without you asking), a panel for editing an
-agent directly, and the removal of the older admin-configured screens that this
-direction replaces.
+The older admin-configured screens that this direction replaced have now been
+removed, so the app is one product end to end. Still to come: scheduled runs, so
+an agent can work on its own (for example a daily inbox summary that arrives
+without you asking), and a panel for editing an agent directly.
 
 The full, plain-English history, session by session, lives in
 **[PROGRESS.md](./PROGRESS.md)**, updated at the end of every work session.

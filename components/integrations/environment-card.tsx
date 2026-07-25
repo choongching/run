@@ -61,8 +61,8 @@ export function EnvironmentCard({
             <div className="grid gap-1.5">
               <CardTitle>Agent runtime</CardTitle>
               <CardDescription>
-                The shared cloud workspace where agents run missions. Set it up
-                once and every mission session runs inside it.
+                The shared cloud workspace where agents run. Set it up once and
+                every agent session runs inside it.
               </CardDescription>
             </div>
           </div>
