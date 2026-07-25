@@ -4,7 +4,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { MANAGED_AGENTS_BETA } from '@/lib/anthropic/client'
 import {
   isAskTool,
-  isWriteTool,
+  isReadTool,
   summarizeAsk,
   summarizeWrite,
   type AskOption,
@@ -164,9 +164,12 @@ export async function drainSession(opts: {
         break
       }
 
-      // Writes ask first: if any pending call is a write, stop and show the
-      // approval card. Nothing runs until the user approves.
-      if (pending.some((c) => isWriteTool(c.name))) {
+      // Safe by default: auto-execute ONLY known read tools. If any pending
+      // call is not a known read (a write, or an unclassified tool), stop and
+      // show the approval card. Nothing runs until the user approves. This is
+      // the enforcement point, so a new tool can never auto-run a side effect
+      // just because it was left off the write list.
+      if (pending.some((c) => !isReadTool(c.name))) {
         await supabase
           .from('threads')
           .update({ pending_tools: pending as unknown as Json })
