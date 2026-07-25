@@ -1,9 +1,9 @@
 import type { ConnectableApp } from '@/lib/pipedream/client'
 
-// Custom tools the agent can call in chat (phase 3a: reads only). Each call
-// surfaces as an agent.custom_tool_use event; the run loop executes it via the
-// Pipedream proxy with the signed-in user's account and returns the result.
-// Writes (gmail_create_draft) plus their approval gate come in phase 3b.
+// Custom tools the agent can call in chat. Each call surfaces as an
+// agent.custom_tool_use event; the run loop auto-executes read tools via the
+// Pipedream proxy with the signed-in user's account, and pauses every other
+// tool (writes and anything unclassified) for user approval before it runs.
 
 export type ToolName =
   | 'gmail_search'
@@ -23,11 +23,28 @@ export const TOOL_APP: Record<ToolName, ConnectableApp> = {
 }
 
 // Write tools have external side effects and must be approved by the user
-// before they run ("writes ask first"). Reads execute silently.
+// before they run ("writes ask first").
 export const WRITE_TOOLS = new Set<ToolName>(['gmail_create_draft'])
 
 export function isWriteTool(name: string): boolean {
   return WRITE_TOOLS.has(name as ToolName)
+}
+
+// SECURITY: the explicit allowlist of tools safe to auto-execute without asking
+// the user (read-only, no external side effects). The run loop gates EVERYTHING
+// not in this set, so a new tool defaults to approval-required even if someone
+// forgets to classify it. Only add a tool here after confirming it cannot
+// mutate the user's data or reach outside. This is the enforcement point for
+// "reads free, writes ask first".
+export const READ_TOOLS = new Set<ToolName>([
+  'gmail_search',
+  'gmail_get_message',
+  'drive_list_files',
+  'drive_read_file',
+])
+
+export function isReadTool(name: string): boolean {
+  return READ_TOOLS.has(name as ToolName)
 }
 
 // ask_user is neither a read nor a write: it pauses the turn to ask the user a
@@ -135,7 +152,7 @@ export const CHAT_TOOL_DEFINITIONS = [
     type: 'custom' as const,
     name: 'gmail_create_draft',
     description:
-      "Create a draft email in the user's Gmail (it is NOT sent — it is saved as a draft for the user to review and send). Use this to draft replies or new messages. The user must approve the draft before it is created.",
+      "Create a draft email in the user's Gmail (it is NOT sent; it is saved as a draft for the user to review and send). Use this to draft replies or new messages. The user must approve the draft before it is created.",
     input_schema: {
       type: 'object' as const,
       properties: {

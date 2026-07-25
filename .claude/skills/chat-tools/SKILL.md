@@ -33,8 +33,11 @@ Empty `done` text is fine; the client skips it.
 
 At `session.status_idle` with `stop_reason.type === 'requires_action'`, the
 agent has pending `custom_tool_use` calls. `drainSession` picks a lane by
-priority: **ask_user** (question) -> **write** (approval) -> **reads** (auto
-exec). A pause persists the pending call(s) to `threads.pending_tools`, emits
+priority: **ask_user** (question) -> **anything not a known read** (approval) ->
+**known reads** (auto exec). SAFE BY DEFAULT: only tools in `READ_TOOLS`
+(`isReadTool`) auto-run; a write OR any unclassified tool gates for approval, so
+a new tool can never auto-run a side effect just because it was left off a list.
+A pause persists the pending call(s) to `threads.pending_tools`, emits
 its card frame, and `break`s, returning `{ status: 'ask' | 'approval' | null }`.
 A resume route feeds `user.custom_tool_result` back and the SAME stream
 continues (verified). Reads execute inline via `executeTool`; `needs_connection`
@@ -47,8 +50,11 @@ Reload safety: the chat page rebuilds the pending card from `pending_tools`
 ## Adding a new chat tool
 
 1. `lib/tools/definitions.ts`: add to `CHAT_TOOL_DEFINITIONS` (name, description,
-   JSON `input_schema`). Reads/writes also need `TOOL_APP` (which connection)
-   and, for writes, `WRITE_TOOLS` + a `summarizeWrite` case.
+   JSON `input_schema`) and `TOOL_APP` (which connection). A read-only tool MUST
+   be added to `READ_TOOLS` to auto-execute; leave it off and it defaults to
+   approval-gated (safe by default), which is what you want for anything with a
+   side effect. Writes also get a `summarizeWrite` case for the approval card
+   (`WRITE_TOOLS` is informational; the gate keys on `READ_TOOLS`).
 2. `lib/tools/execute.ts`: dispatch it (returns `needs_connection | result |
    error`), unless it is an interaction tool handled purely in the loop
    (`ask_user` is: it never hits `executeTool`).
