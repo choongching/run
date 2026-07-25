@@ -2,7 +2,7 @@ import { AppSidebar } from '@/components/app-sidebar'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 import { getUserProfile } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
-import type { SquadMember } from '@/components/squad/agent-personalise-drawer'
+import type { SidebarAgent } from '@/components/app-sidebar'
 
 export default async function DashboardLayout({
   children,
@@ -12,21 +12,19 @@ export default async function DashboardLayout({
   const { userId, email, profile } = await getUserProfile()
   const supabase = await createClient()
 
-  const { data: squadRows } = await supabase
-    .from('user_agents')
-    .select('agent_id, custom_instructions, agents!inner(name, description, status)')
-    .eq('user_id', userId)
-    .eq('is_active', true)
-    .eq('agents.status', 'active')
+  // The sidebar is the user's list of agents (each an ongoing chat). v1 shows
+  // the agents they own; RLS scopes the read regardless.
+  const { data: agentRows } = await supabase
+    .from('agents')
+    .select('id, name, status')
+    .eq('owner_id', userId)
+    .neq('status', 'archived')
+    .order('updated_at', { ascending: false })
 
-  const squad: SquadMember[] = (squadRows ?? [])
-    .map((row) => ({
-      agent_id: row.agent_id,
-      name: row.agents?.name ?? 'Unknown agent',
-      description: row.agents?.description ?? null,
-      custom_instructions: row.custom_instructions,
-    }))
-    .sort((a, b) => a.name.localeCompare(b.name))
+  const agents: SidebarAgent[] = (agentRows ?? []).map((row) => ({
+    id: row.id,
+    name: row.name,
+  }))
 
   return (
     <SidebarProvider>
@@ -35,7 +33,7 @@ export default async function DashboardLayout({
         displayName={profile?.display_name ?? ''}
         email={email}
         avatarUrl={profile?.avatar_url ?? null}
-        squad={squad}
+        agents={agents}
       />
       <SidebarInset>
         <div className="flex flex-1 flex-col p-6 md:p-8">
