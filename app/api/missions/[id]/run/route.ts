@@ -3,6 +3,7 @@ import { toFile } from '@anthropic-ai/sdk'
 import { requireUser } from '@/lib/api-helpers'
 import { getAnthropicClient, MANAGED_AGENTS_BETA } from '@/lib/anthropic/client'
 import { assertAgentRunnable } from '@/lib/missions'
+import { parseEnabledTools } from '@/lib/agents/config'
 import { recordMissionEvent } from '@/lib/missions/events'
 import { readDriveFile } from '@/lib/drive/read-file'
 import { createDriveFile } from '@/lib/drive/create-file'
@@ -48,7 +49,9 @@ export async function POST(
 
   const { data: mission } = await supabase
     .from('missions')
-    .select('*, agents(id, name, status, model, claude_agent_id)')
+    .select(
+      '*, agents(id, name, status, model, claude_agent_id, enabled_tools, guardrails)'
+    )
     .eq('id', id)
     .eq('user_id', userId)
     .maybeSingle()
@@ -71,6 +74,8 @@ export async function POST(
     status: string
     model: string
     claude_agent_id: string | null
+    enabled_tools: unknown
+    guardrails: string | null
   } | null
 
   const squadError = await assertAgentRunnable(supabase, mission.agent_id)
@@ -128,7 +133,12 @@ export async function POST(
   const driveConnected = Boolean(
     settings?.pipedream_account_id && settings?.pipedream_connected_by
   )
-  const knowledgeFiles = knowledge ?? []
+  // The agent's tool config is the ceiling: web search only when both the
+  // agent allows it and the mission asked for it; Drive knowledge only when
+  // the agent's drive tool is on.
+  const agentTools = parseEnabledTools(agent.enabled_tools)
+  const webSearchAllowed = agentTools.web_search && mission.web_search
+  const knowledgeFiles = agentTools.drive ? (knowledge ?? []) : []
   if (!driveConnected && (knowledgeFiles.length > 0 || mission.output_type !== 'text')) {
     return NextResponse.json(
       {
@@ -150,7 +160,7 @@ export async function POST(
   // attempts stay in the log.
   await recordMissionEvent(supabase, id, 'run.started', {
     agent_name: agent.name,
-    web_search: mission.web_search,
+    web_search: webSearchAllowed,
     output_type: mission.output_type,
   })
 
@@ -232,7 +242,12 @@ export async function POST(
         `## Knowledge files\n\nRead these mounted files before responding:\n${mountedPaths.map((p) => `- ${p}`).join('\n')}`
       )
     }
-    if (!mission.web_search) {
+    if (agent.guardrails) {
+      parts.push(
+        `## Rules from this agent's owner\n\nFollow these rules carefully:\n${agent.guardrails}`
+      )
+    }
+    if (!webSearchAllowed) {
       parts.push('Do not use web search for this task.')
     }
     parts.push(OUTPUT_INSTRUCTIONS[mission.output_type])

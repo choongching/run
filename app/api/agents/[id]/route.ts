@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server'
 import { requireAgentEditor } from '@/lib/api-helpers'
 import {
-  AGENT_TOOLSET,
+  buildAgentToolset,
   MANAGED_AGENTS_BETA,
   getAnthropicClient,
 } from '@/lib/anthropic/client'
+import { AGENT_OUTPUT_TYPES, parseEnabledTools } from '@/lib/agents/config'
+import type { OutputType } from '@/lib/types/database'
 
 export async function PATCH(
   request: Request,
@@ -30,6 +32,27 @@ export async function PATCH(
         ? body.system_prompt.trim() || null
         : null
   const model = typeof body?.model === 'string' && body.model ? body.model : existing.model
+  const enabledTools =
+    body?.enabled_tools === undefined
+      ? parseEnabledTools(existing.enabled_tools)
+      : parseEnabledTools(body.enabled_tools)
+  const guardrails =
+    body?.guardrails === undefined
+      ? existing.guardrails
+      : typeof body.guardrails === 'string'
+        ? body.guardrails.trim() || null
+        : null
+  const defaultOutputType =
+    body?.default_output_type === undefined
+      ? existing.default_output_type
+      : AGENT_OUTPUT_TYPES.includes(body.default_output_type)
+        ? (body.default_output_type as OutputType)
+        : null
+  // The wizard's Publish step flips a draft to active.
+  const status =
+    body?.status === 'active' && existing.status === 'draft'
+      ? ('active' as const)
+      : existing.status
 
   // Dual-write. The Anthropic update API needs the agent's current version
   // (optimistic concurrency). Use the stored version when we have it; on a
@@ -44,7 +67,7 @@ export async function PATCH(
         model,
         description,
         system: systemPrompt,
-        tools: AGENT_TOOLSET,
+        tools: buildAgentToolset(enabledTools),
         betas: [MANAGED_AGENTS_BETA],
       }
       let version = existing.claude_version
@@ -83,6 +106,10 @@ export async function PATCH(
       description,
       system_prompt: systemPrompt,
       model,
+      enabled_tools: enabledTools,
+      guardrails,
+      default_output_type: defaultOutputType,
+      status,
       claude_version: newClaudeVersion,
       synced_at: new Date().toISOString(),
     })

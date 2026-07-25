@@ -21,11 +21,21 @@ export const AGENT_MODELS = [
 
 export const DEFAULT_AGENT_MODEL = AGENT_MODELS[0].id
 
-// Every Claude agent gets the full toolset so mission sessions can read
-// mounted knowledge files, run bash, and search the web (Phases 4-5).
-export const AGENT_TOOLSET = [
-  {
-    type: 'agent_toolset_20260401' as const,
-    default_config: { enabled: true },
-  },
-]
+// Every Claude agent gets the toolset so mission sessions can read mounted
+// knowledge files and run bash; web search/fetch follow the agent's
+// enabled_tools ceiling. Per-tool `enabled: false` is hard enforcement by
+// the API (verified live, docs/capability-matrix-2026-07-25.md).
+export function buildAgentToolset(tools: { web_search: boolean }) {
+  return [
+    {
+      type: 'agent_toolset_20260401' as const,
+      default_config: { enabled: true },
+      configs: [
+        { name: 'web_search' as const, enabled: tools.web_search },
+        { name: 'web_fetch' as const, enabled: tools.web_search },
+      ],
+    },
+  ]
+}
+
+export const AGENT_TOOLSET = buildAgentToolset({ web_search: true })

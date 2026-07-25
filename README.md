@@ -10,8 +10,9 @@ and the Anthropic API.
 ## Project progress
 
 **Current status:** All five v1 roadmap phases plus Phase 6 (observable
-runs) and Phase 7 (anyone can build agents) are complete and merged to
-`main`. The app is ready to deploy (see Deploying below).
+runs), Phase 7 (anyone can build agents), and Phase 8 (the guided agent
+builder) are complete and merged to `main`. The app is ready to deploy
+(see Deploying below).
 
 The full, detailed history of what has been done, session by session and in
 plain English, lives in **[PROGRESS.md](./PROGRESS.md)**. It is updated at the
@@ -50,6 +51,11 @@ Done so far, at a glance:
   From your company), owns what they build, and shares it per person or
   company-wide; the admin role shrinks to company capabilities
   (integrations, users, company context, governance view).
+- ✅ **Phase 8, the guided agent builder:** creating an agent is now a
+  seven-step wizard (identity with AI-written instructions, data sources,
+  tools, guardrails, output, a safe test run, publish). Tool choices are
+  hard-enforced at the API level, guardrails ride along on every run, and
+  the per-mission web search toggle is capped by the agent's settings.
 
 ## Getting started
 
