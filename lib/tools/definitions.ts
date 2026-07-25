@@ -8,6 +8,7 @@ import type { ConnectableApp } from '@/lib/pipedream/client'
 export type ToolName =
   | 'gmail_search'
   | 'gmail_get_message'
+  | 'gmail_create_draft'
   | 'drive_list_files'
   | 'drive_read_file'
 
@@ -16,8 +17,34 @@ export type ToolName =
 export const TOOL_APP: Record<ToolName, ConnectableApp> = {
   gmail_search: 'gmail',
   gmail_get_message: 'gmail',
+  gmail_create_draft: 'gmail',
   drive_list_files: 'google_drive',
   drive_read_file: 'google_drive',
+}
+
+// Write tools have external side effects and must be approved by the user
+// before they run ("writes ask first"). Reads execute silently.
+export const WRITE_TOOLS = new Set<ToolName>(['gmail_create_draft'])
+
+export function isWriteTool(name: string): boolean {
+  return WRITE_TOOLS.has(name as ToolName)
+}
+
+// A human-readable summary of a write call for the approval card.
+export function summarizeWrite(
+  name: string,
+  input: Record<string, unknown>
+): { title: string; detail: string } {
+  if (name === 'gmail_create_draft') {
+    const to = String(input.to ?? '')
+    const subject = String(input.subject ?? '(no subject)')
+    const body = String(input.body ?? '')
+    return {
+      title: `Create a Gmail draft to ${to || 'someone'}`,
+      detail: `Subject: ${subject}\n\n${body}`,
+    }
+  }
+  return { title: `Run ${name.replace(/_/g, ' ')}`, detail: '' }
 }
 
 // CustomToolParams for the session's agent-with-overrides tools array. Typed
@@ -54,6 +81,21 @@ export const CHAT_TOOL_DEFINITIONS = [
         message_id: { type: 'string', description: 'The Gmail message id.' },
       },
       required: ['message_id'],
+    },
+  },
+  {
+    type: 'custom' as const,
+    name: 'gmail_create_draft',
+    description:
+      "Create a draft email in the user's Gmail (it is NOT sent — it is saved as a draft for the user to review and send). Use this to draft replies or new messages. The user must approve the draft before it is created.",
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        to: { type: 'string', description: 'Recipient email address.' },
+        subject: { type: 'string', description: 'Email subject line.' },
+        body: { type: 'string', description: 'Plain-text email body.' },
+      },
+      required: ['to', 'subject', 'body'],
     },
   },
   {
