@@ -2,11 +2,11 @@ import { getUserProfile } from '@/lib/auth'
 import { parseEnabledTools } from '@/lib/agents/config'
 import { createClient } from '@/lib/supabase/server'
 import { PageHeader } from '@/components/page-header'
-import { MissionsBoard } from '@/components/missions/missions-board'
+import { MissionsBoard } from '@/components/runs/missions-board'
 import type {
   MissionWithAgent,
   SquadAgent,
-} from '@/components/missions/mission-status'
+} from '@/components/runs/mission-status'
 
 export default async function MissionsPage() {
   const { userId } = await getUserProfile()
@@ -38,8 +38,8 @@ export default async function MissionsPage() {
   return (
     <>
       <PageHeader
-        title="Missions"
-        description="Brief your agents and track their work from queued to done"
+        title="Runs"
+        description="Brief an agent, watch it work, and collect the result"
       />
       <MissionsBoard
         initialMissions={(missions ?? []) as MissionWithAgent[]}

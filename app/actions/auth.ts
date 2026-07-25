@@ -12,7 +12,7 @@ export async function login(formData: FormData) {
   if (error) {
     redirect(`/login?error=${encodeURIComponent(error.message)}`)
   }
-  redirect('/missions')
+  redirect('/runs')
 }
 
 export async function register(formData: FormData) {
@@ -35,7 +35,7 @@ export async function register(formData: FormData) {
         encodeURIComponent('Check your email to confirm your account, then sign in.')
     )
   }
-  redirect('/missions')
+  redirect('/runs')
 }
 
 export async function logout() {

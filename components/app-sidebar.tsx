@@ -38,7 +38,7 @@ import type { UserRole } from '@/lib/types/database'
 
 // Agents sits in the main group: building is every member's right (phase 7).
 const mainNav = [
-  { href: '/missions', label: 'Missions', icon: MissionsIcon },
+  { href: '/runs', label: 'Runs', icon: MissionsIcon },
   { href: '/agents', label: 'Agents', icon: AgentsIcon },
   { href: '/usage', label: 'Usage', icon: UsageIcon },
 ]

@@ -37,7 +37,7 @@ export async function updateSession(request: NextRequest) {
   }
   if (user && isAuthRoute) {
     const url = request.nextUrl.clone()
-    url.pathname = '/missions'
+    url.pathname = '/runs'
     return NextResponse.redirect(url)
   }
   return supabaseResponse

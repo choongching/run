@@ -14,6 +14,18 @@ const nextConfig: NextConfig = {
         destination: "/agents/:path*",
         permanent: true,
       },
+      // Missions became Runs in phase 9 (copy-only; tables and API keep
+      // their names). Old bookmarks follow.
+      {
+        source: "/missions",
+        destination: "/runs",
+        permanent: true,
+      },
+      {
+        source: "/missions/:path*",
+        destination: "/runs/:path*",
+        permanent: true,
+      },
     ];
   },
 };

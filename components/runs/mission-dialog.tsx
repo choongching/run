@@ -4,8 +4,8 @@ import { useState } from 'react'
 import { Globe, LoaderCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import type { MissionOutputType } from '@/lib/types/database'
-import type { MissionWithAgent, SquadAgent } from '@/components/missions/mission-status'
-import { OUTPUT_TYPE_LABEL } from '@/components/missions/mission-status'
+import type { MissionWithAgent, SquadAgent } from '@/components/runs/mission-status'
+import { OUTPUT_TYPE_LABEL } from '@/components/runs/mission-status'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -134,7 +134,7 @@ function MissionDialogBody({
       onOpenChange(false)
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : 'Could not save the mission.'
+        err instanceof Error ? err.message : 'Could not save the run.'
       )
     } finally {
       setSaving(false)
@@ -144,11 +144,11 @@ function MissionDialogBody({
   return (
     <>
       <DialogHeader className="pr-8">
-          <DialogTitle>{editing ? 'Edit mission' : 'New mission'}</DialogTitle>
+          <DialogTitle>{editing ? 'Edit run' : 'New run'}</DialogTitle>
           <DialogDescription>
             {editing
-              ? 'Queued missions can be reshaped freely before they run.'
-              : 'Brief an agent from your squad and choose how the result comes back.'}
+              ? 'Queued runs can be reshaped freely before they start.'
+              : 'Tell an agent what you need and choose how the result comes back.'}
           </DialogDescription>
         </DialogHeader>
 
@@ -239,7 +239,7 @@ function MissionDialogBody({
             {saving && (
               <LoaderCircle data-icon="inline-start" className="animate-spin" />
             )}
-            {editing ? 'Save changes' : 'Create mission'}
+            {editing ? 'Save changes' : 'Start later'}
           </Button>
         </DialogFooter>
     </>
