@@ -19,6 +19,7 @@ export type MissionStatus =
   | 'failed'
 export type MissionOutputType = 'doc' | 'sheet' | 'text' | 'pdf'
 export type UsageEventType = 'mission_run' | 'prompt_generation'
+export type MessageRole = 'user' | 'agent' | 'activity'
 
 // Hand-authored to match supabase/migrations/*.sql.
 // Regenerate with the Supabase CLI/MCP type generator as the schema grows.
@@ -62,6 +63,7 @@ export type Database = {
           visibility: AgentVisibility
           enabled_tools: AgentEnabledTools
           guardrails: string | null
+          schedule: string | null
           archived_at: string | null
           claude_version: number | null
           synced_at: string | null
@@ -81,6 +83,7 @@ export type Database = {
           visibility?: AgentVisibility
           enabled_tools?: AgentEnabledTools
           guardrails?: string | null
+          schedule?: string | null
           archived_at?: string | null
           claude_version?: number | null
           synced_at?: string | null
@@ -100,6 +103,7 @@ export type Database = {
           visibility?: AgentVisibility
           enabled_tools?: AgentEnabledTools
           guardrails?: string | null
+          schedule?: string | null
           archived_at?: string | null
           claude_version?: number | null
           synced_at?: string | null
@@ -333,6 +337,73 @@ export type Database = {
           },
         ]
       }
+      threads: {
+        Row: {
+          id: string
+          agent_id: string
+          user_id: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          agent_id: string
+          user_id: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          agent_id?: string
+          user_id?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'threads_agent_id_fkey'
+            columns: ['agent_id']
+            isOneToOne: false
+            referencedRelation: 'agents'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      messages: {
+        Row: {
+          id: number
+          thread_id: string
+          role: MessageRole
+          content: string
+          payload: Json
+          created_at: string
+        }
+        Insert: {
+          id?: never
+          thread_id: string
+          role: MessageRole
+          content?: string
+          payload?: Json
+          created_at?: string
+        }
+        Update: {
+          id?: never
+          thread_id?: string
+          role?: MessageRole
+          content?: string
+          payload?: Json
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'messages_thread_id_fkey'
+            columns: ['thread_id']
+            isOneToOne: false
+            referencedRelation: 'threads'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       user_agents: {
         Row: {
           id: string
@@ -388,6 +459,7 @@ export type Database = {
       agent_status: AgentStatus
       mission_status: MissionStatus
       mission_output_type: MissionOutputType
+      message_role: MessageRole
     }
     CompositeTypes: Record<string, never>
   }
@@ -400,4 +472,6 @@ export type UserAgent = Database['public']['Tables']['user_agents']['Row']
 export type AgentKnowledge = Database['public']['Tables']['agent_knowledge']['Row']
 export type Mission = Database['public']['Tables']['missions']['Row']
 export type MissionEvent = Database['public']['Tables']['mission_events']['Row']
+export type Thread = Database['public']['Tables']['threads']['Row']
+export type Message = Database['public']['Tables']['messages']['Row']
 export type UsageEvent = Database['public']['Tables']['usage_events']['Row']

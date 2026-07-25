@@ -1,24 +1,15 @@
 'use client'
 
-import { useState } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LogOut } from 'lucide-react'
+import { LogOut, Plus } from 'lucide-react'
 
 import { logout } from '@/app/actions/auth'
 import {
-  AgentPersonaliseDrawer,
-  type SquadMember,
-} from '@/components/squad/agent-personalise-drawer'
-import {
   AgentsIcon,
-  CompanyIcon,
   IntegrationsIcon,
-  MissionsIcon,
   SettingsIcon,
-  UsageIcon,
-  UsersIcon,
 } from '@/components/nav-icons'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -36,25 +27,17 @@ import {
 } from '@/components/ui/sidebar'
 import type { UserRole } from '@/lib/types/database'
 
-// Agents sits in the main group: building is every member's right (phase 7).
-const mainNav = [
-  { href: '/runs', label: 'Runs', icon: MissionsIcon },
-  { href: '/agents', label: 'Agents', icon: AgentsIcon },
-  { href: '/usage', label: 'Usage', icon: UsageIcon },
-]
-
-const adminNav = [
-  { href: '/admin/company', label: 'Company', icon: CompanyIcon },
-  { href: '/admin/users', label: 'Users', icon: UsersIcon },
-  { href: '/admin/integrations', label: 'Integrations', icon: IntegrationsIcon },
-]
+export type SidebarAgent = {
+  id: string
+  name: string
+}
 
 type AppSidebarProps = {
   role: UserRole
   displayName: string
   email: string
   avatarUrl: string | null
-  squad: SquadMember[]
+  agents: SidebarAgent[]
 }
 
 export function AppSidebar({
@@ -62,17 +45,11 @@ export function AppSidebar({
   displayName,
   email,
   avatarUrl,
-  squad,
+  agents,
 }: AppSidebarProps) {
   const pathname = usePathname()
   const name = displayName || email
   const initials = name.slice(0, 2).toUpperCase()
-  // Keep the selected member after close so the drawer's exit animation
-  // keeps its content.
-  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null)
-  const [drawerOpen, setDrawerOpen] = useState(false)
-  const selectedMember =
-    squad.find((m) => m.agent_id === selectedAgentId) ?? null
 
   return (
     <Sidebar variant="inset">
@@ -91,60 +68,32 @@ export function AppSidebar({
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              {mainNav.map((item) => (
-                <SidebarMenuItem key={item.label}>
-                  <SidebarMenuButton
-                    isActive={pathname === item.href}
-                    render={<Link href={item.href} />}
-                  >
-                    <item.icon className="size-4.5 shrink-0" />
-                    <span>{item.label}</span>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  isActive={pathname === '/'}
+                  render={<Link href="/" />}
+                >
+                  <Plus className="size-4.5 shrink-0" />
+                  <span className="font-medium">New agent</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
 
-        {squad.length > 0 && (
+        {agents.length > 0 && (
           <SidebarGroup>
-            <SidebarGroupLabel>My Squad</SidebarGroupLabel>
+            <SidebarGroupLabel>Agents</SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
-                {squad.map((member) => (
-                  <SidebarMenuItem key={member.agent_id}>
+                {agents.map((agent) => (
+                  <SidebarMenuItem key={agent.id}>
                     <SidebarMenuButton
-                      isActive={
-                        drawerOpen && selectedAgentId === member.agent_id
-                      }
-                      onClick={() => {
-                        setSelectedAgentId(member.agent_id)
-                        setDrawerOpen(true)
-                      }}
+                      isActive={pathname === `/chat/${agent.id}`}
+                      render={<Link href={`/chat/${agent.id}`} />}
                     >
                       <AgentsIcon className="size-4.5 shrink-0" />
-                      <span className="truncate">{member.name}</span>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
-        )}
-
-        {role === 'admin' && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Admin</SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {adminNav.map((item) => (
-                  <SidebarMenuItem key={item.label}>
-                    <SidebarMenuButton
-                      isActive={pathname.startsWith(item.href)}
-                      render={<Link href={item.href} />}
-                    >
-                      <item.icon className="size-4.5 shrink-0" />
-                      <span>{item.label}</span>
+                      <span className="truncate">{agent.name}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
@@ -156,6 +105,17 @@ export function AppSidebar({
 
       <SidebarFooter>
         <SidebarMenu>
+          {role === 'admin' && (
+            <SidebarMenuItem>
+              <SidebarMenuButton
+                isActive={pathname.startsWith('/admin/integrations')}
+                render={<Link href="/admin/integrations" />}
+              >
+                <IntegrationsIcon className="size-4.5 shrink-0" />
+                <span>Connections</span>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
+          )}
           <SidebarMenuItem>
             <SidebarMenuButton
               isActive={pathname === '/dashboard'}
@@ -192,12 +152,6 @@ export function AppSidebar({
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
-
-      <AgentPersonaliseDrawer
-        member={selectedMember}
-        open={drawerOpen}
-        onOpenChange={setDrawerOpen}
-      />
     </Sidebar>
   )
 }
