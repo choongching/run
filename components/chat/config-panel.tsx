@@ -67,7 +67,7 @@ export function ConfigPanel({
         <SheetHeader className="border-b border-border">
           <SheetTitle>Configure</SheetTitle>
           <SheetDescription>
-            What talking to your agent set up. Edit it here any time.
+            Everything you set up by chatting. Edit it any time.
           </SheetDescription>
         </SheetHeader>
         {/* Keyed by agent so the form re-seeds fresh whenever the panel opens
