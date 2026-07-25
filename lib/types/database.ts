@@ -7,7 +7,8 @@ export type Json =
   | Json[]
 
 export type UserRole = 'admin' | 'user'
-export type OutputType = 'doc' | 'sheet' | 'text'
+export type OutputType = 'doc' | 'sheet' | 'text' | 'pdf'
+export type AgentEnabledTools = { web_search: boolean; drive: boolean }
 export type AgentStatus = 'draft' | 'active' | 'paused' | 'archived'
 export type AgentVisibility = 'private' | 'company'
 export type MissionStatus =
@@ -59,6 +60,8 @@ export type Database = {
           status: AgentStatus
           owner_id: string | null
           visibility: AgentVisibility
+          enabled_tools: AgentEnabledTools
+          guardrails: string | null
           archived_at: string | null
           claude_version: number | null
           synced_at: string | null
@@ -76,6 +79,8 @@ export type Database = {
           status?: AgentStatus
           owner_id?: string | null
           visibility?: AgentVisibility
+          enabled_tools?: AgentEnabledTools
+          guardrails?: string | null
           archived_at?: string | null
           claude_version?: number | null
           synced_at?: string | null
@@ -93,6 +98,8 @@ export type Database = {
           status?: AgentStatus
           owner_id?: string | null
           visibility?: AgentVisibility
+          enabled_tools?: AgentEnabledTools
+          guardrails?: string | null
           archived_at?: string | null
           claude_version?: number | null
           synced_at?: string | null

@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/api-helpers'
 import {
-  AGENT_TOOLSET,
+  buildAgentToolset,
   DEFAULT_AGENT_MODEL,
   MANAGED_AGENTS_BETA,
   getAnthropicClient,
 } from '@/lib/anthropic/client'
+import { AGENT_OUTPUT_TYPES, parseEnabledTools } from '@/lib/agents/config'
+import type { OutputType } from '@/lib/types/database'
 
 // Building agents is open to every member (phase 7). RLS scopes reads to
 // what the caller may see and stamps ownership rules on writes.
@@ -38,6 +40,14 @@ export async function POST(request: Request) {
   const systemPrompt =
     typeof body?.system_prompt === 'string' ? body.system_prompt.trim() || null : null
   const model = typeof body?.model === 'string' && body.model ? body.model : DEFAULT_AGENT_MODEL
+  const enabledTools = parseEnabledTools(body?.enabled_tools)
+  const guardrails =
+    typeof body?.guardrails === 'string' ? body.guardrails.trim() || null : null
+  const defaultOutputType = AGENT_OUTPUT_TYPES.includes(body?.default_output_type)
+    ? (body.default_output_type as OutputType)
+    : null
+  // The wizard creates agents as drafts and publishes at the end.
+  const status = body?.status === 'draft' ? 'draft' : 'active'
 
   // Dual-write: Anthropic first so we never store an agent without its
   // claude_agent_id link. Supabase remains the source of truth; the returned
@@ -51,7 +61,7 @@ export async function POST(request: Request) {
       model,
       description: description ?? undefined,
       system: systemPrompt,
-      tools: AGENT_TOOLSET,
+      tools: buildAgentToolset(enabledTools),
       betas: [MANAGED_AGENTS_BETA],
     })
     claudeAgentId = claudeAgent.id
@@ -71,6 +81,10 @@ export async function POST(request: Request) {
       description,
       system_prompt: systemPrompt,
       model,
+      status,
+      enabled_tools: enabledTools,
+      guardrails,
+      default_output_type: defaultOutputType,
       // New agents belong to their creator and start private.
       owner_id: userId,
     })

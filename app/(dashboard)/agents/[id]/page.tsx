@@ -10,6 +10,7 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
+import { AgentBehaviorCard } from '@/components/agents/agent-behavior-card'
 import { AgentForm } from '@/components/agents/agent-form'
 import { AgentSharingCard } from '@/components/agents/agent-sharing-card'
 import { AgentStatusChip } from '@/components/agents/agent-status-chip'
@@ -81,7 +82,8 @@ export default async function EditAgentPage({
           settings?.pipedream_account_id && settings.pipedream_connected_by
         )}
       />
-      <div className="mt-4 max-w-3xl">
+      <div className="mt-4 grid max-w-3xl gap-4">
+        <AgentBehaviorCard agent={agent} />
         <AgentSharingCard
           agentId={agent.id}
           visibility={agent.visibility}

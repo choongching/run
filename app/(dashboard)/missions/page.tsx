@@ -1,4 +1,5 @@
 import { getUserProfile } from '@/lib/auth'
+import { parseEnabledTools } from '@/lib/agents/config'
 import { createClient } from '@/lib/supabase/server'
 import { PageHeader } from '@/components/page-header'
 import { MissionsBoard } from '@/components/missions/missions-board'
@@ -21,7 +22,7 @@ export default async function MissionsPage() {
       .order('created_at', { ascending: false }),
     supabase
       .from('agents')
-      .select('id, name, description')
+      .select('id, name, description, enabled_tools, default_output_type')
       .eq('status', 'active')
       .order('name'),
   ])
@@ -30,6 +31,8 @@ export default async function MissionsPage() {
     id: a.id,
     name: a.name,
     description: a.description,
+    web_search_allowed: parseEnabledTools(a.enabled_tools).web_search,
+    default_output_type: a.default_output_type,
   }))
 
   return (

@@ -9,14 +9,14 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-import { AgentForm } from '@/components/agents/agent-form'
+import { AgentWizard } from '@/components/agents/builder/agent-wizard'
 
 export default async function NewAgentPage() {
   await getUserProfile()
   const supabase = await createClient()
   const { data: settings } = await supabase
     .from('company_settings')
-    .select('company_context')
+    .select('company_context, pipedream_account_id, pipedream_connected_by')
     .limit(1)
     .single()
 
@@ -38,12 +38,15 @@ export default async function NewAgentPage() {
         </Breadcrumb>
         <h1 className="mt-2 text-2xl font-semibold">New agent</h1>
         <p className="mt-1.5 text-base text-muted-foreground">
-          Define the agent&apos;s role, model, and system prompt
+          An agent is a helper you set up once with instructions, files, and
+          tools, then put to work whenever you need it.
         </p>
       </div>
-      <AgentForm
-        mode="create"
+      <AgentWizard
         hasCompanyContext={Boolean(settings?.company_context?.trim())}
+        driveConnected={Boolean(
+          settings?.pipedream_account_id && settings.pipedream_connected_by
+        )}
       />
     </>
   )

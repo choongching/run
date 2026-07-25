@@ -6,6 +6,9 @@ export type SquadAgent = {
   id: string
   name: string
   description: string | null
+  // Agent-level tool ceiling and default output, set in the builder wizard.
+  web_search_allowed: boolean
+  default_output_type: MissionOutputType | null
 }
 
 // Shared status + output metadata for the board, cards, and detail page.

@@ -77,12 +77,30 @@ function MissionDialogBody({
   const [title, setTitle] = useState(mission?.title ?? '')
   const [brief, setBrief] = useState(mission?.brief ?? '')
   const [outputType, setOutputType] = useState<MissionOutputType>(
-    mission?.output_type ?? 'doc'
+    mission?.output_type ??
+      agents.find((a) => a.id === (mission?.agent_id ?? agents[0]?.id))
+        ?.default_output_type ??
+      'doc'
   )
   const [webSearch, setWebSearch] = useState(mission?.web_search ?? false)
   const [saving, setSaving] = useState(false)
 
   const editing = Boolean(mission)
+  const selectedAgent = agents.find((a) => a.id === agentId)
+  // The agent's tool config is the ceiling: when web search is off at the
+  // agent level, the per-mission control disappears entirely (never shown
+  // disabled) and the flag is forced off.
+  const webSearchAvailable = selectedAgent?.web_search_allowed ?? true
+
+  function selectAgent(id: string) {
+    setAgentId(id)
+    const next = agents.find((a) => a.id === id)
+    // A fresh mission adopts the newly chosen agent's default output.
+    if (!editing && next?.default_output_type) {
+      setOutputType(next.default_output_type)
+    }
+    if (next && !next.web_search_allowed) setWebSearch(false)
+  }
 
   const valid = agentId && title.trim() && brief.trim()
 
@@ -95,7 +113,7 @@ function MissionDialogBody({
         title: title.trim(),
         brief: brief.trim(),
         output_type: outputType,
-        web_search: webSearch,
+        web_search: webSearch && webSearchAvailable,
       }
       const res = mission
         ? await fetch(`/api/missions/${mission.id}`, {
@@ -137,7 +155,7 @@ function MissionDialogBody({
         <div className="grid gap-4">
           <div className="grid gap-2">
             <Label htmlFor="mission-agent">Agent</Label>
-            <Select value={agentId} onValueChange={(v) => v && setAgentId(String(v))}>
+            <Select value={agentId} onValueChange={(v) => v && selectAgent(String(v))}>
               <SelectTrigger id="mission-agent" className="w-full">
                 <SelectValue>
                   {agents.find((a) => a.id === agentId)?.name ?? 'Choose an agent'}
@@ -194,20 +212,22 @@ function MissionDialogBody({
                 </SelectContent>
               </Select>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="mission-web-search">Web search</Label>
-              <div className="flex h-9 items-center gap-2.5">
-                <Switch
-                  id="mission-web-search"
-                  checked={webSearch}
-                  onCheckedChange={setWebSearch}
-                />
-                <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
-                  <Globe className="size-3.5 stroke-[1.75]" />
-                  {webSearch ? 'Allowed' : 'Off'}
-                </span>
+            {webSearchAvailable && (
+              <div className="grid gap-2">
+                <Label htmlFor="mission-web-search">Web search</Label>
+                <div className="flex h-9 items-center gap-2.5">
+                  <Switch
+                    id="mission-web-search"
+                    checked={webSearch}
+                    onCheckedChange={setWebSearch}
+                  />
+                  <span className="inline-flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <Globe className="size-3.5 stroke-[1.75]" />
+                    {webSearch ? 'Allowed' : 'Off'}
+                  </span>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
 
