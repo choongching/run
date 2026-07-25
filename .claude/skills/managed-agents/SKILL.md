@@ -1,29 +1,34 @@
 ---
 name: managed-agents
-description: Work with Anthropic Managed Agents (agents CRUD, environments, sessions, file mounting, event streaming). Use for any change to the mission run flow or anything touching the Anthropic SDK beyond plain Messages.
+description: Work with Anthropic Managed Agents at the SDK layer (agents CRUD, environments, sessions, streaming). Use for any change touching the Anthropic SDK beyond plain Messages. For the app-level chat run loop, frames, and custom-tool pause/resume, use the chat-tools skill.
 ---
 
 # Managed Agents for Run
 
-Everything here was verified live against the installed `@anthropic-ai/sdk`.
-The canonical working implementation is `app/api/missions/[id]/run/route.ts`;
-read it before changing the run flow. Client + constants live in
-`lib/anthropic/client.ts` (`MANAGED_AGENTS_BETA` is the beta flag every call
-needs in its `betas` array).
+Verified live against the installed `@anthropic-ai/sdk`. The canonical live run
+loop is `lib/chat/run-turn.ts` (`drainSession`); read it before changing how a
+chat turn streams. Client + constants live in `lib/anthropic/client.ts`
+(`MANAGED_AGENTS_BETA` is the beta flag every call needs in its `betas` array;
+`NAMING_MODEL` is the small model for utility calls like agent naming). This
+skill is the Anthropic SDK layer; the `chat-tools` skill covers the frame
+protocol and pause/resume built on top of it.
 
 ## Agents API (dual-write from our DB)
 
 - The agent definition field is `system`, NOT `system_prompt`.
-- Updates are versioned: pass the `version` from a prior retrieve; on a
-  conflict, retrieve again and retry. We store `claude_version` + `synced_at`
-  on our `agents` table.
-- Give agents the full toolset via `AGENT_TOOLSET`
-  (`agent_toolset_20260401`, enabled) so sessions can read mounted files, run
-  bash, and use web search.
+- Create/update sites today: `app/actions/agents.ts` (`startAgentFromPrompt`,
+  `renameAgent`) and `lib/chat/onboarding.ts` (`finalizeOnboarding`). We store
+  `claude_agent_id`, `claude_version`, `synced_at` on the `agents` table.
+- Updates are versioned: pass the `version` from create/retrieve; on a conflict
+  retrieve again and retry. Cosmetic syncs (name, onboarding brief) are
+  best-effort: never let a version conflict block the DB write, which is the
+  UI's source of truth.
+- `buildAgentToolset({ web_search })` builds the `agent_toolset_20260401`
+  config. Sessions replace the tool set via `agent_with_overrides` (below).
 
 ## Environments
 
-One shared cloud environment for the whole company, created once and stored in
+One shared cloud environment, created once, stored in
 `company_settings.anthropic_environment_id`:
 
 ```ts
@@ -34,44 +39,50 @@ anthropic.beta.environments.create({
 })
 ```
 
-`POST /api/admin/environment` is the idempotent wrapper.
+`POST /api/admin/environment` is the idempotent wrapper (admin Connections page).
 
-## Sessions: the run flow
+## Sessions: the chat run flow
 
-1. **Mount knowledge as pre-extracted text.** Upload with
-   `beta.files.upload({ file: await toFile(Buffer.from(text, 'utf-8'), name, { type: 'text/plain' }) })`
-   (`toFile` is exported from the SDK root). Do NOT mount raw bytes: the
-   container's read tool cannot handle .docx and returns empty for some PDFs.
-2. **Create the session** with the agent's string id, `environment_id`,
-   `title`, and `resources` (`{ type: 'file', file_id, mount_path }`).
-3. **Use the RESOLVED mount paths.** The API re-roots requested paths under
-   `/mnt/session/uploads/...`; read them back from `session.resources` and put
-   those (not the requested paths) in the kickoff message.
-4. **Stream first, then send**, so no event between send and subscribe is
-   lost: `events.stream(id, { betas })` before
-   `events.send(id, { events: [{ type: 'user.message', content: [{ type: 'text', text }] }], betas })`.
-5. **Drain loop:**
-   - `agent.message`: content is text blocks; the LAST agent message is the
-     deliverable.
-   - `span.model_request_end`: accumulate `.model_usage.input_tokens` and
-     `.output_tokens`. Cache tokens (`cache_creation_input_tokens`,
-     `cache_read_input_tokens`) are separate fields and are NOT counted in v1
-     cost estimates.
-   - `session.error`: keep `.error.message` for the failure path.
-   - Break on `session.status_terminated`, or on `session.status_idle` when
-     `stop_reason.type !== 'requires_action'` (stop reasons: `end_turn`,
-     `requires_action`, `retries_exhausted`).
-6. **Cleanup:** delete the uploaded Files API files afterwards (the session
-   keeps its own copies). Do NOT archive the session; it stays inspectable in
-   the Console and its id is stored as `anthropic_run_id`.
+One persistent session per thread (`threads.session_id`) gives native multi-turn
+memory. Created on the first turn, reused after.
+
+1. **Create with custom tools.** `beta.sessions.create({ agent: { id, type:
+   'agent_with_overrides', tools: [...buildAgentToolset({ web_search: true }),
+   ...CHAT_TOOL_DEFINITIONS] }, environment_id, title, betas })`.
+   `agent_with_overrides.tools` REPLACES the set, so include the base toolset.
+   Tools attach at CREATION ONLY: a thread whose session predates a new tool
+   will not have it (so a migration that adds a tool must not retro-onboard old
+   agents onto their old sessions).
+2. **Stream first, then send** so no event is lost:
+   `events.stream(id, { event_deltas: ['agent.message'], betas })` BEFORE
+   `events.send(id, { events, betas })`.
+3. **Drain** (see `drainSession`): `event_start` (start / `agent.thinking`),
+   `event_delta` (token text is `event.delta.content.text` when
+   `event.delta.type === 'content_delta'`; the marker is on `event.delta`, NOT
+   on `event.delta.content`), `agent.message` (authoritative text blocks),
+   `agent.custom_tool_use` (collect `{ id, name, input }`),
+   `span.model_request_end` (usage), `session.error` (keep `.error.message`).
+4. **Break/pause** on `session.status_terminated`, or on `session.status_idle`
+   when `stop_reason.type !== 'requires_action'`. On `requires_action`, feed
+   `user.custom_tool_result` back and the SAME STREAM resumes (see chat-tools).
+   NEVER `events.send` an empty events array: the API 400s with
+   "events: must contain at least 1 item". Guard `if (!resultEvents.length) break`.
+
+## Knowledge file mounting (currently unused)
+
+The mission run route that mounted Drive files as session resources was removed
+in the prompt-first revamp. If knowledge-in-chat returns: upload pre-extracted
+TEXT with `beta.files.upload({ file: await toFile(Buffer.from(text, 'utf-8'),
+name, { type: 'text/plain' }) })` (NOT raw bytes; the container read tool fails
+on .docx and some PDFs), pass as `resources` `{ type: 'file', file_id,
+mount_path }`, and use the RESOLVED paths from `session.resources` (re-rooted
+under `/mnt/session/uploads/...`).
 
 ## Hard-won rules
 
-- Declare token counters OUTSIDE the try block so the catch path can still
-  record usage for a failed run.
-- Usage rows are written fire-and-forget via `recordUsage` in `lib/usage.ts`
-  (service-role client, never throws). Call it with `void`.
-- The run route is synchronous with `export const maxDuration = 300`; the
-  platform timeout is the run's ceiling.
-- A fetch fired from a page keeps running server-side even if the client
-  navigates away; do not infer run failure from an aborted request.
+- Declare token counters OUTSIDE the try so the catch can still record usage.
+- `recordUsage` (`lib/usage.ts`, service-role, never throws) is fire-and-forget:
+  call with `void`, `missionId: null` for chat turns.
+- Run/stream routes are synchronous with `export const maxDuration = 300`.
+- A fetch fired from a page keeps running server-side after the client
+  navigates away; do not infer failure from an aborted request.
