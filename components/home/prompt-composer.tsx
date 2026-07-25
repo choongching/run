@@ -10,9 +10,9 @@ import { Button } from '@/components/ui/button'
 // (editable) rather than submitting: the user learns plain language is the
 // interface. See docs/revamp-happy-path (Beat 1).
 const SUGGESTIONS = [
-  'Give me a summary of my inbox',
+  'Summarize my inbox and flag what needs a reply',
   'Draft replies to emails waiting on me',
-  'Organize my Drive files',
+  'Organize my Google Drive files',
   'Answer questions from my documents',
 ]
 
@@ -47,7 +47,7 @@ export function PromptComposer() {
             }
           }}
           rows={3}
-          placeholder="Describe what you want your agent to do..."
+          placeholder="e.g. Summarize my inbox each morning and flag anything that needs a reply"
           className="w-full resize-none bg-transparent px-4 pt-3.5 text-sm outline-none placeholder:text-muted-foreground"
         />
         <div className="flex items-center justify-end px-3 pb-3">
@@ -55,9 +55,9 @@ export function PromptComposer() {
             type="submit"
             size="sm"
             disabled={!canSubmit}
-            aria-label="Create agent"
+            aria-label="Build agent"
           >
-            {pending ? 'Creating...' : 'Create'}
+            {pending ? 'Building...' : 'Build my agent'}
             {!pending && <ArrowUp className="size-4" />}
           </Button>
         </div>
