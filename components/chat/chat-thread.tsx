@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import { ArrowUp, Loader2, Square } from 'lucide-react'
 import { StickToBottom } from 'use-stick-to-bottom'
 
+import { ConnectCard } from '@/components/chat/connect-card'
 import { Markdown } from '@/components/chat/markdown'
 import { cn } from '@/lib/utils'
 
@@ -23,6 +24,7 @@ type Frame =
   | { type: 'thinking' }
   | { type: 'delta'; text: string }
   | { type: 'activity'; label: string }
+  | { type: 'connect'; app: string }
   | { type: 'done'; text: string }
   | { type: 'error'; message: string }
 
@@ -39,6 +41,7 @@ export function ChatThread({
   const [draft, setDraft] = useState<Draft>(null)
   const [running, setRunning] = useState(false)
   const [input, setInput] = useState('')
+  const [connectApp, setConnectApp] = useState<string | null>(null)
   const abortRef = useRef<AbortController | null>(null)
   // Local ids for optimistic rows; DB ids replace them on reload.
   const tempId = useRef(-1)
@@ -49,6 +52,7 @@ export function ChatThread({
 
     setInput('')
     setRunning(true)
+    setConnectApp(null)
     setMessages((prev) => [
       ...prev,
       { id: tempId.current--, role: 'user', content: text },
@@ -119,6 +123,9 @@ export function ChatThread({
           { id: tempId.current--, role: 'activity', content: frame.label },
         ])
         return
+      case 'connect':
+        setConnectApp(frame.app)
+        return
       case 'done':
         setMessages((prev) => [
           ...prev,
@@ -181,6 +188,13 @@ export function ChatThread({
           ))}
 
           {draft && <DraftBubble draft={draft} />}
+
+          {connectApp && (
+            <ConnectCard
+              app={connectApp}
+              onConnected={() => setConnectApp(null)}
+            />
+          )}
         </StickToBottom.Content>
       </StickToBottom>
 
