@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import { ArrowUp, CircleCheck, Loader2, Square } from 'lucide-react'
 import { StickToBottom } from 'use-stick-to-bottom'
 
+import { ApprovalCard, type ApprovalCall } from '@/components/chat/approval-card'
 import { ConnectCard } from '@/components/chat/connect-card'
 import { Markdown } from '@/components/chat/markdown'
 import { cn } from '@/lib/utils'
@@ -25,6 +26,7 @@ type Frame =
   | { type: 'delta'; text: string }
   | { type: 'activity'; label: string }
   | { type: 'connect'; app: string }
+  | { type: 'approval'; calls: ApprovalCall[] }
   | { type: 'done'; text: string }
   | { type: 'error'; message: string }
 
@@ -32,77 +34,95 @@ export function ChatThread({
   agentId,
   agentName,
   initialMessages,
+  initialApproval,
 }: {
   agentId: string
   agentName: string
   initialMessages: ChatMessage[]
+  initialApproval: ApprovalCall[] | null
 }) {
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages)
   const [draft, setDraft] = useState<Draft>(null)
   const [running, setRunning] = useState(false)
   const [input, setInput] = useState('')
   const [connectApp, setConnectApp] = useState<string | null>(null)
+  const [approval, setApproval] = useState<ApprovalCall[] | null>(initialApproval)
   const abortRef = useRef<AbortController | null>(null)
   // Local ids for optimistic rows; DB ids replace them on reload.
   const tempId = useRef(-1)
 
-  async function send() {
-    const text = input.trim()
-    if (!text || running) return
+  // Read the newline-delimited JSON stream, dispatching each frame. Shared by
+  // a new message and an approval decision (both resume the same session).
+  async function consumeStream(res: Response) {
+    if (!res.ok || !res.body) {
+      const info = await res.json().catch(() => null)
+      finishWithError(info?.error ?? 'The agent could not respond.')
+      return
+    }
+    const reader = res.body.getReader()
+    const decoder = new TextDecoder()
+    let buffer = ''
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      buffer += decoder.decode(value, { stream: true })
+      const lines = buffer.split('\n')
+      buffer = lines.pop() ?? ''
+      for (const line of lines) {
+        if (line.trim()) handleFrame(JSON.parse(line) as Frame)
+      }
+    }
+  }
 
-    setInput('')
-    setRunning(true)
-    setConnectApp(null)
-    setMessages((prev) => [
-      ...prev,
-      { id: tempId.current--, role: 'user', content: text },
-    ])
-    setDraft({ text: '', phase: 'thinking' })
-
+  async function runStream(fetchStream: (signal: AbortSignal) => Promise<Response>) {
     const controller = new AbortController()
     abortRef.current = controller
-
+    setRunning(true)
+    setConnectApp(null)
+    setApproval(null)
+    setDraft({ text: '', phase: 'thinking' })
     try {
-      const res = await fetch(`/api/chat/${agentId}/message`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
-        signal: controller.signal,
-      })
-
-      if (!res.ok || !res.body) {
-        const info = await res.json().catch(() => null)
-        finishWithError(info?.error ?? 'The agent could not respond.')
-        return
-      }
-
-      const reader = res.body.getReader()
-      const decoder = new TextDecoder()
-      let buffer = ''
-
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        buffer += decoder.decode(value, { stream: true })
-        const lines = buffer.split('\n')
-        buffer = lines.pop() ?? ''
-        for (const line of lines) {
-          if (line.trim()) handleFrame(JSON.parse(line) as Frame)
-        }
-      }
+      await consumeStream(await fetchStream(controller.signal))
     } catch (err) {
-      if (controller.signal.aborted) {
-        // User stopped: keep whatever streamed so far as the agent's reply.
-        commitDraft()
-      } else {
+      if (controller.signal.aborted) commitDraft()
+      else
         finishWithError(
           err instanceof Error ? err.message : 'The connection dropped.'
         )
-      }
     } finally {
       if (abortRef.current === controller) abortRef.current = null
       setRunning(false)
     }
+  }
+
+  async function send() {
+    const text = input.trim()
+    if (!text || running) return
+    setInput('')
+    setMessages((prev) => [
+      ...prev,
+      { id: tempId.current--, role: 'user', content: text },
+    ])
+    await runStream((signal) =>
+      fetch(`/api/chat/${agentId}/message`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text }),
+        signal,
+      })
+    )
+  }
+
+  async function respondToApproval(decision: 'approve' | 'deny') {
+    if (running) return
+    await runStream((signal) =>
+      fetch(`/api/chat/${agentId}/approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ decision }),
+        signal,
+      })
+    )
   }
 
   function handleFrame(frame: Frame) {
@@ -126,11 +146,16 @@ export function ChatThread({
       case 'connect':
         setConnectApp(frame.app)
         return
+      case 'approval':
+        setApproval(frame.calls)
+        return
       case 'done':
-        setMessages((prev) => [
-          ...prev,
-          { id: tempId.current--, role: 'agent', content: frame.text },
-        ])
+        if (frame.text) {
+          setMessages((prev) => [
+            ...prev,
+            { id: tempId.current--, role: 'agent', content: frame.text },
+          ])
+        }
         setDraft(null)
         return
       case 'error':
@@ -194,6 +219,10 @@ export function ChatThread({
               app={connectApp}
               onConnected={() => setConnectApp(null)}
             />
+          )}
+
+          {approval && (
+            <ApprovalCard calls={approval} onDecision={respondToApproval} />
           )}
         </StickToBottom.Content>
       </StickToBottom>

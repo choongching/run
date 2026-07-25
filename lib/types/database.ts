@@ -343,6 +343,7 @@ export type Database = {
           agent_id: string
           user_id: string
           session_id: string | null
+          pending_tools: Json | null
           created_at: string
           updated_at: string
         }
@@ -351,6 +352,7 @@ export type Database = {
           agent_id: string
           user_id: string
           session_id?: string | null
+          pending_tools?: Json | null
           created_at?: string
           updated_at?: string
         }
@@ -359,6 +361,7 @@ export type Database = {
           agent_id?: string
           user_id?: string
           session_id?: string | null
+          pending_tools?: Json | null
           created_at?: string
           updated_at?: string
         }

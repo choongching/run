@@ -1,6 +1,8 @@
 import { notFound } from 'next/navigation'
 
+import type { ApprovalCall } from '@/components/chat/approval-card'
 import { ChatThread, type ChatMessage } from '@/components/chat/chat-thread'
+import { summarizeWrite } from '@/lib/tools/definitions'
 import { getUserProfile } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 
@@ -33,7 +35,7 @@ export default async function ChatPage({
     )
   const { data: thread } = await supabase
     .from('threads')
-    .select('id')
+    .select('id, pending_tools')
     .eq('agent_id', agent.id)
     .eq('user_id', userId)
     .single()
@@ -50,6 +52,15 @@ export default async function ChatPage({
     content: r.content,
   }))
 
+  // A write awaiting approval survives a reload: rebuild the card from the
+  // thread's stored pending call(s).
+  const pending = thread!.pending_tools as
+    | { id: string; name: string; input: Record<string, unknown> }[]
+    | null
+  const initialApproval: ApprovalCall[] | null = pending
+    ? pending.map((c) => ({ id: c.id, ...summarizeWrite(c.name, c.input) }))
+    : null
+
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <header className="mx-auto w-full max-w-3xl shrink-0 border-b border-border pb-3">
@@ -59,6 +70,7 @@ export default async function ChatPage({
         agentId={agent.id}
         agentName={agent.name}
         initialMessages={initialMessages}
+        initialApproval={initialApproval}
       />
     </div>
   )

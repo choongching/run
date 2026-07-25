@@ -93,6 +93,36 @@ export async function gmailSearch(args: {
   return results
 }
 
+export async function gmailCreateDraft(args: {
+  userId: string
+  accountId: string
+  to: string
+  subject: string
+  body: string
+}): Promise<{ draft_id: string }> {
+  // A minimal RFC 2822 message, base64url-encoded as Gmail expects. JSON body,
+  // so the typed proxy POST is safe (no multipart).
+  const raw = Buffer.from(
+    [
+      `To: ${args.to}`,
+      `Subject: ${args.subject}`,
+      'Content-Type: text/plain; charset="UTF-8"',
+      '',
+      args.body,
+    ].join('\r\n'),
+    'utf-8'
+  ).toString('base64url')
+
+  const pd = getPipedreamClient()
+  const res = (await pd.proxy.post({
+    url: 'https://gmail.googleapis.com/gmail/v1/users/me/drafts',
+    externalUserId: args.userId,
+    accountId: args.accountId,
+    body: { message: { raw } },
+  })) as { id?: string }
+  return { draft_id: res.id ?? '' }
+}
+
 export async function gmailGetMessage(args: {
   userId: string
   accountId: string

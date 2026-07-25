@@ -2,7 +2,11 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 
 import { getUserConnection } from '@/lib/pipedream/connections'
 import { driveListFiles, driveReadFile } from '@/lib/tools/drive'
-import { gmailGetMessage, gmailSearch } from '@/lib/tools/gmail'
+import {
+  gmailCreateDraft,
+  gmailGetMessage,
+  gmailSearch,
+} from '@/lib/tools/gmail'
 import { TOOL_APP, type ToolName } from '@/lib/tools/definitions'
 import type { ConnectableApp } from '@/lib/pipedream/client'
 import type { Database } from '@/lib/types/database'
@@ -15,6 +19,7 @@ export type ToolOutcome =
 const KNOWN_TOOLS = new Set<ToolName>([
   'gmail_search',
   'gmail_get_message',
+  'gmail_create_draft',
   'drive_list_files',
   'drive_read_file',
 ])
@@ -58,6 +63,19 @@ export async function executeTool(
           messageId: String(input.message_id ?? ''),
         })
         return { kind: 'result', text: JSON.stringify(message) }
+      }
+      case 'gmail_create_draft': {
+        const draft = await gmailCreateDraft({
+          userId,
+          accountId,
+          to: String(input.to ?? ''),
+          subject: String(input.subject ?? ''),
+          body: String(input.body ?? ''),
+        })
+        return {
+          kind: 'result',
+          text: `Draft created (id ${draft.draft_id}). It is saved in the user's Gmail drafts, not sent.`,
+        }
       }
       case 'drive_list_files': {
         const files = await driveListFiles({
