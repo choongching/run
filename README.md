@@ -9,10 +9,10 @@ and the Anthropic API.
 
 ## Project progress
 
-**Current status:** All five v1 roadmap phases plus Phase 6 (observable
-runs), Phase 7 (anyone can build agents), and Phase 8 (the guided agent
-builder) are complete and merged to `main`. The app is ready to deploy
-(see Deploying below).
+**Current status:** The full re-plan is complete: Phases 6 through 9
+(observable runs, open agent building, the guided builder wizard, and
+the Runs rename with onboarding copy) are merged to `main` on top of the
+five v1 phases. The app is ready to deploy (see Deploying below).
 
 The full, detailed history of what has been done, session by session and in
 plain English, lives in **[PROGRESS.md](./PROGRESS.md)**. It is updated at the

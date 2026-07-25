@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
   Bot,
@@ -23,8 +24,8 @@ import {
   OUTPUT_TYPE_LABEL,
   type MissionWithAgent,
   type SquadAgent,
-} from '@/components/missions/mission-status'
-import { MissionDialog } from '@/components/missions/mission-dialog'
+} from '@/components/runs/mission-status'
+import { MissionDialog } from '@/components/runs/mission-dialog'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardAction, CardHeader, CardTitle } from '@/components/ui/card'
 import {
@@ -87,7 +88,7 @@ export function MissionsBoard({
     void fetch(`/api/missions/${mission.id}/run`, { method: 'POST' }).catch(
       () => undefined
     )
-    router.push(`/missions/${mission.id}`)
+    router.push(`/runs/${mission.id}`)
   }
 
   async function confirmDelete() {
@@ -106,7 +107,7 @@ export function MissionsBoard({
       router.refresh()
     } catch (err) {
       toast.error(
-        err instanceof Error ? err.message : 'Could not delete the mission.'
+        err instanceof Error ? err.message : 'Could not delete the run.'
       )
     } finally {
       setDeleting(false)
@@ -134,13 +135,13 @@ export function MissionsBoard({
     <>
       <div className="mb-4 flex items-center gap-3">
         <p className="text-sm font-medium">
-          {missions.length} mission{missions.length === 1 ? '' : 's'}
+          {missions.length} run{missions.length === 1 ? '' : 's'}
         </p>
         <p className="text-sm text-muted-foreground">{doneCount} completed</p>
         <div className="h-px flex-1 bg-border" />
         <Button size="sm" onClick={openCreate}>
           <Plus data-icon="inline-start" />
-          New mission
+          New run
         </Button>
       </div>
 
@@ -204,7 +205,7 @@ export function MissionsBoard({
       <Dialog open={deleteOpen} onOpenChange={setDeleteOpen}>
         <DialogContent className="gap-5 p-6 sm:max-w-md">
           <DialogHeader className="pr-8">
-            <DialogTitle>Delete this mission?</DialogTitle>
+            <DialogTitle>Delete this run?</DialogTitle>
             <DialogDescription>
               &ldquo;{deletingMission?.title}&rdquo; and its output record will
               be removed. Files already saved to Drive stay in Drive.
@@ -212,7 +213,7 @@ export function MissionsBoard({
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteOpen(false)}>
-              Keep mission
+              Keep run
             </Button>
             <Button
               variant="destructive"
@@ -222,7 +223,7 @@ export function MissionsBoard({
               {deleting && (
                 <LoaderCircle data-icon="inline-start" className="animate-spin" />
               )}
-              Delete mission
+              Delete run
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -259,11 +260,11 @@ function MissionCard({
     <Card
       role="button"
       tabIndex={0}
-      onClick={() => router.push(`/missions/${mission.id}`)}
+      onClick={() => router.push(`/runs/${mission.id}`)}
       onKeyDown={(e) => {
         if (e.key === 'Enter') {
           e.preventDefault()
-          router.push(`/missions/${mission.id}`)
+          router.push(`/runs/${mission.id}`)
         }
       }}
       className={cn(
@@ -385,23 +386,28 @@ function EmptyBoard({
         <Target className="size-5 stroke-[1.75] text-muted-foreground" />
       </div>
       <h2 className="mt-5 text-xl font-semibold">
-        {hasAgents ? 'No missions yet' : 'Your squad is empty'}
+        {hasAgents ? 'No runs yet' : 'Nothing to run yet'}
       </h2>
       <p className="mt-1.5 max-w-lg text-sm text-muted-foreground">
         {hasAgents
-          ? 'Brief one of your agents and it gets to work: reading its knowledge, doing the task, and delivering the result as a doc, sheet, or PDF.'
-          : 'An admin needs to assign agents to you before you can run missions. Once that happens, this board is where you put them to work.'}
+          ? 'Pick an agent, write a brief, and watch it work. You get the finished result as a doc, sheet, or PDF.'
+          : 'An agent is a helper you set up once with instructions, files, and tools, then put to work whenever you need it. Build the first one for your company.'}
       </p>
-      {hasAgents && (
+      {hasAgents ? (
         <Button className="mt-5" onClick={onCreate}>
           <Plus data-icon="inline-start" />
-          New mission
+          New run
         </Button>
+      ) : (
+        <Link href="/agents/new" className={cn(buttonVariants(), 'mt-5')}>
+          <Plus data-icon="inline-start" />
+          Build an agent
+        </Link>
       )}
       <p className="mt-4 text-xs text-muted-foreground">
         {hasAgents
-          ? 'Missions stay queued until you run them, so you can prepare several first.'
-          : 'Ask your admin to add you to a squad on the Users page.'}
+          ? 'Runs stay queued until you start them, so you can line up a few first.'
+          : 'It stays private until you decide to share it.'}
       </p>
     </div>
   )

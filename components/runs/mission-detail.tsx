@@ -21,8 +21,8 @@ import {
   MISSION_STATUS_LABEL,
   OUTPUT_TYPE_LABEL,
   type MissionWithAgent,
-} from '@/components/missions/mission-status'
-import { ActivityTimeline } from '@/components/missions/activity-timeline'
+} from '@/components/runs/mission-status'
+import { ActivityTimeline } from '@/components/runs/activity-timeline'
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
   Card,
@@ -85,7 +85,7 @@ export function MissionDetail({ mission }: { mission: MissionWithAgent }) {
       })
       .catch((err) => {
         toast.error(
-          err instanceof Error ? err.message : 'The mission run failed.'
+          err instanceof Error ? err.message : 'The run failed.'
         )
         router.refresh()
       })
@@ -154,7 +154,7 @@ export function MissionDetail({ mission }: { mission: MissionWithAgent }) {
         {RUNNABLE.includes(status) && (
           <Button size="sm" onClick={run}>
             <Play data-icon="inline-start" />
-            {status === 'needs_attention' ? 'Run mission' : 'Run again'}
+            {status === 'needs_attention' ? 'Start run' : 'Run again'}
           </Button>
         )}
         {status === 'in_progress' && (

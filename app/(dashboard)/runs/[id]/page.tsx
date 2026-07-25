@@ -10,8 +10,8 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
-import { MissionDetail } from '@/components/missions/mission-detail'
-import type { MissionWithAgent } from '@/components/missions/mission-status'
+import { MissionDetail } from '@/components/runs/mission-detail'
+import type { MissionWithAgent } from '@/components/runs/mission-status'
 
 export default async function MissionPage({
   params,
@@ -39,7 +39,7 @@ export default async function MissionPage({
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink render={<Link href="/missions" />}>
+              <BreadcrumbLink render={<Link href="/runs" />}>
                 Missions
               </BreadcrumbLink>
             </BreadcrumbItem>

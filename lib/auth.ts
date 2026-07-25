@@ -24,6 +24,6 @@ export async function getUserProfile(): Promise<{
 
 export async function requireAdminPage() {
   const result = await getUserProfile()
-  if (result.profile?.role !== 'admin') redirect('/missions')
+  if (result.profile?.role !== 'admin') redirect('/runs')
   return result
 }
