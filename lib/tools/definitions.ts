@@ -30,6 +30,54 @@ export function isWriteTool(name: string): boolean {
   return WRITE_TOOLS.has(name as ToolName)
 }
 
+// ask_user is neither a read nor a write: it pauses the turn to ask the user a
+// question (with tappable options), then resumes with their answer. It drives
+// the first-run setup interview.
+export const ASK_USER_TOOL = 'ask_user'
+
+export function isAskTool(name: string): boolean {
+  return name === ASK_USER_TOOL
+}
+
+export type AskOption = { value: string; label: string; description?: string }
+
+export type AskSpec = {
+  question: string
+  help?: string
+  options: AskOption[]
+  allowOther: boolean
+  step?: number
+  total?: number
+}
+
+// Normalize an ask_user tool call into the props the options card renders.
+// Tolerant of loose model output (missing labels, non-array options).
+export function summarizeAsk(input: Record<string, unknown>): AskSpec {
+  const rawOptions = Array.isArray(input.options) ? input.options : []
+  const options = rawOptions
+    .map((o): AskOption | null => {
+      const obj = (o ?? {}) as Record<string, unknown>
+      const label = String(obj.label ?? obj.value ?? '').trim()
+      const value = String(obj.value ?? obj.label ?? '').trim()
+      if (!label && !value) return null
+      return {
+        value: value || label,
+        label: label || value,
+        description: obj.description ? String(obj.description).trim() : undefined,
+      }
+    })
+    .filter((o): o is AskOption => o !== null)
+
+  return {
+    question: String(input.question ?? '').trim() || 'Which fits best?',
+    help: input.help ? String(input.help).trim() : undefined,
+    options,
+    allowOther: input.allow_other !== false,
+    step: typeof input.step === 'number' ? input.step : undefined,
+    total: typeof input.total === 'number' ? input.total : undefined,
+  }
+}
+
 // A human-readable summary of a write call for the approval card.
 export function summarizeWrite(
   name: string,
@@ -126,6 +174,54 @@ export const CHAT_TOOL_DEFINITIONS = [
         file_id: { type: 'string', description: 'The Drive file id.' },
       },
       required: ['file_id'],
+    },
+  },
+  {
+    type: 'custom' as const,
+    name: 'ask_user',
+    description:
+      "Ask the user ONE focused question and pause for their answer. Use this to run the first-run setup interview (understand what they want and how they want it) and any time a choice is bounded. Give 3 to 6 concrete `options`, each with a short bold `label` and a one-line `description` of what it means. Set `step` and `total` to show progress (e.g. step 1 of 3). The user can also type a free-text answer unless you set allow_other to false. Ask one question per call and wait for the answer before asking the next; keep going until the goal is clear, then confirm what you understood.",
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        question: { type: 'string', description: 'The single question to ask.' },
+        help: {
+          type: 'string',
+          description: 'One line of supporting context shown under the question.',
+        },
+        options: {
+          type: 'array',
+          description: 'The choices to offer, 3 to 6 is ideal.',
+          items: {
+            type: 'object',
+            properties: {
+              value: {
+                type: 'string',
+                description: 'Short stable value (falls back to label).',
+              },
+              label: { type: 'string', description: 'Bold choice label the user sees.' },
+              description: {
+                type: 'string',
+                description: 'One-line explanation of this choice.',
+              },
+            },
+            required: ['label'],
+          },
+        },
+        allow_other: {
+          type: 'boolean',
+          description: 'Allow a free-text answer (default true).',
+        },
+        step: {
+          type: 'number',
+          description: 'Current question number, for the progress indicator.',
+        },
+        total: {
+          type: 'number',
+          description: 'Total planned questions, for the progress indicator.',
+        },
+      },
+      required: ['question'],
     },
   },
 ]

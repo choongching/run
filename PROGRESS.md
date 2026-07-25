@@ -15,10 +15,39 @@ your own Gmail and Drive, always asking permission before it writes anything.
 Revamp Phases 1 through 3b are merged (the chat shell, the streaming loop,
 per-user connections and read tools, and write tools with an approval gate),
 plus a copy pass, Phase 5 removed all of the old admin-configured UX that the
-new direction replaced, and agents now get a clean generated name and can be
-renamed inline. Next step: connect a real Gmail and dogfood the inbox summary
+new direction replaced, agents now get a clean generated name and can be
+renamed inline, and a new agent runs a short guided setup interview the first
+time you open it. Next step: connect a real Gmail and dogfood the inbox summary
 and draft flow end to end, then decide between scheduled runs and further
 polish.
+
+---
+
+## 2026-07-25: First-run setup interview
+
+New agents now interview you when you first open them, so building an agent and
+telling it what you want are the same conversation. The agent introduces
+itself, then asks a few questions one at a time (with tappable options and a
+free-text escape), adapting each question to your last answer until your goal
+is clear. What you say is saved into the agent's instructions, and then it runs
+its first task.
+
+- The agent drives the interview itself with a new ask_user tool that pauses
+  the turn to show an options card, then resumes with your answer, the same
+  pause-and-resume the write-approval gate uses. So the questions are tailored
+  to what the agent is for, not a fixed script.
+- The setup card shows a step indicator (1 of 3), a question, rich options
+  (bold label plus a one-line description), and an "or type your own answer"
+  box; the message composer is held until you answer.
+- When the interview ends, the answers are folded into the agent's instructions
+  (and stored as structured preferences), the agent is marked set up, and it
+  goes straight into its first task, which surfaces a Connect card if it needs
+  your Gmail or Drive.
+- Existing agents were marked already set up, so only newly created agents run
+  the interview. Verified live end to end on two fresh agents (an email one and
+  a Drive one): tailored questions, saved brief, first task and connect card,
+  no console errors. Fixed one bug found in testing where the run loop could
+  send an empty event batch after the agent gave up on a missing connection.
 
 ---
 
