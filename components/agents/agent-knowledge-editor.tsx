@@ -9,6 +9,7 @@ import {
   File as FileIcon,
   LoaderCircle,
   Search,
+  Upload,
 } from 'lucide-react'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -70,6 +71,8 @@ export function AgentKnowledgeEditor({
   const [saving, setSaving] = useState(false)
   const [query, setQuery] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [uploading, setUploading] = useState(false)
+  const uploadInputRef = useRef<HTMLInputElement>(null)
   // Serialize auto-saves: each toggle snapshots the latest selection.
   const latestPinned = useRef<KnowledgeFile[]>([])
 
@@ -161,6 +164,34 @@ export function AgentKnowledgeEditor({
     save(next)
   }
 
+  // Direct upload: the file lands in the company Drive, then pins itself, so
+  // knowledge is never limited to files that already lived in Drive.
+  async function uploadFile(selected: globalThis.File) {
+    setUploading(true)
+    setError(null)
+    try {
+      const form = new FormData()
+      form.append('file', selected)
+      const res = await fetch('/api/drive/upload', {
+        method: 'POST',
+        body: form,
+      })
+      const data = await res.json().catch(() => null)
+      if (!res.ok) throw new Error(data?.error ?? 'Upload failed')
+      const file = data.file as KnowledgeFile
+      setDriveFiles((prev) => [
+        { id: file.file_id, name: file.file_name, mimeType: file.file_mime_type },
+        ...prev,
+      ])
+      toggle(file, true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Upload failed')
+    } finally {
+      setUploading(false)
+      if (uploadInputRef.current) uploadInputRef.current.value = ''
+    }
+  }
+
   // Pinned files that fell outside the loaded Drive pages still need to be
   // visible so they can be unchecked.
   const rows = useMemo(() => {
@@ -216,16 +247,45 @@ export function AgentKnowledgeEditor({
               )}
             </div>
             <CardDescription>
-              Pin files from your company&apos;s Google Drive for this agent to
-              read on every mission. Changes save on their own.
+              Pin files from your company&apos;s Google Drive, or upload your
+              own. The agent reads them before every run; changes save on
+              their own.
             </CardDescription>
           </div>
-          {saving && (
-            <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
-              <LoaderCircle className="size-3 animate-spin" />
-              Saving
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            {saving && (
+              <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                <LoaderCircle className="size-3 animate-spin" />
+                Saving
+              </span>
+            )}
+            <input
+              ref={uploadInputRef}
+              type="file"
+              accept=".pdf,.docx,.txt,.md,.csv"
+              className="hidden"
+              onChange={(e) => {
+                const f = e.target.files?.[0]
+                if (f) uploadFile(f)
+              }}
+            />
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={uploading}
+              onClick={() => uploadInputRef.current?.click()}
+            >
+              {uploading ? (
+                <LoaderCircle
+                  data-icon="inline-start"
+                  className="animate-spin"
+                />
+              ) : (
+                <Upload data-icon="inline-start" />
+              )}
+              Upload a file
+            </Button>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="grid gap-3">
