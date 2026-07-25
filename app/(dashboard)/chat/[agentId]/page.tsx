@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import type { ApprovalCall } from '@/components/chat/approval-card'
 import { ChatHeader } from '@/components/chat/chat-header'
 import { ChatThread, type ChatMessage } from '@/components/chat/chat-thread'
-import { summarizeWrite } from '@/lib/tools/definitions'
+import { isAskTool, summarizeAsk, summarizeWrite } from '@/lib/tools/definitions'
 import { getUserProfile } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 
@@ -20,7 +20,7 @@ export default async function ChatPage({
 
   const { data: agent } = await supabase
     .from('agents')
-    .select('id, name')
+    .select('id, name, onboarded')
     .eq('id', agentId)
     .single()
 
@@ -53,14 +53,20 @@ export default async function ChatPage({
     content: r.content,
   }))
 
-  // A write awaiting approval survives a reload: rebuild the card from the
-  // thread's stored pending call(s).
+  // A pending tool call survives a reload: rebuild its card from the thread's
+  // stored call(s). It is either a question (ask_user) or a write awaiting
+  // approval; show whichever it is.
   const pending = thread!.pending_tools as
     | { id: string; name: string; input: Record<string, unknown> }[]
     | null
-  const initialApproval: ApprovalCall[] | null = pending
-    ? pending.map((c) => ({ id: c.id, ...summarizeWrite(c.name, c.input) }))
+  const askCall = pending?.find((c) => isAskTool(c.name))
+  const initialAsk = askCall
+    ? { id: askCall.id, ...summarizeAsk(askCall.input) }
     : null
+  const initialApproval: ApprovalCall[] | null =
+    pending && !askCall
+      ? pending.map((c) => ({ id: c.id, ...summarizeWrite(c.name, c.input) }))
+      : null
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -72,6 +78,8 @@ export default async function ChatPage({
         agentName={agent.name}
         initialMessages={initialMessages}
         initialApproval={initialApproval}
+        onboarding={!agent.onboarded}
+        initialAsk={initialAsk}
       />
     </div>
   )

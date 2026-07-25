@@ -68,6 +68,8 @@ export type Database = {
           claude_version: number | null
           synced_at: string | null
           default_output_type: OutputType | null
+          onboarded: boolean
+          preferences: Json | null
           created_at: string
           updated_at: string
         }
@@ -88,6 +90,8 @@ export type Database = {
           claude_version?: number | null
           synced_at?: string | null
           default_output_type?: OutputType | null
+          onboarded?: boolean
+          preferences?: Json | null
           created_at?: string
           updated_at?: string
         }
@@ -108,6 +112,8 @@ export type Database = {
           claude_version?: number | null
           synced_at?: string | null
           default_output_type?: OutputType | null
+          onboarded?: boolean
+          preferences?: Json | null
           created_at?: string
           updated_at?: string
         }
@@ -344,6 +350,7 @@ export type Database = {
           user_id: string
           session_id: string | null
           pending_tools: Json | null
+          setup_answers: Json | null
           created_at: string
           updated_at: string
         }
@@ -353,6 +360,7 @@ export type Database = {
           user_id: string
           session_id?: string | null
           pending_tools?: Json | null
+          setup_answers?: Json | null
           created_at?: string
           updated_at?: string
         }
@@ -362,6 +370,7 @@ export type Database = {
           user_id?: string
           session_id?: string | null
           pending_tools?: Json | null
+          setup_answers?: Json | null
           created_at?: string
           updated_at?: string
         }
