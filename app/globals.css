@@ -148,4 +148,41 @@
   [data-slot="sidebar-inset"] {
     @apply md:border md:border-border;
   }
+
+  /* Chat micro-states. The thinking shimmer sweeps a light band across muted
+     text while the agent composes; the caret blinks at the end of streaming
+     text. Both read the same in light and dark (they use current tokens). */
+  @keyframes run-shimmer {
+    0% { background-position: 150% 0; }
+    100% { background-position: -50% 0; }
+  }
+  .text-shimmer {
+    background: linear-gradient(
+      100deg,
+      var(--muted-foreground) 40%,
+      var(--foreground) 50%,
+      var(--muted-foreground) 60%
+    );
+    background-size: 200% 100%;
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    animation: run-shimmer 1.6s linear infinite;
+  }
+
+  @keyframes run-caret {
+    0%, 45% { opacity: 1; }
+    55%, 100% { opacity: 0; }
+  }
+  .stream-caret::after {
+    content: "";
+    display: inline-block;
+    width: 0.5ch;
+    height: 1em;
+    margin-left: 1px;
+    translate: 0 0.12em;
+    background: var(--muted-foreground);
+    border-radius: 1px;
+    animation: run-caret 1s step-end infinite;
+  }
 }
