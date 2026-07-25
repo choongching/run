@@ -2,12 +2,19 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Loader2, SlidersHorizontal, Sparkles } from 'lucide-react'
+import { ChevronDown, Loader2, SlidersHorizontal, Sparkles } from 'lucide-react'
 
 import { updateAgentConfig } from '@/app/actions/agents'
 import { GmailIcon } from '@/components/icons/gmail'
 import { GoogleDriveIcon } from '@/components/icons/google-drive'
 import { Button } from '@/components/ui/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import {
   Sheet,
   SheetContent,
@@ -17,6 +24,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { Textarea } from '@/components/ui/textarea'
+import { PERSONALITIES } from '@/lib/agents/personalities'
 import type { SetupAnswer } from '@/lib/chat/onboarding'
 
 export type ConnectionState = { gmail: boolean; google_drive: boolean }
@@ -44,6 +52,7 @@ export function ConfigPanel({
   agentName,
   instructions,
   model,
+  personality,
   preferences,
   connections,
 }: {
@@ -51,6 +60,7 @@ export function ConfigPanel({
   agentName: string
   instructions: string
   model: string
+  personality: string
   preferences: SetupAnswer[]
   connections: ConnectionState
 }) {
@@ -78,6 +88,7 @@ export function ConfigPanel({
           agentName={agentName}
           instructions={instructions}
           model={model}
+          personality={personality}
           preferences={preferences}
           connections={connections}
         />
@@ -91,6 +102,7 @@ function ConfigPanelBody({
   agentName,
   instructions,
   model,
+  personality,
   preferences,
   connections,
 }: {
@@ -98,6 +110,7 @@ function ConfigPanelBody({
   agentName: string
   instructions: string
   model: string
+  personality: string
   preferences: SetupAnswer[]
   connections: ConnectionState
 }) {
@@ -105,13 +118,15 @@ function ConfigPanelBody({
   const [name, setName] = useState(agentName)
   const [draft, setDraft] = useState(instructions)
   const [chosenModel, setChosenModel] = useState(model)
+  const [chosenPersonality, setChosenPersonality] = useState(personality)
   const [saving, setSaving] = useState(false)
 
   const trimmedName = name.trim().replace(/\s+/g, ' ')
   const dirty =
     trimmedName !== agentName.trim() ||
     draft.trim() !== instructions.trim() ||
-    chosenModel !== model
+    chosenModel !== model ||
+    chosenPersonality !== personality
   const canSave = dirty && trimmedName.length > 0 && !saving
 
   async function save() {
@@ -122,6 +137,7 @@ function ConfigPanelBody({
         name: trimmedName,
         instructions: draft,
         model: chosenModel,
+        personality: chosenPersonality,
       })
       router.refresh()
     } finally {
@@ -131,8 +147,8 @@ function ConfigPanelBody({
 
   return (
     <>
-      <div className="flex flex-1 flex-col gap-6 overflow-y-auto px-4 py-5">
-        <Field label="Name">
+      <div className="flex flex-1 flex-col gap-2.5 overflow-y-auto px-4 py-4">
+        <AccordionSection title="Name">
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -140,11 +156,12 @@ function ConfigPanelBody({
             aria-label="Agent name"
             className="w-full rounded-lg border border-input bg-card px-2.5 py-1.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
           />
-        </Field>
+        </AccordionSection>
 
-        <Field
-          label="Instructions"
+        <AccordionSection
+          title="Instructions"
           hint="What the agent should do and how. Saved when you press Save."
+          defaultOpen
         >
           <Textarea
             value={draft}
@@ -153,9 +170,12 @@ function ConfigPanelBody({
             aria-label="Agent instructions"
             className="min-h-32 resize-y text-sm"
           />
-        </Field>
+        </AccordionSection>
 
-        <Field label="Model" hint="How much horsepower the agent runs on.">
+        <AccordionSection
+          title="Model"
+          hint="How much horsepower the agent runs on."
+        >
           <div className="flex flex-col gap-2">
             {MODEL_CHOICES.map((choice) => {
               const selected = chosenModel === choice.id
@@ -195,10 +215,40 @@ function ConfigPanelBody({
               )
             })}
           </div>
-        </Field>
+        </AccordionSection>
 
-        <Field
-          label="Connections"
+        <AccordionSection
+          title="Personality"
+          hint="How the agent sounds when it replies."
+        >
+          <Select
+            value={chosenPersonality}
+            onValueChange={(v) => {
+              if (v) setChosenPersonality(v)
+            }}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue>
+                {(value) =>
+                  PERSONALITIES.find((p) => p.id === value)?.label ?? 'Balanced'
+                }
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {PERSONALITIES.map((p) => (
+                <SelectItem key={p.id} value={p.id}>
+                  {p.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">
+            {PERSONALITIES.find((p) => p.id === chosenPersonality)?.description}
+          </p>
+        </AccordionSection>
+
+        <AccordionSection
+          title="Connections"
           hint="Your own accounts. The agent reads freely and asks before it writes."
         >
           <div className="flex flex-col gap-2">
@@ -216,10 +266,10 @@ function ConfigPanelBody({
               Web search is always on.
             </p>
           </div>
-        </Field>
+        </AccordionSection>
 
         {preferences.length > 0 && (
-          <Field label="Setup answers">
+          <AccordionSection title="Setup answers">
             <div className="rounded-xl border border-border bg-card">
               <div className="flex items-center gap-2 border-b border-border px-3 py-2 text-xs font-medium text-muted-foreground">
                 <Sparkles className="size-3.5" />
@@ -234,7 +284,7 @@ function ConfigPanelBody({
                 ))}
               </dl>
             </div>
-          </Field>
+          </AccordionSection>
         )}
       </div>
 
@@ -248,20 +298,41 @@ function ConfigPanelBody({
   )
 }
 
-function Field({
-  label,
+// A collapsible section of the config panel. Each config group is one of these
+// so a long panel stays scannable; the title bar toggles the content open.
+function AccordionSection({
+  title,
   hint,
+  defaultOpen = false,
   children,
 }: {
-  label: string
+  title: string
   hint?: string
+  defaultOpen?: boolean
   children: React.ReactNode
 }) {
+  const [open, setOpen] = useState(defaultOpen)
   return (
-    <div className="flex flex-col gap-1.5">
-      <p className="text-sm font-medium">{label}</p>
-      {hint && <p className="-mt-0.5 text-xs text-muted-foreground">{hint}</p>}
-      {children}
+    <div className="rounded-xl border border-border bg-card">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="flex w-full items-center justify-between gap-2 rounded-xl px-3.5 py-3 text-left hover:bg-muted/40"
+      >
+        <span className="text-sm font-medium">{title}</span>
+        <ChevronDown
+          className={`size-4 shrink-0 text-muted-foreground transition-transform ${
+            open ? 'rotate-180' : ''
+          }`}
+        />
+      </button>
+      {open && (
+        <div className="flex flex-col gap-2.5 border-t border-border px-3.5 pt-3 pb-3.5">
+          {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+          {children}
+        </div>
+      )}
     </div>
   )
 }

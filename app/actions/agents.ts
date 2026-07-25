@@ -12,6 +12,10 @@ import {
   getAnthropicClient,
 } from '@/lib/anthropic/client'
 import { getUserProfile } from '@/lib/auth'
+import {
+  DEFAULT_PERSONALITY,
+  isPersonality,
+} from '@/lib/agents/personalities'
 import { buildSystemPrompt, parseSetupAnswers } from '@/lib/chat/onboarding'
 import { createClient } from '@/lib/supabase/server'
 
@@ -102,6 +106,7 @@ export async function startAgentFromPrompt(formData: FormData) {
       model: DEFAULT_AGENT_MODEL,
       status: 'active',
       enabled_tools: enabledTools,
+      personality: DEFAULT_PERSONALITY,
       owner_id: userId,
     })
     .select('id')
@@ -176,7 +181,7 @@ export async function renameAgent(agentId: string, rawName: string) {
 // best-effort so a version conflict or API hiccup never blocks the save.
 export async function updateAgentConfig(
   agentId: string,
-  input: { name: string; instructions: string; model: string }
+  input: { name: string; instructions: string; model: string; personality: string }
 ): Promise<void> {
   const name = input.name.trim().replace(/\s+/g, ' ').slice(0, 60)
   const baseInstructions = input.instructions.trim()
@@ -184,6 +189,10 @@ export async function updateAgentConfig(
   const model = AGENT_MODELS.some((m) => m.id === input.model)
     ? input.model
     : undefined
+  // Same for personality: fall back to balanced if it is not one we offer.
+  const personality = isPersonality(input.personality)
+    ? input.personality
+    : DEFAULT_PERSONALITY
   if (!name) return
 
   const { userId } = await getUserProfile()
@@ -198,11 +207,16 @@ export async function updateAgentConfig(
   if (!current) return
 
   const answers = parseSetupAnswers(current.preferences)
-  const system = buildSystemPrompt(baseInstructions, answers)
+  const system = buildSystemPrompt(baseInstructions, answers, personality)
 
   const { data: agent, error } = await supabase
     .from('agents')
-    .update({ name, system_prompt: system, ...(model ? { model } : {}) })
+    .update({
+      name,
+      system_prompt: system,
+      personality,
+      ...(model ? { model } : {}),
+    })
     .eq('id', agentId)
     .eq('owner_id', userId)
     .select('claude_agent_id, claude_version')

@@ -2,6 +2,10 @@ import type Anthropic from '@anthropic-ai/sdk'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 import { MANAGED_AGENTS_BETA } from '@/lib/anthropic/client'
+import {
+  DEFAULT_PERSONALITY,
+  personalityClause,
+} from '@/lib/agents/personalities'
 import type { Database, Json } from '@/lib/types/database'
 
 // The hidden instruction that starts the first-run setup interview. The user
@@ -61,17 +65,23 @@ export function stripBrief(systemPrompt: string | null): string {
 }
 
 // Compose the full system prompt: the user's base instructions, then the setup
-// preferences (if any), then the always-on role boundary, under the policy
-// sentinel. Strips its own input first so it is safe to pass an already
-// composed prompt (re-derives cleanly). Every write of the system prompt goes
-// through here so the boundary is always present.
+// preferences (if any), the personality voice, and the always-on role boundary,
+// under the policy sentinel. Strips its own input first so it is safe to pass an
+// already composed prompt (re-derives cleanly). Every write of the system prompt
+// goes through here so the boundary and voice are always present.
 export function buildSystemPrompt(
   baseInstructions: string,
-  answers: SetupAnswer[]
+  answers: SetupAnswer[],
+  personality: string = DEFAULT_PERSONALITY
 ): string {
   const base = stripBrief(baseInstructions)
   const kept = (answers ?? []).filter((x) => x.a?.trim())
-  const sections = [kept.length ? composeBrief(kept) : '', ROLE_BOUNDARY]
+  const voice = personalityClause(personality)
+  const sections = [
+    kept.length ? composeBrief(kept) : '',
+    voice ? `## Voice\n${voice}` : '',
+    ROLE_BOUNDARY,
+  ]
     .filter(Boolean)
     .join('\n\n')
   return `${base}\n\n${POLICY_START}\n${sections}\n`
@@ -104,11 +114,20 @@ export async function finalizeOnboarding(opts: {
   claudeVersion: number | null
   baseSystemPrompt: string | null
   answers: SetupAnswer[]
+  personality: string
 }): Promise<void> {
-  const { anthropic, supabase, agentId, claudeAgentId, claudeVersion, baseSystemPrompt, answers } =
-    opts
+  const {
+    anthropic,
+    supabase,
+    agentId,
+    claudeAgentId,
+    claudeVersion,
+    baseSystemPrompt,
+    answers,
+    personality,
+  } = opts
 
-  const newSystem = buildSystemPrompt(baseSystemPrompt ?? '', answers)
+  const newSystem = buildSystemPrompt(baseSystemPrompt ?? '', answers, personality)
 
   await supabase
     .from('agents')
