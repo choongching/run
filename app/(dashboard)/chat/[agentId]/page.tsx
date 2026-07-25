@@ -23,7 +23,7 @@ export default async function ChatPage({
 
   const { data: agent } = await supabase
     .from('agents')
-    .select('id, name, onboarded, system_prompt, preferences, model')
+    .select('id, name, onboarded, system_prompt, preferences, model, personality')
     .eq('id', agentId)
     .single()
 
@@ -95,6 +95,7 @@ export default async function ChatPage({
           agentName={agent.name}
           instructions={instructions}
           model={agent.model}
+          personality={agent.personality}
           preferences={preferences}
           connections={connections}
         />

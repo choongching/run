@@ -70,6 +70,7 @@ export type Database = {
           default_output_type: OutputType | null
           onboarded: boolean
           preferences: Json | null
+          personality: string
           created_at: string
           updated_at: string
         }
@@ -92,6 +93,7 @@ export type Database = {
           default_output_type?: OutputType | null
           onboarded?: boolean
           preferences?: Json | null
+          personality?: string
           created_at?: string
           updated_at?: string
         }
@@ -114,6 +116,7 @@ export type Database = {
           default_output_type?: OutputType | null
           onboarded?: boolean
           preferences?: Json | null
+          personality?: string
           created_at?: string
           updated_at?: string
         }

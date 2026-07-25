@@ -31,7 +31,7 @@ export async function POST(
 
   const { data: agent } = await supabase
     .from('agents')
-    .select('id, model, onboarded, system_prompt, claude_agent_id, claude_version')
+    .select('id, model, onboarded, system_prompt, claude_agent_id, claude_version, personality')
     .eq('id', agentId)
     .single()
   if (!agent) {
@@ -109,6 +109,7 @@ export async function POST(
             claudeVersion: agent.claude_version,
             baseSystemPrompt: agent.system_prompt,
             answers,
+            personality: agent.personality,
           })
           send({ type: 'onboarded' })
 
