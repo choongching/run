@@ -5,6 +5,16 @@ import { PipedreamClient } from '@pipedream/sdk'
 // Google tokens stay in Pipedream.
 
 export const GOOGLE_DRIVE_APP_SLUG = 'google_drive'
+export const GMAIL_APP_SLUG = 'gmail'
+
+// Apps a user can connect for their agents (per-user, phase 3). Gmail and
+// Drive are SEPARATE Pipedream apps with separate accounts and OAuth scopes.
+export const CONNECTABLE_APPS = {
+  gmail: { slug: GMAIL_APP_SLUG, label: 'Gmail' },
+  google_drive: { slug: GOOGLE_DRIVE_APP_SLUG, label: 'Google Drive' },
+} as const
+
+export type ConnectableApp = keyof typeof CONNECTABLE_APPS
 
 let client: PipedreamClient | null = null
 

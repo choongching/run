@@ -1,11 +1,18 @@
 import { requireUser } from '@/lib/api-helpers'
-import { getAnthropicClient, MANAGED_AGENTS_BETA } from '@/lib/anthropic/client'
+import {
+  buildAgentToolset,
+  getAnthropicClient,
+  MANAGED_AGENTS_BETA,
+} from '@/lib/anthropic/client'
+import { CHAT_TOOL_DEFINITIONS } from '@/lib/tools/definitions'
+import { executeTool } from '@/lib/tools/execute'
 import { recordUsage } from '@/lib/usage'
 
 // A chat turn: persist the user message, run it through the thread's Managed
-// Agents session, and stream the agent's reply (token deltas + tool activity)
-// back as newline-delimited JSON. Synchronous; the platform timeout is the
-// turn's ceiling. Live chat loop for the revamp (Phase 2).
+// Agents session, and stream the agent's reply (token deltas, tool activity,
+// connect prompts) back as newline-delimited JSON. Reads execute inline;
+// writes + approval come in phase 3b. Synchronous; platform timeout is the
+// turn's ceiling.
 export const maxDuration = 300
 
 type Frame =
@@ -13,8 +20,22 @@ type Frame =
   | { type: 'thinking' }
   | { type: 'delta'; text: string }
   | { type: 'activity'; label: string }
+  | { type: 'connect'; app: string }
   | { type: 'done'; text: string }
   | { type: 'error'; message: string }
+
+type PendingCall = { id: string; name: string; input: Record<string, unknown> }
+
+// Compact activity line for a tool call.
+function toolActivity(name: string): string {
+  const map: Record<string, string> = {
+    gmail_search: 'Searching your inbox',
+    gmail_get_message: 'Reading an email',
+    drive_list_files: 'Looking through your Drive',
+    drive_read_file: 'Reading a file',
+  }
+  return map[name] ?? `Using ${name.replace(/_/g, ' ')}`
+}
 
 export async function POST(
   request: Request,
@@ -103,12 +124,20 @@ export async function POST(
       let sessionError: string | null = null
 
       try {
-        // Reuse the thread's session so the agent keeps conversation context;
-        // create it on the first turn.
+        // Reuse the thread's session so the agent keeps context; create it on
+        // the first turn with our custom tools attached (agent_with_overrides
+        // replaces the tool set, so include the base toolset too).
         let sessionId = thread.session_id
         if (!sessionId) {
           const session = await anthropic.beta.sessions.create({
-            agent: agent.claude_agent_id!,
+            agent: {
+              id: agent.claude_agent_id!,
+              type: 'agent_with_overrides',
+              tools: [
+                ...buildAgentToolset({ web_search: true }),
+                ...CHAT_TOOL_DEFINITIONS,
+              ],
+            },
             environment_id: environmentId,
             title: agent.name,
             betas: [MANAGED_AGENTS_BETA],
@@ -120,8 +149,6 @@ export async function POST(
             .eq('id', thread.id)
         }
 
-        // Stream first (opting into token-level previews), then send, so no
-        // event between send and subscribe is lost.
         const events = await anthropic.beta.sessions.events.stream(sessionId, {
           event_deltas: ['agent.message'],
           betas: [MANAGED_AGENTS_BETA],
@@ -132,6 +159,8 @@ export async function POST(
         })
 
         let started = false
+        let pending: PendingCall[] = []
+
         for await (const event of events) {
           if (event.type === 'event_start') {
             if (!started) {
@@ -157,10 +186,11 @@ export async function POST(
               .join('')
               .trim()
             if (messageText) agentParts.push(messageText)
-          } else if (event.type === 'agent.tool_use') {
-            const label = toolLabel(event.name)
+          } else if (event.type === 'agent.custom_tool_use') {
+            const label = toolActivity(event.name)
             activityLabels.push(label)
             send({ type: 'activity', label })
+            pending.push({ id: event.id, name: event.name, input: event.input })
           } else if (event.type === 'span.model_request_end') {
             inputTokens += event.model_usage.input_tokens
             outputTokens += event.model_usage.output_tokens
@@ -169,10 +199,47 @@ export async function POST(
           }
 
           if (event.type === 'session.status_terminated') break
-          if (
-            event.type === 'session.status_idle' &&
-            event.stop_reason.type !== 'requires_action'
-          ) {
+          if (event.type === 'session.status_idle') {
+            if (event.stop_reason.type === 'requires_action') {
+              // Execute the tools the agent asked for and feed results back so
+              // the session resumes on the same stream.
+              const resultEvents = []
+              for (const call of pending) {
+                const outcome = await executeTool(
+                  supabase,
+                  userId,
+                  call.name,
+                  call.input
+                )
+                if (outcome.kind === 'needs_connection') {
+                  send({ type: 'connect', app: outcome.app })
+                  resultEvents.push({
+                    type: 'user.custom_tool_result' as const,
+                    custom_tool_use_id: call.id,
+                    content: [
+                      {
+                        type: 'text' as const,
+                        text: `The user has not connected ${outcome.app} yet. Ask them to connect it using the button shown, then they can retry.`,
+                      },
+                    ],
+                    is_error: true,
+                  })
+                } else {
+                  resultEvents.push({
+                    type: 'user.custom_tool_result' as const,
+                    custom_tool_use_id: call.id,
+                    content: [{ type: 'text' as const, text: outcome.text }],
+                    is_error: outcome.kind === 'error',
+                  })
+                }
+              }
+              pending = []
+              await anthropic.beta.sessions.events.send(sessionId, {
+                events: resultEvents,
+                betas: [MANAGED_AGENTS_BETA],
+              })
+              continue
+            }
             break
           }
         }
@@ -184,7 +251,6 @@ export async function POST(
           )
         }
 
-        // Persist activity lines first (they precede the reply), then the reply.
         for (const label of activityLabels) {
           await supabase
             .from('messages')
@@ -235,16 +301,4 @@ export async function POST(
       'Cache-Control': 'no-cache, no-transform',
     },
   })
-}
-
-// Human-readable activity line for a tool call.
-function toolLabel(name: string): string {
-  const map: Record<string, string> = {
-    bash: 'Running a command',
-    str_replace: 'Editing a file',
-    create_file: 'Writing a file',
-    read_file: 'Reading a file',
-    web_search: 'Searching the web',
-  }
-  return map[name] ?? `Using ${name.replace(/_/g, ' ')}`
 }

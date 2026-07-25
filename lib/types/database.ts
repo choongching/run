@@ -407,6 +407,33 @@ export type Database = {
           },
         ]
       }
+      user_connections: {
+        Row: {
+          id: string
+          user_id: string
+          app: string
+          pipedream_account_id: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          app: string
+          pipedream_account_id: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          app?: string
+          pipedream_account_id?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_agents: {
         Row: {
           id: string
@@ -477,4 +504,5 @@ export type Mission = Database['public']['Tables']['missions']['Row']
 export type MissionEvent = Database['public']['Tables']['mission_events']['Row']
 export type Thread = Database['public']['Tables']['threads']['Row']
 export type Message = Database['public']['Tables']['messages']['Row']
+export type UserConnection = Database['public']['Tables']['user_connections']['Row']
 export type UsageEvent = Database['public']['Tables']['usage_events']['Row']
