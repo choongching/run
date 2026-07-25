@@ -8,14 +8,52 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** Phase 5 is merged to `main` via pull request #5.
-All five roadmap phases are complete: auth and the app shell, admin
-configuration, Google Drive knowledge, the Missions board with real agent
-runs, and usage tracking with production hardening. The app is
-feature-complete for v1; next step is deployment (see the README's
-Deploying section) whenever we are ready.
+**Where we left off:** Phase 6 (observable runs) is merged to `main` via
+pull request #6. Mission runs now show a live Activity timeline, can be
+stopped mid-run, and take follow-up refinements. Next steps, in order: a
+private staging deploy so the first users can react to the new run
+experience, then the permissions rework (anyone can build agents) from the
+re-plan in `docs/replan-2026-07-24-final-plan.md`.
 
 ---
+
+## 2026-07-25: Phase 6, observable runs (planning councils, spike, build)
+
+Merged to `main` via pull request #6. This session started from harsh
+first-user feedback ("Run is not truly agentic") and ended with the
+biggest missing piece shipped.
+
+- Ran two multi-model planning councils over the feedback. Round 1
+  verdict: the runtime is genuinely agentic but the product surface hides
+  it; full strategy and roadmap in `docs/replan-2026-07-24-final-plan.md`.
+  Round 2 produced screen-by-screen UX journeys
+  (`docs/ux-journeys-2026-07-25-final-spec.md`) and caught a round-1
+  error: no streaming or interrupt infrastructure existed in the app at
+  all, so observable runs were a net-new build.
+- Five product decisions signed off (seeded starter agent, Missions to
+  Runs rename, honest stop labeling, confirm on company-wide sharing,
+  keeping per-user notes), recorded in `docs/decisions-2026-07-25.md`.
+- Capability spike against the live Managed Agents API
+  (`docs/capability-matrix-2026-07-25.md`): rich tool events flow, a real
+  interrupt halts generation in about a second and bills nothing for the
+  interrupted request, follow-up turns work on the same session, and
+  agent-level tool gating is hard enforcement. Branch A selected on all
+  fronts.
+- Built Phase 6 on top: migration 014 (`mission_events` log table with
+  owner/admin policies, additive `stopped` and `failed` statuses, an
+  `error_message` column), the run route now persists every session event,
+  a server-sent-events feed replays history then tails live, a Stop route
+  sends the real interrupt, and a refine route posts follow-up turns.
+- New Activity timeline on the mission page: plain-language cards for web
+  searches, commands, file reads, and the agent's own words, raw payloads
+  behind disclosures, auto-scroll with a jump-to-latest pill, and
+  reload-safe replay. Running a mission now jumps straight to the live
+  view instead of blocking.
+- Verified everything live in the browser: a real run with web search and
+  knowledge, a mid-run reload, a mid-run stop, a follow-up that updated
+  the Google Doc output, and RLS probes on the new table. Three bugs found
+  and fixed during live testing (dead feed after first completion, stale
+  status chip, stale server data at completion).
 
 ## 2026-07-24: Final QA pass, every roadmap requirement now verified
 
