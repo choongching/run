@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation'
 
 import type { ApprovalCall } from '@/components/chat/approval-card'
+import { ChatHeader } from '@/components/chat/chat-header'
 import { ChatThread, type ChatMessage } from '@/components/chat/chat-thread'
 import { summarizeWrite } from '@/lib/tools/definitions'
 import { getUserProfile } from '@/lib/auth'
@@ -64,7 +65,7 @@ export default async function ChatPage({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <header className="mx-auto w-full max-w-3xl shrink-0 border-b border-border pb-3">
-        <h1 className="text-lg font-semibold">{agent.name}</h1>
+        <ChatHeader key={agent.id} agentId={agent.id} agentName={agent.name} />
       </header>
       <ChatThread
         agentId={agent.id}

@@ -21,6 +21,10 @@ export const AGENT_MODELS = [
 
 export const DEFAULT_AGENT_MODEL = AGENT_MODELS[0].id
 
+// A small, fast model used for utility calls that are not the agent itself,
+// like naming a new agent from its first prompt.
+export const NAMING_MODEL = 'claude-haiku-4-5-20251001'
+
 // Every Claude agent gets the toolset so mission sessions can read mounted
 // knowledge files and run bash; web search/fetch follow the agent's
 // enabled_tools ceiling. Per-tool `enabled: false` is hard enforcement by

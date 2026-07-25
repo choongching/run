@@ -14,10 +14,31 @@ agent, and you work with it in a live streaming chat that can read and act on
 your own Gmail and Drive, always asking permission before it writes anything.
 Revamp Phases 1 through 3b are merged (the chat shell, the streaming loop,
 per-user connections and read tools, and write tools with an approval gate),
-plus a copy pass, and Phase 5 removed all of the old admin-configured UX that
-the new direction replaced. Next step: connect a real Gmail and dogfood the
-inbox summary and draft flow end to end, then decide between scheduled runs and
-further polish.
+plus a copy pass, Phase 5 removed all of the old admin-configured UX that the
+new direction replaced, and agents now get a clean generated name and can be
+renamed inline. Next step: connect a real Gmail and dogfood the inbox summary
+and draft flow end to end, then decide between scheduled runs and further
+polish.
+
+---
+
+## 2026-07-25: Agent naming
+
+Two small quality-of-life fixes so agents feel like things you own, not rows
+in a database.
+
+- A new agent is now named by a quick model call from its first prompt, giving
+  a short, human title ("Morning Inbox Summarizer", "Invoice And Receipt
+  Tracker") instead of the old eight-word slice of the prompt. If the naming
+  call is unavailable, it falls back to the prompt slice so creation never
+  blocks on it.
+- The chat header is now an inline rename control: hover to reveal a pencil,
+  click the name to edit, Enter or blur to save, Escape to cancel. The name
+  saves optimistically and reverts if the save fails, and updates everywhere at
+  once (header, sidebar, greeting, composer). The Anthropic console name is
+  synced best-effort so a version conflict never blocks the rename you see.
+- Verified live: renamed a demo agent and watched every surface update, with no
+  console errors. Lint, typecheck, and a production build all pass.
 
 ---
 
