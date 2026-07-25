@@ -8,14 +8,50 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** Phase 6 (observable runs) is merged to `main` via
-pull request #6. Mission runs now show a live Activity timeline, can be
-stopped mid-run, and take follow-up refinements. Next steps, in order: a
-private staging deploy so the first users can react to the new run
-experience, then the permissions rework (anyone can build agents) from the
-re-plan in `docs/replan-2026-07-24-final-plan.md`.
+**Where we left off:** Phase 7 (anyone can build agents) is merged to
+`main` via pull request #7, on top of Phase 6 (observable runs, PR #6).
+Building is now every member's right: agents have owners and
+private/company visibility, sharing is owner-driven, and the admin role
+covers company capabilities only. Next steps: the private staging deploy
+and a reaction test with the first users, then the builder wizard
+(roadmap Phase 3) from `docs/replan-2026-07-24-final-plan.md`.
 
 ---
+
+## 2026-07-25: Phase 7, anyone can build and own agents
+
+Merged to `main` via pull request #7, same day as Phase 6.
+
+- Three migrations (015-017): agents gained `owner_id` and a
+  private/company visibility setting, with every policy rewritten around
+  audiences instead of roles: owners manage their own agents, admins keep
+  a governance view of everything, and everyone else sees active agents
+  that are company-visible or shared to them. Existing agents backfilled
+  as company-visible so nothing disappeared for anyone.
+- Two real security finds along the way, both fixed before shipping: the
+  first policy draft recursed (agents policies referenced user_agents and
+  vice versa; solved with security definer helper functions, the same
+  pattern as get_my_role), and the old squad policy would have let any
+  user self-assign an agent they could not see, which under the new model
+  would have granted them visibility into private agents. The new insert
+  policy only allows self-adding agents the caller can already see.
+- The Agents page moved out of the admin area to `/agents` for everyone
+  (old links redirect), sectioned into Yours, Shared with you, and From
+  your company, with owner and visibility chips and actions that follow
+  ownership. The sidebar shows Agents in the main group for all roles;
+  the Admin group keeps Company, Users, and Integrations.
+- New sharing controls on the agent page: add or remove teammates one by
+  one, or flip the agent company-wide behind a confirm dialog (a founder
+  decision from the re-plan). The sharing API is owner-scoped; before
+  this, only admin assignment routes existed.
+- Running rights follow visibility now: the mission dialog offers every
+  active agent you can see, and knowledge mounting works for anyone
+  allowed to run the agent (previously it silently required assignment).
+- Verified live in the browser end to end as a real member account:
+  created an agent, edited it, shared it with a teammate, flipped it
+  company-wide, saw it in the mission dialog, and confirmed the admin
+  area stays locked. Database probes covered owner, non-owner, sharing,
+  and the closed escalation path.
 
 ## 2026-07-25: Phase 6, observable runs (planning councils, spike, build)
 
