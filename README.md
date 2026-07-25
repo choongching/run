@@ -1,65 +1,52 @@
 # Run
 
-Run is a simple AI agent builder. You describe what you want on the home
-screen, Run creates an agent, and you work with it in a live chat where it can
-read and act on your own Gmail and Google Drive, always asking before it
-writes anything.
+Run is a simple AI agent builder. You describe what you want in plain language,
+Run builds you an agent, and you work with it by chatting. The agent connects to
+your own Gmail and Google Drive and does real work for you: summarizing your
+inbox, drafting replies, finding and reading your files. It reads freely but
+always asks before it writes or sends anything.
 
-Built with Next.js 16, React 19, Tailwind CSS v4, Supabase (auth + database),
-the Anthropic API (Managed Agents), and Pipedream Connect.
+The whole idea is that building an agent and using it are the same thing: a
+conversation. There is no form to fill in and no workflow to wire up. You tell
+your agent what you need, it configures itself from what you say, and it asks
+for the access it needs only when it needs it.
 
-## Project progress
+## How it works
 
-**Current status:** The app has been revamped into a prompt-first personal
-agent builder. Revamp Phases 1 through 3b are merged: the prompt-first home
-and chat shell, the live streaming chat loop, per-user Gmail and Drive
-connections with read tools, and write tools gated behind an in-chat approval.
-The earlier admin-configured build (Phases 1 through 9 below) still exists
-underneath and is being replaced surface by surface. Next: connect a real
-Gmail and dogfood the whole loop end to end.
+1. **Describe it.** On the home screen, say what you want ("Summarize my inbox
+   each morning and flag anything that needs a reply"). Run creates an agent and
+   drops you straight into a chat with it.
+2. **Connect your tools.** When the agent needs your Gmail or Drive, a Connect
+   button appears right in the chat. You sign in once and it is ready. Every
+   person connects their own accounts.
+3. **Work together.** The agent streams its thinking and progress as it works,
+   and pauses for your approval before anything that sends or changes something
+   (like a draft email), showing you a full preview first.
+4. **Come back to it.** Your agents live in the sidebar as ongoing chats. Open
+   one any time to pick up where you left off; it remembers the conversation.
 
-The full, detailed history of what has been done, session by session and in
-plain English, lives in **[PROGRESS.md](./PROGRESS.md)**. It is updated at the
-end of every work session, so it always reflects exactly where the project
-left off.
+## Built with
 
-Done so far, at a glance:
+Next.js 16, React 19, and Tailwind CSS v4 on the front end. Supabase for auth,
+the database, and row-level security. The Anthropic API (Managed Agents
+sessions) runs the agents, and Pipedream Connect handles the per-user Gmail and
+Drive connections. The design system is documented in
+[docs/styleguide.md](./docs/styleguide.md).
 
-- ✅ **Phase 1, foundation and app shell:** Supabase email/password auth,
-  admin/user roles, protected routes, and the full sidebar/dashboard shell with
-  placeholder pages for every section.
-- ✅ **Visual restyle:** the whole app follows a token-driven design system
-  (warm canvas, floating white cards, forest-green accents, Lucide icons),
-  documented in [docs/styleguide.md](./docs/styleguide.md).
-- ✅ **Phase 2, admin configuration:** company settings, agent
-  create/edit/archive with Claude Managed Agents dual-write, AI-assisted prompt
-  writing, and assigning agents to users.
-- ✅ **Phase 3, Google Drive and knowledge:** org-level Drive connection via
-  Pipedream Connect, per-agent knowledge files picked from Drive, and
-  server-side text extraction for Docs, Sheets, DOCX, PDF, TXT, and CSV.
-- ✅ **Phase 4, missions and agent runs:** the Missions Kanban, mission runs
-  through Claude Managed Agents Sessions with mounted knowledge, Google
-  Doc/Sheet/PDF outputs saved to Drive, and the My Squad sidebar with
-  per-agent personal instructions.
-- ✅ **Phase 5, usage and hardening:** token and cost tracking per mission
-  run and prompt generation, the role-aware Usage page, profile settings
-  with avatar upload, and the production hardening pass (403 sweep,
-  secret-leak scan, deployment docs).
-- ✅ **Phase 6, observable runs:** every mission run now streams a live
-  Activity timeline (tool calls, web searches, the agent's own words) on the
-  mission page, with a real Stop control that halts the agent mid-run,
-  follow-up refinements in the same session, and honest Stopped and
-  "Did not finish" states that keep the brief re-runnable.
-- ✅ **Phase 7, anyone builds agents:** building is no longer an admin
-  role gate. Every member gets the Agents page (Yours / Shared with you /
-  From your company), owns what they build, and shares it per person or
-  company-wide; the admin role shrinks to company capabilities
-  (integrations, users, company context, governance view).
-- ✅ **Phase 8, the guided agent builder:** creating an agent is now a
-  seven-step wizard (identity with AI-written instructions, data sources,
-  tools, guardrails, output, a safe test run, publish). Tool choices are
-  hard-enforced at the API level, guardrails ride along on every run, and
-  the per-mission web search toggle is capped by the agent's settings.
+## Project status
+
+Run is a prompt-first personal agent builder. In place today: the prompt-first
+home and chat shell, the live streaming chat loop, per-user Gmail and Drive
+connections, read tools (search and read your inbox and Drive), and write tools
+gated behind an in-chat approval.
+
+Still to come: scheduled runs, so an agent can work on its own (for example a
+daily inbox summary that arrives without you asking), a panel for editing an
+agent directly, and the removal of the older admin-configured screens that this
+direction replaces.
+
+The full, plain-English history, session by session, lives in
+**[PROGRESS.md](./PROGRESS.md)**, updated at the end of every work session.
 
 ## Getting started
 
@@ -70,8 +57,9 @@ npm install
 npm run dev
 ```
 
-Copy `.env.local.example` to `.env.local` and fill in your own Supabase and
-Anthropic keys, then open [http://localhost:3000](http://localhost:3000).
+Copy `.env.local.example` to `.env.local` and fill in your own Supabase,
+Anthropic, and Pipedream keys, then open
+[http://localhost:3000](http://localhost:3000).
 
 ## Checks
 
@@ -89,16 +77,17 @@ The app is a standard Next.js project and deploys cleanly to Vercel:
    `supabase/migrations/` in filename order (SQL editor or CLI). Turn email
    confirmation on or off to taste under Auth settings.
 2. **Vercel:** import the repo and set the environment variables from
-   `.env.local.example`. `NEXT_PUBLIC_APP_URL` must be the deployed URL
-   (it is used for the Google Drive OAuth redirect).
+   `.env.local.example`. `NEXT_PUBLIC_APP_URL` must be the deployed URL (it is
+   used for the OAuth redirects).
 3. **Pipedream:** set `PIPEDREAM_ENVIRONMENT=production` and make sure the
-   Pipedream project has a production environment configured in its
-   dashboard, then reconnect Google Drive once from Admin > Integrations.
-4. **First run:** sign up (the first account can be promoted to admin by
-   setting `profiles.role = 'admin'` in Supabase), create the agent runtime
-   under Admin > Integrations, connect Google Drive, create an agent, and
-   run a mission.
+   Pipedream project has a production environment with the Gmail and
+   Google Drive apps enabled.
+4. **First run:** sign up. The first account can be promoted to admin by setting
+   `profiles.role = 'admin'` in Supabase, which unlocks the one-time setup of
+   the shared agent runtime (the Anthropic environment). After that, anyone can
+   create an agent from the home screen, connect their own Gmail or Drive when
+   the agent asks, and start chatting.
 
-Mission runs are synchronous and can take a few minutes; the run route sets
-`maxDuration = 300`, which needs a Vercel plan that allows 300-second
-function durations (or lower the value and keep briefs small).
+Chat turns run synchronously and a tool-using turn can take a little while; the
+chat route sets `maxDuration = 300`, which needs a Vercel plan that allows
+300-second function durations.
