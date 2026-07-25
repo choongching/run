@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 
 import {
+  AGENT_MODELS,
   buildAgentToolset,
   DEFAULT_AGENT_MODEL,
   MANAGED_AGENTS_BETA,
@@ -11,6 +12,10 @@ import {
   getAnthropicClient,
 } from '@/lib/anthropic/client'
 import { getUserProfile } from '@/lib/auth'
+import {
+  buildSystemPrompt,
+  parseSetupAnswers,
+} from '@/lib/chat/onboarding'
 import { createClient } from '@/lib/supabase/server'
 
 // Fallback name when the model naming call is unavailable: a short slice of the
@@ -158,6 +163,71 @@ export async function renameAgent(agentId: string, rawName: string) {
         .eq('id', agentId)
     } catch {
       // Cosmetic sync only. The database name is the source of truth for the UI.
+    }
+  }
+
+  revalidatePath('/', 'layout')
+  revalidatePath(`/chat/${agentId}`)
+}
+
+// Save the agent's config from the chat side panel: its name and its base
+// instructions. The instructions recombine with the saved setup preferences so
+// editing here never drops what onboarding captured. The database is the source
+// of truth for every surface; the Anthropic agent (name + system) is synced
+// best-effort so a version conflict or API hiccup never blocks the save.
+export async function updateAgentConfig(
+  agentId: string,
+  input: { name: string; instructions: string; model: string }
+): Promise<void> {
+  const name = input.name.trim().replace(/\s+/g, ' ').slice(0, 60)
+  const baseInstructions = input.instructions.trim()
+  // Only accept a model we actually offer; anything else leaves it unchanged.
+  const model = AGENT_MODELS.some((m) => m.id === input.model)
+    ? input.model
+    : undefined
+  if (!name) return
+
+  const { userId } = await getUserProfile()
+  const supabase = await createClient()
+
+  const { data: current } = await supabase
+    .from('agents')
+    .select('preferences')
+    .eq('id', agentId)
+    .eq('owner_id', userId)
+    .single()
+  if (!current) return
+
+  const answers = parseSetupAnswers(current.preferences)
+  const system = buildSystemPrompt(baseInstructions, answers)
+
+  const { data: agent, error } = await supabase
+    .from('agents')
+    .update({ name, system_prompt: system, ...(model ? { model } : {}) })
+    .eq('id', agentId)
+    .eq('owner_id', userId)
+    .select('claude_agent_id, claude_version')
+    .single()
+
+  if (error || !agent) return
+
+  if (agent.claude_agent_id && agent.claude_version != null) {
+    try {
+      const anthropic = getAnthropicClient()
+      const updated = await anthropic.beta.agents.update(agent.claude_agent_id, {
+        version: agent.claude_version,
+        name,
+        system,
+        ...(model ? { model } : {}),
+        betas: [MANAGED_AGENTS_BETA],
+      })
+      await supabase
+        .from('agents')
+        .update({ claude_version: updated.version, synced_at: new Date().toISOString() })
+        .eq('id', agentId)
+    } catch {
+      // Cosmetic sync only. The database is the source of truth for the UI and
+      // for building the next session.
     }
   }
 
