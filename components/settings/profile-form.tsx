@@ -84,8 +84,7 @@ export function ProfileForm({
       <CardHeader>
         <CardTitle>Profile</CardTitle>
         <CardDescription>
-          How you appear across Run: in the sidebar, on the Users page, and on
-          your missions.
+          How you appear across Run: in the sidebar and in your agent chats.
         </CardDescription>
       </CardHeader>
       <CardContent className="grid gap-6">

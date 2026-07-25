@@ -14,9 +14,33 @@ agent, and you work with it in a live streaming chat that can read and act on
 your own Gmail and Drive, always asking permission before it writes anything.
 Revamp Phases 1 through 3b are merged (the chat shell, the streaming loop,
 per-user connections and read tools, and write tools with an approval gate),
-plus a copy pass. Next step: connect a real Gmail and dogfood the inbox
-summary and draft flow end to end, then decide between scheduled runs and
+plus a copy pass, and Phase 5 removed all of the old admin-configured UX that
+the new direction replaced. Next step: connect a real Gmail and dogfood the
+inbox summary and draft flow end to end, then decide between scheduled runs and
 further polish.
+
+---
+
+## 2026-07-25: Phase 5, removing the old UX
+
+With the prompt-first shell proven, we deleted the screens the new direction
+replaced so the codebase reflects one product, not two.
+
+- Deleted the old user-facing UX: the Runs board and run detail, the agents
+  list, the guided agent wizard and agent detail, the admin company-context
+  and user-management pages, and the unlinked usage page.
+- Deleted the components and API routes behind them (missions, old agent CRUD
+  and knowledge/sharing/test, squad, company settings, org-level Drive), plus
+  the now-orphaned library files. Fifty files removed in all.
+- Repointed the post-login, post-register, non-admin, and already-signed-in
+  redirects from the deleted /runs to the prompt-first home.
+- Trimmed the admin Connections page to the one thing still needed there, the
+  shared agent runtime setup; members connect their own Gmail and Drive from
+  inside a chat. Refreshed a little leftover "missions" wording to match the
+  new vocabulary.
+- The missions database table is intentionally left in place; dropping it is a
+  separate data decision, not part of this UX cleanup. Lint, typecheck, and a
+  production build all pass.
 
 ---
 

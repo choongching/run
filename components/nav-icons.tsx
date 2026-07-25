@@ -3,11 +3,7 @@
 // to 70% ink and lift them to full ink on hover/active — swap mappings here rather
 // than styling icons inside pages.
 export {
-  Target as MissionsIcon,
-  ChartNoAxesColumn as UsageIcon,
   Bot as AgentsIcon,
-  Building2 as CompanyIcon,
-  UsersRound as UsersIcon,
   Blocks as IntegrationsIcon,
   Settings as SettingsIcon,
 } from 'lucide-react'
