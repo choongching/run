@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState } from 'react'
-import { ArrowUp, Loader2, Square } from 'lucide-react'
+import { ArrowUp, CircleCheck, Loader2, Square } from 'lucide-react'
 import { StickToBottom } from 'use-stick-to-bottom'
 
 import { ConnectCard } from '@/components/chat/connect-card'
@@ -230,14 +230,19 @@ function MessageRow({
   }
 
   if (message.role === 'activity') {
+    // Completed steps settle to a green check; the in-progress step animates
+    // with a shimmering label (AirOps-style working state).
     return (
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         {live ? (
-          <Loader2 className="size-3 animate-spin" />
+          <Loader2 className="size-3.5 shrink-0 animate-spin" />
         ) : (
-          <span className="size-1.5 rounded-full bg-muted-foreground/50" />
+          <CircleCheck className="size-3.5 shrink-0 text-primary/70" />
         )}
-        <span>{message.content}</span>
+        <span className={cn(live && 'text-shimmer font-medium')}>
+          {message.content}
+          {live ? '…' : ''}
+        </span>
       </div>
     )
   }
