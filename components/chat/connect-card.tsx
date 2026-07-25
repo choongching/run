@@ -76,7 +76,7 @@ export function ConnectCard({
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium">Connect {label}</p>
           <p className="text-xs text-muted-foreground">
-            So this agent can work with your {label}.
+            So your agent can work with your {label}.
           </p>
         </div>
         {status === 'connected' ? (
