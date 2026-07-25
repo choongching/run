@@ -20,6 +20,12 @@ export const FIRST_TASK_KICKOFF = `[SETUP COMPLETE] Setup is done and saved. Now
 
 export type SetupAnswer = { q: string; a: string }
 
+// The setup-preferences block is a marked-off section appended to the agent's
+// instructions. This pattern finds it so the base instructions and the block
+// can be edited independently (the config panel edits the base, onboarding
+// writes the block).
+const SETUP_BLOCK = /\n*## Setup preferences[\s\S]*$/
+
 // Turn the interview into a preferences block appended to the agent's
 // instructions, so what the user said in setup shapes every future session.
 function composeBrief(answers: SetupAnswer[]): string {
@@ -32,10 +38,41 @@ function composeBrief(answers: SetupAnswer[]): string {
 
 // Append (or replace) the setup-preferences block in the instructions.
 function applyBrief(base: string | null, brief: string): string {
-  const stripped = (base ?? '')
-    .replace(/\n*## Setup preferences[\s\S]*$/, '')
-    .trimEnd()
+  const stripped = (base ?? '').replace(SETUP_BLOCK, '').trimEnd()
   return `${stripped}\n\n${brief}\n`
+}
+
+// The base instructions with any setup-preferences block removed. Used to show
+// and edit the plain instructions in the config panel without the appended
+// block leaking into the textarea.
+export function stripBrief(systemPrompt: string | null): string {
+  return (systemPrompt ?? '').replace(SETUP_BLOCK, '').trimEnd()
+}
+
+// Recompose the full system prompt from freshly edited base instructions plus
+// the saved setup answers, so editing the instructions never drops the
+// preferences the user gave during onboarding.
+export function buildSystemPrompt(
+  baseInstructions: string,
+  answers: SetupAnswer[]
+): string {
+  const kept = answers.filter((x) => x.a?.trim())
+  if (!kept.length) return baseInstructions.replace(SETUP_BLOCK, '').trimEnd()
+  return applyBrief(baseInstructions, composeBrief(kept))
+}
+
+// Parse the preferences jsonb (or anything loose) into setup answers.
+export function parseSetupAnswers(raw: unknown): SetupAnswer[] {
+  if (!Array.isArray(raw)) return []
+  return raw
+    .map((x): SetupAnswer | null => {
+      const o = (x ?? {}) as Record<string, unknown>
+      const q = String(o.q ?? '').trim()
+      const a = String(o.a ?? '').trim()
+      if (!q && !a) return null
+      return { q, a }
+    })
+    .filter((x): x is SetupAnswer => x !== null)
 }
 
 // Persist the interview: fold the answers into the agent's instructions, store

@@ -2,9 +2,12 @@ import { notFound } from 'next/navigation'
 
 import type { ApprovalCall } from '@/components/chat/approval-card'
 import { ChatHeader } from '@/components/chat/chat-header'
+import { ConfigPanel } from '@/components/chat/config-panel'
 import { ChatThread, type ChatMessage } from '@/components/chat/chat-thread'
 import { isAskTool, summarizeAsk, summarizeWrite } from '@/lib/tools/definitions'
 import { getUserProfile } from '@/lib/auth'
+import { parseSetupAnswers, stripBrief } from '@/lib/chat/onboarding'
+import { getUserConnection } from '@/lib/pipedream/connections'
 import { createClient } from '@/lib/supabase/server'
 
 // The live chat surface (Phase 2): loads the thread's history and hands it to
@@ -20,11 +23,21 @@ export default async function ChatPage({
 
   const { data: agent } = await supabase
     .from('agents')
-    .select('id, name, onboarded')
+    .select('id, name, onboarded, system_prompt, preferences, model')
     .eq('id', agentId)
     .single()
 
   if (!agent) notFound()
+
+  // Config-panel data: the base instructions (without the appended setup
+  // block), the setup answers, and whether the user has connected each app.
+  const instructions = stripBrief(agent.system_prompt)
+  const preferences = parseSetupAnswers(agent.preferences)
+  const [gmailConn, driveConn] = await Promise.all([
+    getUserConnection(supabase, userId, 'gmail'),
+    getUserConnection(supabase, userId, 'google_drive'),
+  ])
+  const connections = { gmail: !!gmailConn, google_drive: !!driveConn }
 
   // Ensure the one-per-user thread exists (idempotent for agents created
   // before threads), then read its id.
@@ -70,8 +83,21 @@ export default async function ChatPage({
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <header className="mx-auto w-full max-w-3xl shrink-0 border-b border-border pb-3">
-        <ChatHeader key={agent.id} agentId={agent.id} agentName={agent.name} />
+      <header className="mx-auto flex w-full max-w-3xl shrink-0 items-center justify-between gap-2 border-b border-border pb-3">
+        <ChatHeader
+          key={`${agent.id}:${agent.name}`}
+          agentId={agent.id}
+          agentName={agent.name}
+        />
+        <ConfigPanel
+          key={`config-${agent.id}`}
+          agentId={agent.id}
+          agentName={agent.name}
+          instructions={instructions}
+          model={agent.model}
+          preferences={preferences}
+          connections={connections}
+        />
       </header>
       <ChatThread
         agentId={agent.id}
