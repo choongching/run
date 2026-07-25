@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { requireUser } from '@/lib/api-helpers'
-import { assertAgentInSquad, MISSION_OUTPUT_TYPES } from '@/lib/missions'
+import { assertAgentRunnable, MISSION_OUTPUT_TYPES } from '@/lib/missions'
 import type { MissionOutputType } from '@/lib/types/database'
 
 export async function GET() {
@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     )
   }
 
-  const squadError = await assertAgentInSquad(supabase, userId, agentId)
+  const squadError = await assertAgentRunnable(supabase, agentId)
   if (squadError) return squadError
 
   const { data, error: dbError } = await supabase

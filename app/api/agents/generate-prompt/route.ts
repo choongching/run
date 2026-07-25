@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server'
-import { requireAdmin } from '@/lib/api-helpers'
+import { requireUser } from '@/lib/api-helpers'
 import { getAnthropicClient } from '@/lib/anthropic/client'
 import { recordUsage } from '@/lib/usage'
 
 const GENERATION_MODEL = 'claude-sonnet-5'
 
 export async function POST(request: Request) {
-  const { error, supabase, userId } = await requireAdmin()
+  const { error, supabase, userId } = await requireUser()
   if (error) return error
 
   const body = await request.json().catch(() => null)

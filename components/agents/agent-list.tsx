@@ -3,9 +3,23 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Archive, Bot, CalendarDays, Copy, Ellipsis, Pencil } from 'lucide-react'
+import {
+  Archive,
+  Bot,
+  Building2,
+  CalendarDays,
+  Copy,
+  Ellipsis,
+  Lock,
+  Pencil,
+  UserRound,
+} from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { Agent, AgentStatus } from '@/lib/types/database'
+
+export type AgentWithOwner = Agent & {
+  owner: { display_name: string | null } | null
+}
 import { buttonVariants } from '@/components/ui/button'
 import {
   Card,
@@ -49,7 +63,15 @@ function MetaChip({
   )
 }
 
-export function AgentList({ agents }: { agents: Agent[] }) {
+export function AgentList({
+  agents,
+  currentUserId,
+  canManageAll,
+}: {
+  agents: AgentWithOwner[]
+  currentUserId: string
+  canManageAll: boolean
+}) {
   const router = useRouter()
   const [pendingId, setPendingId] = useState<string | null>(null)
   const [openMenuId, setOpenMenuId] = useState<string | null>(null)
@@ -89,6 +111,9 @@ export function AgentList({ agents }: { agents: Agent[] }) {
         const archived = agent.status === 'archived'
         const menuOpen = openMenuId === agent.id
         const pending = pendingId === agent.id
+        // Editing is an ownership right; admins keep it as a company
+        // capability. Duplicating any visible agent makes it your own.
+        const canEdit = agent.owner_id === currentUserId || canManageAll
         return (
           <Card
             key={agent.id}
@@ -102,12 +127,16 @@ export function AgentList({ agents }: { agents: Agent[] }) {
           >
             <CardHeader>
               <CardTitle className={archived ? 'text-muted-foreground' : undefined}>
-                <Link
-                  href={`/admin/agents/${agent.id}`}
-                  className="underline-offset-4 hover:underline"
-                >
-                  {agent.name}
-                </Link>
+                {canEdit ? (
+                  <Link
+                    href={`/agents/${agent.id}`}
+                    className="underline-offset-4 hover:underline"
+                  >
+                    {agent.name}
+                  </Link>
+                ) : (
+                  agent.name
+                )}
               </CardTitle>
               <CardDescription>
                 {agent.description || 'No description yet.'}
@@ -127,12 +156,14 @@ export function AgentList({ agents }: { agents: Agent[] }) {
                     <Ellipsis />
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem
-                      onClick={() => router.push(`/admin/agents/${agent.id}`)}
-                    >
-                      <Pencil />
-                      Edit
-                    </DropdownMenuItem>
+                    {canEdit && (
+                      <DropdownMenuItem
+                        onClick={() => router.push(`/agents/${agent.id}`)}
+                      >
+                        <Pencil />
+                        Edit
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuItem
                       disabled={pending}
                       onClick={() => handleDuplicate(agent)}
@@ -140,7 +171,7 @@ export function AgentList({ agents }: { agents: Agent[] }) {
                       <Copy />
                       Duplicate
                     </DropdownMenuItem>
-                    {!archived && (
+                    {!archived && canEdit && (
                       <>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
@@ -173,6 +204,16 @@ export function AgentList({ agents }: { agents: Agent[] }) {
                 <Bot />
                 {agent.model}
               </MetaChip>
+              <MetaChip>
+                {agent.visibility === 'company' ? <Building2 /> : <Lock />}
+                {agent.visibility === 'company' ? 'Company' : 'Private'}
+              </MetaChip>
+              {agent.owner_id !== currentUserId && (
+                <MetaChip>
+                  <UserRound />
+                  {agent.owner?.display_name ?? 'Company'}
+                </MetaChip>
+              )}
             </CardFooter>
           </Card>
         )

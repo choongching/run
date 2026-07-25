@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { toFile } from '@anthropic-ai/sdk'
 import { requireUser } from '@/lib/api-helpers'
 import { getAnthropicClient, MANAGED_AGENTS_BETA } from '@/lib/anthropic/client'
-import { assertAgentInSquad } from '@/lib/missions'
+import { assertAgentRunnable } from '@/lib/missions'
 import { recordMissionEvent } from '@/lib/missions/events'
 import { readDriveFile } from '@/lib/drive/read-file'
 import { createDriveFile } from '@/lib/drive/create-file'
@@ -73,7 +73,7 @@ export async function POST(
     claude_agent_id: string | null
   } | null
 
-  const squadError = await assertAgentInSquad(supabase, userId, mission.agent_id)
+  const squadError = await assertAgentRunnable(supabase, mission.agent_id)
   if (squadError) return squadError
   if (!agent || agent.status !== 'active') {
     return NextResponse.json(

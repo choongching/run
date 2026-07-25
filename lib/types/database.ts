@@ -9,6 +9,7 @@ export type Json =
 export type UserRole = 'admin' | 'user'
 export type OutputType = 'doc' | 'sheet' | 'text'
 export type AgentStatus = 'draft' | 'active' | 'paused' | 'archived'
+export type AgentVisibility = 'private' | 'company'
 export type MissionStatus =
   | 'needs_attention'
   | 'in_progress'
@@ -56,6 +57,8 @@ export type Database = {
           system_prompt: string | null
           model: string
           status: AgentStatus
+          owner_id: string | null
+          visibility: AgentVisibility
           archived_at: string | null
           claude_version: number | null
           synced_at: string | null
@@ -71,6 +74,8 @@ export type Database = {
           system_prompt?: string | null
           model?: string
           status?: AgentStatus
+          owner_id?: string | null
+          visibility?: AgentVisibility
           archived_at?: string | null
           claude_version?: number | null
           synced_at?: string | null
@@ -86,6 +91,8 @@ export type Database = {
           system_prompt?: string | null
           model?: string
           status?: AgentStatus
+          owner_id?: string | null
+          visibility?: AgentVisibility
           archived_at?: string | null
           claude_version?: number | null
           synced_at?: string | null
@@ -93,7 +100,15 @@ export type Database = {
           created_at?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: 'agents_owner_id_fkey'
+            columns: ['owner_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
       }
       company_settings: {
         Row: {

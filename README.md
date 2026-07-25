@@ -10,8 +10,8 @@ and the Anthropic API.
 ## Project progress
 
 **Current status:** All five v1 roadmap phases plus Phase 6 (observable
-runs) are complete and merged to `main`. The app is ready to deploy (see
-Deploying below).
+runs) and Phase 7 (anyone can build agents) are complete and merged to
+`main`. The app is ready to deploy (see Deploying below).
 
 The full, detailed history of what has been done, session by session and in
 plain English, lives in **[PROGRESS.md](./PROGRESS.md)**. It is updated at the
@@ -45,6 +45,11 @@ Done so far, at a glance:
   mission page, with a real Stop control that halts the agent mid-run,
   follow-up refinements in the same session, and honest Stopped and
   "Did not finish" states that keep the brief re-runnable.
+- ✅ **Phase 7, anyone builds agents:** building is no longer an admin
+  role gate. Every member gets the Agents page (Yours / Shared with you /
+  From your company), owns what they build, and shares it per person or
+  company-wide; the admin role shrinks to company capabilities
+  (integrations, users, company context, governance view).
 
 ## Getting started
 

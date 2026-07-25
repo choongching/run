@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { requireAdmin } from '@/lib/api-helpers'
+import { requireUser } from '@/lib/api-helpers'
 import {
   AGENT_TOOLSET,
   DEFAULT_AGENT_MODEL,
@@ -7,8 +7,10 @@ import {
   getAnthropicClient,
 } from '@/lib/anthropic/client'
 
+// Building agents is open to every member (phase 7). RLS scopes reads to
+// what the caller may see and stamps ownership rules on writes.
 export async function GET() {
-  const { error, supabase } = await requireAdmin()
+  const { error, supabase } = await requireUser()
   if (error) return error
 
   const { data: agents, error: dbError } = await supabase
@@ -23,7 +25,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const { error, supabase } = await requireAdmin()
+  const { error, supabase, userId } = await requireUser()
   if (error) return error
 
   const body = await request.json().catch(() => null)
@@ -69,6 +71,8 @@ export async function POST(request: Request) {
       description,
       system_prompt: systemPrompt,
       model,
+      // New agents belong to their creator and start private.
+      owner_id: userId,
     })
     .select()
     .single()

@@ -1,14 +1,15 @@
 import { NextResponse } from 'next/server'
-import { requireAdmin } from '@/lib/api-helpers'
+import { requireAgentEditor, requireUser } from '@/lib/api-helpers'
 
 // Pinned Drive knowledge files for one agent. PUT replaces the whole set so
-// the editor can auto-save its current selection in one call.
+// the editor can auto-save its current selection in one call. Reads follow
+// agent visibility; writes are owner-or-admin (RLS backs both).
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { error, supabase } = await requireAdmin()
+  const { error, supabase } = await requireUser()
   if (error) return error
   const { id } = await params
 
@@ -27,18 +28,9 @@ export async function PUT(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { error, supabase } = await requireAdmin()
-  if (error) return error
   const { id } = await params
-
-  const { data: agent } = await supabase
-    .from('agents')
-    .select('id')
-    .eq('id', id)
-    .single()
-  if (!agent) {
-    return NextResponse.json({ error: 'Agent not found' }, { status: 404 })
-  }
+  const { error, supabase } = await requireAgentEditor(id)
+  if (error) return error
 
   const body = await request.json().catch(() => null)
   if (!Array.isArray(body?.files)) {

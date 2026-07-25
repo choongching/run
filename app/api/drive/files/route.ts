@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { requireAdmin } from '@/lib/api-helpers'
+import { requireUser } from '@/lib/api-helpers'
 import { getPipedreamClient } from '@/lib/pipedream/client'
 
 // Lists Google Drive files usable as agent knowledge, via the org connection.
@@ -21,7 +21,7 @@ type DriveFileList = {
 }
 
 export async function GET(request: Request) {
-  const { error, supabase } = await requireAdmin()
+  const { error, supabase } = await requireUser()
   if (error) return error
 
   const { data: settings } = await supabase

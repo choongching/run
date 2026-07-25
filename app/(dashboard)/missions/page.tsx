@@ -11,25 +11,26 @@ export default async function MissionsPage() {
   const { userId } = await getUserProfile()
   const supabase = await createClient()
 
-  const [{ data: missions }, { data: squadRows }] = await Promise.all([
+  // Runnable agents are every active agent the caller can see: their own,
+  // company-visible ones, and ones shared to them. Agents RLS scopes this.
+  const [{ data: missions }, { data: agentRows }] = await Promise.all([
     supabase
       .from('missions')
       .select('*, agents(name)')
       .eq('user_id', userId)
       .order('created_at', { ascending: false }),
     supabase
-      .from('user_agents')
-      .select('agents!inner(id, name, description, status)')
-      .eq('user_id', userId)
-      .eq('is_active', true)
-      .eq('agents.status', 'active'),
+      .from('agents')
+      .select('id, name, description')
+      .eq('status', 'active')
+      .order('name'),
   ])
 
-  const agents: SquadAgent[] = (squadRows ?? [])
-    .map((row) => row.agents)
-    .filter((a): a is NonNullable<typeof a> => Boolean(a))
-    .map((a) => ({ id: a.id, name: a.name, description: a.description }))
-    .sort((a, b) => a.name.localeCompare(b.name))
+  const agents: SquadAgent[] = (agentRows ?? []).map((a) => ({
+    id: a.id,
+    name: a.name,
+    description: a.description,
+  }))
 
   return (
     <>

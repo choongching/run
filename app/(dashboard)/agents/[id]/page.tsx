@@ -1,6 +1,6 @@
 import Link from 'next/link'
-import { notFound } from 'next/navigation'
-import { requireAdminPage } from '@/lib/auth'
+import { notFound, redirect } from 'next/navigation'
+import { getUserProfile } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import {
   Breadcrumb,
@@ -11,6 +11,7 @@ import {
   BreadcrumbSeparator,
 } from '@/components/ui/breadcrumb'
 import { AgentForm } from '@/components/agents/agent-form'
+import { AgentSharingCard } from '@/components/agents/agent-sharing-card'
 import { AgentStatusChip } from '@/components/agents/agent-status-chip'
 
 export default async function EditAgentPage({
@@ -18,12 +19,12 @@ export default async function EditAgentPage({
 }: {
   params: Promise<{ id: string }>
 }) {
-  await requireAdminPage()
+  const { userId, profile } = await getUserProfile()
   const { id } = await params
   const supabase = await createClient()
 
   const [{ data: agent }, { data: settings }] = await Promise.all([
-    supabase.from('agents').select('*').eq('id', id).single(),
+    supabase.from('agents').select('*').eq('id', id).maybeSingle(),
     supabase
       .from('company_settings')
       .select('company_context, pipedream_account_id, pipedream_connected_by')
@@ -32,6 +33,20 @@ export default async function EditAgentPage({
   ])
 
   if (!agent) notFound()
+  // Editing is owner-or-admin; run-only viewers land back on the hub.
+  const isOwner = agent.owner_id === userId
+  if (!isOwner && profile?.role !== 'admin') redirect('/agents')
+
+  const { data: members } = await supabase
+    .from('profiles')
+    .select('id, display_name')
+    .neq('id', agent.owner_id ?? userId)
+    .order('display_name')
+
+  const { data: shares } = await supabase
+    .from('user_agents')
+    .select('user_id, is_active, profiles(display_name)')
+    .eq('agent_id', id)
 
   return (
     <>
@@ -39,7 +54,7 @@ export default async function EditAgentPage({
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink render={<Link href="/admin/agents" />}>
+              <BreadcrumbLink render={<Link href="/agents" />}>
                 Agents
               </BreadcrumbLink>
             </BreadcrumbItem>
@@ -66,6 +81,24 @@ export default async function EditAgentPage({
           settings?.pipedream_account_id && settings.pipedream_connected_by
         )}
       />
+      <div className="mt-4 max-w-3xl">
+        <AgentSharingCard
+          agentId={agent.id}
+          visibility={agent.visibility}
+          members={(members ?? []).map((m) => ({
+            id: m.id,
+            name: m.display_name ?? 'Unnamed member',
+          }))}
+          initialShares={(shares ?? [])
+            .filter((s) => s.is_active)
+            .map((s) => ({
+              userId: s.user_id,
+              name:
+                (s.profiles as { display_name: string | null } | null)
+                  ?.display_name ?? 'Unnamed member',
+            }))}
+        />
+      </div>
     </>
   )
 }

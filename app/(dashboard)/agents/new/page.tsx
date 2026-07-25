@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { requireAdminPage } from '@/lib/auth'
+import { getUserProfile } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import {
   Breadcrumb,
@@ -12,7 +12,7 @@ import {
 import { AgentForm } from '@/components/agents/agent-form'
 
 export default async function NewAgentPage() {
-  await requireAdminPage()
+  await getUserProfile()
   const supabase = await createClient()
   const { data: settings } = await supabase
     .from('company_settings')
@@ -26,7 +26,7 @@ export default async function NewAgentPage() {
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink render={<Link href="/admin/agents" />}>
+              <BreadcrumbLink render={<Link href="/agents" />}>
                 Agents
               </BreadcrumbLink>
             </BreadcrumbItem>
