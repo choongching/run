@@ -8,15 +8,43 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** Phase 7 (anyone can build agents) is merged to
-`main` via pull request #7, on top of Phase 6 (observable runs, PR #6).
-Building is now every member's right: agents have owners and
-private/company visibility, sharing is owner-driven, and the admin role
-covers company capabilities only. Next steps: the private staging deploy
-and a reaction test with the first users, then the builder wizard
-(roadmap Phase 3) from `docs/replan-2026-07-24-final-plan.md`.
+**Where we left off:** The full re-plan is built and merged. Phases 6
+through 9 landed in two days: observable runs (PR #6), open agent
+building with ownership and sharing (PR #7), the guided builder wizard
+(PR #8), and the Missions to Runs rename with onboarding copy (PR #9).
+Two small items from the plan were deliberately deferred: the seeded
+starter agent for brand-new companies and the per-agent run history tab.
+Next step: the private staging deploy (Vercel, see the README) and a
+reaction test with the first users whose feedback started the re-plan.
 
 ---
+
+## 2026-07-25: Phases 8 and 9, the guided builder and the Runs rename
+
+Merged to `main` via pull requests #8 and #9, completing the re-plan.
+
+- Phase 8, the builder wizard: creating an agent is now a seven-step
+  guided flow (identity with AI-written instructions, data sources,
+  tools, guardrails, output, a safe test run, publish). The agent is
+  created as a draft after the first step so knowledge picking and test
+  runs work against something real; a Behavior card on the edit page
+  manages the new settings and publishes abandoned drafts.
+- Tool choices are enforced for real: migration 018 added enabled_tools
+  and guardrails to agents, the Anthropic dual-write maps tool toggles
+  onto per-tool API configs (hard enforcement, verified in the
+  capability spike), the run route caps web search and knowledge
+  mounting by agent config and appends guardrails to every kickoff, and
+  the run dialog hides the web search control entirely for capped agents
+  while prefilling the agent's default output.
+- The test step earned its "comprehension moment" title in live testing:
+  the test result visibly followed the guardrail added seconds earlier
+  (it flagged an unexplained delay as uncertain instead of guessing).
+- Phase 9, the rename: Missions are Runs everywhere users can see
+  (routes /runs with permanent redirects, sidebar, board, dialogs);
+  database tables and API paths deliberately keep their old names. The
+  zero-agents empty state stopped telling members to wait for an admin
+  (wrong since phase 7) and now teaches the one-sentence agent
+  definition and links into the wizard.
 
 ## 2026-07-25: Phase 7, anyone can build and own agents
 
