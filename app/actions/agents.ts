@@ -12,10 +12,7 @@ import {
   getAnthropicClient,
 } from '@/lib/anthropic/client'
 import { getUserProfile } from '@/lib/auth'
-import {
-  buildSystemPrompt,
-  parseSetupAnswers,
-} from '@/lib/chat/onboarding'
+import { buildSystemPrompt, parseSetupAnswers } from '@/lib/chat/onboarding'
 import { createClient } from '@/lib/supabase/server'
 
 // Fallback name when the model naming call is unavailable: a short slice of the
@@ -68,7 +65,9 @@ export async function startAgentFromPrompt(formData: FormData) {
   const name = await generateAgentName(prompt)
   // The prompt seeds the agent's instructions; the agent refines these
   // through conversation (Phase 2) or the config panel (Phase 4).
-  const systemPrompt = prompt
+  // buildSystemPrompt folds in the always-on role boundary from creation so a
+  // brand-new agent stays in its lane even before onboarding runs.
+  const systemPrompt = buildSystemPrompt(prompt, [])
   const enabledTools = { web_search: false, drive: true }
 
   let claudeAgentId: string
