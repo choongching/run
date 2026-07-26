@@ -23,9 +23,9 @@ import {
   ACCEPT_ATTR,
   ACCEPTED_HINT,
   humanSize,
-  isAccepted,
+  kindOf,
   matchType,
-  MAX_FILE_BYTES,
+  maxBytesFor,
 } from '@/lib/files/accepted'
 import { MAX_MESSAGE_CHARS } from '@/lib/chat/limits'
 import type { AskSpec } from '@/lib/tools/definitions'
@@ -35,7 +35,14 @@ type AskState = AskSpec & { id: string }
 
 type ChatRole = 'user' | 'agent' | 'activity'
 
-export type AttachmentMeta = { name: string; type: string; size: number }
+export type AttachmentMeta = {
+  name: string
+  type: string
+  size: number
+  kind?: 'document' | 'image'
+  // A small preview data URI, present for images.
+  thumb?: string
+}
 
 export type ChatMessage = {
   id: string | number
@@ -45,8 +52,9 @@ export type ChatMessage = {
   attachments?: AttachmentMeta[]
 }
 
-// The composer's in-progress attachment: extracted and confirmed on attach, so
-// its status is known before the message is sent.
+// The composer's in-progress attachment: validated and confirmed on attach, so
+// its status (and, for images, its thumbnail) is known before the message is
+// sent.
 type Attachment = AttachmentMeta & {
   status: 'checking' | 'ready' | 'error'
   reason?: string
@@ -215,23 +223,28 @@ export function ChatThread({
     }
   }
 
-  // Attach a file: reject early on size/type, then extract server-side so the
-  // chip can confirm the text is readable (or say why not) before sending.
+  // Attach a file: reject early on type/size, then process server-side (extract
+  // a document's text, or resize an image) so the chip can confirm it is
+  // readable, and show an image's thumbnail, before the message is sent.
   async function pickFile(file: File) {
-    const base = { name: file.name, type: file.type, size: file.size }
-    if (file.size > MAX_FILE_BYTES) {
+    const kind = kindOf(file.name, file.type)
+    if (!kind) {
       setAttachment({
-        ...base,
+        name: file.name,
+        type: file.type,
+        size: file.size,
+        kind: 'document',
         status: 'error',
-        reason: `That file is ${humanSize(file.size)}. The limit is 15 MB.`,
+        reason: "That file type isn't supported yet.",
       })
       return
     }
-    if (!isAccepted(file.name, file.type)) {
+    const base = { name: file.name, type: file.type, size: file.size, kind }
+    if (file.size > maxBytesFor(kind)) {
       setAttachment({
         ...base,
         status: 'error',
-        reason: "That file type isn't supported yet.",
+        reason: `That file is ${humanSize(file.size)}. The limit is ${kind === 'image' ? '10' : '15'} MB.`,
       })
       return
     }
@@ -249,6 +262,8 @@ export function ChatThread({
           name: data.name,
           type: data.type,
           size: data.size,
+          kind: data.kind,
+          thumb: data.thumb,
           status: 'ready',
         })
       } else {
@@ -281,7 +296,15 @@ export function ChatThread({
     const text = input.trim()
     const sent =
       attachment?.status === 'ready'
-        ? [{ name: attachment.name, type: attachment.type, size: attachment.size }]
+        ? [
+            {
+              name: attachment.name,
+              type: attachment.type,
+              size: attachment.size,
+              kind: attachment.kind,
+              thumb: attachment.thumb,
+            },
+          ]
         : undefined
     setInput('')
     setAttachment(null)
@@ -483,9 +506,19 @@ function MessageRow({
     return (
       <div className="flex justify-end">
         <div className="flex max-w-[85%] flex-col gap-2 rounded-xl bg-muted px-3.5 py-2.5 text-sm">
-          {message.attachments?.map((a, i) => (
-            <FileChip key={i} file={a} />
-          ))}
+          {message.attachments?.map((a, i) =>
+            a.kind === 'image' && a.thumb ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={i}
+                src={a.thumb}
+                alt={a.name}
+                className="max-h-56 max-w-[280px] rounded-lg border border-border object-contain"
+              />
+            ) : (
+              <FileChip key={i} file={a} />
+            )
+          )}
           {message.content && (
             <div className="whitespace-pre-wrap">{message.content}</div>
           )}
@@ -534,11 +567,14 @@ function FileChip({
   const status = attachment?.status ?? 'ready'
   const bad = status === 'error'
   const checking = status === 'checking'
+  const isImage = (meta.kind ?? 'document') === 'image'
+  const thumb = meta.thumb
   const label = matchType(meta.name, meta.type)?.label
 
   let sub: string
-  if (checking) sub = 'reading…'
+  if (checking) sub = isImage ? 'processing…' : 'reading…'
   else if (bad) sub = attachment?.reason ?? 'Could not read this file'
+  else if (isImage) sub = `Image · ${humanSize(meta.size)}`
   else
     sub =
       `${label ?? 'File'} · ${humanSize(meta.size)}` +
@@ -555,18 +591,23 @@ function FileChip({
     >
       <span
         className={cn(
-          'flex size-7 shrink-0 items-center justify-center rounded-md',
+          'flex size-7 shrink-0 items-center justify-center overflow-hidden rounded-md',
           bad
             ? 'bg-destructive/10 text-destructive'
-            : status === 'ready'
-              ? 'bg-primary/[0.08] text-primary'
-              : 'bg-muted text-muted-foreground'
+            : checking
+              ? 'bg-muted text-muted-foreground'
+              : isImage && thumb
+                ? ''
+                : 'bg-primary/[0.08] text-primary'
         )}
       >
         {checking ? (
           <Loader2 className="size-3.5 animate-spin" />
         ) : bad ? (
           <TriangleAlert className="size-3.5" />
+        ) : isImage && thumb ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={thumb} alt="" className="size-7 object-cover" />
         ) : (
           <FileText className="size-3.5" />
         )}

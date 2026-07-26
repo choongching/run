@@ -74,10 +74,16 @@ export default async function ChatPage({
   // A file attached but not yet sent survives a reload: restore its chip in the
   // composer (metadata only; the extracted text stays server-side).
   const pa = thread!.pending_attachment as
-    | { name: string; type: string; size: number }
+    | {
+        name: string
+        type: string
+        size: number
+        kind?: 'document' | 'image'
+        thumb?: string
+      }
     | null
-  const initialAttachment = pa
-    ? { name: pa.name, type: pa.type, size: pa.size }
+  const initialAttachment: AttachmentMeta | null = pa
+    ? { name: pa.name, type: pa.type, size: pa.size, kind: pa.kind, thumb: pa.thumb }
     : null
 
   // A pending tool call survives a reload: rebuild its card from the thread's
