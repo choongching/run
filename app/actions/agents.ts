@@ -247,3 +247,41 @@ export async function updateAgentConfig(
   revalidatePath('/', 'layout')
   revalidatePath(`/chat/${agentId}`)
 }
+
+// Permanently delete an agent the user owns. Removes the database row (its
+// threads and messages cascade) and, best-effort, archives the remote Claude
+// agent so the console is not littered. Owner-scoped: a non-owner call is a
+// silent no-op. The client navigates away afterward, since the chat is gone.
+export async function deleteAgent(agentId: string) {
+  const { userId } = await getUserProfile()
+  const supabase = await createClient()
+
+  // Capture the remote id before the row is gone; it cannot be looked up after.
+  const { data: agent } = await supabase
+    .from('agents')
+    .select('id, claude_agent_id')
+    .eq('id', agentId)
+    .eq('owner_id', userId)
+    .single()
+  if (!agent) return
+
+  const { error } = await supabase
+    .from('agents')
+    .delete()
+    .eq('id', agentId)
+    .eq('owner_id', userId)
+  if (error) return
+
+  if (agent.claude_agent_id) {
+    try {
+      const anthropic = getAnthropicClient()
+      await anthropic.beta.agents.archive(agent.claude_agent_id, {
+        betas: [MANAGED_AGENTS_BETA],
+      })
+    } catch {
+      // Cosmetic: the database row (the source of truth) is already gone.
+    }
+  }
+
+  revalidatePath('/', 'layout')
+}

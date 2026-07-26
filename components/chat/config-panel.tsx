@@ -2,13 +2,27 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ChevronDown, Loader2, SlidersHorizontal, Sparkles } from 'lucide-react'
+import {
+  ChevronDown,
+  Loader2,
+  SlidersHorizontal,
+  Sparkles,
+  Trash2,
+} from 'lucide-react'
 import { toast } from 'sonner'
 
-import { updateAgentConfig } from '@/app/actions/agents'
+import { deleteAgent, updateAgentConfig } from '@/app/actions/agents'
 import { GmailIcon } from '@/components/icons/gmail'
 import { GoogleDriveIcon } from '@/components/icons/google-drive'
 import { Button } from '@/components/ui/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 import {
   Select,
   SelectContent,
@@ -121,6 +135,8 @@ function ConfigPanelBody({
   const [chosenModel, setChosenModel] = useState(model)
   const [chosenPersonality, setChosenPersonality] = useState(personality)
   const [saving, setSaving] = useState(false)
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
 
   const trimmedName = name.trim().replace(/\s+/g, ' ')
   const dirty =
@@ -143,6 +159,18 @@ function ConfigPanelBody({
       router.refresh()
     } finally {
       setSaving(false)
+    }
+  }
+
+  async function remove() {
+    setDeleting(true)
+    try {
+      await deleteAgent(agentId)
+      toast(`${agentName} deleted.`)
+      router.push('/')
+    } catch {
+      setDeleting(false)
+      toast.error("We couldn't delete this agent. Please try again.")
     }
   }
 
@@ -287,6 +315,23 @@ function ConfigPanelBody({
             </div>
           </AccordionSection>
         )}
+
+        <div className="mt-1 flex items-center justify-between gap-3 rounded-xl border border-destructive/25 bg-card px-3.5 py-3">
+          <div className="min-w-0">
+            <p className="text-sm font-medium">Delete agent</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Removes it and its chat history for good.
+            </p>
+          </div>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => setConfirmOpen(true)}
+          >
+            <Trash2 className="size-3.5" />
+            Delete
+          </Button>
+        </div>
       </div>
 
       <div className="mt-auto flex items-center justify-end gap-2 border-t border-border p-4">
@@ -295,6 +340,31 @@ function ConfigPanelBody({
           {saving ? 'Saving' : 'Save changes'}
         </Button>
       </div>
+
+      <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete {agentName}?</DialogTitle>
+            <DialogDescription>
+              This permanently removes the agent and its entire chat history. This
+              cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              onClick={() => setConfirmOpen(false)}
+              disabled={deleting}
+            >
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={remove} disabled={deleting}>
+              {deleting && <Loader2 className="size-3.5 animate-spin" />}
+              {deleting ? 'Deleting' : 'Delete agent'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
