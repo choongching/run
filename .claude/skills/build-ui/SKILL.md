@@ -57,7 +57,8 @@ Goal: zero re-derivation, zero styling drift.
   form state in an inner child component rendered inside
   DialogContent/SheetContent with `key={recordId}`: base-nova unmounts closed
   overlay content, so the `useState` initializers re-seed fresh on every open
-  (see `MissionDialogBody` and the squad drawer's `DrawerBody`).
+  (canonical example: the keyed inner body in
+  `components/chat/config-panel.tsx`, `key={agentId}`).
 - **Overlay exit animations:** keep the selected record in state after close
   (a separate `open` boolean drives visibility) so the overlay keeps its
   content through the exit transition instead of flashing empty.

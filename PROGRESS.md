@@ -21,6 +21,35 @@ draft flow end to end, then decide between scheduled runs and further polish.
 
 ---
 
+## 2026-07-26: Refresh the internal skill set after the revamp
+
+A short maintenance session with no product code change. The repo carries a set
+of internal skills (repeatable playbooks for building and verifying Run). Several
+predated the prompt-first revamp and still referenced the old missions product,
+so we audited them against the live codebase and fixed the stale ones.
+
+- **Audit against reality, not memory.** Checked every skill claim against the
+  actual routes, files, and docs. Two skills that looked stale turned out to have
+  already been updated in an earlier session; the audit had first trusted an
+  outdated snapshot, so re-reading the files on disk before editing is what
+  caught it.
+- **Fixed the phase-gate skill.** Its scope check now reads the current revamp
+  plan and happy-path journey instead of the superseded roadmap, and its
+  route-protection check now hits the real routes (home, dashboard, admin
+  integrations, login, register) instead of the removed missions and admin pages,
+  so the gate no longer reports false failures.
+- **Fixed the build-ui skill.** Its overlay-form example pointed at two deleted
+  components; it now cites the live config panel, which uses the same pattern.
+- **Added a new skill for prompt composition.** The one load-bearing contract
+  with no playbook: how an agent's system prompt is assembled from the user's
+  instructions plus a generated policy region (voice, security, and the stay-on-
+  task boundary) under a sentinel, and how the editable instructions are
+  recovered from it. Every place that writes an agent's prompt must go through
+  the composer, or the safety floor silently disappears. The new skill records
+  that invariant and the exact enforced sites, all verified in the code.
+
+Shipped to `main` via pull request #33.
+
 ## 2026-07-26: A config panel, agent personality, a safety floor, and file upload
 
 A large session building the chat experience toward a lean, complete first
