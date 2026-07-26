@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import type { ApprovalCall } from '@/components/chat/approval-card'
 import { ChatHeader } from '@/components/chat/chat-header'
 import { ConfigPanel } from '@/components/chat/config-panel'
+import { type ArtifactMeta } from '@/components/chat/artifact-card'
 import {
   ChatThread,
   type AttachmentMeta,
@@ -60,16 +61,20 @@ export default async function ChatPage({
 
   const { data: rows } = await supabase
     .from('messages')
-    .select('id, role, content, attachments')
+    .select('id, role, content, attachments, payload')
     .eq('thread_id', thread!.id)
     .order('id')
 
-  const initialMessages: ChatMessage[] = (rows ?? []).map((r) => ({
-    id: r.id,
-    role: r.role,
-    content: r.content,
-    attachments: (r.attachments as AttachmentMeta[] | null) ?? undefined,
-  }))
+  const initialMessages: ChatMessage[] = (rows ?? []).map((r) => {
+    const artifact = (r.payload as { artifact?: ArtifactMeta } | null)?.artifact
+    return {
+      id: r.id,
+      role: r.role,
+      content: r.content,
+      attachments: (r.attachments as AttachmentMeta[] | null) ?? undefined,
+      artifact: artifact ?? undefined,
+    }
+  })
 
   // A file attached but not yet sent survives a reload: restore its chip in the
   // composer (metadata only; the extracted text stays server-side).

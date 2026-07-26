@@ -4,8 +4,10 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { MANAGED_AGENTS_BETA } from '@/lib/anthropic/client'
 import {
   isAskTool,
-  isReadTool,
+  isAutoRunTool,
+  isCreateDocumentTool,
   summarizeAsk,
+  summarizeDocument,
   summarizeWrite,
   type AskOption,
 } from '@/lib/tools/definitions'
@@ -18,6 +20,7 @@ export type Frame =
   | { type: 'thinking' }
   | { type: 'delta'; text: string }
   | { type: 'activity'; label: string }
+  | { type: 'artifact'; title: string; format: 'markdown'; content: string }
   | { type: 'connect'; app: string }
   | {
       type: 'approval'
@@ -98,6 +101,10 @@ export function toolActivity(
     }
     case 'drive_read_file':
       return 'Reading a file'
+    case 'create_document': {
+      const t = String(input.title ?? '').trim()
+      return t ? `Writing "${t}"` : 'Writing a document'
+    }
     default:
       return `Using ${name.replace(/_/g, ' ')}`
   }
@@ -133,6 +140,7 @@ export async function drainSession(opts: {
   let inputTokens = 0
   let outputTokens = 0
   const activityLabels: string[] = []
+  const artifacts: { title: string; content: string }[] = []
   const agentParts: string[] = []
   let sessionError: string | null = null
   let started = false
@@ -208,7 +216,7 @@ export async function drainSession(opts: {
       // show the approval card. Nothing runs until the user approves. This is
       // the enforcement point, so a new tool can never auto-run a side effect
       // just because it was left off the write list.
-      if (pending.some((c) => !isReadTool(c.name))) {
+      if (pending.some((c) => !isAutoRunTool(c.name))) {
         await supabase
           .from('threads')
           .update({ pending_tools: pending as unknown as Json })
@@ -227,6 +235,29 @@ export async function drainSession(opts: {
       // Reads only: execute and feed results back so the stream resumes.
       const resultEvents: InitialEvents = []
       for (const call of pending) {
+        // create_document has no external side effect: build the artifact, show
+        // it in the thread, and confirm to the agent without pasting it back.
+        if (isCreateDocumentTool(call.name)) {
+          const doc = summarizeDocument(call.input)
+          artifacts.push(doc)
+          send({
+            type: 'artifact',
+            title: doc.title,
+            format: 'markdown',
+            content: doc.content,
+          })
+          resultEvents.push({
+            type: 'user.custom_tool_result',
+            custom_tool_use_id: call.id,
+            content: [
+              {
+                type: 'text',
+                text: `The document "${doc.title}" was created and is shown to the user with a download button. Do not paste its full contents again; just tell them briefly that it is ready.`,
+              },
+            ],
+          })
+          continue
+        }
         const outcome = await executeTool(supabase, userId, call.name, call.input)
         if (outcome.kind === 'needs_connection') {
           send({ type: 'connect', app: outcome.app })
@@ -278,11 +309,36 @@ export async function drainSession(opts: {
       .from('messages')
       .insert({ thread_id: threadId, role: 'activity', content: label })
   }
+  for (const doc of artifacts) {
+    await supabase.from('messages').insert({
+      thread_id: threadId,
+      role: 'agent',
+      content: '',
+      payload: {
+        artifact: { title: doc.title, format: 'markdown', content: doc.content },
+      } as unknown as Json,
+    })
+  }
   const finalText = agentParts.join('\n\n').trim()
-  if (finalText) {
+
+  // The agent did its work (a search, a read) but wrote no closing message, and
+  // nothing errored: stand in a short friendly note so the turn reads as
+  // finished, not failed. Skipped when a connect card or an artifact already
+  // speaks for the result.
+  const noReplyText =
+    "I looked into that, but I don't have anything to add right now. Ask me something more specific and I'll dig in."
+  const benignNoReply =
+    !finalText &&
+    !status &&
+    !sentConnect &&
+    artifacts.length === 0 &&
+    !sessionError
+
+  const closingText = finalText || (benignNoReply ? noReplyText : '')
+  if (closingText) {
     await supabase
       .from('messages')
-      .insert({ thread_id: threadId, role: 'agent', content: finalText })
+      .insert({ thread_id: threadId, role: 'agent', content: closingText })
   }
   await supabase
     .from('threads')
@@ -293,14 +349,19 @@ export async function drainSession(opts: {
     // A card (approval or question) is already sent; finalize any preamble
     // text. Empty text is fine; the client skips empty done frames.
     send({ type: 'done', text: finalText })
-  } else if (!finalText && sentConnect) {
-    // The turn ended on a connect card with no closing text; that card is the
-    // next step, so finish quietly rather than showing an error.
+  } else if (!finalText && (sentConnect || artifacts.length > 0)) {
+    // A connect card or an artifact already conveys the result; finish quietly
+    // rather than showing an error or a redundant note.
     send({ type: 'done', text: '' })
+  } else if (benignNoReply) {
+    // The agent did its work but wrote no closing line. A warm note beats a red
+    // error: the turn succeeded, there was just nothing to say back.
+    send({ type: 'done', text: noReplyText })
   } else if (!finalText) {
+    // A genuine failure with no text: surface the underlying session error.
     send({
       type: 'error',
-      message: sessionError ?? 'The agent finished without a reply. Try again.',
+      message: sessionError ?? 'Something went wrong. Please try again.',
     })
   } else {
     send({ type: 'done', text: finalText })
