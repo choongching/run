@@ -37,13 +37,16 @@ Drive connections. The design system is documented in
 
 Run is a prompt-first personal agent builder. In place today: the prompt-first
 home and chat shell, the live streaming chat loop, per-user Gmail and Drive
-connections, read tools (search and read your inbox and Drive), and write tools
-gated behind an in-chat approval.
+connections, read tools (search and read your inbox and Drive) with writes gated
+behind an in-chat approval, an in-chat Configure panel (name, instructions,
+model, personality, and connections), agents that stay on task, a safety floor
+against instructions hidden in the content an agent reads, and file upload so an
+agent can read a document you attach to a message.
 
 The older admin-configured screens that this direction replaced have now been
 removed, so the app is one product end to end. Still to come: scheduled runs, so
-an agent can work on its own (for example a daily inbox summary that arrives
-without you asking), and a panel for editing an agent directly.
+an agent can work on its own, for example a daily inbox summary that arrives
+without you asking.
 
 The full, plain-English history, session by session, lives in
 **[PROGRESS.md](./PROGRESS.md)**, updated at the end of every work session.
