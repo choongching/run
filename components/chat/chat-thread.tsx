@@ -27,6 +27,7 @@ import {
   matchType,
   MAX_FILE_BYTES,
 } from '@/lib/files/accepted'
+import { MAX_MESSAGE_CHARS } from '@/lib/chat/limits'
 import type { AskSpec } from '@/lib/tools/definitions'
 import { cn } from '@/lib/utils'
 
@@ -665,6 +666,7 @@ function Composer({
           }
         }}
         rows={1}
+        maxLength={MAX_MESSAGE_CHARS}
         disabled={blocked}
         placeholder={
           blocked ? 'Choose an option above to continue' : `Message ${agentName}...`
