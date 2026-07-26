@@ -177,35 +177,65 @@ function ConfigPanelBody({
   return (
     <>
       <div className="flex flex-1 flex-col gap-2.5 overflow-y-auto px-4 py-4">
-        <AccordionSection title="Name">
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            maxLength={60}
-            aria-label="Agent name"
-            className="w-full rounded-lg border border-input bg-card px-2.5 py-1.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
-          />
-        </AccordionSection>
-
+        {/* Profile: what it's called and how it sounds. */}
         <AccordionSection
-          title="Instructions"
-          hint="What the agent should do and how. Saved when you press Save."
+          title="Profile"
+          hint="What it's called and how it sounds."
           defaultOpen
         >
-          <Textarea
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            rows={7}
-            aria-label="Agent instructions"
-            className="min-h-32 resize-y text-sm"
-          />
+          <Field label="Name">
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              maxLength={60}
+              aria-label="Agent name"
+              className="w-full rounded-lg border border-input bg-card px-2.5 py-1.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+            />
+          </Field>
+          <Field label="Personality">
+            <Select
+              value={chosenPersonality}
+              onValueChange={(v) => {
+                if (v) setChosenPersonality(v)
+              }}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue>
+                  {(value) =>
+                    PERSONALITIES.find((p) => p.id === value)?.label ?? 'Balanced'
+                  }
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {PERSONALITIES.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground">
+              {PERSONALITIES.find((p) => p.id === chosenPersonality)?.description}
+            </p>
+          </Field>
         </AccordionSection>
 
+        {/* Behavior: its job, and the model it runs on. */}
         <AccordionSection
-          title="Model"
-          hint="How much horsepower the agent runs on."
+          title="Behavior"
+          hint="Its job, and the model it runs on."
         >
-          <div className="flex flex-col gap-2">
+          <Field label="Instructions">
+            <Textarea
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              rows={7}
+              aria-label="Agent instructions"
+              className="min-h-32 resize-y text-sm"
+            />
+          </Field>
+          <Field label="Model">
+            <div className="flex flex-col gap-2">
             {MODEL_CHOICES.map((choice) => {
               const selected = chosenModel === choice.id
               return (
@@ -243,37 +273,8 @@ function ConfigPanelBody({
                 </button>
               )
             })}
-          </div>
-        </AccordionSection>
-
-        <AccordionSection
-          title="Personality"
-          hint="How the agent sounds when it replies."
-        >
-          <Select
-            value={chosenPersonality}
-            onValueChange={(v) => {
-              if (v) setChosenPersonality(v)
-            }}
-          >
-            <SelectTrigger className="w-full">
-              <SelectValue>
-                {(value) =>
-                  PERSONALITIES.find((p) => p.id === value)?.label ?? 'Balanced'
-                }
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {PERSONALITIES.map((p) => (
-                <SelectItem key={p.id} value={p.id}>
-                  {p.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <p className="text-xs text-muted-foreground">
-            {PERSONALITIES.find((p) => p.id === chosenPersonality)?.description}
-          </p>
+            </div>
+          </Field>
         </AccordionSection>
 
         <AccordionSection
@@ -298,7 +299,10 @@ function ConfigPanelBody({
         </AccordionSection>
 
         {preferences.length > 0 && (
-          <AccordionSection title="Setup answers">
+          <AccordionSection
+            title="Setup answers"
+            hint="What you told this agent when you first set it up."
+          >
             <div className="rounded-xl border border-border bg-card">
               <div className="flex items-center gap-2 border-b border-border px-3 py-2 text-xs font-medium text-muted-foreground">
                 <Sparkles className="size-3.5" />
@@ -366,6 +370,23 @@ function ConfigPanelBody({
         </DialogContent>
       </Dialog>
     </>
+  )
+}
+
+// A labeled field inside a grouped accordion section, so several related
+// controls can share one section while each stays clearly labeled.
+function Field({
+  label,
+  children,
+}: {
+  label: string
+  children: React.ReactNode
+}) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <span className="text-xs font-medium">{label}</span>
+      {children}
+    </div>
   )
 }
 
