@@ -145,8 +145,14 @@
   [data-variant="inset"] [data-slot="sidebar-inner"] {
     @apply rounded-xl border border-sidebar-border bg-card shadow-sm;
   }
+  /* Lock the app shell to the viewport so the document never scrolls; pages
+     scroll inside their own content region instead. This is what keeps the chat
+     header and composer pinned while only the messages scroll (ChatGPT-style). */
+  [data-slot="sidebar-wrapper"] {
+    @apply h-svh overflow-hidden;
+  }
   [data-slot="sidebar-inset"] {
-    @apply md:border md:border-border;
+    @apply min-h-0 md:border md:border-border;
   }
 
   /* Chat micro-states. The thinking shimmer sweeps a light band across muted

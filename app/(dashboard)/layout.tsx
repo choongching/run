@@ -36,7 +36,10 @@ export default async function DashboardLayout({
         agents={agents}
       />
       <SidebarInset>
-        <div className="flex flex-1 flex-col p-6 md:p-8">
+        {/* The scroll container for page content. Normal pages scroll here;
+            the chat page fills this height and scrolls only its message list,
+            keeping its header and composer pinned. */}
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-6 md:p-8">
           <SidebarTrigger className="mb-4 md:hidden" />
           {children}
         </div>
