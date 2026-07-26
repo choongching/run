@@ -11,9 +11,11 @@ item. Do not trust memory or prior claims, re-verify against the live app.
 
 ## 0. Scope check
 
-Read the current phase's bullet list AND the Test Plan section in
-`docs/development-roadmap.md` (local-only file, it is git-ignored). Audit every
-bullet against the actual code first: files exist, routes exist, guards called.
+Read the current phase's bullet list in `docs/revamp-2026-07-25-plan.md` (the
+active plan; local-only, git-ignored) and judge acceptance against the base
+journey in `docs/revamp-happy-path-2026-07-25.md`. (`docs/development-roadmap.md`
+is the superseded pre-revamp roadmap; do not use it.) Audit every bullet against
+the actual code first: files exist, routes exist, guards called.
 
 ## 1. Static gate
 
@@ -36,14 +38,17 @@ serving fine; trust the curl result. Expect 307 (redirect to login) or 200.
 Use this exact zsh-safe loop (list after `in`, quoted URL):
 
 ```bash
-for p in / /missions /usage /dashboard /admin/agents /admin/company /admin/users /admin/integrations /login /register; do
+for p in / /dashboard /admin/integrations /login /register; do
   loc=$(curl -s -D - -o /dev/null "http://localhost:3000$p" | awk 'NR==1{code=$2} tolower($1)=="location:"{l=$2} END{print code, l}' | tr -d '\r')
   echo "$p -> $loc"
 done
 ```
 
 Expected: every protected route 307s to `/login`; `/login` and `/register`
-serve 200. Add any routes the current phase introduced.
+serve 200. `proxy.ts` guards all non-static routes with a catch-all matcher.
+`/chat/[agentId]` is dynamic (needs a real agent id), so it is exercised in the
+browser smoke test below, not this loop. Add any routes the current phase
+introduced.
 
 ## 4. Browser smoke test (roles)
 
@@ -57,11 +62,12 @@ public). Batch all browser actions with `browser_batch`.
 3. Sign out: must land on `/login`.
 4. Sign in as the MEMBER test account: lands in the app, sidebar shows NO Admin
    section.
-5. Navigate directly to an admin URL (e.g. `/admin/agents`): must redirect away.
-   Route-level enforcement, not just hidden UI.
+5. Navigate directly to an admin URL (e.g. `/admin/integrations`): must redirect
+   away. Route-level enforcement, not just hidden UI.
 6. Sign in as the ADMIN test account if admin-only features need exercising
    this phase; verify the Admin nav renders and admin pages load.
-7. Exercise this phase's new feature flows per the roadmap Test Plan.
+7. Exercise this phase's new feature flows per the plan's phase bullets and the
+   happy-path journey.
 8. `read_console_messages` with `onlyErrors: true`: must be empty.
 9. Leave the browser signed out, and tell the user if their personal session
    was signed out during testing.
