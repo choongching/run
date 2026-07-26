@@ -52,16 +52,55 @@ type InitialEvents = Parameters<
   Anthropic['beta']['sessions']['events']['send']
 >[1]['events']
 
-// Compact activity line for a tool call.
-export function toolActivity(name: string): string {
-  const map: Record<string, string> = {
-    gmail_search: 'Searching your inbox',
-    gmail_get_message: 'Reading an email',
-    gmail_create_draft: 'Drafting an email',
-    drive_list_files: 'Looking through your Drive',
-    drive_read_file: 'Reading a file',
+// Turn a Gmail search query into a short human phrase (e.g. " from the last 2
+// days", " from alex@work.com", ' for "invoice"'). Picks the single most
+// salient hint so the line stays short; empty when nothing stands out. Reads
+// the query's intent rather than echoing raw Gmail operators.
+function gmailSearchSuffix(query: string): string {
+  const q = query.trim()
+  if (!q) return ''
+  const from = q.match(/from:(\S+)/i)?.[1]?.replace(/["'<>]/g, '')
+  if (from) return ` from ${from}`
+  const time = q.match(/newer_than:(\d+)([dhwmy])/i)
+  if (time) {
+    const n = Number(time[1])
+    const unit = { d: 'day', h: 'hour', w: 'week', m: 'month', y: 'year' }[
+      time[2].toLowerCase()
+    ]
+    if (unit) return ` from the last ${n} ${unit}${n === 1 ? '' : 's'}`
   }
-  return map[name] ?? `Using ${name.replace(/_/g, ' ')}`
+  if (/is:unread/i.test(q)) return ' for unread messages'
+  // Free-text terms with the field operators stripped out.
+  const terms = q.replace(/\b\w+:("[^"]*"|\S+)/g, '').trim()
+  if (terms) return ` for "${terms}"`
+  return ''
+}
+
+// A compact, input-aware activity line for a tool call, so each step names the
+// specific thing it is doing rather than a generic label. Falls back to a plain
+// label when the input has nothing human-meaningful (an opaque id).
+export function toolActivity(
+  name: string,
+  input: Record<string, unknown> = {}
+): string {
+  switch (name) {
+    case 'gmail_search':
+      return `Searching your inbox${gmailSearchSuffix(String(input.query ?? ''))}`
+    case 'gmail_get_message':
+      return 'Reading an email'
+    case 'gmail_create_draft': {
+      const to = String(input.to ?? '').trim()
+      return to ? `Drafting a reply to ${to}` : 'Drafting an email'
+    }
+    case 'drive_list_files': {
+      const q = String(input.query ?? '').trim()
+      return q ? `Searching your Drive for "${q}"` : 'Looking through your Drive'
+    }
+    case 'drive_read_file':
+      return 'Reading a file'
+    default:
+      return `Using ${name.replace(/_/g, ' ')}`
+  }
 }
 
 // Open the event stream, send the triggering events, and drain the turn:
@@ -136,7 +175,7 @@ export async function drainSession(opts: {
       pending.push({ id: event.id, name: event.name, input: event.input })
       // ask_user is a question, not work: it gets a card, not an activity line.
       if (!isAskTool(event.name)) {
-        const label = toolActivity(event.name)
+        const label = toolActivity(event.name, event.input)
         activityLabels.push(label)
         send({ type: 'activity', label })
       }

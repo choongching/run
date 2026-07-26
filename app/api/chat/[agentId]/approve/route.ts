@@ -82,7 +82,7 @@ export async function POST(
           }
           // Approved: run it, showing an activity line and handling a missing
           // connection.
-          send({ type: 'activity', label: toolActivity(call.name) })
+          send({ type: 'activity', label: toolActivity(call.name, call.input) })
           const outcome = await executeTool(
             supabase,
             userId,
