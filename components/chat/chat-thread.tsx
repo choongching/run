@@ -53,6 +53,9 @@ export type ChatMessage = {
   error?: boolean
   attachments?: AttachmentMeta[]
   artifact?: ArtifactMeta
+  // For activity rows: the present-tense label to show while the step runs
+  // (content holds the past-tense label shown once it is done).
+  activityPresent?: string
 }
 
 // The composer's in-progress attachment: validated and confirmed on attach, so
@@ -69,7 +72,7 @@ type Frame =
   | { type: 'start' }
   | { type: 'thinking' }
   | { type: 'delta'; text: string }
-  | { type: 'activity'; label: string }
+  | { type: 'activity'; present: string; past: string }
   | { type: 'artifact'; title: string; format: 'markdown'; content: string }
   | { type: 'connect'; app: string }
   | { type: 'approval'; calls: ApprovalCall[] }
@@ -149,7 +152,12 @@ export function ChatThread({
       case 'activity':
         setMessages((prev) => [
           ...prev,
-          { id: tempId.current--, role: 'activity', content: frame.label },
+          {
+            id: tempId.current--,
+            role: 'activity',
+            content: frame.past,
+            activityPresent: frame.present,
+          },
         ])
         return
       case 'artifact':
@@ -580,8 +588,11 @@ function MessageRow({
   }
 
   if (message.role === 'activity') {
-    // Completed steps settle to a green check; the in-progress step animates
-    // with a shimmering label (AirOps-style working state).
+    // Present tense while the step runs (spinner), past tense once it settles to
+    // a green check. Reloaded history has only the past form, and is never live.
+    const label = live
+      ? (message.activityPresent ?? message.content)
+      : message.content
     return (
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         {live ? (
@@ -590,7 +601,7 @@ function MessageRow({
           <CircleCheck className="size-3.5 shrink-0 text-primary/70" />
         )}
         <span className={cn(live && 'text-shimmer font-medium')}>
-          {message.content}
+          {label}
           {live ? '…' : ''}
         </span>
       </div>

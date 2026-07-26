@@ -19,7 +19,7 @@ export type Frame =
   | { type: 'start' }
   | { type: 'thinking' }
   | { type: 'delta'; text: string }
-  | { type: 'activity'; label: string }
+  | { type: 'activity'; present: string; past: string }
   | { type: 'artifact'; title: string; format: 'markdown'; content: string }
   | { type: 'connect'; app: string }
   | {
@@ -79,34 +79,47 @@ function gmailSearchSuffix(query: string): string {
   return ''
 }
 
-// A compact, input-aware activity line for a tool call, so each step names the
-// specific thing it is doing rather than a generic label. Falls back to a plain
-// label when the input has nothing human-meaningful (an opaque id).
+// A compact, input-aware activity line for a tool call, as a tense pair: the
+// present form shows while the step runs, the past form once it settles to a
+// checkmark. Input makes each line name the specific thing it did; falls back to
+// a plain label when the input has nothing human-meaningful (an opaque id).
+export type ToolActivity = { present: string; past: string }
+
 export function toolActivity(
   name: string,
   input: Record<string, unknown> = {}
-): string {
+): ToolActivity {
   switch (name) {
-    case 'gmail_search':
-      return `Searching your inbox${gmailSearchSuffix(String(input.query ?? ''))}`
+    case 'gmail_search': {
+      const s = gmailSearchSuffix(String(input.query ?? ''))
+      return { present: `Searching your inbox${s}`, past: `Searched your inbox${s}` }
+    }
     case 'gmail_get_message':
-      return 'Reading an email'
+      return { present: 'Reading an email', past: 'Read an email' }
     case 'gmail_create_draft': {
       const to = String(input.to ?? '').trim()
-      return to ? `Drafting a reply to ${to}` : 'Drafting an email'
+      return to
+        ? { present: `Drafting a reply to ${to}`, past: `Drafted a reply to ${to}` }
+        : { present: 'Drafting an email', past: 'Drafted an email' }
     }
     case 'drive_list_files': {
       const q = String(input.query ?? '').trim()
-      return q ? `Searching your Drive for "${q}"` : 'Looking through your Drive'
+      return q
+        ? { present: `Searching your Drive for "${q}"`, past: `Searched your Drive for "${q}"` }
+        : { present: 'Looking through your Drive', past: 'Looked through your Drive' }
     }
     case 'drive_read_file':
-      return 'Reading a file'
+      return { present: 'Reading a file', past: 'Read a file' }
     case 'create_document': {
       const t = String(input.title ?? '').trim()
-      return t ? `Writing "${t}"` : 'Writing a document'
+      return t
+        ? { present: `Writing "${t}"`, past: `Wrote "${t}"` }
+        : { present: 'Writing a document', past: 'Wrote a document' }
     }
-    default:
-      return `Using ${name.replace(/_/g, ' ')}`
+    default: {
+      const label = name.replace(/_/g, ' ')
+      return { present: `Using ${label}`, past: `Used ${label}` }
+    }
   }
 }
 
@@ -152,10 +165,31 @@ export async function drainSession(opts: {
     event_deltas: ['agent.message'],
     betas: [MANAGED_AGENTS_BETA],
   })
-  await anthropic.beta.sessions.events.send(sessionId, {
-    events: initialEvents,
-    betas: [MANAGED_AGENTS_BETA],
-  })
+
+  // Send the triggering events. If a prior turn left tool calls unresolved on
+  // the session (our pending_tools can be null while the session still waits),
+  // a fresh user.message is rejected with "waiting on responses to events ...".
+  // Recover by interrupting to clear that state, then resend. This never fires
+  // for tool-result sends (approve/answer), which the waiting session accepts.
+  const sendInitial = () =>
+    anthropic.beta.sessions.events.send(sessionId, {
+      events: initialEvents,
+      betas: [MANAGED_AGENTS_BETA],
+    })
+  try {
+    await sendInitial()
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    if (/waiting on responses|only .* may be sent/i.test(msg)) {
+      await anthropic.beta.sessions.events.send(sessionId, {
+        events: [{ type: 'user.interrupt' }],
+        betas: [MANAGED_AGENTS_BETA],
+      })
+      await sendInitial()
+    } else {
+      throw err
+    }
+  }
 
   for await (const event of stream) {
     if (event.type === 'event_start') {
@@ -183,9 +217,10 @@ export async function drainSession(opts: {
       pending.push({ id: event.id, name: event.name, input: event.input })
       // ask_user is a question, not work: it gets a card, not an activity line.
       if (!isAskTool(event.name)) {
-        const label = toolActivity(event.name, event.input)
-        activityLabels.push(label)
-        send({ type: 'activity', label })
+        const act = toolActivity(event.name, event.input)
+        // Persist the past form: a stored activity is always a completed step.
+        activityLabels.push(act.past)
+        send({ type: 'activity', present: act.present, past: act.past })
       }
     } else if (event.type === 'span.model_request_end') {
       inputTokens += event.model_usage.input_tokens
