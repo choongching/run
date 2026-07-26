@@ -453,7 +453,7 @@ export function ChatThread({
       </div>
 
       {dragging && (
-        <div className="pointer-events-none absolute inset-3 z-20 flex flex-col items-center justify-center gap-3 rounded-xl border-[1.5px] border-dashed border-primary bg-background/80 duration-150 animate-in fade-in-0 motion-reduce:animate-none">
+        <div className="pointer-events-none absolute inset-3 z-20 flex flex-col items-center justify-center gap-3 rounded-xl border-[1.5px] border-dashed border-primary/35 bg-background/80 duration-150 animate-in fade-in-0 motion-reduce:animate-none">
           <span className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary duration-200 animate-in zoom-in-95 motion-reduce:animate-none">
             <FileUp className="size-6" />
           </span>
