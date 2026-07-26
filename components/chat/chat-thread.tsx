@@ -3,10 +3,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  ArrowDownToLine,
   ArrowUp,
   CircleCheck,
   FileText,
+  FileUp,
   Loader2,
   Paperclip,
   Square,
@@ -453,9 +453,18 @@ export function ChatThread({
       </div>
 
       {dragging && (
-        <div className="pointer-events-none absolute inset-3 z-20 flex flex-col items-center justify-center gap-2 rounded-xl border-[1.5px] border-dashed border-primary bg-primary/[0.06] text-primary backdrop-blur-[1px]">
-          <ArrowDownToLine className="size-6" />
-          <span className="text-sm font-medium">Drop to attach</span>
+        <div className="pointer-events-none absolute inset-3 z-20 flex flex-col items-center justify-center gap-3 rounded-xl border-[1.5px] border-dashed border-primary bg-background/80 duration-150 animate-in fade-in-0 motion-reduce:animate-none">
+          <span className="flex size-12 items-center justify-center rounded-xl bg-primary/10 text-primary duration-200 animate-in zoom-in-95 motion-reduce:animate-none">
+            <FileUp className="size-6" />
+          </span>
+          <div className="text-center">
+            <p className="text-sm font-medium text-foreground">
+              Drop your file here
+            </p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {ACCEPTED_HINT}
+            </p>
+          </div>
         </div>
       )}
     </div>
