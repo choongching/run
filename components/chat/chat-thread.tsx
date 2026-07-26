@@ -2,13 +2,31 @@
 
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { ArrowUp, CircleCheck, Loader2, Square } from 'lucide-react'
+import {
+  ArrowDownToLine,
+  ArrowUp,
+  CircleCheck,
+  FileText,
+  Loader2,
+  Paperclip,
+  Square,
+  TriangleAlert,
+  X,
+} from 'lucide-react'
 import { StickToBottom } from 'use-stick-to-bottom'
 
 import { ApprovalCard, type ApprovalCall } from '@/components/chat/approval-card'
 import { ConnectCard } from '@/components/chat/connect-card'
 import { Markdown } from '@/components/chat/markdown'
 import { OptionsCard } from '@/components/chat/options-card'
+import {
+  ACCEPT_ATTR,
+  ACCEPTED_HINT,
+  humanSize,
+  isAccepted,
+  matchType,
+  MAX_FILE_BYTES,
+} from '@/lib/files/accepted'
 import type { AskSpec } from '@/lib/tools/definitions'
 import { cn } from '@/lib/utils'
 
@@ -16,11 +34,21 @@ type AskState = AskSpec & { id: string }
 
 type ChatRole = 'user' | 'agent' | 'activity'
 
+export type AttachmentMeta = { name: string; type: string; size: number }
+
 export type ChatMessage = {
   id: string | number
   role: ChatRole
   content: string
   error?: boolean
+  attachments?: AttachmentMeta[]
+}
+
+// The composer's in-progress attachment: extracted and confirmed on attach, so
+// its status is known before the message is sent.
+type Attachment = AttachmentMeta & {
+  status: 'checking' | 'ready' | 'error'
+  reason?: string
 }
 
 type Draft = { text: string; phase: 'thinking' | 'streaming' } | null
@@ -44,6 +72,7 @@ export function ChatThread({
   initialApproval,
   onboarding,
   initialAsk,
+  initialAttachment,
 }: {
   agentId: string
   agentName: string
@@ -51,6 +80,7 @@ export function ChatThread({
   initialApproval: ApprovalCall[] | null
   onboarding: boolean
   initialAsk: AskState | null
+  initialAttachment: AttachmentMeta | null
 }) {
   const router = useRouter()
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages)
@@ -60,6 +90,11 @@ export function ChatThread({
   const [connectApp, setConnectApp] = useState<string | null>(null)
   const [approval, setApproval] = useState<ApprovalCall[] | null>(initialApproval)
   const [ask, setAsk] = useState<AskState | null>(initialAsk)
+  const [attachment, setAttachment] = useState<Attachment | null>(
+    initialAttachment ? { ...initialAttachment, status: 'ready' } : null
+  )
+  const [dragging, setDragging] = useState(false)
+  const dragDepth = useRef(0)
   const abortRef = useRef<AbortController | null>(null)
   // Local ids for optimistic rows; DB ids replace them on reload.
   const tempId = useRef(-1)
@@ -110,11 +145,9 @@ export function ChatThread({
       case 'approval':
         setApproval(frame.calls)
         return
-      case 'ask': {
-        const { type: _type, ...spec } = frame
-        setAsk(spec)
+      case 'ask':
+        setAsk(frame)
         return
-      }
       case 'onboarded':
         // Setup finished: refresh so the server no longer treats this as a new
         // agent (the first task keeps streaming in this same response).
@@ -181,13 +214,84 @@ export function ChatThread({
     }
   }
 
+  // Attach a file: reject early on size/type, then extract server-side so the
+  // chip can confirm the text is readable (or say why not) before sending.
+  async function pickFile(file: File) {
+    const base = { name: file.name, type: file.type, size: file.size }
+    if (file.size > MAX_FILE_BYTES) {
+      setAttachment({
+        ...base,
+        status: 'error',
+        reason: `That file is ${humanSize(file.size)}. The limit is 15 MB.`,
+      })
+      return
+    }
+    if (!isAccepted(file.name, file.type)) {
+      setAttachment({
+        ...base,
+        status: 'error',
+        reason: "That file type isn't supported yet.",
+      })
+      return
+    }
+    setAttachment({ ...base, status: 'checking' })
+    try {
+      const form = new FormData()
+      form.append('file', file)
+      const res = await fetch(`/api/chat/${agentId}/attach`, {
+        method: 'POST',
+        body: form,
+      })
+      const data = await res.json().catch(() => null)
+      if (data?.ok) {
+        setAttachment({
+          name: data.name,
+          type: data.type,
+          size: data.size,
+          status: 'ready',
+        })
+      } else {
+        setAttachment({
+          ...base,
+          status: 'error',
+          reason: data?.reason ?? "We couldn't read this file.",
+        })
+      }
+    } catch {
+      setAttachment({ ...base, status: 'error', reason: 'Upload failed. Try again.' })
+    }
+  }
+
+  function removeAttachment() {
+    setAttachment(null)
+    // Best-effort: clear the server-side pending file too.
+    void fetch(`/api/chat/${agentId}/attach`, { method: 'DELETE' })
+  }
+
+  const canSend =
+    !running &&
+    ask === null &&
+    attachment?.status !== 'checking' &&
+    attachment?.status !== 'error' &&
+    (input.trim().length > 0 || attachment?.status === 'ready')
+
   async function send() {
+    if (!canSend) return
     const text = input.trim()
-    if (!text || running) return
+    const sent =
+      attachment?.status === 'ready'
+        ? [{ name: attachment.name, type: attachment.type, size: attachment.size }]
+        : undefined
     setInput('')
+    setAttachment(null)
     setMessages((prev) => [
       ...prev,
-      { id: tempId.current--, role: 'user', content: text },
+      {
+        id: tempId.current--,
+        role: 'user',
+        content: text,
+        attachments: sent,
+      },
     ])
     await runStream((signal) =>
       fetch(`/api/chat/${agentId}/message`, {
@@ -252,10 +356,49 @@ export function ChatThread({
     abortRef.current?.abort()
   }
 
+  // Drag-and-drop a file anywhere over the chat pane. A depth counter keeps the
+  // overlay steady as the cursor crosses child elements.
+  function dragHasFile(e: React.DragEvent) {
+    return Array.from(e.dataTransfer.types).includes('Files')
+  }
+  function onDragEnter(e: React.DragEvent) {
+    if (running || ask || !dragHasFile(e)) return
+    e.preventDefault()
+    dragDepth.current += 1
+    setDragging(true)
+  }
+  function onDragOver(e: React.DragEvent) {
+    if (running || ask || !dragHasFile(e)) return
+    e.preventDefault()
+  }
+  function onDragLeave() {
+    dragDepth.current -= 1
+    if (dragDepth.current <= 0) {
+      dragDepth.current = 0
+      setDragging(false)
+    }
+  }
+  function onDrop(e: React.DragEvent) {
+    dragDepth.current = 0
+    setDragging(false)
+    if (running || ask) return
+    const file = e.dataTransfer.files?.[0]
+    if (file) {
+      e.preventDefault()
+      void pickFile(file)
+    }
+  }
+
   const isEmpty = messages.length === 0 && !draft
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
+    <div
+      className="relative flex min-h-0 flex-1 flex-col"
+      onDragEnter={onDragEnter}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+    >
       <StickToBottom
         className="relative min-h-0 flex-1 overflow-y-auto"
         resize="smooth"
@@ -299,11 +442,22 @@ export function ChatThread({
           onChange={setInput}
           onSend={send}
           onStop={stop}
+          canSend={canSend}
           running={running}
           blocked={ask !== null}
           agentName={agentName}
+          attachment={attachment}
+          onPickFile={pickFile}
+          onRemoveAttachment={removeAttachment}
         />
       </div>
+
+      {dragging && (
+        <div className="pointer-events-none absolute inset-3 z-20 flex flex-col items-center justify-center gap-2 rounded-xl border-[1.5px] border-dashed border-primary bg-primary/[0.06] text-primary backdrop-blur-[1px]">
+          <ArrowDownToLine className="size-6" />
+          <span className="text-sm font-medium">Drop to attach</span>
+        </div>
+      )}
     </div>
   )
 }
@@ -318,8 +472,13 @@ function MessageRow({
   if (message.role === 'user') {
     return (
       <div className="flex justify-end">
-        <div className="max-w-[85%] whitespace-pre-wrap rounded-xl bg-muted px-3.5 py-2.5 text-sm">
-          {message.content}
+        <div className="flex max-w-[85%] flex-col gap-2 rounded-xl bg-muted px-3.5 py-2.5 text-sm">
+          {message.attachments?.map((a, i) => (
+            <FileChip key={i} file={a} />
+          ))}
+          {message.content && (
+            <div className="whitespace-pre-wrap">{message.content}</div>
+          )}
         </div>
       </div>
     )
@@ -344,13 +503,87 @@ function MessageRow({
   }
 
   return (
+    <div className={cn('text-sm', message.error && 'text-destructive')}>
+      {message.error ? message.content : <Markdown>{message.content}</Markdown>}
+    </div>
+  )
+}
+
+// The attachment chip, shared by the composer (interactive, with states and a
+// remove control) and the sent message bubble (a static label).
+function FileChip({
+  file,
+  attachment,
+  onRemove,
+}: {
+  file?: AttachmentMeta
+  attachment?: Attachment
+  onRemove?: () => void
+}) {
+  const meta = attachment ?? file!
+  const status = attachment?.status ?? 'ready'
+  const bad = status === 'error'
+  const checking = status === 'checking'
+  const label = matchType(meta.name, meta.type)?.label
+
+  let sub: string
+  if (checking) sub = 'reading…'
+  else if (bad) sub = attachment?.reason ?? 'Could not read this file'
+  else
+    sub =
+      `${label ?? 'File'} · ${humanSize(meta.size)}` +
+      (attachment ? ' · text ready' : '')
+
+  return (
     <div
       className={cn(
-        'text-sm',
-        message.error && 'text-destructive'
+        'inline-flex max-w-[300px] items-center gap-2.5 rounded-lg border p-2',
+        bad
+          ? 'border-destructive/40 bg-destructive/[0.06]'
+          : 'border-border bg-background'
       )}
     >
-      {message.error ? message.content : <Markdown>{message.content}</Markdown>}
+      <span
+        className={cn(
+          'flex size-7 shrink-0 items-center justify-center rounded-md',
+          bad
+            ? 'bg-destructive/10 text-destructive'
+            : status === 'ready'
+              ? 'bg-primary/[0.08] text-primary'
+              : 'bg-muted text-muted-foreground'
+        )}
+      >
+        {checking ? (
+          <Loader2 className="size-3.5 animate-spin" />
+        ) : bad ? (
+          <TriangleAlert className="size-3.5" />
+        ) : (
+          <FileText className="size-3.5" />
+        )}
+      </span>
+      <span className="flex min-w-0 flex-col leading-tight">
+        <span
+          className={cn(
+            'truncate text-[13px] font-medium',
+            bad && 'text-destructive'
+          )}
+        >
+          {meta.name}
+        </span>
+        <span className="truncate text-[11px] text-muted-foreground tabular-nums">
+          {sub}
+        </span>
+      </span>
+      {onRemove && (
+        <button
+          type="button"
+          onClick={onRemove}
+          aria-label="Remove file"
+          className="ml-0.5 flex size-5 shrink-0 items-center justify-center rounded-[5px] text-muted-foreground hover:bg-muted hover:text-foreground"
+        >
+          <X className="size-3" />
+        </button>
+      )}
     </div>
   )
 }
@@ -377,22 +610,35 @@ function Composer({
   onChange,
   onSend,
   onStop,
+  canSend,
   running,
   blocked,
   agentName,
+  attachment,
+  onPickFile,
+  onRemoveAttachment,
 }: {
   value: string
   onChange: (v: string) => void
   onSend: () => void
   onStop: () => void
+  canSend: boolean
   running: boolean
   blocked: boolean
   agentName: string
+  attachment: Attachment | null
+  onPickFile: (file: File) => void
+  onRemoveAttachment: () => void
 }) {
-  const canSend = value.trim().length > 0 && !running && !blocked
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   return (
     <div className="rounded-xl border border-input bg-card shadow-xs focus-within:ring-2 focus-within:ring-ring/50">
+      {attachment && (
+        <div className="px-3 pt-3">
+          <FileChip attachment={attachment} onRemove={onRemoveAttachment} />
+        </div>
+      )}
       <textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -402,6 +648,13 @@ function Composer({
             if (canSend) onSend()
           }
         }}
+        onPaste={(e) => {
+          const file = e.clipboardData?.files?.[0]
+          if (file && !running && !blocked) {
+            e.preventDefault()
+            onPickFile(file)
+          }
+        }}
         rows={1}
         disabled={blocked}
         placeholder={
@@ -409,7 +662,28 @@ function Composer({
         }
         className="max-h-40 w-full resize-none bg-transparent px-4 pt-3.5 text-sm outline-none placeholder:text-muted-foreground disabled:opacity-60"
       />
-      <div className="flex items-center justify-end px-3 pb-3">
+      <div className="flex items-center justify-between px-3 pb-3">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={ACCEPT_ATTR}
+          className="hidden"
+          onChange={(e) => {
+            const file = e.target.files?.[0]
+            if (file) onPickFile(file)
+            e.target.value = ''
+          }}
+        />
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={running || blocked}
+          aria-label="Attach a file"
+          title={`Attach a file (${ACCEPTED_HINT})`}
+          className="flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-40"
+        >
+          <Paperclip className="size-4.5" />
+        </button>
         {running ? (
           <button
             type="button"

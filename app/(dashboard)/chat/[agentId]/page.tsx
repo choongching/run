@@ -3,7 +3,11 @@ import { notFound } from 'next/navigation'
 import type { ApprovalCall } from '@/components/chat/approval-card'
 import { ChatHeader } from '@/components/chat/chat-header'
 import { ConfigPanel } from '@/components/chat/config-panel'
-import { ChatThread, type ChatMessage } from '@/components/chat/chat-thread'
+import {
+  ChatThread,
+  type AttachmentMeta,
+  type ChatMessage,
+} from '@/components/chat/chat-thread'
 import { isAskTool, summarizeAsk, summarizeWrite } from '@/lib/tools/definitions'
 import { getUserProfile } from '@/lib/auth'
 import { parseSetupAnswers, stripBrief } from '@/lib/chat/onboarding'
@@ -49,14 +53,14 @@ export default async function ChatPage({
     )
   const { data: thread } = await supabase
     .from('threads')
-    .select('id, pending_tools')
+    .select('id, pending_tools, pending_attachment')
     .eq('agent_id', agent.id)
     .eq('user_id', userId)
     .single()
 
   const { data: rows } = await supabase
     .from('messages')
-    .select('id, role, content')
+    .select('id, role, content, attachments')
     .eq('thread_id', thread!.id)
     .order('id')
 
@@ -64,7 +68,17 @@ export default async function ChatPage({
     id: r.id,
     role: r.role,
     content: r.content,
+    attachments: (r.attachments as AttachmentMeta[] | null) ?? undefined,
   }))
+
+  // A file attached but not yet sent survives a reload: restore its chip in the
+  // composer (metadata only; the extracted text stays server-side).
+  const pa = thread!.pending_attachment as
+    | { name: string; type: string; size: number }
+    | null
+  const initialAttachment = pa
+    ? { name: pa.name, type: pa.type, size: pa.size }
+    : null
 
   // A pending tool call survives a reload: rebuild its card from the thread's
   // stored call(s). It is either a question (ask_user) or a write awaiting
@@ -107,6 +121,7 @@ export default async function ChatPage({
         initialApproval={initialApproval}
         onboarding={!agent.onboarded}
         initialAsk={initialAsk}
+        initialAttachment={initialAttachment}
       />
     </div>
   )
