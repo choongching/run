@@ -56,6 +56,35 @@ export function isAskTool(name: string): boolean {
   return name === ASK_USER_TOOL
 }
 
+// create_document is neither a read nor an external write: it produces a
+// downloadable Markdown artifact IN the chat, with no external side effect
+// (nothing leaves the app). It auto-runs like a read.
+export const CREATE_DOCUMENT_TOOL = 'create_document'
+
+export function isCreateDocumentTool(name: string): boolean {
+  return name === CREATE_DOCUMENT_TOOL
+}
+
+// Tools safe to auto-run without approval: read-only tools, plus create_document
+// (in-chat artifact, no external effect). Everything else (real writes,
+// unclassified tools) stays approval-gated, so the safe-by-default guarantee
+// still holds, this is only ever widened by an explicit, reviewed classification.
+export function isAutoRunTool(name: string): boolean {
+  return isReadTool(name) || isCreateDocumentTool(name)
+}
+
+// Pull a document artifact out of a create_document call, tolerant of loose
+// model output.
+export function summarizeDocument(input: Record<string, unknown>): {
+  title: string
+  content: string
+} {
+  return {
+    title: String(input.title ?? '').trim() || 'Document',
+    content: String(input.content ?? '').trim(),
+  }
+}
+
 export type AskOption = { value: string; label: string; description?: string }
 
 export type AskSpec = {
@@ -191,6 +220,26 @@ export const CHAT_TOOL_DEFINITIONS = [
         file_id: { type: 'string', description: 'The Drive file id.' },
       },
       required: ['file_id'],
+    },
+  },
+  {
+    type: 'custom' as const,
+    name: 'create_document',
+    description:
+      "Produce a document and hand it back to the user as a downloadable Markdown file shown in the chat (a preview plus a Download button). Use this whenever the user asks you to write, generate, compile, put together, or 'give me' a document, report, summary, or file, instead of only pasting it into the chat. Put the FULL document in `content` as Markdown and a short human `title`. This does not send or save anything outside the chat; it only gives the user a file to download, so no approval is needed.",
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        title: {
+          type: 'string',
+          description: 'Short human title for the document.',
+        },
+        content: {
+          type: 'string',
+          description: 'The full document body, as Markdown.',
+        },
+      },
+      required: ['title', 'content'],
     },
   },
   {

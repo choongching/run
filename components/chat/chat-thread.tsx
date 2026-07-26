@@ -16,6 +16,7 @@ import {
 import { StickToBottom } from 'use-stick-to-bottom'
 
 import { ApprovalCard, type ApprovalCall } from '@/components/chat/approval-card'
+import { ArtifactCard, type ArtifactMeta } from '@/components/chat/artifact-card'
 import { ConnectCard } from '@/components/chat/connect-card'
 import { Markdown } from '@/components/chat/markdown'
 import { OptionsCard } from '@/components/chat/options-card'
@@ -50,6 +51,7 @@ export type ChatMessage = {
   content: string
   error?: boolean
   attachments?: AttachmentMeta[]
+  artifact?: ArtifactMeta
 }
 
 // The composer's in-progress attachment: validated and confirmed on attach, so
@@ -67,6 +69,7 @@ type Frame =
   | { type: 'thinking' }
   | { type: 'delta'; text: string }
   | { type: 'activity'; label: string }
+  | { type: 'artifact'; title: string; format: 'markdown'; content: string }
   | { type: 'connect'; app: string }
   | { type: 'approval'; calls: ApprovalCall[] }
   | ({ type: 'ask' } & AskState)
@@ -146,6 +149,21 @@ export function ChatThread({
         setMessages((prev) => [
           ...prev,
           { id: tempId.current--, role: 'activity', content: frame.label },
+        ])
+        return
+      case 'artifact':
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: tempId.current--,
+            role: 'agent',
+            content: '',
+            artifact: {
+              title: frame.title,
+              format: frame.format,
+              content: frame.content,
+            },
+          },
         ])
         return
       case 'connect':
@@ -551,6 +569,15 @@ function MessageRow({
           {message.content}
           {live ? '…' : ''}
         </span>
+      </div>
+    )
+  }
+
+  if (message.artifact) {
+    return (
+      <div className="flex flex-col gap-2">
+        {message.content && <Markdown>{message.content}</Markdown>}
+        <ArtifactCard artifact={message.artifact} />
       </div>
     )
   }
