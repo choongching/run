@@ -231,13 +231,13 @@ export async function POST(
         // Show (and persist) that the agent was handed the attachment, before
         // it starts reasoning, so the transcript makes the attachment legible.
         if (attachment) {
-          const label = isImageAttachment(attachment)
-            ? `Looked at ${attachment.name}`
-            : `Read ${attachment.name}`
-          send({ type: 'activity', label })
+          const [present, past] = isImageAttachment(attachment)
+            ? [`Looking at ${attachment.name}`, `Looked at ${attachment.name}`]
+            : [`Reading ${attachment.name}`, `Read ${attachment.name}`]
+          send({ type: 'activity', present, past })
           await supabase
             .from('messages')
-            .insert({ thread_id: thread.id, role: 'activity', content: label })
+            .insert({ thread_id: thread.id, role: 'activity', content: past })
         }
 
         await drainSession({
