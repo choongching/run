@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { ChevronDown, Loader2, SlidersHorizontal, Sparkles } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { updateAgentConfig } from '@/app/actions/agents'
 import { GmailIcon } from '@/components/icons/gmail'
@@ -366,6 +367,7 @@ function ConnectionRow({
     } catch {
       popup?.close()
       setBusy(false)
+      toast.error(`We couldn't start connecting ${label}. Please try again.`)
       return
     }
 
@@ -374,6 +376,7 @@ function ConnectionRow({
       if (Date.now() - started > 180_000) {
         clearInterval(poll)
         setBusy(false)
+        toast.error(`Connecting ${label} didn't finish. Please try again.`)
         return
       }
       try {
@@ -383,6 +386,7 @@ function ConnectionRow({
           clearInterval(poll)
           popup?.close()
           setBusy(false)
+          toast.success(`${label} connected.`)
           onChanged()
         }
       } catch {
@@ -396,7 +400,10 @@ function ConnectionRow({
     setBusy(true)
     try {
       await fetch(`/api/connections/${app}`, { method: 'DELETE' })
+      toast(`${label} disconnected.`)
       onChanged()
+    } catch {
+      toast.error(`We couldn't disconnect ${label}. Please try again.`)
     } finally {
       setBusy(false)
     }

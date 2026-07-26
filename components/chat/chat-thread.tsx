@@ -339,6 +339,19 @@ export function ChatThread({
     )
   }
 
+  // The user just connected an account the agent was waiting on. Refresh the
+  // server-rendered connection state (the config panel reads it) so it stops
+  // showing stale status, then resume the paused task automatically, so they
+  // never have to tell the agent they finished connecting. runStream clears the
+  // connect card as it starts the continuation.
+  async function resumeAfterConnect() {
+    router.refresh()
+    if (running) return
+    await runStream((signal) =>
+      fetch(`/api/chat/${agentId}/resume`, { method: 'POST', signal })
+    )
+  }
+
   // Answer an ask_user question: show the choice and resume the session.
   async function respondToAsk(answer: string) {
     if (running) return
@@ -446,10 +459,7 @@ export function ChatThread({
           {draft && <DraftBubble draft={draft} />}
 
           {connectApp && (
-            <ConnectCard
-              app={connectApp}
-              onConnected={() => setConnectApp(null)}
-            />
+            <ConnectCard app={connectApp} onConnected={resumeAfterConnect} />
           )}
 
           {approval && (

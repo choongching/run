@@ -22,6 +22,12 @@ Write in plain, warm sentences with normal punctuation; do not use em dashes. Do
 // After the brief is saved, the agent runs the first real task. Also hidden.
 export const FIRST_TASK_KICKOFF = `[SETUP COMPLETE] Setup is done and saved. Now go ahead and do the first, most useful thing the user set you up for, based on everything you just learned. If you need access to a tool that is not connected yet, ask them to connect it. Do not repeat the setup questions.`
 
+// After the user connects an account the agent asked for, resume the blocked
+// task automatically. Hidden; only the agent's reply streams. Sent by the
+// resume route when the in-thread connect card detects a successful connection,
+// so the user never has to tell the agent they finished connecting.
+export const CONNECTED_KICKOFF = `[CONNECTED] The user has just connected the account you asked for. Begin your reply with one short, friendly sentence confirming you can see it is connected now (for example: "Great, I can see your Gmail is connected now."). Then continue exactly where you left off: retry the step you could not complete before, and carry on with what they originally asked you to do. Do not ask them to connect anything again, and do not repeat earlier questions.`
+
 export type SetupAnswer = { q: string; a: string }
 
 // A fixed security policy on every agent. It defends against indirect prompt

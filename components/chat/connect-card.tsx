@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { Check, Loader2 } from 'lucide-react'
+import { toast } from 'sonner'
 
 import { GmailIcon } from '@/components/icons/gmail'
 import { GoogleDriveIcon } from '@/components/icons/google-drive'
@@ -13,9 +14,12 @@ const APPS = {
 
 type ConnectApp = keyof typeof APPS
 
-// Inline connect card shown in the thread when the agent needs a connection
-// the user hasn't made. Opens Pipedream Connect in a popup and polls until the
-// account lands, then calls onConnected.
+// Inline connect card shown in the thread when the agent needs a connection the
+// user hasn't made. Opens Pipedream Connect in a popup and polls until the
+// account lands. It walks through visible states: connect, waiting (they are in
+// the popup), connected, or didn't-finish, so the user always knows where they
+// stand. On success it toasts and calls onConnected so the thread can refresh
+// state and resume the task the agent was blocked on.
 export function ConnectCard({
   app,
   onConnected,
@@ -23,7 +27,9 @@ export function ConnectCard({
   app: string
   onConnected: () => void
 }) {
-  const [status, setStatus] = useState<'idle' | 'connecting' | 'connected'>('idle')
+  const [status, setStatus] = useState<
+    'idle' | 'connecting' | 'connected' | 'error'
+  >('idle')
   const meta = APPS[app as ConnectApp]
   if (!meta) return null
   const { label, Icon } = meta
@@ -41,7 +47,8 @@ export function ConnectCard({
       if (popup) popup.location.href = data.connect_url
     } catch {
       popup?.close()
-      setStatus('idle')
+      setStatus('error')
+      toast.error(`We couldn't start connecting ${label}. Please try again.`)
       return
     }
 
@@ -49,7 +56,8 @@ export function ConnectCard({
     const poll = setInterval(async () => {
       if (Date.now() - started > 180_000) {
         clearInterval(poll)
-        setStatus('idle')
+        setStatus('error')
+        toast.error(`Connecting ${label} didn't finish. Please try again.`)
         return
       }
       try {
@@ -59,6 +67,7 @@ export function ConnectCard({
           clearInterval(poll)
           popup?.close()
           setStatus('connected')
+          toast.success(`${label} connected.`)
           onConnected()
         }
       } catch {
@@ -66,6 +75,13 @@ export function ConnectCard({
       }
     }, 2000)
   }
+
+  const subtext =
+    status === 'connecting'
+      ? `Finish connecting in the popup. I'll pick it up automatically.`
+      : status === 'error'
+        ? `That didn't finish. Want to try again?`
+        : `So your agent can work with your ${label}.`
 
   return (
     <div className="rounded-xl border border-border bg-card p-4">
@@ -75,9 +91,7 @@ export function ConnectCard({
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium">Connect {label}</p>
-          <p className="text-xs text-muted-foreground">
-            So your agent can work with your {label}.
-          </p>
+          <p className="text-xs text-muted-foreground">{subtext}</p>
         </div>
         {status === 'connected' ? (
           <span className="flex items-center gap-1.5 text-sm text-primary">
@@ -91,8 +105,14 @@ export function ConnectCard({
             disabled={status === 'connecting'}
             className="flex h-8 items-center gap-1.5 rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-80 disabled:opacity-60"
           >
-            {status === 'connecting' && <Loader2 className="size-3.5 animate-spin" />}
-            {status === 'connecting' ? 'Connecting' : 'Connect'}
+            {status === 'connecting' && (
+              <Loader2 className="size-3.5 animate-spin" />
+            )}
+            {status === 'connecting'
+              ? 'Waiting'
+              : status === 'error'
+                ? 'Try again'
+                : 'Connect'}
           </button>
         )}
       </div>
