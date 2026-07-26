@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
+  ArrowDown,
   ArrowUp,
   CircleCheck,
   FileText,
@@ -13,7 +14,7 @@ import {
   TriangleAlert,
   X,
 } from 'lucide-react'
-import { StickToBottom } from 'use-stick-to-bottom'
+import { StickToBottom, useStickToBottomContext } from 'use-stick-to-bottom'
 
 import { ApprovalCard, type ApprovalCall } from '@/components/chat/approval-card'
 import { ArtifactCard, type ArtifactMeta } from '@/components/chat/artifact-card'
@@ -486,6 +487,7 @@ export function ChatThread({
 
           {ask && <OptionsCard spec={ask} onAnswer={respondToAsk} />}
         </StickToBottom.Content>
+        <JumpToLatest />
       </StickToBottom>
 
       <div className="mx-auto w-full max-w-3xl px-1 pb-2">
@@ -519,6 +521,28 @@ export function ChatThread({
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+// A floating "jump to latest" affordance: shows when the user has scrolled up
+// away from the newest message, and snaps back to the bottom on click. Reads its
+// state from the scroll container (use-stick-to-bottom), so it must render inside
+// StickToBottom. Sticky so it hovers just above the composer while scrolling.
+function JumpToLatest() {
+  const { isAtBottom, scrollToBottom } = useStickToBottomContext()
+  if (isAtBottom) return null
+  return (
+    <div className="pointer-events-none sticky bottom-4 z-10 flex justify-center">
+      <button
+        type="button"
+        onClick={() => scrollToBottom()}
+        aria-label="Jump to the latest message"
+        className="pointer-events-auto flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-sm transition-colors animate-in fade-in-0 slide-in-from-bottom-1 hover:text-foreground motion-reduce:animate-none"
+      >
+        <ArrowDown className="size-3.5" />
+        Latest
+      </button>
     </div>
   )
 }
