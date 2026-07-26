@@ -61,7 +61,7 @@ export default async function ChatPage({
 
   const { data: rows } = await supabase
     .from('messages')
-    .select('id, role, content, attachments, payload')
+    .select('id, role, content, attachments, payload, created_at')
     .eq('thread_id', thread!.id)
     .order('id')
 
@@ -71,6 +71,7 @@ export default async function ChatPage({
       id: r.id,
       role: r.role,
       content: r.content,
+      createdAt: r.created_at ?? undefined,
       attachments: (r.attachments as AttachmentMeta[] | null) ?? undefined,
       artifact: artifact ?? undefined,
     }

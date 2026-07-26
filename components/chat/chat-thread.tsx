@@ -1,6 +1,12 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import {
+  Fragment,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react'
 import { useRouter } from 'next/navigation'
 import {
   ArrowDown,
@@ -50,6 +56,8 @@ export type ChatMessage = {
   id: string | number
   role: ChatRole
   content: string
+  // ISO timestamp, for the day divider and the hover-reveal time.
+  createdAt?: string
   error?: boolean
   attachments?: AttachmentMeta[]
   artifact?: ArtifactMeta
@@ -116,13 +124,24 @@ export function ChatThread({
   const tempId = useRef(-1)
   // Guards the one-time onboarding kickoff so it fires at most once.
   const onboardingStarted = useRef(false)
+  // Captured once so day labels stay stable across renders (lazy init is pure).
+  const [now] = useState(() => new Date())
+  // Time-formatted UI (day dividers, hover times) is locale/timezone dependent,
+  // so render it only after mount to avoid an SSR/client hydration mismatch and
+  // to show times in the viewer's timezone, not the server's. useSyncExternalStore
+  // is the hydration-safe way to detect mount (false on server, true on client).
+  const mounted = useSyncExternalStore(
+    noopSubscribe,
+    () => true,
+    () => false
+  )
 
   function commitDraft() {
     setDraft((d) => {
       if (d?.text) {
         setMessages((prev) => [
           ...prev,
-          { id: tempId.current--, role: 'agent', content: d.text },
+          { id: tempId.current--, role: 'agent', content: d.text, createdAt: nowIso() },
         ])
       }
       return null
@@ -133,7 +152,13 @@ export function ChatThread({
     setDraft(null)
     setMessages((prev) => [
       ...prev,
-      { id: tempId.current--, role: 'agent', content: message, error: true },
+      {
+        id: tempId.current--,
+        role: 'agent',
+        content: message,
+        error: true,
+        createdAt: nowIso(),
+      },
     ])
   }
 
@@ -157,6 +182,7 @@ export function ChatThread({
             role: 'activity',
             content: frame.past,
             activityPresent: frame.present,
+            createdAt: nowIso(),
           },
         ])
         return
@@ -167,6 +193,7 @@ export function ChatThread({
             id: tempId.current--,
             role: 'agent',
             content: '',
+            createdAt: nowIso(),
             artifact: {
               title: frame.title,
               format: frame.format,
@@ -194,7 +221,7 @@ export function ChatThread({
         if (frame.text) {
           setMessages((prev) => [
             ...prev,
-            { id: tempId.current--, role: 'agent', content: frame.text },
+            { id: tempId.current--, role: 'agent', content: frame.text, createdAt: nowIso() },
           ])
         }
         setDraft(null)
@@ -342,6 +369,7 @@ export function ChatThread({
         role: 'user',
         content: text,
         attachments: sent,
+        createdAt: nowIso(),
       },
     ])
     await runStream((signal) =>
@@ -384,7 +412,7 @@ export function ChatThread({
     if (running) return
     setMessages((prev) => [
       ...prev,
-      { id: tempId.current--, role: 'user', content: answer },
+      { id: tempId.current--, role: 'user', content: answer, createdAt: nowIso() },
     ])
     await runStream((signal) =>
       fetch(`/api/chat/${agentId}/answer`, {
@@ -475,13 +503,24 @@ export function ChatThread({
             </p>
           )}
 
-          {messages.map((m, i) => (
-            <MessageRow
-              key={m.id}
-              message={m}
-              live={running && i === messages.length - 1}
-            />
-          ))}
+          {messages.map((m, i) => {
+            const prev = messages[i - 1]
+            const showDay =
+              m.createdAt &&
+              (!prev?.createdAt || dayKey(prev.createdAt) !== dayKey(m.createdAt))
+            return (
+              <Fragment key={m.id}>
+                {showDay && mounted && (
+                  <DayDivider label={formatDay(m.createdAt!, now)} />
+                )}
+                <MessageRow
+                  message={m}
+                  live={running && i === messages.length - 1}
+                  showTime={mounted}
+                />
+              </Fragment>
+            )
+          })}
 
           {draft && <DraftBubble draft={draft} />}
 
@@ -533,6 +572,54 @@ export function ChatThread({
   )
 }
 
+// A stable no-op subscribe for useSyncExternalStore-based mount detection.
+const noopSubscribe = () => () => {}
+
+// Local time helpers for message timestamps. Client-side (the browser's clock
+// and locale), so live messages read the same as reloaded ones.
+function nowIso(): string {
+  return new Date().toISOString()
+}
+
+// A stable per-day key, for grouping messages under date dividers.
+function dayKey(iso: string): string {
+  const d = new Date(iso)
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
+}
+
+// "Today", "Yesterday", or a short date, relative to `now` (captured once).
+function formatDay(iso: string, now: Date): string {
+  const startOfDay = (x: Date) =>
+    new Date(x.getFullYear(), x.getMonth(), x.getDate()).getTime()
+  const days = Math.round((startOfDay(now) - startOfDay(new Date(iso))) / 86_400_000)
+  if (days === 0) return 'Today'
+  if (days === 1) return 'Yesterday'
+  return new Date(iso).toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
+// A short local time like "2:04 PM".
+function formatTime(iso: string): string {
+  return new Date(iso).toLocaleTimeString(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+  })
+}
+
+// A centered date separator shown between messages from different days.
+function DayDivider({ label }: { label: string }) {
+  return (
+    <div className="flex items-center gap-3 py-1">
+      <span className="h-px flex-1 bg-border" />
+      <span className="text-xs font-medium text-muted-foreground">{label}</span>
+      <span className="h-px flex-1 bg-border" />
+    </div>
+  )
+}
+
 // A floating "jump to latest" affordance: shows when the user has scrolled up
 // away from the newest message, and snaps back to the bottom on click. Reads its
 // state from the scroll container (use-stick-to-bottom), so it must render inside
@@ -558,13 +645,15 @@ function JumpToLatest() {
 function MessageRow({
   message,
   live,
+  showTime,
 }: {
   message: ChatMessage
   live: boolean
+  showTime: boolean
 }) {
   if (message.role === 'user') {
     return (
-      <div className="flex justify-end">
+      <div className="group flex flex-col items-end gap-1">
         <div className="flex max-w-[85%] flex-col gap-2 rounded-xl bg-muted px-3.5 py-2.5 text-sm">
           {message.attachments?.map((a, i) =>
             a.kind === 'image' && a.thumb ? (
@@ -583,6 +672,11 @@ function MessageRow({
             <div className="whitespace-pre-wrap">{message.content}</div>
           )}
         </div>
+        {showTime && message.createdAt && (
+          <time className="pr-1 text-[11px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+            {formatTime(message.createdAt)}
+          </time>
+        )}
       </div>
     )
   }
@@ -610,16 +704,28 @@ function MessageRow({
 
   if (message.artifact) {
     return (
-      <div className="flex flex-col gap-2">
+      <div className="group flex flex-col gap-2">
         {message.content && <Markdown>{message.content}</Markdown>}
         <ArtifactCard artifact={message.artifact} />
+        {showTime && message.createdAt && (
+          <time className="text-[11px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+            {formatTime(message.createdAt)}
+          </time>
+        )}
       </div>
     )
   }
 
   return (
-    <div className={cn('text-sm', message.error && 'text-destructive')}>
-      {message.error ? message.content : <Markdown>{message.content}</Markdown>}
+    <div className="group">
+      <div className={cn('text-sm', message.error && 'text-destructive')}>
+        {message.error ? message.content : <Markdown>{message.content}</Markdown>}
+      </div>
+      {showTime && message.createdAt && (
+        <time className="mt-1 block text-[11px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
+          {formatTime(message.createdAt)}
+        </time>
+      )}
     </div>
   )
 }
