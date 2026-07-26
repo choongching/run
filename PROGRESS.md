@@ -8,18 +8,64 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** The product is a prompt-first personal agent builder.
-You describe what you want on the home screen, Run creates an agent, and you
-work with it in a live streaming chat that can read and act on your own Gmail
-and Drive, always asking permission before it writes anything. On top of that
-core loop, each agent now has an in-chat Configure panel (name, instructions,
-model, personality, connections, and a receipt of its setup answers), stays on
-topic and declines clearly off-topic questions, treats everything it reads as
-untrusted information rather than instructions, and can read a file you attach
-to a message. Next step: connect a real Gmail and dogfood the inbox summary and
-draft flow end to end, then decide between scheduled runs and further polish.
+**Where we left off:** The core is validated. On 2026-07-26 the founder ran the
+whole loop on their own real Gmail and Drive and it held up: it summarized and
+critiqued a real Drive document, drafted email replies that read well, turned
+emails into a downloadable document, and drafted a reply that the founder
+approved and actually sent to a real person. The product does its job on real
+data and never acts without approval. The chat surface is now polished (a pinned
+header and composer, jump-to-latest, past-tense activity lines, per-message
+timestamps, a regrouped Configure panel), agents can hand back downloadable
+documents, you can delete an agent yourself, and a stuck session now self-heals.
+Next step: decide the direction now that building is earned, deploy for other
+real users, or deepen first with a per-agent knowledge base so drafts match your
+voice even more closely.
 
 ---
+
+## 2026-07-26: Dogfood session, the core is validated, plus chat polish and fixes
+
+The big one. The founder connected their real Gmail and Drive and ran the whole
+loop for real, and it works. Alongside that, a run of chat-surface improvements
+and two real bug fixes, shipped one pull request at a time and verified live.
+
+- **The core is validated on real data.** The founder used it on their own inbox
+  and files: it summarized and critiqued a real Drive document (specific and
+  grounded in the actual content), drafted email replies that follow
+  instructions, turned emails into a downloadable document, and drafted a reply
+  that the founder approved through the in-chat gate and actually sent to a real
+  person. The output is good enough to use, and the ask-before-writing trust
+  model works end to end. This is the question the whole project rested on, and
+  the answer is yes. Validated by the founder, one expert user; the next proof is
+  other real users on their own accounts.
+- **Agents can hand back downloadable documents.** A new create_document ability:
+  the agent produces a titled Markdown file that appears in the chat as a card
+  with a preview and a Download button. It has no outside effect, so it runs
+  without an approval prompt. Merged to main via pull request #36.
+- **Closed the loop after an in-chat connection.** Connecting Gmail or Drive
+  mid-chat used to dead-end (nothing continued, the panel looked stale). Now the
+  agent resumes the task on its own, the connect card shows waiting and connected
+  states, the panel refreshes, and there are clear toasts. Merged via #34.
+- **The chat reads like a real product now.** The header and composer stay pinned
+  while only the messages scroll, with a jump-to-latest pill (#37). Activity lines
+  name the exact step ("Searching your inbox from the last 2 days") (#35) and now
+  flip to past tense once done ("Searched your inbox") (#39). Messages carry day
+  dividers and a hover-reveal time (#41). The Configure panel is regrouped into
+  Profile, Behavior, and Connections instead of a flat list (#40).
+- **You can delete an agent yourself.** A confirm-gated delete in the Configure
+  panel removes the agent and its chat history and cleans up the remote agent, so
+  there is no more manual cleanup. Merged via #38.
+- **Fixed a chat-breaking error.** A session could get stuck waiting on unresolved
+  tool calls, after which every new message returned a raw error. The run loop now
+  clears that state and resends automatically, so the chat self-heals. Merged via
+  #39.
+- **The README is now a real product overview** with the end-to-end journey, the
+  app structure, the agent model, trust and safety, and two diagrams, so anyone
+  can understand what Run is from the repo. Merged via #42. Pull request #33
+  earlier refreshed the internal build skills.
+
+Ten pull requests merged to main this session, #33 through #42, each verified
+live by the founder.
 
 ## 2026-07-26: Refresh the internal skill set after the revamp
 
