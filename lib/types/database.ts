@@ -354,6 +354,7 @@ export type Database = {
           session_id: string | null
           pending_tools: Json | null
           setup_answers: Json | null
+          pending_attachment: Json | null
           created_at: string
           updated_at: string
         }
@@ -364,6 +365,7 @@ export type Database = {
           session_id?: string | null
           pending_tools?: Json | null
           setup_answers?: Json | null
+          pending_attachment?: Json | null
           created_at?: string
           updated_at?: string
         }
@@ -374,6 +376,7 @@ export type Database = {
           session_id?: string | null
           pending_tools?: Json | null
           setup_answers?: Json | null
+          pending_attachment?: Json | null
           created_at?: string
           updated_at?: string
         }
@@ -394,6 +397,7 @@ export type Database = {
           role: MessageRole
           content: string
           payload: Json
+          attachments: Json | null
           created_at: string
         }
         Insert: {
@@ -402,6 +406,7 @@ export type Database = {
           role: MessageRole
           content?: string
           payload?: Json
+          attachments?: Json | null
           created_at?: string
         }
         Update: {
@@ -410,6 +415,7 @@ export type Database = {
           role?: MessageRole
           content?: string
           payload?: Json
+          attachments?: Json | null
           created_at?: string
         }
         Relationships: [
