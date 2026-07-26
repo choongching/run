@@ -4,6 +4,7 @@ import {
   getAnthropicClient,
   MANAGED_AGENTS_BETA,
 } from '@/lib/anthropic/client'
+import { MAX_MESSAGE_CHARS, MAX_TURNS_PER_MINUTE } from '@/lib/chat/limits'
 import { drainSession, type Frame } from '@/lib/chat/run-turn'
 import { CHAT_TOOL_DEFINITIONS } from '@/lib/tools/definitions'
 import type { Json } from '@/lib/types/database'
@@ -48,6 +49,27 @@ export async function POST(
 
   const body = await request.json().catch(() => null)
   const text = typeof body?.text === 'string' ? body.text.trim() : ''
+  if (text.length > MAX_MESSAGE_CHARS) {
+    return Response.json(
+      { error: 'That message is too long. Please shorten it and try again.' },
+      { status: 400 }
+    )
+  }
+
+  // Rate backstop: cap new turns per minute so a runaway loop cannot burn
+  // tokens. RLS scopes the count to this user's own messages.
+  const since = new Date(Date.now() - 60_000).toISOString()
+  const { count: recentTurns } = await supabase
+    .from('messages')
+    .select('id', { count: 'exact', head: true })
+    .eq('role', 'user')
+    .gte('created_at', since)
+  if ((recentTurns ?? 0) >= MAX_TURNS_PER_MINUTE) {
+    return Response.json(
+      { error: 'You are sending messages very quickly. Give it a moment, then try again.' },
+      { status: 429 }
+    )
+  }
 
   const { data: agent } = await supabase
     .from('agents')
