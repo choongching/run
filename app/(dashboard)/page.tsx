@@ -2,6 +2,8 @@ import Image from 'next/image'
 
 import { PromptComposer } from '@/components/home/prompt-composer'
 import { getUserProfile } from '@/lib/auth'
+import { canCreateAgent } from '@/lib/entitlements/assert'
+import { createClient } from '@/lib/supabase/server'
 
 // The prompt-first home: one question, one box, a few seeds. Submitting
 // creates an agent and opens its chat. Replaces the old redirect to /runs.
@@ -10,8 +12,13 @@ export default async function HomePage({
 }: {
   searchParams: Promise<{ error?: string }>
 }) {
-  await getUserProfile()
+  const { userId } = await getUserProfile()
   const { error } = await searchParams
+
+  // Ask the same helper the server action asks, so the box is only enabled
+  // when submitting it would actually work.
+  const supabase = await createClient()
+  const allowed = await canCreateAgent(supabase, userId)
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center py-16">
@@ -26,7 +33,7 @@ export default async function HomePage({
         </p>
       )}
 
-      <PromptComposer />
+      <PromptComposer blockedReason={allowed.ok ? null : allowed.reason} />
     </div>
   )
 }

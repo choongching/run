@@ -16,7 +16,14 @@ const SUGGESTIONS = [
   'Answer questions from my documents',
 ]
 
-export function PromptComposer() {
+export function PromptComposer({
+  // Why creating another agent is not possible right now, or null when it is.
+  // The server enforces the same rule; this only saves the user from typing a
+  // prompt that was never going to run.
+  blockedReason = null,
+}: {
+  blockedReason?: string | null
+}) {
   const [value, setValue] = useState('')
   const [pending, setPending] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
@@ -26,7 +33,8 @@ export function PromptComposer() {
     textareaRef.current?.focus()
   }
 
-  const canSubmit = value.trim().length > 0 && !pending
+  const blocked = blockedReason !== null
+  const canSubmit = value.trim().length > 0 && !pending && !blocked
 
   return (
     <div className="w-full">
@@ -47,8 +55,13 @@ export function PromptComposer() {
             }
           }}
           rows={3}
-          placeholder="e.g. Summarize my inbox each morning and flag anything that needs a reply"
-          className="w-full resize-none bg-transparent px-4 pt-3.5 text-sm outline-none placeholder:text-muted-foreground"
+          disabled={blocked}
+          placeholder={
+            blocked
+              ? 'Delete an agent to make room for a new one'
+              : 'e.g. Summarize my inbox each morning and flag anything that needs a reply'
+          }
+          className="w-full resize-none bg-transparent px-4 pt-3.5 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
         />
         <div className="flex items-center justify-end px-3 pb-3">
           <Button
@@ -63,13 +76,19 @@ export function PromptComposer() {
         </div>
       </form>
 
+      {blockedReason && (
+        <p className="mt-3 text-center text-sm text-muted-foreground">
+          {blockedReason}
+        </p>
+      )}
+
       <div className="mt-4 flex flex-wrap justify-center gap-2">
         {SUGGESTIONS.map((text) => (
           <button
             key={text}
             type="button"
             onClick={() => pickSuggestion(text)}
-            disabled={pending}
+            disabled={pending || blocked}
             className="rounded-lg border border-border bg-card px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
           >
             {text}
