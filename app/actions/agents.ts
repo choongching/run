@@ -17,6 +17,8 @@ import {
   isPersonality,
 } from '@/lib/agents/personalities'
 import { buildSystemPrompt, parseSetupAnswers } from '@/lib/chat/onboarding'
+import { resetAgentSessions } from '@/lib/agents/recompose'
+import { loadAgentKnowledge } from '@/lib/knowledge/load'
 import { createClient } from '@/lib/supabase/server'
 
 // Fallback name when the model naming call is unavailable: a short slice of the
@@ -207,7 +209,15 @@ export async function updateAgentConfig(
   if (!current) return
 
   const answers = parseSetupAnswers(current.preferences)
-  const system = buildSystemPrompt(baseInstructions, answers, personality)
+  // Knowledge is part of the composed prompt, so a config save has to carry it
+  // forward or editing the instructions would drop every attached source.
+  const knowledge = await loadAgentKnowledge(agentId)
+  const system = buildSystemPrompt(
+    baseInstructions,
+    answers,
+    personality,
+    knowledge
+  )
 
   const { data: agent, error } = await supabase
     .from('agents')
@@ -223,6 +233,11 @@ export async function updateAgentConfig(
     .single()
 
   if (error || !agent) return
+
+  // A session binds its agent's configuration at creation, so without this the
+  // new instructions, model, or personality would not reach the open chat and
+  // the save would look like it did nothing. See resetAgentSessions.
+  await resetAgentSessions(supabase, agentId)
 
   if (agent.claude_agent_id && agent.claude_version != null) {
     try {

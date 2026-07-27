@@ -6,7 +6,11 @@ import { usePathname } from 'next/navigation'
 import { LogOut, Plus } from 'lucide-react'
 
 import { logout } from '@/app/actions/auth'
-import { AgentsIcon, SettingsIcon } from '@/components/nav-icons'
+import {
+  AgentsIcon,
+  KnowledgeIcon,
+  SettingsIcon,
+} from '@/components/nav-icons'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   Sidebar,
@@ -98,6 +102,15 @@ export function AppSidebar({
 
       <SidebarFooter>
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              isActive={pathname.startsWith('/knowledge')}
+              render={<Link href="/knowledge" />}
+            >
+              <KnowledgeIcon className="size-4.5 shrink-0" />
+              <span>Knowledge</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
               isActive={pathname === '/dashboard'}
