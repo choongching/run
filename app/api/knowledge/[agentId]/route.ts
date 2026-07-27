@@ -12,6 +12,8 @@ import {
   agentKnowledgeLoad,
   checksumOf,
   libraryIsFull,
+  NOT_AGENT_OWNER,
+  ownsAgent,
 } from '@/lib/knowledge/store'
 import type { Json } from '@/lib/types/database'
 
@@ -53,6 +55,12 @@ export async function POST(
       ok: false,
       reason: `That file is ${humanSize(file.size)}. The limit is 15 MB.`,
     })
+  }
+
+  // Checked before the upload is read and stored, so a non-owner is told why
+  // instead of leaving an orphaned source behind.
+  if (!(await ownsAgent(supabase, agentId, userId))) {
+    return Response.json({ ok: false, reason: NOT_AGENT_OWNER })
   }
 
   if (await libraryIsFull(supabase, userId)) {
@@ -121,6 +129,9 @@ export async function POST(
     .from('agent_knowledge')
     .insert({ agent_id: agentId, source_id: source.id })
   if (linkError) {
+    // Do not strand the source it would never be attached to: an unreachable
+    // row in the library is worse than no row at all.
+    await supabase.from('knowledge_sources').delete().eq('id', source.id)
     return Response.json({ ok: false, reason: "We couldn't attach that file." })
   }
 

@@ -14,6 +14,8 @@ import {
   agentKnowledgeLoad,
   checksumOf,
   libraryIsFull,
+  NOT_AGENT_OWNER,
+  ownsAgent,
 } from '@/lib/knowledge/store'
 import { createClient } from '@/lib/supabase/server'
 
@@ -42,6 +44,12 @@ export async function addKnowledgeNote(
 
   const { userId } = await getUserProfile()
   const supabase = await createClient()
+
+  // Before creating anything, so a non-owner never leaves an orphaned source
+  // behind in exchange for an error they cannot act on.
+  if (!(await ownsAgent(supabase, agentId, userId))) {
+    return { ok: false, reason: NOT_AGENT_OWNER }
+  }
 
   if (await libraryIsFull(supabase, userId)) {
     return {
@@ -84,7 +92,12 @@ export async function attachKnowledge(
   agentId: string,
   sourceId: string
 ): Promise<KnowledgeResult> {
+  const { userId } = await getUserProfile()
   const supabase = await createClient()
+  if (!(await ownsAgent(supabase, agentId, userId))) {
+    return { ok: false, reason: NOT_AGENT_OWNER }
+  }
+
   const { data: source } = await supabase
     .from('knowledge_sources')
     .select('char_count')
@@ -137,6 +150,11 @@ export async function detachKnowledge(
 ): Promise<KnowledgeResult> {
   const { userId } = await getUserProfile()
   const supabase = await createClient()
+  // Without this, RLS quietly matches no rows and the caller is told it worked
+  // while the source stays attached.
+  if (!(await ownsAgent(supabase, agentId, userId))) {
+    return { ok: false, reason: NOT_AGENT_OWNER }
+  }
 
   const { error } = await supabase
     .from('agent_knowledge')

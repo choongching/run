@@ -76,6 +76,7 @@ export function ConfigPanel({
   connections,
   knowledge,
   knowledgeLibrary,
+  isOwner,
 }: {
   agentId: string
   agentName: string
@@ -86,6 +87,7 @@ export function ConfigPanel({
   connections: ConnectionState
   knowledge: KnowledgeItem[]
   knowledgeLibrary: KnowledgeItem[]
+  isOwner: boolean
 }) {
   return (
     <Sheet>
@@ -116,6 +118,7 @@ export function ConfigPanel({
           connections={connections}
           knowledge={knowledge}
           knowledgeLibrary={knowledgeLibrary}
+          isOwner={isOwner}
         />
       </SheetContent>
     </Sheet>
@@ -132,6 +135,7 @@ function ConfigPanelBody({
   connections,
   knowledge,
   knowledgeLibrary,
+  isOwner,
 }: {
   agentId: string
   agentName: string
@@ -142,6 +146,7 @@ function ConfigPanelBody({
   connections: ConnectionState
   knowledge: KnowledgeItem[]
   knowledgeLibrary: KnowledgeItem[]
+  isOwner: boolean
 }) {
   const router = useRouter()
   const [name, setName] = useState(agentName)
@@ -300,6 +305,7 @@ function ConfigPanelBody({
             agentId={agentId}
             sources={knowledge}
             library={knowledgeLibrary}
+            canEdit={isOwner}
           />
         </AccordionSection>
 

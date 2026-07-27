@@ -29,7 +29,7 @@ export default async function ChatPage({
 
   const { data: agent } = await supabase
     .from('agents')
-    .select('id, name, onboarded, system_prompt, preferences, model, personality')
+    .select('id, name, onboarded, system_prompt, preferences, model, personality, owner_id')
     .eq('id', agentId)
     .single()
 
@@ -166,6 +166,7 @@ export default async function ChatPage({
           connections={connections}
           knowledge={knowledge}
           knowledgeLibrary={knowledgeLibrary}
+          isOwner={agent.owner_id === userId}
         />
       </header>
       <ChatThread

@@ -71,10 +71,15 @@ export function KnowledgeSection({
   agentId,
   sources,
   library,
+  canEdit,
 }: {
   agentId: string
   sources: KnowledgeItem[]
   library: KnowledgeItem[]
+  // Only the agent's owner curates what it knows. A viewer of a company agent
+  // still sees the list, since it explains how the agent answers, but gets no
+  // controls that would fail on submit.
+  canEdit: boolean
 }) {
   const router = useRouter()
   const fileInput = useRef<HTMLInputElement>(null)
@@ -233,6 +238,7 @@ export function KnowledgeSection({
                   </>
                 )}
               </div>
+              {canEdit && (
               <DropdownMenu>
                 <DropdownMenuTrigger
                   render={
@@ -271,12 +277,20 @@ export function KnowledgeSection({
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
+              )}
             </li>
           ))}
         </ul>
       )}
 
-      {noteOpen && (
+      {!canEdit && (
+        <p className="px-0.5 text-xs text-muted-foreground">
+          This agent belongs to someone else, so only they can change what it
+          knows.
+        </p>
+      )}
+
+      {canEdit && noteOpen && (
         <div className="flex flex-col gap-2 rounded-xl border border-border bg-card p-3">
           <input
             autoFocus
@@ -353,6 +367,7 @@ export function KnowledgeSection({
         </p>
       )}
 
+      {canEdit && (
       <div className="flex flex-wrap items-center gap-2">
         <Button
           variant="outline"
@@ -384,8 +399,9 @@ export function KnowledgeSection({
           }}
         />
       </div>
+      )}
 
-      {library.length > 0 && !full && (
+      {canEdit && library.length > 0 && !full && (
         <Select
           value=""
           onValueChange={(v) => {
@@ -405,11 +421,13 @@ export function KnowledgeSection({
         </Select>
       )}
 
-      <p className="px-0.5 text-xs text-muted-foreground">
-        {full
-          ? `This agent is at its limit of ${MAX_SOURCES_PER_AGENT} sources. Detach one to add another.`
-          : `${KNOWLEDGE_ACCEPTED_HINT}. Long files are trimmed to fit.`}
-      </p>
+      {canEdit && (
+        <p className="px-0.5 text-xs text-muted-foreground">
+          {full
+            ? `This agent is at its limit of ${MAX_SOURCES_PER_AGENT} sources. Detach one to add another.`
+            : `${KNOWLEDGE_ACCEPTED_HINT}. Long files are trimmed to fit.`}
+        </p>
+      )}
     </div>
   )
 }

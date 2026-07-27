@@ -33,6 +33,30 @@ export async function agentKnowledgeLoad(
   }
 }
 
+// Whether the caller owns this agent, which is who may change what it knows.
+//
+// RLS already refuses the attach, but refusing at the end is the wrong place:
+// the source row is created first, so a blocked attach leaves an orphan in the
+// user's library and reports "please try again" for something retrying cannot
+// fix. Checking up front lets the action fail before it writes anything, and
+// say why. RLS stays as the real boundary; this is about telling the truth.
+export async function ownsAgent(
+  supabase: SupabaseClient<Database>,
+  agentId: string,
+  userId: string
+): Promise<boolean> {
+  const { data } = await supabase
+    .from('agents')
+    .select('id')
+    .eq('id', agentId)
+    .eq('owner_id', userId)
+    .maybeSingle()
+  return data !== null
+}
+
+export const NOT_AGENT_OWNER =
+  'Only the person who created this agent can change what it knows.'
+
 export async function libraryIsFull(
   supabase: SupabaseClient<Database>,
   userId: string

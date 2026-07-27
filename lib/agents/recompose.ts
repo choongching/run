@@ -1,3 +1,4 @@
+import { createClient } from '@supabase/supabase-js'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 import {
@@ -27,11 +28,26 @@ import type { Database } from '@/lib/types/database'
 // transcript on screen is unaffected. Pending tool calls go too: they belong to
 // a session that will never be resumed, and leaving them would strand the
 // thread waiting on an answer it can no longer deliver.
+//
+// Service-role, for the same reason loadAgentKnowledge is: threads are updatable
+// only by their own user (`auth.uid() = user_id`), so the caller's client would
+// reset the owner's thread and silently skip everyone else's. On a
+// company-visible agent that means the other members keep answering from the
+// configuration the owner just changed, which is the exact bug this function
+// exists to prevent. Reaching every thread is the whole point.
 export async function resetAgentSessions(
-  supabase: SupabaseClient<Database>,
+  _supabase: SupabaseClient<Database>,
   agentId: string
 ): Promise<void> {
-  await supabase
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  if (!url || !serviceKey) return
+
+  const admin = createClient<Database>(url, serviceKey, {
+    auth: { persistSession: false },
+  })
+
+  await admin
     .from('threads')
     .update({ session_id: null, pending_tools: null })
     .eq('agent_id', agentId)
