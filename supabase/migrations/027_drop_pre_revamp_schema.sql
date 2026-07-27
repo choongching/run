@@ -21,6 +21,12 @@
 --                         platform role stays for support and abuse handling
 --   is_agent_owner()      still the basis of agent and knowledge policies
 
+-- Usage rows still carried a foreign key to missions, always written as null
+-- since the revamp. It has to go before the table it points at. (The first
+-- attempt at this migration failed here, which is why the drops below are
+-- unqualified: a loud failure beats a half-cleaned schema.)
+alter table usage_events drop column if exists mission_id;
+
 -- Missions and their event log.
 drop table if exists mission_events;
 drop table if exists missions;
@@ -39,8 +45,16 @@ alter table agents
   drop column if exists default_output_type,
   drop column if exists guardrails;
 
+-- Starting a chat used to be allowed for any agent you could see, which meant
+-- assigned or company-visible. Ownership is the whole rule now.
+drop policy if exists "Users create threads for visible agents" on threads;
+create policy "Users create threads for own agents"
+  on threads for insert to authenticated
+  with check (auth.uid() = user_id and is_agent_owner(agent_id));
+
 -- Both helpers answer questions that no longer exist (is this agent assigned to
--- me, is it company-visible). Dropped after the policies that called them.
+-- me, is it company-visible). Dropped after every policy that called them: the
+-- other two callers live on tables dropped above.
 drop function if exists can_see_agent(uuid);
 drop function if exists is_assigned_to_agent(uuid);
 
