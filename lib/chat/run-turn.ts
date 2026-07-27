@@ -332,7 +332,6 @@ export async function drainSession(opts: {
   void recordUsage({
     userId,
     agentId,
-    missionId: null,
     model: agentModel,
     inputTokens,
     outputTokens,

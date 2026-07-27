@@ -213,7 +213,6 @@ export type Database = {
           id: string
           user_id: string
           agent_id: string | null
-          mission_id: string | null
           model: string
           input_tokens: number
           output_tokens: number
@@ -225,7 +224,6 @@ export type Database = {
           id?: string
           user_id: string
           agent_id?: string | null
-          mission_id?: string | null
           model: string
           input_tokens?: number
           output_tokens?: number
@@ -237,7 +235,6 @@ export type Database = {
           id?: string
           user_id?: string
           agent_id?: string | null
-          mission_id?: string | null
           model?: string
           input_tokens?: number
           output_tokens?: number
@@ -258,13 +255,6 @@ export type Database = {
             columns: ['agent_id']
             isOneToOne: false
             referencedRelation: 'agents'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'usage_events_mission_id_fkey'
-            columns: ['mission_id']
-            isOneToOne: false
-            referencedRelation: 'missions'
             referencedColumns: ['id']
           },
         ]

@@ -26,7 +26,6 @@ export function computeCost(
 export async function recordUsage(params: {
   userId: string
   agentId?: string | null
-  missionId?: string | null
   model: string
   inputTokens: number
   outputTokens: number
@@ -43,7 +42,6 @@ export async function recordUsage(params: {
     const { error } = await supabase.from('usage_events').insert({
       user_id: params.userId,
       agent_id: params.agentId ?? null,
-      mission_id: params.missionId ?? null,
       model: params.model,
       input_tokens: params.inputTokens,
       output_tokens: params.outputTokens,
