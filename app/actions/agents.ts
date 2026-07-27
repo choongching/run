@@ -17,6 +17,7 @@ import {
   isPersonality,
 } from '@/lib/agents/personalities'
 import { buildSystemPrompt, parseSetupAnswers } from '@/lib/chat/onboarding'
+import { canCreateAgent } from '@/lib/entitlements/assert'
 import { resetAgentSessions } from '@/lib/agents/recompose'
 import { loadAgentKnowledge } from '@/lib/knowledge/load'
 import { createClient } from '@/lib/supabase/server'
@@ -67,6 +68,13 @@ export async function startAgentFromPrompt(formData: FormData) {
 
   const { userId } = await getUserProfile()
   const supabase = await createClient()
+
+  // Before the naming call and before anything is created remotely, so hitting
+  // the cap costs nothing and leaves nothing behind.
+  const allowed = await canCreateAgent(supabase, userId)
+  if (!allowed.ok) {
+    redirect(`/?error=${encodeURIComponent(allowed.reason)}`)
+  }
 
   const name = await generateAgentName(prompt)
   // The prompt seeds the agent's instructions; the agent refines these
