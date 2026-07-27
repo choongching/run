@@ -166,11 +166,16 @@ Gmail and Drive, have it read your inbox and files, get genuinely useful output
 documents), and approve any action before it happens. Drafts approved in the chat
 are created as real Gmail drafts.
 
-Natural next steps: deploying for more users, a per-agent knowledge base so
-drafts match your voice even more closely, exporting documents to Google Docs and
-PDF, multiple conversations per agent in the UI, and scheduled runs so an agent
-can work on its own (for example a daily inbox summary that arrives without you
-asking).
+Agents can also be taught. You can give one a note or a file it always knows,
+whether that is how you write, the facts you repeat, or the words your team
+uses, and it shows up in the very next reply. Sources belong to you rather than
+to a single agent, so one voice guide can feed several of them. Getting started
+needs no administrator, and how many agents you can create is set by a plan.
+
+Natural next steps: giving every person their own space with their own plan,
+deploying for more users, exporting documents to Google Docs and PDF, multiple
+conversations per agent in the UI, and scheduled runs so an agent can work on
+its own (for example a daily inbox summary that arrives without you asking).
 
 The full, plain-English history, session by session, lives in
 **[PROGRESS.md](./PROGRESS.md)**, updated at the end of every work session.
