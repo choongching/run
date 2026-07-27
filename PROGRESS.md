@@ -13,15 +13,62 @@ whole loop on their own real Gmail and Drive and it held up: it summarized and
 critiqued a real Drive document, drafted email replies that read well, turned
 emails into a downloadable document, and drafted a reply that the founder
 approved and actually sent to a real person. The product does its job on real
-data and never acts without approval. The chat surface is now polished (a pinned
-header and composer, jump-to-latest, past-tense activity lines, per-message
-timestamps, a regrouped Configure panel), agents can hand back downloadable
-documents, you can delete an agent yourself, and a stuck session now self-heals.
-Next step: decide the direction now that building is earned, deploy for other
-real users, or deepen first with a per-agent knowledge base so drafts match your
-voice even more closely.
+data and never acts without approval. On 2026-07-27 agents gained a knowledge
+base, so you can teach one how you write and what your team means by its own
+words, and a note added mid-conversation shows up in the very next reply.
+Getting started no longer needs an administrator, the schema from the old
+company product has been cleared out, and how many agents you can create is now
+set by a plan rather than by a rank. Next step: give every person their own
+space with their own plan, then deploy for real users beyond the founder.
 
 ---
+
+## 2026-07-27: Knowledge base, self-serve setup, and a big clear-out
+
+Five pull requests. Agents can now be taught things, anyone can get started
+without an administrator, the schema left over from the old company product is
+gone, and how many agents you can create is set by a plan rather than by a role.
+
+- **Agents can be given knowledge.** You can add a note or upload a file (PDF,
+  Word, text, Markdown, CSV) that an agent always knows: how you write, the
+  facts you repeat, the words your team uses. A source belongs to you, not to
+  one agent, so one voice guide can feed several agents, and a new Knowledge
+  page lists everything you have with the agents using each one. Verified the
+  honest way: a note added mid-conversation changed the very next reply, which
+  opened with the right greeting, kept to three paragraphs, used no exclamation
+  marks, and signed off exactly as the note asked. Merged via #44.
+- **Guardrails, because knowledge is carried into every message.** Each source
+  is capped, each agent has a knowledge budget shown as a meter, and anything
+  that looks like a password or API key asks for one deliberate confirmation
+  before it is saved. Uploaded text is treated as reference material, never as
+  instructions, and the security rules are still the last thing an agent reads.
+- **Fixed a defect the knowledge work exposed.** Editing an agent changed
+  nothing in a conversation already open, because a running session keeps the
+  settings it started with. So adding a voice guide appeared to do nothing at
+  all, which is the worst way for a feature to fail. Saving now refreshes the
+  conversation for everyone using that agent, and the confirmation says the
+  next message will use it.
+- **Anyone can start without an administrator.** A new user's first message used
+  to fail with "the agent runtime is not set up yet, ask an admin". The runtime
+  now sets itself up the first time it is needed, and the administrator page,
+  its API, and the permission helpers that guarded it are gone. The sidebar
+  shows your account instead of an "Administrator" or "Member" rank. Merged via
+  #45.
+- **Cleared out the old company product.** Run began as a company tool where an
+  admin created agents and assigned them to staff. That model is gone, so the
+  tables, columns, policies, and helpers behind it were removed. The clear-out
+  found two things still quietly attached, including one that would have blocked
+  starting a chat, both caught deliberately rather than by accident. Merged via
+  #47 and #49.
+- **Limits instead of ranks.** How many agents you can create is now a number on
+  a plan, checked on the server before anything is created, with the box on the
+  home page explaining itself when you reach it. A role is a wall rebuilt for
+  every feature; a limit is a dial. Merged via #48.
+- **Three bugs found by testing the paths the first pass skipped.** Someone
+  viewing an agent they do not own could half-add knowledge to it, leaving a
+  stray source behind and an error that retrying could never fix. Refreshing an
+  agent's settings reached only the owner's own conversation. A failed upload
+  could strand a file in the library. All three are fixed.
 
 ## 2026-07-26: Dogfood session, the core is validated, plus chat polish and fixes
 
