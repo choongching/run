@@ -9,6 +9,7 @@ import { logout } from '@/app/actions/auth'
 import {
   AgentsIcon,
   IntegrationsIcon,
+  KnowledgeIcon,
   SettingsIcon,
 } from '@/components/nav-icons'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -116,6 +117,15 @@ export function AppSidebar({
               </SidebarMenuButton>
             </SidebarMenuItem>
           )}
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              isActive={pathname.startsWith('/knowledge')}
+              render={<Link href="/knowledge" />}
+            >
+              <KnowledgeIcon className="size-4.5 shrink-0" />
+              <span>Knowledge</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           <SidebarMenuItem>
             <SidebarMenuButton
               isActive={pathname === '/dashboard'}

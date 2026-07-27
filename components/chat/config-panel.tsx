@@ -13,6 +13,10 @@ import { toast } from 'sonner'
 
 import { deleteAgent, updateAgentConfig } from '@/app/actions/agents'
 import { GmailIcon } from '@/components/icons/gmail'
+import {
+  KnowledgeSection,
+  type KnowledgeItem,
+} from '@/components/chat/knowledge-section'
 import { GoogleDriveIcon } from '@/components/icons/google-drive'
 import { Button } from '@/components/ui/button'
 import {
@@ -70,6 +74,9 @@ export function ConfigPanel({
   personality,
   preferences,
   connections,
+  knowledge,
+  knowledgeLibrary,
+  isOwner,
 }: {
   agentId: string
   agentName: string
@@ -78,6 +85,9 @@ export function ConfigPanel({
   personality: string
   preferences: SetupAnswer[]
   connections: ConnectionState
+  knowledge: KnowledgeItem[]
+  knowledgeLibrary: KnowledgeItem[]
+  isOwner: boolean
 }) {
   return (
     <Sheet>
@@ -106,6 +116,9 @@ export function ConfigPanel({
           personality={personality}
           preferences={preferences}
           connections={connections}
+          knowledge={knowledge}
+          knowledgeLibrary={knowledgeLibrary}
+          isOwner={isOwner}
         />
       </SheetContent>
     </Sheet>
@@ -120,6 +133,9 @@ function ConfigPanelBody({
   personality,
   preferences,
   connections,
+  knowledge,
+  knowledgeLibrary,
+  isOwner,
 }: {
   agentId: string
   agentName: string
@@ -128,6 +144,9 @@ function ConfigPanelBody({
   personality: string
   preferences: SetupAnswer[]
   connections: ConnectionState
+  knowledge: KnowledgeItem[]
+  knowledgeLibrary: KnowledgeItem[]
+  isOwner: boolean
 }) {
   const router = useRouter()
   const [name, setName] = useState(agentName)
@@ -275,6 +294,19 @@ function ConfigPanelBody({
             })}
             </div>
           </Field>
+        </AccordionSection>
+
+        {/* Knowledge: what it always knows, before anyone asks it anything. */}
+        <AccordionSection
+          title="Knowledge"
+          hint="Things it should always know: how you write, key facts, your terms. It carries these into every message."
+        >
+          <KnowledgeSection
+            agentId={agentId}
+            sources={knowledge}
+            library={knowledgeLibrary}
+            canEdit={isOwner}
+          />
         </AccordionSection>
 
         <AccordionSection
