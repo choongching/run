@@ -1,4 +1,5 @@
 import { requireUser } from '@/lib/api-helpers'
+import { ensureEnvironment } from '@/lib/anthropic/environment'
 import {
   buildAgentToolset,
   getAnthropicClient,
@@ -49,20 +50,13 @@ export async function POST(
     return Response.json({ error: 'Thread not found' }, { status: 404 })
   }
 
-  const { data: settings } = await supabase
-    .from('company_settings')
-    .select('anthropic_environment_id')
-    .not('id', 'is', null)
-    .limit(1)
-    .single()
-
-  const environmentId = settings?.anthropic_environment_id
-  if (!environmentId) {
-    return Response.json(
-      { error: 'The agent runtime is not set up yet.' },
-      { status: 400 }
-    )
+  // Provisioned on demand: the runtime is a platform resource, not something
+  // the user has to be told about or ask anyone to set up.
+  const environment = await ensureEnvironment()
+  if (!environment.ok) {
+    return Response.json({ error: environment.reason }, { status: 503 })
   }
+  const environmentId = environment.environmentId
 
   const anthropic = getAnthropicClient()
   const encoder = new TextEncoder()

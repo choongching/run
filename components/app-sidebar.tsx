@@ -6,11 +6,7 @@ import { usePathname } from 'next/navigation'
 import { LogOut, Plus } from 'lucide-react'
 
 import { logout } from '@/app/actions/auth'
-import {
-  AgentsIcon,
-  IntegrationsIcon,
-  SettingsIcon,
-} from '@/components/nav-icons'
+import { AgentsIcon, SettingsIcon } from '@/components/nav-icons'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
   Sidebar,
@@ -25,7 +21,6 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from '@/components/ui/sidebar'
-import type { UserRole } from '@/lib/types/database'
 
 export type SidebarAgent = {
   id: string
@@ -33,7 +28,6 @@ export type SidebarAgent = {
 }
 
 type AppSidebarProps = {
-  role: UserRole
   displayName: string
   email: string
   avatarUrl: string | null
@@ -41,7 +35,6 @@ type AppSidebarProps = {
 }
 
 export function AppSidebar({
-  role,
   displayName,
   email,
   avatarUrl,
@@ -105,17 +98,6 @@ export function AppSidebar({
 
       <SidebarFooter>
         <SidebarMenu>
-          {role === 'admin' && (
-            <SidebarMenuItem>
-              <SidebarMenuButton
-                isActive={pathname.startsWith('/admin/integrations')}
-                render={<Link href="/admin/integrations" />}
-              >
-                <IntegrationsIcon className="size-4.5 shrink-0" />
-                <span>Connections</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          )}
           <SidebarMenuItem>
             <SidebarMenuButton
               isActive={pathname === '/dashboard'}
@@ -136,8 +118,10 @@ export function AppSidebar({
           </Avatar>
           <div className="flex min-w-0 flex-1 flex-col leading-tight">
             <span className="truncate text-sm font-medium">{name}</span>
+            {/* Everyone has their own space, so there is no member/administrator
+                rank to show. The account it belongs to is the useful line. */}
             <span className="truncate text-xs text-muted-foreground">
-              {role === 'admin' ? 'Administrator' : 'Member'}
+              {email}
             </span>
           </div>
         </div>

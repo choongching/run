@@ -29,7 +29,6 @@ export default async function DashboardLayout({
   return (
     <SidebarProvider>
       <AppSidebar
-        role={profile?.role ?? 'user'}
         displayName={profile?.display_name ?? ''}
         email={email}
         avatarUrl={profile?.avatar_url ?? null}
