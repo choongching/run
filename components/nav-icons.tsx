@@ -5,5 +5,6 @@
 export {
   Bot as AgentsIcon,
   Blocks as IntegrationsIcon,
+  BookOpen as KnowledgeIcon,
   Settings as SettingsIcon,
 } from 'lucide-react'

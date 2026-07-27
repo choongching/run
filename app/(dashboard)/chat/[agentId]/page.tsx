@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import type { ApprovalCall } from '@/components/chat/approval-card'
 import { ChatHeader } from '@/components/chat/chat-header'
 import { ConfigPanel } from '@/components/chat/config-panel'
+import type { KnowledgeItem } from '@/components/chat/knowledge-section'
 import { type ArtifactMeta } from '@/components/chat/artifact-card'
 import {
   ChatThread,
@@ -43,6 +44,45 @@ export default async function ChatPage({
     getUserConnection(supabase, userId, 'google_drive'),
   ])
   const connections = { gmail: !!gmailConn, google_drive: !!driveConn }
+
+  // Knowledge: what this agent carries, plus the rest of the user's library so
+  // an existing source can be attached to another agent instead of re-uploaded.
+  // RLS keeps both lists to sources this user owns.
+  const [{ data: attachedRows }, { data: libraryRows }] = await Promise.all([
+    supabase
+      .from('agent_knowledge')
+      .select('created_at, knowledge_sources(id, title, kind, char_count, origin)')
+      .eq('agent_id', agentId)
+      .order('created_at', { ascending: true }),
+    supabase
+      .from('knowledge_sources')
+      .select('id, title, kind, char_count, origin')
+      .eq('owner_id', userId)
+      .order('created_at', { ascending: false }),
+  ])
+
+  const toItem = (s: {
+    id: string
+    title: string
+    kind: 'note' | 'file'
+    char_count: number
+    origin: unknown
+  }): KnowledgeItem => ({
+    id: s.id,
+    title: s.title,
+    kind: s.kind,
+    chars: s.char_count,
+    truncated: (s.origin as { truncated?: boolean } | null)?.truncated === true,
+  })
+
+  const knowledge = (attachedRows ?? [])
+    .map((r) => r.knowledge_sources)
+    .filter((s) => s !== null)
+    .map(toItem)
+  const attachedIds = new Set(knowledge.map((s) => s.id))
+  const knowledgeLibrary = (libraryRows ?? [])
+    .filter((s) => !attachedIds.has(s.id))
+    .map(toItem)
 
   // Ensure the one-per-user thread exists (idempotent for agents created
   // before threads), then read its id.
@@ -124,6 +164,8 @@ export default async function ChatPage({
           personality={agent.personality}
           preferences={preferences}
           connections={connections}
+          knowledge={knowledge}
+          knowledgeLibrary={knowledgeLibrary}
         />
       </header>
       <ChatThread

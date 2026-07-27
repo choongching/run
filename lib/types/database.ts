@@ -20,6 +20,9 @@ export type MissionStatus =
 export type MissionOutputType = 'doc' | 'sheet' | 'text' | 'pdf'
 export type UsageEventType = 'mission_run' | 'prompt_generation'
 export type MessageRole = 'user' | 'agent' | 'activity'
+// How a knowledge source's text got here: typed in, or extracted from an
+// upload. Connector-backed sources will add their own kind.
+export type KnowledgeKind = 'note' | 'file'
 
 // Hand-authored to match supabase/migrations/*.sql.
 // Regenerate with the Supabase CLI/MCP type generator as the schema grows.
@@ -160,32 +163,80 @@ export type Database = {
         }
         Relationships: []
       }
+      knowledge_sources: {
+        Row: {
+          id: string
+          owner_id: string
+          title: string
+          kind: KnowledgeKind
+          content: string
+          char_count: number
+          checksum: string | null
+          origin: Json | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          owner_id: string
+          title: string
+          kind?: KnowledgeKind
+          content: string
+          char_count?: number
+          checksum?: string | null
+          origin?: Json | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          owner_id?: string
+          title?: string
+          kind?: KnowledgeKind
+          content?: string
+          char_count?: number
+          checksum?: string | null
+          origin?: Json | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       agent_knowledge: {
         Row: {
           id: string
           agent_id: string
-          file_id: string
-          file_name: string
-          file_mime_type: string
+          source_id: string
           created_at: string
         }
         Insert: {
           id?: string
           agent_id: string
-          file_id: string
-          file_name: string
-          file_mime_type: string
+          source_id: string
           created_at?: string
         }
         Update: {
           id?: string
           agent_id?: string
-          file_id?: string
-          file_name?: string
-          file_mime_type?: string
+          source_id?: string
           created_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: 'agent_knowledge_agent_id_fkey'
+            columns: ['agent_id']
+            isOneToOne: false
+            referencedRelation: 'agents'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'agent_knowledge_source_id_fkey'
+            columns: ['source_id']
+            isOneToOne: false
+            referencedRelation: 'knowledge_sources'
+            referencedColumns: ['id']
+          },
+        ]
       }
       missions: {
         Row: {
@@ -520,6 +571,7 @@ export type Profile = Database['public']['Tables']['profiles']['Row']
 export type Agent = Database['public']['Tables']['agents']['Row']
 export type CompanySettings = Database['public']['Tables']['company_settings']['Row']
 export type UserAgent = Database['public']['Tables']['user_agents']['Row']
+export type KnowledgeSource = Database['public']['Tables']['knowledge_sources']['Row']
 export type AgentKnowledge = Database['public']['Tables']['agent_knowledge']['Row']
 export type Mission = Database['public']['Tables']['missions']['Row']
 export type MissionEvent = Database['public']['Tables']['mission_events']['Row']
