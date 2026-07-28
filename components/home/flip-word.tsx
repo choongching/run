@@ -21,7 +21,7 @@ import { cn } from '@/lib/utils'
 // never asked to follow a word that changes on its own.
 export function FlipWord({
   words,
-  intervalMs = 2600,
+  intervalMs = 4800,
 }: {
   words: readonly string[]
   intervalMs?: number
