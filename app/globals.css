@@ -179,7 +179,7 @@
      zeroes its left margin so it can butt against a floating sidebar card;
      ours is flush to the edge instead, so the left gutter comes back. */
   [data-slot="sidebar-inset"] {
-    @apply min-h-0 md:ml-2 md:rounded-shell md:border md:border-border;
+    @apply min-h-0 md:ml-2 md:rounded-shell md:border md:border-border md:shadow-none;
   }
 
   /* Chat micro-states. The thinking shimmer sweeps a light band across muted
