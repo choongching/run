@@ -90,7 +90,7 @@ export async function POST(
     })
   }
 
-  const load = await agentKnowledgeLoad(supabase, agentId)
+  const load = await agentKnowledgeLoad(supabase, agentId, userId)
   const refusal = attachRefusal({
     attachedChars: load.chars,
     attachedCount: load.count,

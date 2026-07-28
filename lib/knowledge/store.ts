@@ -15,22 +15,52 @@ export function checksumOf(text: string): string {
 }
 
 // What an agent already carries, for the per-agent budget check and the meter.
+//
+// Counts always-on sources as well as explicitly attached ones, because both
+// are composed into the prompt and both cost the same on every turn. Leaving
+// the always-on ones out would let an agent quietly exceed the cap the meter
+// claims to be enforcing. Deduped by id, matching how loadAgentKnowledge
+// composes them.
 export async function agentKnowledgeLoad(
   supabase: SupabaseClient<Database>,
-  agentId: string
+  agentId: string,
+  ownerId: string
 ): Promise<{ chars: number; count: number }> {
-  const { data } = await supabase
-    .from('agent_knowledge')
-    .select('knowledge_sources(char_count)')
-    .eq('agent_id', agentId)
-  const rows = data ?? []
-  return {
-    chars: rows.reduce(
-      (sum, r) => sum + (r.knowledge_sources?.char_count ?? 0),
-      0
-    ),
-    count: rows.length,
+  const [{ data: linked }, { data: everywhere }] = await Promise.all([
+    supabase
+      .from('agent_knowledge')
+      .select('source_id, knowledge_sources(char_count)')
+      .eq('agent_id', agentId),
+    supabase
+      .from('knowledge_sources')
+      .select('id, char_count')
+      .eq('owner_id', ownerId)
+      .eq('applies_to_all', true),
+  ])
+
+  const chars = new Map<string, number>()
+  for (const s of everywhere ?? []) chars.set(s.id, s.char_count)
+  for (const row of linked ?? []) {
+    if (chars.has(row.source_id)) continue
+    chars.set(row.source_id, row.knowledge_sources?.char_count ?? 0)
   }
+
+  return {
+    chars: [...chars.values()].reduce((sum, n) => sum + n, 0),
+    count: chars.size,
+  }
+}
+
+// Every agent this user owns, for the changes that touch all of them at once.
+export async function ownedAgentIds(
+  supabase: SupabaseClient<Database>,
+  userId: string
+): Promise<string[]> {
+  const { data } = await supabase
+    .from('agents')
+    .select('id')
+    .eq('owner_id', userId)
+  return (data ?? []).map((a) => a.id)
 }
 
 // Whether the caller owns this agent, which is who may change what it knows.
