@@ -27,28 +27,33 @@ export default async function ChatPage({
   const { userId } = await getUserProfile()
   const supabase = await createClient()
 
-  const { data: agent } = await supabase
-    .from('agents')
-    .select('id, name, onboarded, system_prompt, preferences, model, personality, owner_id')
-    .eq('id', agentId)
-    .single()
-
-  if (!agent) notFound()
-
-  // Config-panel data: the base instructions (without the appended setup
-  // block), the setup answers, and whether the user has connected each app.
-  const instructions = stripBrief(agent.system_prompt)
-  const preferences = parseSetupAnswers(agent.preferences)
-  const [gmailConn, driveConn] = await Promise.all([
+  // Everything that depends only on the ids we already hold, in one round trip
+  // rather than four sequential ones. None of these reads needs the result of
+  // any other, so the previous chain of awaits was costing the sum of their
+  // latencies for no reason.
+  //
+  // The thread is read rather than upserted here. The upsert below uses
+  // ignoreDuplicates, which returns nothing when the row already exists, so it
+  // always needed a second query to learn the id. Reading first inverts that:
+  // after the first visit, which is almost every visit, this is the only query
+  // the thread costs.
+  const [
+    { data: agent },
+    gmailConn,
+    driveConn,
+    { data: attachedRows },
+    { data: libraryRows },
+    { data: existingThread },
+  ] = await Promise.all([
+    supabase
+      .from('agents')
+      .select(
+        'id, name, onboarded, system_prompt, preferences, model, personality, owner_id'
+      )
+      .eq('id', agentId)
+      .single(),
     getUserConnection(supabase, userId, 'gmail'),
     getUserConnection(supabase, userId, 'google_drive'),
-  ])
-  const connections = { gmail: !!gmailConn, google_drive: !!driveConn }
-
-  // Knowledge: what this agent carries, plus the rest of the user's library so
-  // an existing source can be attached to another agent instead of re-uploaded.
-  // RLS keeps both lists to sources this user owns.
-  const [{ data: attachedRows }, { data: libraryRows }] = await Promise.all([
     supabase
       .from('agent_knowledge')
       .select(
@@ -61,7 +66,24 @@ export default async function ChatPage({
       .select('id, title, kind, char_count, origin, applies_to_all')
       .eq('owner_id', userId)
       .order('created_at', { ascending: false }),
+    supabase
+      .from('threads')
+      .select('id, pending_tools, pending_attachment')
+      .eq('agent_id', agentId)
+      .eq('user_id', userId)
+      .maybeSingle(),
   ])
+
+  // Checked before anything below reads the results above. A thread cannot
+  // exist for an agent the user does not own (RLS gates the insert on
+  // ownership), so a missing agent means there is nothing here to show.
+  if (!agent) notFound()
+
+  // Config-panel data: the base instructions (without the appended setup
+  // block), the setup answers, and whether the user has connected each app.
+  const instructions = stripBrief(agent.system_prompt)
+  const preferences = parseSetupAnswers(agent.preferences)
+  const connections = { gmail: !!gmailConn, google_drive: !!driveConn }
 
   const toItem = (s: {
     id: string
@@ -98,20 +120,25 @@ export default async function ChatPage({
     .filter((s) => !carriedIds.has(s.id))
     .map(toItem)
 
-  // Ensure the one-per-user thread exists (idempotent for agents created
-  // before threads), then read its id.
-  await supabase
-    .from('threads')
-    .upsert(
-      { agent_id: agent.id, user_id: userId },
-      { onConflict: 'agent_id,user_id', ignoreDuplicates: true }
-    )
-  const { data: thread } = await supabase
-    .from('threads')
-    .select('id, pending_tools, pending_attachment')
-    .eq('agent_id', agent.id)
-    .eq('user_id', userId)
-    .single()
+  // First visit only: create the one-per-user thread, which also covers agents
+  // made before threads existed. Every later visit already has it from the
+  // batch above and skips this entirely.
+  let thread = existingThread
+  if (!thread) {
+    await supabase
+      .from('threads')
+      .upsert(
+        { agent_id: agent.id, user_id: userId },
+        { onConflict: 'agent_id,user_id', ignoreDuplicates: true }
+      )
+    const { data: created } = await supabase
+      .from('threads')
+      .select('id, pending_tools, pending_attachment')
+      .eq('agent_id', agent.id)
+      .eq('user_id', userId)
+      .single()
+    thread = created
+  }
 
   const { data: rows } = await supabase
     .from('messages')
