@@ -161,6 +161,14 @@
   [data-slot="sidebar-wrapper"] {
     @apply h-svh overflow-hidden;
   }
+  /* A route that lays out its own cards (the chat, which docks the configure
+     panel beside the conversation) turns the shell region into a plain track.
+     Without this the panel would be a card inside a card, and the canvas could
+     not show through the gap that separates them. */
+  [data-slot="sidebar-inset"]:has([data-shell="split"]) {
+    @apply border-0 bg-transparent shadow-none md:border-0;
+  }
+
   /* The content card keeps an even gutter on all four sides. The inset variant
      zeroes its left margin so it can butt against a floating sidebar card;
      ours is flush to the edge instead, so the left gutter comes back. */

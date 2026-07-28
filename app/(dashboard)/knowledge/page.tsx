@@ -49,12 +49,12 @@ export default async function KnowledgePage() {
   const totalChars = items.reduce((sum, s) => sum + s.chars, 0)
 
   return (
-    <>
+    <div className="p-6 md:p-8">
       <PageHeader
         title="Knowledge"
         description="What your agents always know. Add a source from inside an agent's Configure panel, then manage it here and choose whether it applies to one agent or to all of them."
       />
       <KnowledgeLibrary items={items} totalChars={totalChars} />
-    </>
+    </div>
   )
 }

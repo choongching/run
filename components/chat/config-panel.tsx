@@ -4,8 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   ChevronDown,
+  ChevronRight,
   Loader2,
-  SlidersHorizontal,
   Sparkles,
   Trash2,
 } from 'lucide-react'
@@ -32,14 +32,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet'
 import { Textarea } from '@/components/ui/textarea'
 import {
   ConnectorList,
@@ -57,10 +49,15 @@ const MODEL_CHOICES = [
   { id: 'claude-haiku-4-5', tier: 'Faster', sub: 'Claude Haiku 4.5', hint: 'Quick and light' },
 ] as const
 
-// The chat-side config panel: a slide-over showing (and editing) what talking
-// to the agent configured. Name and instructions are edited and saved
-// together; connections act immediately; the setup answers are a receipt of
-// the first-run interview. The trigger sits in the chat header.
+// The chat-side config panel: what talking to the agent configured, shown so
+// it can be changed. Name and instructions are edited and saved together;
+// connectors act immediately; the setup answers are a receipt of the first-run
+// interview.
+//
+// It docks beside the conversation rather than covering it (see ConfigDock).
+// That is the point: the reason to open this is usually something the agent
+// just said, and a panel that dims the reply hides the evidence you are acting
+// on.
 export function ConfigPanel({
   agentId,
   agentName,
@@ -72,6 +69,7 @@ export function ConfigPanel({
   knowledge,
   knowledgeLibrary,
   isOwner,
+  onClose,
 }: {
   agentId: string
   agentName: string
@@ -83,40 +81,39 @@ export function ConfigPanel({
   knowledge: KnowledgeItem[]
   knowledgeLibrary: KnowledgeItem[]
   isOwner: boolean
+  onClose: () => void
 }) {
   return (
-    <Sheet>
-      <SheetTrigger
-        render={
-          <Button variant="ghost" size="icon-sm" aria-label="Configure agent" />
-        }
-      >
-        <SlidersHorizontal className="size-4" />
-      </SheetTrigger>
-      <SheetContent side="right" className="gap-0">
-        <SheetHeader className="border-b border-border">
-          <SheetTitle>Configure</SheetTitle>
-          <SheetDescription>
+    <div className="flex h-full flex-col">
+      <div className="flex shrink-0 items-start justify-between gap-2 border-b border-border p-4">
+        <div className="min-w-0">
+          <h2 className="text-sm font-semibold">Configure</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
             Everything you set up by chatting. Edit it any time.
-          </SheetDescription>
-        </SheetHeader>
-        {/* Keyed by agent so the form re-seeds fresh whenever the panel opens
-            for a different agent. */}
-        <ConfigPanelBody
-          key={agentId}
-          agentId={agentId}
-          agentName={agentName}
-          instructions={instructions}
-          model={model}
-          personality={personality}
-          preferences={preferences}
-          connections={connections}
-          knowledge={knowledge}
-          knowledgeLibrary={knowledgeLibrary}
-          isOwner={isOwner}
-        />
-      </SheetContent>
-    </Sheet>
+          </p>
+        </div>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={onClose}
+          aria-label="Close the configure panel"
+        >
+          <ChevronRight className="size-4" />
+        </Button>
+      </div>
+      <ConfigPanelBody
+        agentId={agentId}
+        agentName={agentName}
+        instructions={instructions}
+        model={model}
+        personality={personality}
+        preferences={preferences}
+        connections={connections}
+        knowledge={knowledge}
+        knowledgeLibrary={knowledgeLibrary}
+        isOwner={isOwner}
+      />
+    </div>
   )
 }
 

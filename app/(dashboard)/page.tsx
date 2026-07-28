@@ -21,7 +21,7 @@ export default async function HomePage({
   const allowed = await canCreateAgent(supabase, userId)
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center py-16">
+    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center px-6 py-16 md:px-8">
       <Image src="/run-icon.png" alt="" width={44} height={44} className="mb-6" />
       <h1 className="mb-8 text-2xl font-semibold">
         What do you want to create today?

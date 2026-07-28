@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation'
 
 import type { ApprovalCall } from '@/components/chat/approval-card'
 import { ChatHeader } from '@/components/chat/chat-header'
-import { ConfigPanel } from '@/components/chat/config-panel'
+import { ConfigDock } from '@/components/chat/config-dock'
 import type { KnowledgeItem } from '@/components/chat/knowledge-section'
 import { type ArtifactMeta } from '@/components/chat/artifact-card'
 import {
@@ -162,27 +162,27 @@ export default async function ChatPage({
       : null
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col">
-      <header className="mx-auto flex w-full max-w-3xl shrink-0 items-center justify-between gap-2 border-b border-border pb-3">
+    <ConfigDock
+      header={
         <ChatHeader
           key={`${agent.id}:${agent.name}`}
           agentId={agent.id}
           agentName={agent.name}
         />
-        <ConfigPanel
-          key={`config-${agent.id}`}
-          agentId={agent.id}
-          agentName={agent.name}
-          instructions={instructions}
-          model={agent.model}
-          personality={agent.personality}
-          preferences={preferences}
-          connections={connections}
-          knowledge={knowledge}
-          knowledgeLibrary={knowledgeLibrary}
-          isOwner={agent.owner_id === userId}
-        />
-      </header>
+      }
+      panel={{
+        agentId: agent.id,
+        agentName: agent.name,
+        instructions,
+        model: agent.model,
+        personality: agent.personality,
+        preferences,
+        connections,
+        knowledge,
+        knowledgeLibrary,
+        isOwner: agent.owner_id === userId,
+      }}
+    >
       <ChatThread
         agentId={agent.id}
         agentName={agent.name}
@@ -192,6 +192,6 @@ export default async function ChatPage({
         initialAsk={initialAsk}
         initialAttachment={initialAttachment}
       />
-    </div>
+    </ConfigDock>
   )
 }

@@ -37,9 +37,12 @@ export default async function DashboardLayout({
       <SidebarInset>
         {/* The scroll container for page content. Normal pages scroll here;
             the chat page fills this height and scrolls only its message list,
-            keeping its header and composer pinned. */}
-        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto p-6 md:p-8">
-          <SidebarTrigger className="mb-4 md:hidden" />
+            keeping its header and composer pinned.
+            Padding belongs to the page, not to this container: the chat page
+            docks a panel against the card's own edges, which it cannot do from
+            inside a gutter it does not control. */}
+        <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
+          <SidebarTrigger className="mt-4 ml-4 md:hidden" />
           {children}
         </div>
       </SidebarInset>
