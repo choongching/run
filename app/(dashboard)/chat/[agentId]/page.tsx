@@ -3,7 +3,6 @@ import { notFound } from 'next/navigation'
 import type { ApprovalCall } from '@/components/chat/approval-card'
 import { ChatHeader } from '@/components/chat/chat-header'
 import { ConfigDock } from '@/components/chat/config-dock'
-import type { KnowledgeItem } from '@/components/chat/knowledge-section'
 import { type ArtifactMeta } from '@/components/chat/artifact-card'
 import {
   ChatThread,
@@ -13,7 +12,6 @@ import {
 import { isAskTool, summarizeAsk, summarizeWrite } from '@/lib/tools/definitions'
 import { getUserProfile } from '@/lib/auth'
 import { parseSetupAnswers, stripBrief } from '@/lib/chat/onboarding'
-import { getUserConnection } from '@/lib/pipedream/connections'
 import { createClient } from '@/lib/supabase/server'
 
 // The live chat surface (Phase 2): loads the thread's history and hands it to
@@ -37,14 +35,7 @@ export default async function ChatPage({
   // always needed a second query to learn the id. Reading first inverts that:
   // after the first visit, which is almost every visit, this is the only query
   // the thread costs.
-  const [
-    { data: agent },
-    gmailConn,
-    driveConn,
-    { data: attachedRows },
-    { data: libraryRows },
-    { data: existingThread },
-  ] = await Promise.all([
+  const [{ data: agent }, { data: existingThread }] = await Promise.all([
     supabase
       .from('agents')
       .select(
@@ -52,20 +43,6 @@ export default async function ChatPage({
       )
       .eq('id', agentId)
       .single(),
-    getUserConnection(supabase, userId, 'gmail'),
-    getUserConnection(supabase, userId, 'google_drive'),
-    supabase
-      .from('agent_knowledge')
-      .select(
-        'created_at, knowledge_sources(id, title, kind, char_count, origin, applies_to_all)'
-      )
-      .eq('agent_id', agentId)
-      .order('created_at', { ascending: true }),
-    supabase
-      .from('knowledge_sources')
-      .select('id, title, kind, char_count, origin, applies_to_all')
-      .eq('owner_id', userId)
-      .order('created_at', { ascending: false }),
     supabase
       .from('threads')
       .select('id, pending_tools, pending_attachment')
@@ -79,46 +56,11 @@ export default async function ChatPage({
   // ownership), so a missing agent means there is nothing here to show.
   if (!agent) notFound()
 
-  // Config-panel data: the base instructions (without the appended setup
-  // block), the setup answers, and whether the user has connected each app.
+  // Panel fields that come free with the agent row we already read for the
+  // header. The panel's expensive data (connectors and knowledge) is not here:
+  // it loads when the panel opens, via /api/agents/[agentId]/config.
   const instructions = stripBrief(agent.system_prompt)
   const preferences = parseSetupAnswers(agent.preferences)
-  const connections = { gmail: !!gmailConn, google_drive: !!driveConn }
-
-  const toItem = (s: {
-    id: string
-    title: string
-    kind: 'note' | 'file'
-    char_count: number
-    origin: unknown
-    applies_to_all: boolean
-  }): KnowledgeItem => ({
-    id: s.id,
-    title: s.title,
-    kind: s.kind,
-    chars: s.char_count,
-    truncated: (s.origin as { truncated?: boolean } | null)?.truncated === true,
-    appliesToAll: s.applies_to_all,
-  })
-
-  // What the agent actually carries is the union of what is attached to it and
-  // everything the owner marked as applying to every agent. The panel has to
-  // show both or its list and its budget meter would both understate the
-  // prompt, and detaching would look broken on a source that is not attached.
-  const attached = (attachedRows ?? [])
-    .map((r) => r.knowledge_sources)
-    .filter((s) => s !== null)
-    .map(toItem)
-  const attachedIds = new Set(attached.map((s) => s.id))
-  const everywhere = (libraryRows ?? [])
-    .filter((s) => s.applies_to_all && !attachedIds.has(s.id))
-    .map(toItem)
-
-  const knowledge = [...everywhere, ...attached]
-  const carriedIds = new Set(knowledge.map((s) => s.id))
-  const knowledgeLibrary = (libraryRows ?? [])
-    .filter((s) => !carriedIds.has(s.id))
-    .map(toItem)
 
   // First visit only: create the one-per-user thread, which also covers agents
   // made before threads existed. Every later visit already has it from the
@@ -204,9 +146,6 @@ export default async function ChatPage({
         model: agent.model,
         personality: agent.personality,
         preferences,
-        connections,
-        knowledge,
-        knowledgeLibrary,
         isOwner: agent.owner_id === userId,
       }}
     >

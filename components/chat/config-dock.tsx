@@ -1,10 +1,12 @@
 'use client'
 
-import { useState } from 'react'
-import { SlidersHorizontal } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { SlidersHorizontal, X } from 'lucide-react'
 
 import { ConfigPanel } from '@/components/chat/config-panel'
+import type { PanelExtras } from '@/lib/chat/panel-data'
 import { Button } from '@/components/ui/button'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Tooltip,
   TooltipContent,
@@ -13,7 +15,10 @@ import {
 } from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
-type PanelProps = Omit<React.ComponentProps<typeof ConfigPanel>, 'onClose'>
+type PanelProps = Omit<
+  React.ComponentProps<typeof ConfigPanel>,
+  'onClose' | keyof PanelExtras
+>
 
 // Docks the configure panel beside the conversation instead of over it.
 //
@@ -46,6 +51,37 @@ export function ConfigDock({
   // rather than collapsing an empty box.
   const [opens, setOpens] = useState(0)
 
+  // The connectors and knowledge the panel shows are fetched when it opens
+  // rather than with the conversation. They cost four queries and the panel
+  // starts closed, so most chat loads were paying for a surface nobody looked
+  // at. Fetching per open also keeps the list honest: connect an app in
+  // another tab and the next open reflects it.
+  const [extras, setExtras] = useState<PanelExtras | null>(null)
+  const [failed, setFailed] = useState(false)
+
+  // Clearing the previous result belongs with the click that asks for a new
+  // one, not in the effect: React 19 forbids seeding state synchronously in an
+  // effect body, and an event handler is where this actually belongs anyway.
+  function loadPanel() {
+    setExtras(null)
+    setFailed(false)
+    setOpens((n) => n + 1)
+  }
+
+  useEffect(() => {
+    if (!opens) return
+    let live = true
+    fetch(`/api/agents/${panel.agentId}/config`)
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error('failed'))))
+      .then((data: PanelExtras) => live && setExtras(data))
+      .catch(() => live && setFailed(true))
+    // Cancels the state write, not the request: a reply that lands after the
+    // panel has been reopened must not overwrite the newer one.
+    return () => {
+      live = false
+    }
+  }, [opens, panel.agentId])
+
   return (
     // Two cards side by side rather than one card with a panel inside it. The
     // shell steps out of the way (see the [data-shell="split"] rule in
@@ -69,7 +105,7 @@ export function ConfigDock({
                     aria-label={open ? 'Close configure' : 'Configure agent'}
                     aria-expanded={open}
                     onClick={() => {
-                      if (!open) setOpens((n) => n + 1)
+                      if (!open) loadPanel()
                       setOpen((v) => !v)
                     }}
                     className={cn(open && 'bg-muted text-foreground')}
@@ -98,13 +134,72 @@ export function ConfigDock({
         )}
       >
         <div className="ml-2 flex h-full w-90 flex-col overflow-hidden rounded-shell border border-border bg-card">
-          <ConfigPanel
-            key={`${panel.agentId}:${opens}`}
-            {...panel}
-            onClose={() => setOpen(false)}
-          />
+          {extras ? (
+            <ConfigPanel
+              key={`${panel.agentId}:${opens}`}
+              {...panel}
+              {...extras}
+              onClose={() => setOpen(false)}
+            />
+          ) : (
+            <PanelPlaceholder
+              failed={failed}
+              onClose={() => setOpen(false)}
+              onRetry={loadPanel}
+            />
+          )}
         </div>
       </aside>
+    </div>
+  )
+}
+
+// What the panel shows before its data arrives, and if it never does.
+//
+// It keeps the real panel's header so the title and the close button do not
+// move when the content swaps in, and so the panel can always be dismissed
+// even when the fetch failed. A failure says so and offers a retry: silently
+// showing an empty Connectors list would read as "nothing is connected", which
+// is a different and worse claim than "this did not load".
+function PanelPlaceholder({
+  failed,
+  onClose,
+  onRetry,
+}: {
+  failed: boolean
+  onClose: () => void
+  onRetry: () => void
+}) {
+  return (
+    <div className="flex h-full flex-col">
+      <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-4 pt-5 pb-3">
+        <h2 className="min-w-0 truncate text-sm font-semibold">Configure</h2>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={onClose}
+          aria-label="Close the configure panel"
+        >
+          <X className="size-4" />
+        </Button>
+      </div>
+      {failed ? (
+        <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
+          <p className="text-sm text-muted-foreground">
+            We could not load this agent&rsquo;s settings.
+          </p>
+          <Button variant="outline" size="sm" onClick={onRetry}>
+            Try again
+          </Button>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3 p-4">
+          <Skeleton className="h-28 w-full rounded-xl" />
+          <Skeleton className="h-11 w-full rounded-xl" />
+          <Skeleton className="h-11 w-full rounded-xl" />
+          <Skeleton className="h-11 w-full rounded-xl" />
+        </div>
+      )}
     </div>
   )
 }
