@@ -29,7 +29,7 @@ export function OptionsCard({
     typeof spec.step === 'number' && typeof spec.total === 'number' && spec.total > 0
 
   return (
-    <div className="rounded-xl border border-ring/60 bg-card p-4 shadow-xs">
+    <div className="rounded-xl border border-ring/60 bg-card p-4">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-sm font-medium">
           <Sparkles className="size-4 text-muted-foreground" />

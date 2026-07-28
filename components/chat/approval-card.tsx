@@ -23,7 +23,7 @@ export function ApprovalCard({
   }
 
   return (
-    <div className="rounded-xl border border-ring/60 bg-card p-4 shadow-xs">
+    <div className="rounded-xl border border-ring/60 bg-card p-4">
       <div className="flex items-center gap-2 text-sm font-medium">
         <ShieldQuestion className="size-4 text-muted-foreground" />
         Approve this action?

@@ -920,7 +920,7 @@ function Composer({
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   return (
-    <div className="rounded-xl border border-input bg-card shadow-xs focus-within:ring-2 focus-within:ring-ring/50">
+    <div className="rounded-xl border border-input bg-card focus-within:ring-2 focus-within:ring-ring/50">
       {attachment && (
         <div className="px-3 pt-3">
           <FileChip attachment={attachment} onRemove={onRemoveAttachment} />
