@@ -36,6 +36,7 @@ import {
   maxBytesFor,
 } from '@/lib/files/accepted'
 import { MAX_MESSAGE_CHARS } from '@/lib/chat/limits'
+import { useAutoGrow } from '@/lib/use-auto-grow'
 import type { AskSpec } from '@/lib/tools/definitions'
 import {
   Tooltip,
@@ -918,6 +919,10 @@ function Composer({
   onRemoveAttachment: () => void
 }) {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const textRef = useRef<HTMLTextAreaElement>(null)
+  // Also runs after a send clears the value, which is what takes a grown box
+  // back down to one line instead of leaving it standing open and empty.
+  useAutoGrow(textRef, value)
 
   return (
     <div className="rounded-xl border border-input bg-card focus-within:ring-2 focus-within:ring-ring/50">
@@ -927,6 +932,7 @@ function Composer({
         </div>
       )}
       <textarea
+        ref={textRef}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={(e) => {
