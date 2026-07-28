@@ -5,6 +5,12 @@ import { SlidersHorizontal } from 'lucide-react'
 
 import { ConfigPanel } from '@/components/chat/config-panel'
 import { Button } from '@/components/ui/button'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 type PanelProps = Omit<React.ComponentProps<typeof ConfigPanel>, 'onClose'>
@@ -47,22 +53,36 @@ export function ConfigDock({
     // panel read as its own surface arriving beside the conversation rather
     // than as a region carved out of it.
     <div data-shell="split" className="flex min-h-0 flex-1">
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col rounded-shell border border-border bg-background px-6 pt-5 shadow-sm md:px-8">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col rounded-shell border border-border bg-background px-6 pt-5 md:px-8">
         <header className="mx-auto flex w-full max-w-3xl shrink-0 items-center justify-between gap-2 border-b border-border pb-3">
           {header}
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Configure agent"
-            aria-expanded={open}
-            onClick={() => {
-              if (!open) setOpens((n) => n + 1)
-              setOpen((v) => !v)
-            }}
-            className={cn(open && 'bg-muted text-foreground')}
-          >
-            <SlidersHorizontal className="size-4" />
-          </Button>
+          {/* The label follows what the click will do. Saying "Configure"
+              while the button closes the panel would be a small lie told
+              every time it is open. */}
+          <TooltipProvider delay={300}>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={open ? 'Close configure' : 'Configure agent'}
+                    aria-expanded={open}
+                    onClick={() => {
+                      if (!open) setOpens((n) => n + 1)
+                      setOpen((v) => !v)
+                    }}
+                    className={cn(open && 'bg-muted text-foreground')}
+                  />
+                }
+              >
+                <SlidersHorizontal className="size-4" />
+              </TooltipTrigger>
+              <TooltipContent side="bottom" sideOffset={8}>
+                {open ? 'Close configure' : 'Configure'}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </header>
         {children}
       </div>
@@ -77,7 +97,7 @@ export function ConfigDock({
           open ? 'w-92' : 'w-0'
         )}
       >
-        <div className="ml-2 flex h-full w-90 flex-col overflow-hidden rounded-shell border border-border bg-card shadow-sm">
+        <div className="ml-2 flex h-full w-90 flex-col overflow-hidden rounded-shell border border-border bg-card">
           <ConfigPanel
             key={`${panel.agentId}:${opens}`}
             {...panel}
