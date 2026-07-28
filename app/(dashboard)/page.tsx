@@ -1,5 +1,6 @@
 import Image from 'next/image'
 
+import { AmbientBackdrop } from '@/components/home/ambient-backdrop'
 import { PromptComposer } from '@/components/home/prompt-composer'
 import { getUserProfile } from '@/lib/auth'
 import { canCreateAgent } from '@/lib/entitlements/assert'
@@ -21,7 +22,11 @@ export default async function HomePage({
   const allowed = await canCreateAgent(supabase, userId)
 
   return (
-    <div className="mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center px-6 py-16 md:px-8">
+    // The wash needs the full width of the card to spread across, so it sits
+    // on the outer region while the content keeps its narrow column.
+    <div className="relative flex flex-1 flex-col overflow-hidden px-6 py-16 md:px-8">
+      <AmbientBackdrop />
+      <div className="relative z-10 mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center">
       <Image src="/run-icon.png" alt="" width={44} height={44} className="mb-6" />
       <h1 className="mb-8 text-2xl font-semibold">
         What do you want to create today?
@@ -33,7 +38,8 @@ export default async function HomePage({
         </p>
       )}
 
-      <PromptComposer blockedReason={allowed.ok ? null : allowed.reason} />
+        <PromptComposer blockedReason={allowed.ok ? null : allowed.reason} />
+      </div>
     </div>
   )
 }

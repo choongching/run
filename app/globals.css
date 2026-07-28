@@ -187,6 +187,97 @@
     @apply min-h-0 md:ml-2 md:border md:border-border;
   }
 
+  /* Ambient wash behind the home prompt box (components/home/ambient-backdrop).
+     Built from the palette, not invented colour: two deep-forest-green washes
+     and one warm paper wash, all at single-digit alpha. The styleguide reserves
+     colour pops for data, so nothing here borrows the chart hues; the effect is
+     a green haze on warm paper, which is the brand at low volume.
+     Only transform and opacity animate, so this stays on the compositor. */
+  /* The opening: the whole layer glows up from nothing over a couple of
+     seconds, so arriving on the home screen feels like the light coming on
+     rather than a coloured panel appearing. Slower than any UI transition on
+     purpose; this is atmosphere, not feedback. */
+  .run-wash-layer {
+    animation: run-wash-in 2600ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  }
+  @keyframes run-wash-in {
+    from {
+      opacity: 0;
+      transform: scale(1.06);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  .run-wash {
+    position: absolute;
+    border-radius: 9999px;
+    filter: blur(90px);
+    will-change: transform, opacity;
+  }
+  .run-wash-a {
+    top: -14%;
+    left: 18%;
+    width: 42rem;
+    height: 30rem;
+    background: radial-gradient(
+      closest-side,
+      color-mix(in oklch, var(--primary) 16%, transparent),
+      transparent
+    );
+    animation: run-wash-a 43s ease-in-out infinite alternate;
+  }
+  .run-wash-b {
+    top: 22%;
+    left: 46%;
+    width: 36rem;
+    height: 28rem;
+    background: radial-gradient(
+      closest-side,
+      color-mix(in oklch, var(--primary) 11%, transparent),
+      transparent
+    );
+    animation: run-wash-b 59s ease-in-out infinite alternate;
+  }
+  .run-wash-c {
+    top: 4%;
+    left: 8%;
+    width: 44rem;
+    height: 32rem;
+    background: radial-gradient(
+      closest-side,
+      color-mix(in oklch, var(--sidebar-accent) 90%, transparent),
+      transparent
+    );
+    animation: run-wash-c 71s ease-in-out infinite alternate;
+  }
+  /* Durations are long and share no common factor, so the three never resync
+     into a rhythm you can follow, which is what makes a loop read as a loop. */
+  @keyframes run-wash-a {
+    from { transform: translate3d(-4%, -2%, 0) scale(1); opacity: 0.9; }
+    to   { transform: translate3d(6%, 4%, 0) scale(1.12); opacity: 1; }
+  }
+  @keyframes run-wash-b {
+    from { transform: translate3d(3%, 3%, 0) scale(1.08); opacity: 1; }
+    to   { transform: translate3d(-5%, -3%, 0) scale(1); opacity: 0.85; }
+  }
+  @keyframes run-wash-c {
+    from { transform: translate3d(2%, -3%, 0) scale(1.05); opacity: 0.8; }
+    to   { transform: translate3d(-3%, 4%, 0) scale(1); opacity: 1; }
+  }
+  /* Reduced motion keeps the tint and drops the movement: the colour is part
+     of the surface, the drifting is the part that can make people unwell. */
+  @media (prefers-reduced-motion: reduce) {
+    .run-wash {
+      animation: none;
+    }
+    /* The tint still arrives, it just does not travel to get here. */
+    .run-wash-layer {
+      animation: none;
+    }
+  }
+
   /* Chat micro-states. The thinking shimmer sweeps a light band across muted
      text while the agent composes; the caret blinks at the end of streaming
      text. Both read the same in light and dark (they use current tokens). */
