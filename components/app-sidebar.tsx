@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { LogOut, Plus } from 'lucide-react'
+import { ChevronsUpDown, LogOut, Plus } from 'lucide-react'
 
 import { logout } from '@/app/actions/auth'
 import {
@@ -13,6 +13,13 @@ import {
   SettingsIcon,
 } from '@/components/nav-icons'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   Sidebar,
   SidebarContent,
@@ -121,41 +128,59 @@ export function AppSidebar({
               <span>Connectors</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              isActive={pathname === '/dashboard'}
-              render={<Link href="/dashboard" />}
-            >
-              <SettingsIcon className="size-4.5 shrink-0" />
-              <span>Settings</span>
-            </SidebarMenuButton>
-          </SidebarMenuItem>
         </SidebarMenu>
         <SidebarSeparator />
-        <div className="flex items-center gap-2 px-2 py-1.5">
-          <Avatar className="size-8">
-            {avatarUrl && <AvatarImage src={avatarUrl} alt={name} />}
-            <AvatarFallback className="bg-chart-3 text-xs font-medium text-white">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-          <div className="flex min-w-0 flex-1 flex-col leading-tight">
-            <span className="truncate text-sm font-medium">{name}</span>
-            {/* Everyone has their own space, so there is no member/administrator
-                rank to show. The account it belongs to is the useful line. */}
-            <span className="truncate text-xs text-muted-foreground">
-              {email}
-            </span>
-          </div>
-        </div>
+        {/* Everything about the person sits behind their own face: their
+            profile, and signing out. Knowledge and Connectors stay in the nav
+            above because those belong to the agents, not to the account. */}
         <SidebarMenu>
           <SidebarMenuItem>
-            <form action={logout}>
-              <SidebarMenuButton render={<button type="submit" className="w-full" />}>
-                <LogOut className="size-4.5 shrink-0" />
-                <span>Sign out</span>
-              </SidebarMenuButton>
-            </form>
+            <DropdownMenu>
+              <DropdownMenuTrigger
+                render={
+                  <SidebarMenuButton
+                    size="lg"
+                    isActive={pathname.startsWith('/settings')}
+                    aria-label="Account menu"
+                  />
+                }
+              >
+                <Avatar className="size-8">
+                  {avatarUrl && <AvatarImage src={avatarUrl} alt={name} />}
+                  <AvatarFallback className="bg-chart-3 text-xs font-medium text-white">
+                    {initials}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex min-w-0 flex-1 flex-col leading-tight">
+                  <span className="truncate text-sm font-medium">{name}</span>
+                  {/* Everyone has their own space, so there is no member or
+                      administrator rank to show. The account it belongs to is
+                      the useful line. */}
+                  <span className="truncate text-xs text-muted-foreground">
+                    {email}
+                  </span>
+                </div>
+                <ChevronsUpDown className="ml-auto size-4 shrink-0 text-muted-foreground" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" side="top">
+                <DropdownMenuItem render={<Link href="/settings" />}>
+                  <SettingsIcon className="size-4 shrink-0" />
+                  Settings
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <form action={logout}>
+                  {/* nativeButton keeps this a real submit button, which is
+                      what actually posts the sign-out form. */}
+                  <DropdownMenuItem
+                    nativeButton
+                    render={<button type="submit" className="w-full" />}
+                  >
+                    <LogOut className="size-4 shrink-0" />
+                    Sign out
+                  </DropdownMenuItem>
+                </form>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarFooter>
