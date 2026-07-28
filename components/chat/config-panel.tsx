@@ -196,6 +196,17 @@ function ConfigPanelBody({
   return (
     <>
       <div className="flex flex-1 flex-col gap-2.5 overflow-y-auto px-4 py-4">
+        {/* A non-owner can read the setup but not change it. The server
+            already refuses their writes; this is so the panel stops offering
+            what it will not accept. Connections stay live because those are
+            the reader's own accounts, not the owner's. */}
+        {!isOwner && (
+          <p className="rounded-xl border border-border bg-muted/40 px-3.5 py-2.5 text-xs text-muted-foreground">
+            This agent belongs to someone else. You can see how it is set up,
+            and only they can change it.
+          </p>
+        )}
+
         {/* Profile: what it's called and how it sounds. */}
         <AccordionSection
           title="Profile"
@@ -208,7 +219,8 @@ function ConfigPanelBody({
               onChange={(e) => setName(e.target.value)}
               maxLength={60}
               aria-label="Agent name"
-              className="w-full rounded-lg border border-input bg-card px-2.5 py-1.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+              disabled={!isOwner}
+              className="w-full rounded-lg border border-input bg-card px-2.5 py-1.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50 disabled:cursor-not-allowed disabled:opacity-60"
             />
           </Field>
           <Field label="Personality">
@@ -217,6 +229,7 @@ function ConfigPanelBody({
               onValueChange={(v) => {
                 if (v) setChosenPersonality(v)
               }}
+              disabled={!isOwner}
             >
               <SelectTrigger className="w-full">
                 <SelectValue>
@@ -250,7 +263,8 @@ function ConfigPanelBody({
               onChange={(e) => setDraft(e.target.value)}
               rows={7}
               aria-label="Agent instructions"
-              className="min-h-32 resize-y text-sm"
+              disabled={!isOwner}
+              className="min-h-32 resize-y text-sm disabled:cursor-not-allowed disabled:opacity-60"
             />
           </Field>
           <Field label="Model">
@@ -263,10 +277,11 @@ function ConfigPanelBody({
                   type="button"
                   onClick={() => setChosenModel(choice.id)}
                   aria-pressed={selected}
-                  className={`flex items-center gap-3 rounded-xl border p-3 text-left transition-colors ${
+                  disabled={!isOwner}
+                  className={`flex items-center gap-3 rounded-xl border p-3 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-60 ${
                     selected
                       ? 'border-primary bg-primary/5'
-                      : 'border-border bg-card hover:bg-muted'
+                      : 'border-border bg-card enabled:hover:bg-muted'
                   }`}
                 >
                   <span
@@ -352,30 +367,34 @@ function ConfigPanelBody({
           </AccordionSection>
         )}
 
-        <div className="mt-1 flex items-center justify-between gap-3 rounded-xl border border-destructive/25 bg-card px-3.5 py-3">
-          <div className="min-w-0">
-            <p className="text-sm font-medium">Delete agent</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              Removes it and its chat history for good.
-            </p>
+        {isOwner && (
+          <div className="mt-1 flex items-center justify-between gap-3 rounded-xl border border-destructive/25 bg-card px-3.5 py-3">
+            <div className="min-w-0">
+              <p className="text-sm font-medium">Delete agent</p>
+              <p className="mt-0.5 text-xs text-muted-foreground">
+                Removes it and its chat history for good.
+              </p>
+            </div>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => setConfirmOpen(true)}
+            >
+              <Trash2 className="size-3.5" />
+              Delete
+            </Button>
           </div>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => setConfirmOpen(true)}
-          >
-            <Trash2 className="size-3.5" />
-            Delete
-          </Button>
-        </div>
+        )}
       </div>
 
-      <div className="mt-auto flex items-center justify-end gap-2 border-t border-border p-4">
-        <Button onClick={save} disabled={!canSave}>
-          {saving && <Loader2 className="size-3.5 animate-spin" />}
-          {saving ? 'Saving' : 'Save changes'}
-        </Button>
-      </div>
+      {isOwner && (
+        <div className="mt-auto flex items-center justify-end gap-2 border-t border-border p-4">
+          <Button onClick={save} disabled={!canSave}>
+            {saving && <Loader2 className="size-3.5 animate-spin" />}
+            {saving ? 'Saving' : 'Save changes'}
+          </Button>
+        </div>
+      )}
 
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent>
