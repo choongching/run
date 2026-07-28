@@ -14,6 +14,11 @@ The founder values live verification of each phase. This is the loop.
   open but stops serving (curl hangs / returns 000). `npm run build` also
   rewrites `.next`. If you cleared `.next` or built, KILL and restart dev
   (`pkill -f "next dev"; pkill -f "next-server"`), then start fresh.
+- TRAP: more than one dev server can be alive at once. A zombie holding :3000
+  serves STALE COMPILED CODE while the new one lands on :3001, and the symptom
+  is a change that half works or a bug that makes no sense. Check
+  `lsof -i :3000 -i :3001 | grep LISTEN` before diagnosing anything strange,
+  and `pkill -f "next dev"; pkill -f "next-server"` before starting a new one.
 - Wait for ready by polling (foreground `sleep` is blocked, so loop):
   `for i in $(seq 1 40); do code=$(curl -s -m 5 -o /dev/null -w "%{http_code}"
   http://localhost:3000/login); [ "$code" = 200 ] && break; sleep 2; done`.
@@ -36,6 +41,18 @@ The founder values live verification of each phase. This is the loop.
   screenshot); coordinates refer to the screenshot taken BEFORE the batch.
 - A model turn takes seconds; `wait` 6-10s between an action and the screenshot
   that checks its result.
+
+## Verify what you did not change
+
+For anything touching the shell, `globals.css`, or a `components/ui/` primitive,
+open every route (`/`, `/chat/[id]`, `/knowledge`, `/connectors`, `/settings`),
+not just the one being worked on. A shared style can apply on one route and
+silently fail on the rest, and the route you are staring at is often the one
+that happens to work. See the phase-gate skill for the specificity trap behind
+this.
+
+Zoom into corners and edges rather than judging from a full screenshot. Shadow,
+radius and hairline differences are invisible at page scale and obvious at 4x.
 
 ## Evidence and cleanup
 
