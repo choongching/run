@@ -47,7 +47,13 @@
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
   /* Radius scale is deliberately tight: every corner sits between 4px and
-     6px (larger steps are clamped to 6px). Only true circles are exempt. */
+     6px (larger steps are clamped to 6px). Only true circles are exempt.
+     One named exception: the layout shell cards (the conversation and the
+     docked panel) sit at 8px. They are the largest surfaces on screen, and a
+     corner that reads as a soft edge at card size reads as almost square on
+     something that spans the viewport. It is a token rather than a raw value
+     so it stays countable and cannot spread by copy-paste. */
+  --radius-shell: 0.5rem;
   --radius-sm: 0.25rem;
   --radius-md: 0.3125rem;
   --radius-lg: var(--radius);
@@ -173,7 +179,7 @@
      zeroes its left margin so it can butt against a floating sidebar card;
      ours is flush to the edge instead, so the left gutter comes back. */
   [data-slot="sidebar-inset"] {
-    @apply min-h-0 md:ml-2 md:border md:border-border;
+    @apply min-h-0 md:ml-2 md:rounded-shell md:border md:border-border;
   }
 
   /* Chat micro-states. The thinking shimmer sweeps a light band across muted

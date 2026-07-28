@@ -47,7 +47,7 @@ export function ConfigDock({
     // panel read as its own surface arriving beside the conversation rather
     // than as a region carved out of it.
     <div data-shell="split" className="flex min-h-0 flex-1">
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col rounded-xl border border-border bg-background px-6 pt-5 shadow-sm md:px-8">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col rounded-shell border border-border bg-background px-6 pt-5 shadow-sm md:px-8">
         <header className="mx-auto flex w-full max-w-3xl shrink-0 items-center justify-between gap-2 border-b border-border pb-3">
           {header}
           <Button
@@ -77,7 +77,7 @@ export function ConfigDock({
           open ? 'w-92' : 'w-0'
         )}
       >
-        <div className="ml-2 flex h-full w-90 flex-col overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+        <div className="ml-2 flex h-full w-90 flex-col overflow-hidden rounded-shell border border-border bg-card shadow-sm">
           <ConfigPanel
             key={`${panel.agentId}:${opens}`}
             {...panel}
