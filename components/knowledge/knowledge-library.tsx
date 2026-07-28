@@ -3,12 +3,13 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { Ellipsis, FileText, Loader2, StickyNote } from 'lucide-react'
+import { Ellipsis, FileText, Globe, Loader2, StickyNote } from 'lucide-react'
 import { toast } from 'sonner'
 
 import {
   deleteKnowledgeSource,
   renameKnowledgeSource,
+  setKnowledgeScope,
 } from '@/app/actions/knowledge'
 import { KnowledgeIcon } from '@/components/nav-icons'
 import { Button } from '@/components/ui/button'
@@ -35,6 +36,7 @@ export type LibrarySource = {
   kind: 'note' | 'file'
   chars: number
   truncated: boolean
+  appliesToAll: boolean
   usedBy: { id: string; name: string }[]
 }
 
@@ -65,6 +67,27 @@ export function KnowledgeLibrary({
       }
       setConfirmOpen(false)
       toast(`${target.title} deleted.`)
+      router.refresh()
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  // A source that applies everywhere is the whole point of a library: one
+  // voice guide that stays right on every agent when you edit it once.
+  async function setScope(s: LibrarySource, appliesToAll: boolean) {
+    setBusy(s.id)
+    try {
+      const result = await setKnowledgeScope(s.id, appliesToAll)
+      if (!result.ok) {
+        toast.error(result.reason)
+        return
+      }
+      toast(
+        appliesToAll
+          ? `${s.title} now applies to every agent.`
+          : `${s.title} now applies only where it is attached.`
+      )
       router.refresh()
     } finally {
       setBusy(null)
@@ -157,7 +180,12 @@ export function KnowledgeLibrary({
             {/* Which agents carry this. An unused source is the case this page
                 exists for, so it gets said plainly rather than left blank. */}
             <div className="hidden min-w-0 max-w-xs flex-1 flex-wrap items-center gap-1.5 sm:flex">
-              {s.usedBy.length === 0 ? (
+              {s.appliesToAll ? (
+                <span className="flex h-6 items-center gap-1.5 rounded-md border border-border bg-background px-2 text-xs font-medium">
+                  <Globe className="size-3" />
+                  Every agent
+                </span>
+              ) : s.usedBy.length === 0 ? (
                 <span className="text-xs text-muted-foreground">
                   Not used by any agent
                 </span>
@@ -192,6 +220,13 @@ export function KnowledgeLibrary({
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end">
                   <DropdownMenuItem
+                    onClick={() => void setScope(s, !s.appliesToAll)}
+                  >
+                    {s.appliesToAll
+                      ? 'Use only where attached'
+                      : 'Use with every agent'}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
                     onClick={() => setRenaming({ id: s.id, title: s.title })}
                   >
                     Rename
@@ -218,7 +253,9 @@ export function KnowledgeLibrary({
           <DialogHeader>
             <DialogTitle>Delete {target?.title}?</DialogTitle>
             <DialogDescription>
-              {target && target.usedBy.length > 0
+              {target?.appliesToAll
+                ? 'Every agent you have uses this. They will all stop knowing it. This cannot be undone.'
+                : target && target.usedBy.length > 0
                 ? `${target.usedBy.length === 1 ? 'One agent uses' : `${target.usedBy.length} agents use`} this: ${target.usedBy
                     .map((a) => a.name)
                     .join(', ')}. They will stop knowing it. This cannot be undone.`

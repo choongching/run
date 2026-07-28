@@ -2,9 +2,11 @@
 
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import {
   Ellipsis,
   FileText,
+  Globe,
   Loader2,
   Plus,
   StickyNote,
@@ -51,6 +53,7 @@ export type KnowledgeItem = {
   kind: 'note' | 'file'
   chars: number
   truncated: boolean
+  appliesToAll: boolean
 }
 
 // A pending action that needs one deliberate confirm because the text looks
@@ -230,7 +233,7 @@ export function KnowledgeSection({
                   <>
                     <p className="truncate text-sm font-medium">{s.title}</p>
                     <p className="text-xs text-muted-foreground">
-                      {s.kind === 'file' ? 'File' : 'Note'}
+                      {s.appliesToAll ? 'On every agent' : s.kind === 'file' ? 'File' : 'Note'}
                       {', '}
                       {s.chars.toLocaleString()} characters
                       {s.truncated ? ', trimmed to fit' : ''}
@@ -258,14 +261,27 @@ export function KnowledgeSection({
                   >
                     Rename
                   </DropdownMenuItem>
-                  <DropdownMenuItem
-                    onClick={() =>
-                      void run('Detaching', () => detachKnowledge(agentId, s.id))
-                    }
-                  >
-                    <Unlink className="size-3.5" />
-                    Detach from this agent
-                  </DropdownMenuItem>
+                  {/* A source that applies to every agent is not attached to
+                      this one, so detaching it here would appear to do nothing.
+                      It is turned off from the Knowledge page, where the choice
+                      was made. */}
+                  {s.appliesToAll ? (
+                    <DropdownMenuItem render={<Link href="/knowledge" />}>
+                      <Globe className="size-3.5" />
+                      Manage on the Knowledge page
+                    </DropdownMenuItem>
+                  ) : (
+                    <DropdownMenuItem
+                      onClick={() =>
+                        void run('Detaching', () =>
+                          detachKnowledge(agentId, s.id)
+                        )
+                      }
+                    >
+                      <Unlink className="size-3.5" />
+                      Detach from this agent
+                    </DropdownMenuItem>
+                  )}
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     variant="destructive"

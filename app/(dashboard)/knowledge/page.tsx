@@ -20,7 +20,7 @@ export default async function KnowledgePage() {
   const [{ data: sources }, { data: links }] = await Promise.all([
     supabase
       .from('knowledge_sources')
-      .select('id, title, kind, char_count, origin, updated_at')
+      .select('id, title, kind, char_count, origin, applies_to_all, updated_at')
       .eq('owner_id', userId)
       .order('updated_at', { ascending: false }),
     supabase.from('agent_knowledge').select('source_id, agents(id, name)'),
@@ -42,6 +42,7 @@ export default async function KnowledgePage() {
     kind: s.kind,
     chars: s.char_count,
     truncated: (s.origin as { truncated?: boolean } | null)?.truncated === true,
+    appliesToAll: s.applies_to_all,
     usedBy: usage.get(s.id) ?? [],
   }))
 
@@ -51,7 +52,7 @@ export default async function KnowledgePage() {
     <>
       <PageHeader
         title="Knowledge"
-        description="What your agents always know. Add a source from inside an agent's Configure panel; manage everything you have here."
+        description="What your agents always know. Add a source from inside an agent's Configure panel, then manage it here and choose whether it applies to one agent or to all of them."
       />
       <KnowledgeLibrary items={items} totalChars={totalChars} />
     </>

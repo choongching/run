@@ -28,16 +28,48 @@ export async function loadAgentKnowledge(
     auth: { persistSession: false },
   })
 
-  const { data } = await supabase
-    .from('agent_knowledge')
-    .select('created_at, knowledge_sources(title, content)')
-    .eq('agent_id', agentId)
-    .order('created_at', { ascending: true })
+  // Who owns the agent, which is whose always-on sources apply to it.
+  const { data: agent } = await supabase
+    .from('agents')
+    .select('owner_id')
+    .eq('id', agentId)
+    .maybeSingle()
+  if (!agent?.owner_id) return []
+  const ownerId = agent.owner_id
 
-  if (!data) return []
+  const [{ data: linked }, { data: everywhere }] = await Promise.all([
+    supabase
+      .from('agent_knowledge')
+      .select('source_id, created_at, knowledge_sources(title, content)')
+      .eq('agent_id', agentId)
+      .order('created_at', { ascending: true }),
+    supabase
+      .from('knowledge_sources')
+      .select('id, title, content')
+      .eq('owner_id', ownerId)
+      .eq('applies_to_all', true)
+      .order('created_at', { ascending: true }),
+  ])
 
-  return data
-    .map((row) => row.knowledge_sources)
-    .filter((s): s is { title: string; content: string } => s !== null)
-    .map((s) => ({ title: s.title, content: s.content }))
+  // Always-on sources read first: they are the standing context (voice,
+  // glossary, company facts) that the agent-specific material builds on.
+  // Deduped by id, so a source that is both flagged and explicitly attached is
+  // composed once rather than contradicting itself.
+  const seen = new Set<string>()
+  const out: KnowledgeInput[] = []
+
+  for (const s of everywhere ?? []) {
+    seen.add(s.id)
+    out.push({ title: s.title, content: s.content })
+  }
+  for (const row of linked ?? []) {
+    if (seen.has(row.source_id) || !row.knowledge_sources) continue
+    seen.add(row.source_id)
+    out.push({
+      title: row.knowledge_sources.title,
+      content: row.knowledge_sources.content,
+    })
+  }
+
+  return out
 }

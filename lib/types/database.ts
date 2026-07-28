@@ -143,6 +143,7 @@ export type Database = {
           char_count: number
           checksum: string | null
           origin: Json | null
+          applies_to_all: boolean
           created_at: string
           updated_at: string
         }
@@ -155,6 +156,7 @@ export type Database = {
           char_count?: number
           checksum?: string | null
           origin?: Json | null
+          applies_to_all?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -167,6 +169,7 @@ export type Database = {
           char_count?: number
           checksum?: string | null
           origin?: Json | null
+          applies_to_all?: boolean
           created_at?: string
           updated_at?: string
         }

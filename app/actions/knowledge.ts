@@ -15,6 +15,7 @@ import {
   checksumOf,
   libraryIsFull,
   NOT_AGENT_OWNER,
+  ownedAgentIds,
   ownsAgent,
 } from '@/lib/knowledge/store'
 import { createClient } from '@/lib/supabase/server'
@@ -58,7 +59,7 @@ export async function addKnowledgeNote(
     }
   }
 
-  const load = await agentKnowledgeLoad(supabase, agentId)
+  const load = await agentKnowledgeLoad(supabase, agentId, userId)
   const refusal = attachRefusal({
     attachedChars: load.chars,
     attachedCount: load.count,
@@ -105,7 +106,7 @@ export async function attachKnowledge(
     .single()
   if (!source) return { ok: false, reason: 'That source is no longer available.' }
 
-  const load = await agentKnowledgeLoad(supabase, agentId)
+  const load = await agentKnowledgeLoad(supabase, agentId, userId)
   const refusal = attachRefusal({
     attachedChars: load.chars,
     attachedCount: load.count,
@@ -196,6 +197,84 @@ export async function deleteKnowledgeSource(
     revalidatePath(`/chat/${id}`)
   }
   return { ok: true }
+}
+
+// Turn "use with every agent" on or off for a source.
+//
+// This is the library's reason to exist, taken to its conclusion: a voice guide
+// is not a fact about one agent, it is how you write, so it should reach every
+// agent you own and stay right when you edit it once. Explicit attachments are
+// untouched, so a source can be both without being composed twice.
+//
+// Turning it ON is checked against every agent's budget first. An agent that
+// cannot fit it is named, because "it didn't work" would leave someone toggling
+// a switch that silently means different things on different agents.
+export async function setKnowledgeScope(
+  sourceId: string,
+  appliesToAll: boolean
+): Promise<KnowledgeResult> {
+  const { userId } = await getUserProfile()
+  const supabase = await createClient()
+
+  const { data: source } = await supabase
+    .from('knowledge_sources')
+    .select('char_count, applies_to_all')
+    .eq('id', sourceId)
+    .eq('owner_id', userId)
+    .maybeSingle()
+  if (!source) return { ok: false, reason: 'That source is no longer available.' }
+  if (source.applies_to_all === appliesToAll) return { ok: true }
+
+  const agentIds = await ownedAgentIds(supabase, userId)
+
+  if (appliesToAll) {
+    const tooFull: string[] = []
+    for (const id of agentIds) {
+      const load = await agentKnowledgeLoad(supabase, id, userId)
+      const refusal = attachRefusal({
+        attachedChars: load.chars,
+        attachedCount: load.count,
+        incomingChars: source.char_count,
+      })
+      if (refusal) {
+        const { data: agent } = await supabase
+          .from('agents')
+          .select('name')
+          .eq('id', id)
+          .maybeSingle()
+        tooFull.push(agent?.name ?? 'an agent')
+      }
+    }
+    if (tooFull.length > 0) {
+      return {
+        ok: false,
+        reason: `There is no room for this on ${listNames(tooFull)}. Detach something there first, or shorten this source.`,
+      }
+    }
+  }
+
+  const { error } = await supabase
+    .from('knowledge_sources')
+    .update({ applies_to_all: appliesToAll })
+    .eq('id', sourceId)
+    .eq('owner_id', userId)
+  if (error) return { ok: false, reason: "We couldn't save that. Please try again." }
+
+  // Every agent changes, including the ones that never linked this source:
+  // that is the point of the switch, and it is also why they all need their
+  // prompt rebuilt and their open session cleared.
+  for (const id of agentIds) {
+    await recomposeAgentPrompt(supabase, id, userId)
+    revalidatePath(`/chat/${id}`)
+  }
+  revalidatePath('/knowledge')
+  return { ok: true }
+}
+
+// "Sales Helper", or "Sales Helper and Inbox Triage", or "A, B and C".
+function listNames(names: string[]): string {
+  if (names.length === 1) return names[0]
+  return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`
 }
 
 // Rename a source in the library. The title is what the agent sees as the
