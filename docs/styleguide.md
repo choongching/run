@@ -72,7 +72,12 @@ above clamped to 6px), so `rounded-xl` and larger render at 6px too.
 - Kbd chips and the tightest details: `rounded-sm` (4px).
 - Never write a raw `rounded-[Npx]`; always go through the scale so the
   4-to-6px rule holds everywhere at once.
-- Only exception: true circles (avatars, FAB, status dots) stay `rounded-full`.
+- Only exceptions: true circles (avatars, FAB, status dots) stay `rounded-full`,
+  and the two layout shell cards (the conversation and the docked configure
+  panel, plus the content card on every other route) use `rounded-shell` (8px).
+  Those are the largest surfaces on screen, where a 6px corner reads as almost
+  square. It is a named token so it stays countable; do not reach for it on
+  anything that sits inside a card.
 - Tooltips: dark ink bubble — `bg-foreground text-background rounded-lg px-3 py-2 text-sm font-medium`.
 
 ## 5. Spacing & layout
