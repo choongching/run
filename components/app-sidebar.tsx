@@ -8,6 +8,7 @@ import { LogOut, Plus } from 'lucide-react'
 import { logout } from '@/app/actions/auth'
 import {
   AgentsIcon,
+  ConnectorsIcon,
   KnowledgeIcon,
   SettingsIcon,
 } from '@/components/nav-icons'
@@ -109,6 +110,15 @@ export function AppSidebar({
             >
               <KnowledgeIcon className="size-4.5 shrink-0" />
               <span>Knowledge</span>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              isActive={pathname.startsWith('/connectors')}
+              render={<Link href="/connectors" />}
+            >
+              <ConnectorsIcon className="size-4.5 shrink-0" />
+              <span>Connectors</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>

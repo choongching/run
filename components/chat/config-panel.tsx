@@ -12,12 +12,10 @@ import {
 import { toast } from 'sonner'
 
 import { deleteAgent, updateAgentConfig } from '@/app/actions/agents'
-import { GmailIcon } from '@/components/icons/gmail'
 import {
   KnowledgeSection,
   type KnowledgeItem,
 } from '@/components/chat/knowledge-section'
-import { GoogleDriveIcon } from '@/components/icons/google-drive'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -43,15 +41,12 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  ConnectorList,
+  type ConnectorState,
+} from '@/components/connectors/connector-list'
 import { PERSONALITIES } from '@/lib/agents/personalities'
 import type { SetupAnswer } from '@/lib/chat/onboarding'
-
-export type ConnectionState = { gmail: boolean; google_drive: boolean }
-
-const APPS = [
-  { app: 'gmail', label: 'Gmail', Icon: GmailIcon },
-  { app: 'google_drive', label: 'Google Drive', Icon: GoogleDriveIcon },
-] as const
 
 // Plain-language model tiers. The ids mirror AGENT_MODELS in lib/anthropic;
 // the server action validates against that canonical list on save. Defined
@@ -84,7 +79,7 @@ export function ConfigPanel({
   model: string
   personality: string
   preferences: SetupAnswer[]
-  connections: ConnectionState
+  connections: ConnectorState
   knowledge: KnowledgeItem[]
   knowledgeLibrary: KnowledgeItem[]
   isOwner: boolean
@@ -143,7 +138,7 @@ function ConfigPanelBody({
   model: string
   personality: string
   preferences: SetupAnswer[]
-  connections: ConnectionState
+  connections: ConnectorState
   knowledge: KnowledgeItem[]
   knowledgeLibrary: KnowledgeItem[]
   isOwner: boolean
@@ -325,22 +320,17 @@ function ConfigPanelBody({
         </AccordionSection>
 
         <AccordionSection
-          title="Connections"
+          title="Connectors"
           hint="Your own accounts. The agent reads freely and asks before it writes."
         >
           <div className="flex flex-col gap-2">
-            {APPS.map(({ app, label, Icon }) => (
-              <ConnectionRow
-                key={app}
-                app={app}
-                label={label}
-                Icon={Icon}
-                connected={connections[app]}
-                onChanged={() => router.refresh()}
-              />
-            ))}
+            <ConnectorList
+              connections={connections}
+              onChanged={() => router.refresh()}
+            />
             <p className="px-0.5 text-xs text-muted-foreground">
-              Web search is always on.
+              These are yours rather than this agent&apos;s, so every agent you own shares
+              them. Manage them all under Connectors. Web search is always on.
             </p>
           </div>
         </AccordionSection>
@@ -475,102 +465,6 @@ function AccordionSection({
           {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
           {children}
         </div>
-      )}
-    </div>
-  )
-}
-
-function ConnectionRow({
-  app,
-  label,
-  Icon,
-  connected,
-  onChanged,
-}: {
-  app: string
-  label: string
-  Icon: (props: { className?: string }) => React.ReactElement
-  connected: boolean
-  onChanged: () => void
-}) {
-  const [busy, setBusy] = useState(false)
-
-  // Open Pipedream Connect in a popup (synchronously, to dodge blockers) and
-  // poll until the account lands, then refresh so the panel shows Connected.
-  async function connect() {
-    if (busy) return
-    setBusy(true)
-    const popup = window.open('', 'run_connect', 'width=600,height=720')
-    try {
-      const res = await fetch(`/api/connections/${app}`)
-      const data = await res.json()
-      if (!res.ok || !data.connect_url) throw new Error(data.error ?? 'failed')
-      if (popup) popup.location.href = data.connect_url
-    } catch {
-      popup?.close()
-      setBusy(false)
-      toast.error(`We couldn't start connecting ${label}. Please try again.`)
-      return
-    }
-
-    const started = Date.now()
-    const poll = setInterval(async () => {
-      if (Date.now() - started > 180_000) {
-        clearInterval(poll)
-        setBusy(false)
-        toast.error(`Connecting ${label} didn't finish. Please try again.`)
-        return
-      }
-      try {
-        const res = await fetch(`/api/connections/${app}`, { method: 'POST' })
-        const data = await res.json()
-        if (data.connected) {
-          clearInterval(poll)
-          popup?.close()
-          setBusy(false)
-          toast.success(`${label} connected.`)
-          onChanged()
-        }
-      } catch {
-        // Keep polling until timeout.
-      }
-    }, 2000)
-  }
-
-  async function disconnect() {
-    if (busy) return
-    setBusy(true)
-    try {
-      await fetch(`/api/connections/${app}`, { method: 'DELETE' })
-      toast(`${label} disconnected.`)
-      onChanged()
-    } catch {
-      toast.error(`We couldn't disconnect ${label}. Please try again.`)
-    } finally {
-      setBusy(false)
-    }
-  }
-
-  return (
-    <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
-      <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-background">
-        <Icon className="size-4.5" />
-      </span>
-      <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium">{label}</p>
-        <p className="text-xs text-muted-foreground">
-          {connected ? 'Connected' : 'Not connected'}
-        </p>
-      </div>
-      {connected ? (
-        <Button variant="ghost" size="sm" onClick={disconnect} disabled={busy}>
-          {busy ? <Loader2 className="size-3.5 animate-spin" /> : 'Disconnect'}
-        </Button>
-      ) : (
-        <Button size="sm" onClick={connect} disabled={busy}>
-          {busy && <Loader2 className="size-3.5 animate-spin" />}
-          {busy ? 'Connecting' : 'Connect'}
-        </Button>
       )}
     </div>
   )
