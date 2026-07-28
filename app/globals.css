@@ -138,12 +138,22 @@
   }
 }
 
-/* Screenshot-style app shell: with the inset sidebar variant, the sidebar itself
-   renders as a white rounded card (matching SidebarInset) floating on the warm
-   --sidebar canvas, and the main card gets a hairline border. */
+/* App shell: the sidebar is structure, the content is a card.
+   The nav runs the full height of the viewport, flush to the left edge, with a
+   hairline separating it from the content rather than a rounded panel of its
+   own. Two stacked cards competed for the same "this is a surface" reading and
+   made the nav look like a thing to act on rather than the frame around one.
+   The main region keeps its inset card, which is what marks the workspace. */
 @layer utilities {
+  [data-variant="inset"] [data-slot="sidebar-container"] {
+    @apply p-0;
+  }
+  /* No fill and no border of its own: the nav shows the shell canvas straight
+     through, so it reads as the frame rather than as a panel sitting on one.
+     The content card is the only surface, and its edge is the only line, which
+     is what separates the two regions. */
   [data-variant="inset"] [data-slot="sidebar-inner"] {
-    @apply rounded-xl border border-sidebar-border bg-card shadow-sm;
+    @apply bg-transparent;
   }
   /* Lock the app shell to the viewport so the document never scrolls; pages
      scroll inside their own content region instead. This is what keeps the chat
@@ -151,8 +161,11 @@
   [data-slot="sidebar-wrapper"] {
     @apply h-svh overflow-hidden;
   }
+  /* The content card keeps an even gutter on all four sides. The inset variant
+     zeroes its left margin so it can butt against a floating sidebar card;
+     ours is flush to the edge instead, so the left gutter comes back. */
   [data-slot="sidebar-inset"] {
-    @apply min-h-0 md:border md:border-border;
+    @apply min-h-0 md:ml-2 md:border md:border-border;
   }
 
   /* Chat micro-states. The thinking shimmer sweeps a light band across muted
