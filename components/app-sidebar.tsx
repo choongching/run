@@ -13,6 +13,7 @@ import {
   SettingsIcon,
 } from '@/components/nav-icons'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { TruncatedLabel } from '@/components/ui/truncated-label'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -98,7 +99,7 @@ export function AppSidebar({
                       render={<Link href={`/chat/${agent.id}`} />}
                     >
                       <AgentsIcon className="size-4.5 shrink-0" />
-                      <span className="truncate">{agent.name}</span>
+                      <TruncatedLabel text={agent.name} />
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
@@ -152,13 +153,14 @@ export function AppSidebar({
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex min-w-0 flex-1 flex-col leading-tight">
-                  <span className="truncate text-sm font-medium">{name}</span>
+                  <TruncatedLabel text={name} className="text-sm font-medium" />
                   {/* Everyone has their own space, so there is no member or
                       administrator rank to show. The account it belongs to is
                       the useful line. */}
-                  <span className="truncate text-xs text-muted-foreground">
-                    {email}
-                  </span>
+                  <TruncatedLabel
+                    text={email}
+                    className="text-xs text-muted-foreground"
+                  />
                 </div>
                 <ChevronsUpDown className="ml-auto size-4 shrink-0 text-muted-foreground" />
               </DropdownMenuTrigger>
