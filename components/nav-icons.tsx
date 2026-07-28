@@ -4,7 +4,7 @@
 // than styling icons inside pages.
 export {
   Bot as AgentsIcon,
-  Blocks as IntegrationsIcon,
+  Plug as ConnectorsIcon,
   BookOpen as KnowledgeIcon,
   Settings as SettingsIcon,
 } from 'lucide-react'
