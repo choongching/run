@@ -111,7 +111,7 @@ export function KnowledgeLibrary({
   if (items.length === 0) {
     return (
       <div className="flex flex-col items-center py-14 text-center">
-        <span className="mb-5 flex size-11 items-center justify-center rounded-lg border border-border bg-background shadow-xs">
+        <span className="mb-5 flex size-11 items-center justify-center rounded-lg border border-border bg-background">
           <KnowledgeIcon className="size-5 text-muted-foreground" />
         </span>
         <h2 className="text-xl font-semibold">Nothing in your library yet</h2>

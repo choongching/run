@@ -41,7 +41,7 @@ export function PromptComposer({
       <form
         action={startAgentFromPrompt}
         onSubmit={() => setPending(true)}
-        className="rounded-xl border border-input bg-card shadow-xs focus-within:ring-2 focus-within:ring-ring/50"
+        className="rounded-xl border border-input bg-card focus-within:ring-2 focus-within:ring-ring/50"
       >
         <textarea
           ref={textareaRef}

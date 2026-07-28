@@ -7,8 +7,11 @@ through tokens (`bg-primary`, `text-muted-foreground`, …), never hard-coded he
 
 ## 1. Overall look
 
-- Warm paper-gray **canvas** with the sidebar and the main content each floating as
-  **white rounded cards** (1px border, whisper of shadow, ~8px gutter around them).
+- Warm paper-gray **canvas** with the sidebar as flat structure and the content
+  as **white rounded cards** (1px border, no shadow, ~8px gutter around them).
+  Surfaces that sit in the page flow are flat: the border and the canvas behind
+  them do the separating. Shadow is reserved for things that genuinely float
+  above content (dialogs, sheets, menus, tooltips, toasts, the FAB).
 - Near-black warm ink for text, one **deep forest green** as the only strong brand color.
 - Small pops of color are reserved for data: blue count badges, pink/green avatars.
 - Everything else is quiet: hairline borders, generous whitespace, no heavy dividers.
@@ -129,7 +132,7 @@ above clamped to 6px), so `rounded-xl` and larger render at 6px too.
 - **Empty-state hero** (a feature with nothing in it yet, e.g. no connections):
   centered inside the card (`flex flex-col items-center py-14 text-center`).
   Anatomy top to bottom: a cluster of three tilted icon tiles (`size-11/12`
-  `rounded-lg border border-border bg-background shadow-xs`, outer tiles
+  `rounded-lg border border-border bg-background`, outer tiles
   `-rotate-6`/`rotate-6` and nudged inward, center tile raised and on top,
   monochrome Lucide icons in muted ink); headline `text-xl font-semibold`;
   one friendly sentence of why (`text-sm text-muted-foreground max-w-lg`)
@@ -146,7 +149,7 @@ above clamped to 6px), so `rounded-xl` and larger render at 6px too.
   `icon-sm` button, `text-muted-foreground`) in `CardAction`, opening a
   `DropdownMenu` — routine actions first, then a separator and the destructive
   action (`variant="destructive"`) always last. While the menu is open the
-  card shows a selected state: `ring-ring/50 shadow-sm`.
+  card shows a selected state: `ring-ring/50`.
 - **Meta chips** (card base): `h-6 rounded-md border border-border
   bg-background px-2 text-xs text-muted-foreground` with 12px icons
   (`[&_svg]:size-3`); status chips lead with a `size-1.5 rounded-full` dot in
@@ -197,7 +200,7 @@ above clamped to 6px), so `rounded-xl` and larger render at 6px too.
   identity chip bottom-left. Board state is client-authoritative after
   mount: cards move columns from the API response, not a refetch.
 - **Stat cards** (first use: Usage): a `grid gap-4 sm:grid-cols-3` row above
-  the detail table. Each card `rounded-xl border bg-card p-5 shadow-xs`,
+  the detail table. Each card `rounded-xl border bg-card p-5`,
   muted `text-sm` label, `text-2xl font-semibold` value, optional `text-xs`
   muted caption for the breakdown. Numeric table columns under stat cards
   are right-aligned `tabular-nums`; any estimated figure gets a `text-xs`
