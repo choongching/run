@@ -179,6 +179,11 @@ Configuring an agent happens beside the conversation rather than over it: the
 panel slides in as its own column and the chat stays readable, because the
 reason to open it is usually something the agent just said.
 
+The app has also been through a performance pass. Moving between pages responds
+immediately rather than waiting on the server before anything happens, the
+signed-in session is verified locally instead of over the network on every
+request, and opening a chat asks the database for far less than it used to.
+
 Natural next steps: giving every person their own space with their own plan,
 deploying for more users, exporting documents to Google Docs and PDF, multiple
 conversations per agent in the UI, and scheduled runs so an agent can work on
