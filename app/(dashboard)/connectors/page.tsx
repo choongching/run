@@ -23,7 +23,7 @@ export default async function ConnectorsPage() {
   ])
 
   return (
-    <>
+    <div className="p-6 md:p-8">
       <PageHeader
         title="Connectors"
         description="The accounts your agents work in. You connect your own, and every agent you own can use them."
@@ -31,6 +31,6 @@ export default async function ConnectorsPage() {
       <ConnectorsManager
         connections={{ gmail: Boolean(gmail), google_drive: Boolean(drive) }}
       />
-    </>
+    </div>
   )
 }

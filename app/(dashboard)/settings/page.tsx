@@ -11,7 +11,7 @@ export default async function SettingsPage() {
   const { email, profile } = await getUserProfile()
 
   return (
-    <>
+    <div className="p-6 md:p-8">
       <PageHeader title="Settings" description="Your account" />
       <div className="flex max-w-xl flex-col gap-4">
         <ProfileForm
@@ -21,6 +21,6 @@ export default async function SettingsPage() {
         />
         <SignOutCard email={email} />
       </div>
-    </>
+    </div>
   )
 }
