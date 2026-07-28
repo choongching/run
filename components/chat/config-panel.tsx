@@ -85,13 +85,8 @@ export function ConfigPanel({
 }) {
   return (
     <div className="flex h-full flex-col">
-      <div className="flex shrink-0 items-start justify-between gap-2 border-b border-border p-4">
-        <div className="min-w-0">
-          <h2 className="text-sm font-semibold">Configure</h2>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            Everything you set up by chatting. Edit it any time.
-          </p>
-        </div>
+      <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-4 pt-5 pb-3">
+        <h2 className="min-w-0 truncate text-sm font-semibold">Configure</h2>
         <Button
           variant="ghost"
           size="icon-sm"
@@ -356,12 +351,7 @@ function ConfigPanelBody({
 
         {isOwner && (
           <div className="mt-1 flex items-center justify-between gap-3 rounded-xl border border-destructive/25 bg-card px-3.5 py-3">
-            <div className="min-w-0">
-              <p className="text-sm font-medium">Delete agent</p>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                Removes it and its chat history for good.
-              </p>
-            </div>
+            <p className="min-w-0 text-sm font-medium">Delete agent</p>
             <Button
               variant="destructive"
               size="sm"
