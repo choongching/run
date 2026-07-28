@@ -9,13 +9,13 @@ import {
 } from 'react'
 import { useRouter } from 'next/navigation'
 import {
-  ArrowDown,
+  ChevronDown,
   ArrowUp,
   CircleCheck,
   FileText,
   FileUp,
   Loader2,
-  Paperclip,
+  Plus,
   Square,
   TriangleAlert,
   X,
@@ -37,6 +37,12 @@ import {
 } from '@/lib/files/accepted'
 import { MAX_MESSAGE_CHARS } from '@/lib/chat/limits'
 import type { AskSpec } from '@/lib/tools/definitions'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 type AskState = AskSpec & { id: string }
@@ -624,19 +630,71 @@ function DayDivider({ label }: { label: string }) {
 // away from the newest message, and snaps back to the bottom on click. Reads its
 // state from the scroll container (use-stick-to-bottom), so it must render inside
 // StickToBottom. Sticky so it hovers just above the composer while scrolling.
+// One control in the composer's action row. Square, on the radius scale, and
+// always labelled: the icons alone (a plus, an arrow, a square) do not say what
+// they do, and the tooltip is the only place that can.
+//
+// The tooltip carries the action and nothing else. An earlier version appended
+// the accepted file types, which wrapped the bubble into two ragged columns to
+// say something the file picker says anyway. The types stay in the accessible
+// name, where they cost no layout.
+function ComposerButton({
+  label,
+  hint,
+  onClick,
+  disabled,
+  className,
+  children,
+}: {
+  label: string
+  hint?: string
+  onClick: () => void
+  disabled?: boolean
+  className?: string
+  children: React.ReactNode
+}) {
+  return (
+    <TooltipProvider delay={300}>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <button
+              type="button"
+              onClick={onClick}
+              disabled={disabled}
+              aria-label={hint ? `${label} (${hint})` : label}
+              className={cn(
+                'flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors disabled:opacity-40',
+                className
+              )}
+            />
+          }
+        >
+          {children}
+        </TooltipTrigger>
+        <TooltipContent side="top" sideOffset={8}>
+          {label}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  )
+}
+
 function JumpToLatest() {
   const { isAtBottom, scrollToBottom } = useStickToBottomContext()
   if (isAtBottom) return null
   return (
-    <div className="pointer-events-none sticky bottom-4 z-10 flex justify-center">
+    // A compact square rather than a labelled pill. The pill was wide enough to
+    // sit over the last line of the message it was covering, which is the one
+    // thing a "you are not at the bottom" control must not do.
+    <div className="pointer-events-none sticky bottom-3 z-10 flex justify-center">
       <button
         type="button"
         onClick={() => scrollToBottom()}
         aria-label="Jump to the latest message"
-        className="pointer-events-auto flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground shadow-sm transition-colors animate-in fade-in-0 slide-in-from-bottom-1 hover:text-foreground motion-reduce:animate-none"
+        className="pointer-events-auto flex size-9 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground shadow-sm transition-colors animate-in fade-in-0 slide-in-from-bottom-1 hover:text-foreground motion-reduce:animate-none"
       >
-        <ArrowDown className="size-3.5" />
-        Latest
+        <ChevronDown className="size-4.5" />
       </button>
     </div>
   )
@@ -892,7 +950,11 @@ function Composer({
         }
         className="max-h-40 w-full resize-none bg-transparent px-4 pt-3.5 text-sm outline-none placeholder:text-muted-foreground disabled:opacity-60"
       />
-      <div className="flex items-center justify-between px-3 pb-3">
+      {/* Both controls sit together at the trailing edge: attaching and
+          sending are the two things you do to the message you just typed, so
+          they belong next to each other under the text rather than pinned to
+          opposite corners. */}
+      <div className="flex items-center justify-end gap-2 px-3 pb-3">
         <input
           ref={fileInputRef}
           type="file"
@@ -904,35 +966,32 @@ function Composer({
             e.target.value = ''
           }}
         />
-        <button
-          type="button"
+        <ComposerButton
+          label="Attach files"
+          hint={ACCEPTED_HINT}
           onClick={() => fileInputRef.current?.click()}
           disabled={running || blocked}
-          aria-label="Attach a file"
-          title={`Attach a file (${ACCEPTED_HINT})`}
-          className="flex size-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-40"
+          className="bg-muted text-foreground hover:bg-muted-foreground/15"
         >
-          <Paperclip className="size-4.5" />
-        </button>
+          <Plus className="size-4.5" />
+        </ComposerButton>
         {running ? (
-          <button
-            type="button"
+          <ComposerButton
+            label="Stop"
             onClick={onStop}
-            aria-label="Stop"
-            className="flex size-8 items-center justify-center rounded-lg bg-foreground text-background transition-opacity hover:opacity-80"
+            className="bg-primary text-primary-foreground hover:opacity-90"
           >
-            <Square className="size-3.5 fill-current" />
-          </button>
+            <Square className="size-3.5 rounded-sm fill-current" />
+          </ComposerButton>
         ) : (
-          <button
-            type="button"
+          <ComposerButton
+            label="Send"
             onClick={onSend}
             disabled={!canSend}
-            aria-label="Send"
-            className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-opacity hover:opacity-80 disabled:opacity-40"
+            className="bg-primary text-primary-foreground hover:opacity-90"
           >
-            <ArrowUp className="size-4" />
-          </button>
+            <ArrowUp className="size-4.5" />
+          </ComposerButton>
         )}
       </div>
     </div>
