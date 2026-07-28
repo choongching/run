@@ -53,10 +53,11 @@
      corner that reads as a soft edge at card size reads as almost square on
      something that spans the viewport. It is a token rather than a raw value
      so it stays countable and cannot spread by copy-paste. */
-  /* The conversation column. Wider than Tailwind's 3xl so the text uses the
-     card it sits in instead of leaving dead margins inside it, and named so
-     the header, the messages and the composer cannot drift apart. */
-  --container-thread: 57.5rem;
+  /* The conversation column: a fifth narrower than Tailwind's 3xl, which
+     widens the space either side of the text inside its card and keeps the
+     reading measure short. Named because three elements have to agree on it,
+     the header rule, the message list and the composer, or they misalign. */
+  --container-thread: 38.4rem;
   --radius-shell: 0.5rem;
   --radius-sm: 0.25rem;
   --radius-md: 0.3125rem;
