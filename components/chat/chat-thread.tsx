@@ -664,7 +664,7 @@ function ComposerButton({
               disabled={disabled}
               aria-label={hint ? `${label} (${hint})` : label}
               className={cn(
-                'flex size-9 shrink-0 items-center justify-center rounded-lg transition-colors disabled:opacity-40',
+                'flex size-8 shrink-0 items-center justify-center rounded-lg transition-colors disabled:opacity-40',
                 className
               )}
             />
@@ -954,7 +954,7 @@ function Composer({
           sending are the two things you do to the message you just typed, so
           they belong next to each other under the text rather than pinned to
           opposite corners. */}
-      <div className="flex items-center justify-end gap-2 px-3 pb-3">
+      <div className="flex items-center justify-end gap-1.5 px-3 pb-3">
         <input
           ref={fileInputRef}
           type="file"
@@ -973,7 +973,7 @@ function Composer({
           disabled={running || blocked}
           className="bg-muted text-foreground hover:bg-muted-foreground/15"
         >
-          <Plus className="size-4.5" />
+          <Plus className="size-4" />
         </ComposerButton>
         {running ? (
           <ComposerButton
@@ -981,7 +981,7 @@ function Composer({
             onClick={onStop}
             className="bg-primary text-primary-foreground hover:opacity-90"
           >
-            <Square className="size-3.5 rounded-sm fill-current" />
+            <Square className="size-3 rounded-sm fill-current" />
           </ComposerButton>
         ) : (
           <ComposerButton
@@ -990,7 +990,7 @@ function Composer({
             disabled={!canSend}
             className="bg-primary text-primary-foreground hover:opacity-90"
           >
-            <ArrowUp className="size-4.5" />
+            <ArrowUp className="size-4" />
           </ComposerButton>
         )}
       </div>
