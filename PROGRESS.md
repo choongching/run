@@ -19,9 +19,91 @@ create became a matter of plan rather than rank. On 2026-07-28 a knowledge
 source can be set to apply to every agent you own, connectors got their own
 page, the account moved behind the avatar, and the whole shell was redesigned:
 a flat sidenav, a configure panel that docks beside the conversation instead of
-covering it, and one consistent card treatment across every page. Next step:
-give every person their own space with their own plan, then deploy for real
-users beyond the founder.
+covering it, and one consistent card treatment across every page. Later on
+2026-07-28 the app was audited end to end for speed and made meaningfully
+faster: navigation no longer hangs on a dead click, the session is checked
+locally instead of over the network, and the chat page went from about eight
+database round trips to two. Next step: give every person their own space with
+their own plan, then deploy for real users beyond the founder.
+
+---
+
+## 2026-07-28 (later): An end-to-end performance pass
+
+Six pull requests, all about speed, driven by an audit of what actually blocks
+a page from appearing.
+
+**What the audit found**
+
+- Every one of the seventeen routes was dynamic and not one had a loading file.
+  Next only prefetches a dynamic route when a loading file exists, so clicking
+  an agent in the sidebar was a dead click: nothing moved until the whole
+  server chain finished.
+- Authentication ran three times per page load. The proxy checked the session,
+  then the layout asked again, then the page asked a third time, and the
+  helper was not memoised, so each was a fresh network call to the auth server
+  plus a repeated profile query.
+- That proxy check ran on every request, including API calls it never gated.
+- The chat page made about eight database round trips one after another, and
+  half of them were for a configure panel that starts closed and that most
+  visits never open.
+
+**What shipped**
+
+- **Loading skeletons on every dashboard route** (#72). Each is shaped like the
+  page it stands in for, so content replaces it in place. This is what turns a
+  dead click into an instant transition.
+- **The session lookup is memoised for one request** (#74). One auth round trip
+  and one query removed from every page load.
+- **The session is now verified locally** (#75). The proxy checks the token
+  against the project's published signing key instead of asking the auth
+  server. Measured in the log, this went from 207 to 765 milliseconds per
+  request down to 3 to 6. API routes were also removed from the proxy, since
+  each one already authenticates itself, which matters most for chat where the
+  check was firing on every message.
+- **Dead redirects removed** (#76). Two rules pointed at routes deleted with
+  the old schema, so they only ever forwarded a bookmark to a missing page.
+- **The chat page's query chain collapsed** (#77). Reads that did not depend on
+  each other now run together, and the thread is read rather than written and
+  read back.
+- **The configure panel loads when it opens** (#78). Four queries left the
+  critical path. This also fixed a real bug: the panel used to show whatever
+  was true when the page loaded, so connecting an app in another tab left it
+  stale until a full reload.
+
+**What we deliberately did not do**
+
+- **Static sign-in and register pages.** The plan was to move the one
+  request-dependent bit behind a boundary. Built it, and the page stayed
+  dynamic. Making it static needs cache components enabled across the whole
+  app, which fails the build today because dashboard pages read live data
+  outside a boundary. That is a real project, not housekeeping, so it was
+  reverted rather than left as indirection that implies a benefit it does not
+  deliver.
+- **Dropping the monospace font.** The audit called it unused. It is not: it
+  renders code blocks in chat. Dropping it is still possible but it changes how
+  code looks, so it is a design decision rather than a free win.
+- **Moving the shadcn package to development dependencies.** It is not only a
+  command line tool; the stylesheet imports from it at build time.
+
+**How it was verified**
+
+- The signed-out route matrix passes, and a token with a valid looking header
+  but a forged signature is rejected, so local verification genuinely verifies
+  rather than merely decodes.
+- A real chat turn ran end to end with no proxy check in front of it.
+- A non-owner cannot reach the new panel endpoint, checked directly against the
+  database as a second user.
+- The loading skeletons were confirmed with a temporary server delay and a page
+  probe, because screenshots kept racing the transition and made a working
+  feature look broken.
+
+**Honest limits**
+
+The proxy numbers are measured. The chat page improvements are structural, a
+shorter chain of dependent queries, and are not quoted as a benchmark: local
+development timings are too noisy to support a figure. A real number needs
+measuring against production infrastructure.
 
 ---
 
