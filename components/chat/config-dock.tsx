@@ -24,7 +24,7 @@ type PanelProps = Omit<React.ComponentProps<typeof ConfigPanel>, 'onClose'>
 // scroll position, and simply gets narrower.
 //
 // The reflow is real but small at the sizes this matters: the thread is capped
-// at max-w-3xl, so on a wide display the column has room to spare and only
+// at max-w-thread, so on a wide display the column has room to spare and only
 // re-centres. It re-wraps only once the remaining space drops below that cap.
 //
 // Below lg the panel floats over the conversation instead, because pushing on
@@ -54,7 +54,7 @@ export function ConfigDock({
     // than as a region carved out of it.
     <div data-shell="split" className="flex min-h-0 flex-1">
       <div className="flex min-h-0 min-w-0 flex-1 flex-col rounded-shell border border-border bg-background px-6 pt-5 md:px-8">
-        <header className="mx-auto flex w-full max-w-3xl shrink-0 items-center justify-between gap-2 border-b border-border pb-3">
+        <header className="mx-auto flex w-full max-w-thread shrink-0 items-center justify-between gap-2 border-b border-border pb-3">
           {header}
           {/* The label follows what the click will do. Saying "Configure"
               while the button closes the panel would be a small lie told
