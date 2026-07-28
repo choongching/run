@@ -8,20 +8,136 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** The core is validated. On 2026-07-26 the founder ran the
-whole loop on their own real Gmail and Drive and it held up: it summarized and
-critiqued a real Drive document, drafted email replies that read well, turned
-emails into a downloadable document, and drafted a reply that the founder
-approved and actually sent to a real person. The product does its job on real
-data and never acts without approval. On 2026-07-27 agents gained a knowledge
-base, so you can teach one how you write and what your team means by its own
-words, and a note added mid-conversation shows up in the very next reply.
-Getting started no longer needs an administrator, the schema from the old
-company product has been cleared out, and how many agents you can create is now
-set by a plan rather than by a rank. Next step: give every person their own
-space with their own plan, then deploy for real users beyond the founder.
+**Where we left off:** The core is validated and the interface has been
+rebuilt around it. On 2026-07-26 the founder ran the whole loop on their own
+real Gmail and Drive and it held up: it summarized and critiqued a real Drive
+document, drafted email replies that read well, turned emails into a
+downloadable document, and drafted a reply that the founder approved and
+actually sent to a real person. On 2026-07-27 agents gained a knowledge base,
+getting started stopped needing an administrator, and how many agents you can
+create became a matter of plan rather than rank. On 2026-07-28 a knowledge
+source can be set to apply to every agent you own, connectors got their own
+page, the account moved behind the avatar, and the whole shell was redesigned:
+a flat sidenav, a configure panel that docks beside the conversation instead of
+covering it, and one consistent card treatment across every page. Next step:
+give every person their own space with their own plan, then deploy for real
+users beyond the founder.
 
 ---
+
+## 2026-07-28: Knowledge everywhere, connectors, and a shell redesign
+
+Sixteen pull requests. One real feature, two structural moves, and a long
+redesign session driven by the founder looking at the screen and saying what
+was wrong.
+
+**Features**
+
+- **A knowledge source can now apply to every agent you own.** A library only
+  pays off if you write something once. Until now a source reached an agent
+  only by being attached to it by hand, which is right for a product spec one
+  agent needs and wrong for a voice guide or a glossary. Mark a source "use
+  with every agent" on the Knowledge page and it reaches every agent you have,
+  including ones made later, and editing it once updates all of them. Verified
+  end to end rather than in the database alone: an agent created before the
+  source existed, never attached to it, signed off exactly as the source
+  instructed. Turning the switch on checks every agent's budget first and names
+  the agents with no room, and the per-agent meter now counts always-on sources
+  so an agent cannot quietly exceed the cap the meter claims to enforce. Merged
+  via #54.
+- **Connectors have their own page.** A connector is account level: link Gmail
+  once and every agent you own can use it. The only way to reach one, though,
+  was from inside an agent, which put an account-level setting behind an
+  agent-level door and made connectors unreachable before you had made your
+  first agent. They now sit in the nav next to Knowledge. Connecting from
+  inside an agent still works, and all three surfaces render the same row
+  against the same endpoints so their state cannot drift. Renamed from
+  Connections to Connectors, matching the tools people already use. Merged via
+  #52.
+- **The account moved behind the avatar.** The sidebar footer mixed two
+  unrelated things: Knowledge and Connectors, which belong to the agents, and
+  Settings and Sign out, which belong to the person. Clicking your own face now
+  opens a menu with Settings and Sign out, and the route moved from /dashboard
+  to /settings, which is what the page has been for a while. Merged via #53.
+- **The composer grows as you type.** It was one line tall whatever you wrote,
+  so a long message scrolled inside a slot too small to read it back in. It now
+  grows with the text and shrinks again as text is removed, including after a
+  send clears it. Its existing cap still holds, so a very long message stops
+  growing and scrolls rather than pushing the conversation off screen. Merged
+  via #64.
+
+**The shell redesign**
+
+- **The sidenav is structure, not a card.** It was a white rounded panel with
+  its own border and shadow, floating beside a second card holding the content.
+  Two stacked surfaces competed for the same reading. The nav now shows the
+  canvas straight through, flush to the edge and full height. Merged via #55.
+- **Configure docks beside the conversation.** It used to be an overlay with a
+  scrim, which is right for a decision you make and dismiss. This is not that:
+  you open it because of something the agent just said, and dimming that reply
+  hides the evidence you are acting on. It is now its own card that slides in
+  while the conversation shrinks to make room, giving the app three columns.
+  The risk worth testing was the chat's stick-to-bottom behaviour fighting a
+  width change, so it was checked live: streamed a reply with the panel open,
+  closed the panel as a turn completed, and toggled repeatedly. The scroll
+  anchor held every time. Below a large screen the panel floats instead, since
+  pushing on a narrow screen leaves a column too thin to read. Merged via #57.
+- **The composer action row was rebuilt.** Attach and send now sit together at
+  the trailing edge rather than at opposite corners, since they act on the same
+  thing. The paperclip became a plus, because a paperclip reads as "document"
+  when the input also takes images. Both carry a tooltip, as does the configure
+  control, because a plus, an arrow and a square say nothing on their own. The
+  jump-to-latest pill became a compact square, which also retired a known bug:
+  the pill was wide enough to cover the last line of the message it was
+  pointing you away from. Merged via #56, #58 and #60.
+- **One card treatment everywhere.** The shell cards moved to an 8px corner,
+  added as a named token rather than a raw value so the exception stays
+  countable, and every card that sits in the page flow lost its shadow. Shadow
+  now means one thing only: this floats above the page. The conversation column
+  was also narrowed by a fifth, which widens the space either side of the text.
+  Merged via #59, #61, #62, #63, #65 and #66.
+- **The home screen got some life.** A very slow wash of colour behind the
+  prompt box, built from the palette's own deep forest green and warm paper at
+  single-digit alpha rather than invented colour, and the headline now reads
+  "Build an agent for your inbox" with the last word cycling through drafts,
+  writing and research. Both are pure CSS animating only transform, opacity and
+  filter, so no motion library was added for either. Both stop under reduced
+  motion, and the headline's animated copy is hidden from screen readers, which
+  get the sentence once as a fixed string. Merged via #67, #68 and #69.
+
+**What broke, and what it taught**
+
+- **The same specificity bug twice.** Two attempts to remove the content card's
+  shadow and set its corner radius silently did nothing on every page except
+  chat. The sidebar component sets both with a compound selector that outranks
+  a plain attribute selector, so the overrides never applied; chat only looked
+  right because it sets the classes directly on its own cards. Both were fixed
+  at the source rather than by escalating the override, since a specificity
+  ladder built to cancel a class is worse to own than the class. The lesson was
+  really about verification: the change was checked on the one page that was
+  immune to the bug. Merged via #65 and #66.
+- **A phantom bug that was a zombie server.** A knowledge toggle appeared to
+  work in one direction and not the other for a long stretch. The cause was an
+  old dev server still holding port 3000 and serving stale code alongside a
+  second one on another port. Once killed, both directions worked first try.
+- **A tooltip that measured itself out of existence.** The first version of the
+  truncation tooltip swapped the measured element for a tooltip trigger once it
+  detected clipping, which threw away the ref and made it measure false again.
+  Fixed by keeping the trigger mounted and making only the content conditional.
+- **A backdrop nobody could see.** The ambient wash was placed behind the
+  content card's own background rather than on top of it, so the first version
+  was invisible.
+- **The column went the wrong way first.** A request to widen the space either
+  side of the chat text was read as widening the text, so the column was made
+  wider before being corrected to narrower. Merged via #61 then #62.
+
+**Also**
+
+- The configure panel no longer offers edits a non-owner cannot make. The
+  server already scoped every one of those writes to the owner, so the actions
+  quietly did nothing; the affordances were lying. Merged via #51.
+- `docs/styleguide.md` was updated in the same pull requests as the changes it
+  describes, so it no longer prescribes shadows and radii that no longer exist.
 
 ## 2026-07-27: Knowledge base, self-serve setup, and a big clear-out
 

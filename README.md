@@ -96,12 +96,12 @@ Run is a single, focused app. These are the surfaces you move between:
   view with a pinned header and composer and a scrolling message list, this is
   where you talk to an agent, watch it work, approve its actions, and read its
   output.
-- **Configure panel**: a slide-over from the chat header for tuning an agent
-  without leaving the conversation. It is grouped into **Profile** (name and
+- **Configure panel**: a column that docks beside the chat for tuning an agent
+  without leaving the conversation, or losing sight of it. It is grouped into **Profile** (name and
   personality), **Behavior** (instructions and model), **Connections** (Gmail and
   Drive), a read-only record of the setup interview, and a delete action.
-- **Connections**: your own Gmail and Drive links, offered inline when an agent
-  needs them and also managed from the Configure panel.
+- **Connectors** (`/connectors`): your own Gmail and Drive links, offered inline
+  when an agent needs them, and managed here or from the Configure panel.
 
 ### The agent model
 
@@ -169,8 +169,15 @@ are created as real Gmail drafts.
 Agents can also be taught. You can give one a note or a file it always knows,
 whether that is how you write, the facts you repeat, or the words your team
 uses, and it shows up in the very next reply. Sources belong to you rather than
-to a single agent, so one voice guide can feed several of them. Getting started
-needs no administrator, and how many agents you can create is set by a plan.
+to a single agent, so one voice guide can feed several of them, and a source can
+be set to apply to every agent you own so you write it once and edit it once.
+Your Gmail and Drive connectors have their own page, since they belong to you
+rather than to any one agent. Getting started needs no administrator, and how
+many agents you can create is set by a plan.
+
+Configuring an agent happens beside the conversation rather than over it: the
+panel slides in as its own column and the chat stays readable, because the
+reason to open it is usually something the agent just said.
 
 Natural next steps: giving every person their own space with their own plan,
 deploying for more users, exporting documents to Google Docs and PDF, multiple
