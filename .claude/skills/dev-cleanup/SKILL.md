@@ -12,11 +12,13 @@ can point at an unrelated project).
 
 ## What to keep
 
-The canonical demo set is recorded in project memory
-(`run-project-state.md`), currently **HR Agent**, **Finance Director**,
-**Marketing Writer** (owned by the admin). Treat that memory line as the source
-of truth; everything else owned by test accounts is disposable. If unsure
-whether a given agent is demo or test, ASK rather than delete.
+The canonical keep-set is recorded in project memory
+(`run-project-state.md`) and ONLY there; do not trust any list written in
+this file, because it goes stale (an earlier revision here named a demo trio
+that had already been replaced by a single agent). Read the memory's current
+dev-DB line at the start of every sweep. Everything owned by test accounts
+and not in that line is disposable. If unsure whether a given agent is demo
+or test, ASK rather than delete.
 
 ## Steps
 

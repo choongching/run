@@ -79,6 +79,31 @@ Goal: zero re-derivation, zero styling drift.
   canvas. Use `bg-border` for the unfilled part of any meter or progress track,
   and `bg-foreground/70` for the fill, escalating to `bg-chart-4` and
   `bg-destructive` at threshold.
+- **Every standard page lives in PageShell** (`components/page-shell.tsx`):
+  the same centered `max-w-thread` column the chat uses, wrapping the header,
+  body AND the route's loading.tsx. Never give a page or a card its own width
+  cap; two caps on one page is how Settings ended up with mismatched card
+  edges. Chat is the one page with its own layout.
+- **Tooltips:** the config-dock recipe (`TooltipProvider delay={300}` +
+  `TooltipTrigger render={...}`). One element cannot be two base-nova
+  triggers; to put a tooltip on a DialogTrigger, control the dialog with
+  state and let the tooltip own the button (see usage-meter). Content is the
+  action or the consequence in one line, no period ("See this month's runs",
+  "Your agents will stop using this account").
+- **Status chips sit beside the title, not under it** (a state of the thing,
+  not a second line about it): `flex items-center gap-2`, chip is `text-xs
+  text-primary` with a `Check size-3` for good states. Icon tiles next to a
+  two-line row are `size-10` with a `size-5` icon so tile height matches
+  title plus detail.
+- **Empty states:** boxed in the same card as content sections (`rounded-xl
+  border border-border bg-card`), headline at card-title level (`text-base
+  font-medium`, NOT text-xl, one loudest voice per page), then one muted line
+  saying how to fill it. In the sidebar, an empty list keeps its group label
+  and shows one dashed slot (`border-dashed`, "Your agents will live here")
+  rather than disappearing.
+- **JSX comments cannot lead a return:** `{/* */}` directly inside
+  `return (...)` before the root element is a syntax error; put it above the
+  return or inside the element.
 
 ## 3. Verify visually before declaring done
 
