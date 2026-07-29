@@ -16,15 +16,12 @@ moment later you are talking to it in the same window.
 
 ## What makes it different
 
-- **You build it by talking.** Describe the job in one sentence and your
-  assistant exists. It even asks you a couple of questions to set itself up.
-  There is no canvas, no wiring, and nothing to learn.
-- **It works on your real stuff.** The point is not a clever chatbot. It is an
-  assistant that acts on your own inbox and your own files, through accounts you
-  connect.
-- **It always asks before it acts.** It reads on its own, but anything that sends
-  or changes something stops and shows you a preview first. That is what makes it
-  okay to trust it with a real account.
+- **You build it by talking.** Say what you need in one sentence and it exists.
+  It asks a couple of questions, and that is the whole setup.
+- **It works on your real email and files.** Your actual inbox, your actual
+  Drive, through accounts you connect yourself.
+- **It asks before it acts.** It reads freely, but anything that sends or
+  changes something stops and shows you the whole thing first.
 
 ## The end-to-end journey
 
