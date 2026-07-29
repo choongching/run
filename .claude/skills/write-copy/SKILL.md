@@ -13,6 +13,15 @@ This skill exists because rewording is the most repeated, most expensive loop in
 this project. One README line took four rewrites. One heading was quoted back
 three times. None of it was a hard problem; all of it was a missing rule.
 
+## The north star
+
+Paul Graham's style. The README intro rewritten that way (PR #104) was the
+first copy the founder loved outright instead of sending back. The shape:
+the headline is a claim, not a description. One idea per sentence, all
+declarative. A concrete example arrives early. The best line goes last, as a
+turn ("Describing what you want is the setup"). Draft PG-shaped from the
+start; descriptive-then-trimmed is how every rewrite loop began.
+
 ## The rules
 
 - **Plain sentences.** No jargon, no product-speak, no abstractions the reader
