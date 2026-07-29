@@ -1,0 +1,103 @@
+---
+name: usage-accounting
+description: Work on run usage, token accounting, cost, the usage meter, run history, or plan allowances. Use for any change to usage_events, pricing, the live usage channel, or the entitlements seam.
+---
+
+# Usage accounting for Run
+
+Every model turn writes one row to `usage_events`. That table is a **ledger**:
+it is what the founder bills against and what the meter reads, so it must stay
+correct even when the thing it describes has been deleted.
+
+The pieces: `lib/usage.ts` (pricing, `recordUsage`, `listRunHistory`),
+`lib/usage-live.ts` (`subscribeToRuns`), `lib/entitlements/plans.ts` +
+`assert.ts` (allowance), `components/usage/usage-meter.tsx` (meter and history
+dialog), migrations `029`, `030`, `031`.
+
+## The unit is a run, not a token
+
+A run is one turn. That is what the user sees counted, and what a plan
+allowance is measured in. Cost in dollars is computed and stored alongside it,
+but never shown as the primary number.
+
+## Cache tokens ARE the cost
+
+The original bug: 118 turns recorded 990 input tokens in total, because only
+`input_tokens` was summed. Prompt caching means the real volume arrives as
+`cache_creation_input_tokens` and `cache_read_input_tokens`, priced at **1.25x**
+and **0.1x** the input rate. One verified live turn recorded 10 input tokens
+against 7,203 cache-creation tokens, a 26x understatement on that turn and about
+79% across the table.
+
+Always sum all four counters into `TokenCounts` and pass the whole thing to
+`computeCost`. Tools render first in the cached prefix, so adding a tool moves
+cost into the cache-write bucket rather than removing it.
+
+`priceFor` matches a model by **prefix**, so `claude-haiku-4-5-20251001` is not
+silently charged at the Sonnet fallback rate. Add new models to `PRICING` by
+their prefix.
+
+## Record on every turn, including the failed ones
+
+`drainSession` in `lib/chat/run-turn.ts` is a thin wrapper that owns the
+`TokenTally` and a try/catch/**finally**. The finally always writes the row,
+with `status: 'failed'` when the turn threw. A turn that burned tokens and then
+broke still cost money, so it still gets a row.
+
+## Ledger rules
+
+- **`agent_name` is a deliberate duplicate of `agents.name`.** Agents are hard
+  deleted; `agent_id` nulls out via `on delete set null` and the history row
+  would otherwise read as blank. Verified in a rolled-back transaction:
+  `agent_id` nulls, `agent_name` survives. Snapshot any other display field the
+  same way.
+- **Writes are service-role, fire-and-forget, and never throw.** `usage_events`
+  has no insert policy for `authenticated`. A failed usage write must never
+  break the user's turn.
+- **Reads use the caller's RLS-bound client.** `listRunHistory` takes the
+  client as an argument for exactly this reason. Do not reach for service role
+  to read.
+
+## Gotchas (each cost real time)
+
+- **`realtime.setAuth` before `subscribe`.** Without it the channel reports
+  `SUBSCRIBED` and silently delivers nothing, because
+  `realtime.subscription.claims_role` is `anon` and RLS filters every row. Get
+  the session, `await supabase.realtime.setAuth(token)`, then subscribe. Check
+  the `realtime.subscription` table when debugging: it shows the live role.
+- **`date_trunc` predicates are unindexable.** The monthly allowance count goes
+  against a plain `gte('created_at', monthStart)` range on `usage_events`, not
+  against the `usage_monthly` view, so `usage_events_user_month_idx` is used.
+- **`create or replace view` cannot insert a column mid-list.** It fails with
+  "cannot change name of view column". `drop view if exists` then `create view`.
+  Migration `030` records this.
+- **Realtime needs the table published:** `alter publication supabase_realtime
+  add table usage_events` (migration `031`).
+- **Subscribe only while the panel is open.** Verified: zero open subscriptions
+  when idle, one while the dialog is open. Do not hold a websocket for a number
+  most visits never look at.
+
+## Rendering split (decided, do not re-litigate)
+
+The **meter is server-rendered** because it is always visible. The **history is
+fetched on open** because most sessions never open it. Keep that split for
+anything added here: always-visible goes in the server payload, on-demand stays
+behind the click.
+
+React 19 lint: seed the meter's state by keying it (`<UsageMeter
+key={usage.used}>`) rather than syncing props into state in an effect.
+
+## Allowance
+
+`plans.ts` carries `runsPerMonth` and `getRunAllowance()`; `canRunAgent()`
+exists but **is not enforced** anywhere yet. The numbers in the file (free 200,
+pro 5000) are placeholders that users can already see. Two open decisions
+belong to the founder: the real allowance, and whether running out should stop
+a run or only warn.
+
+## Verifying a change here
+
+Not done until a real chat turn has run and the row is inspected: cache token
+columns non-zero, `agent_name` and `thread_id` populated, `status` correct,
+`cost` plausible. Use the `verify-in-browser` skill for the turn and
+`supabase-ops` for the query.
