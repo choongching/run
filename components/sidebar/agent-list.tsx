@@ -25,7 +25,22 @@ export type SidebarAgent = {
 export function AgentList({ agents }: { agents: SidebarAgent[] }) {
   const pathname = usePathname()
 
-  if (agents.length === 0) return null
+  // A new user's sidebar used to just go blank below New agent. This keeps
+  // the Agents heading and shows one empty slot instead: a quiet dashed
+  // outline that says what the space is for. No button and no arrow, because
+  // the way to fill it is sitting directly above.
+  if (agents.length === 0) {
+    return (
+      <SidebarGroup>
+        <SidebarGroupLabel>Agents</SidebarGroupLabel>
+        <SidebarGroupContent>
+          <div className="mx-2 rounded-lg border border-dashed border-border px-2.5 py-2 text-xs text-muted-foreground">
+            Your agents will live here
+          </div>
+        </SidebarGroupContent>
+      </SidebarGroup>
+    )
+  }
 
   return (
     <SidebarGroup>
