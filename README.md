@@ -3,18 +3,16 @@
 **Run lets you build your own AI assistant just by describing it. No setup, no
 technical skills.**
 
-Think of an agent as a personal assistant you create in one sentence. Tell Run
-what you need ("help me keep on top of my inbox"), and it builds you an assistant
-you talk to like a person. It connects to your own Gmail and Google Drive, so it
-works on your real emails and files, not a demo. It can go through your inbox,
-draft replies, find and read your documents, and turn them into new ones.
+Tell it what you need, like *"help me keep on top of my inbox"*, and you get an
+assistant you talk to like a person. It works on your real Gmail and Google
+Drive, so it can go through your actual inbox, draft replies, find your
+documents, and turn them into new ones.
 
-It is safe by default. Your assistant reads things on its own, but before it
-sends or changes anything, it shows you exactly what it will do and waits for
-your okay.
+It reads on its own. Before it sends or changes anything, it shows you exactly
+what it will do and waits for your okay.
 
-And there is nothing to configure. No forms, no flowcharts, no settings to learn.
-You build your assistant and use it in the very same place: a conversation.
+Nothing to configure: no forms, no flowcharts, no settings. You build it and use
+it in the same place, a conversation.
 
 ## What makes it different
 
