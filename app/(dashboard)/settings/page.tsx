@@ -1,5 +1,6 @@
 import { getUserProfile } from '@/lib/auth'
 import { PageHeader } from '@/components/page-header'
+import { PageShell } from '@/components/page-shell'
 import { ProfileForm } from '@/components/settings/profile-form'
 import { SignOutCard } from '@/components/settings/sign-out-card'
 
@@ -11,9 +12,9 @@ export default async function SettingsPage() {
   const { email, profile } = await getUserProfile()
 
   return (
-    <div className="p-6 md:p-8">
+    <PageShell>
       <PageHeader title="Settings" description="Your account" />
-      <div className="flex max-w-xl flex-col gap-4">
+      <div className="flex flex-col gap-4">
         <ProfileForm
           initialDisplayName={profile?.display_name ?? ''}
           email={email}
@@ -21,6 +22,6 @@ export default async function SettingsPage() {
         />
         <SignOutCard email={email} />
       </div>
-    </div>
+    </PageShell>
   )
 }

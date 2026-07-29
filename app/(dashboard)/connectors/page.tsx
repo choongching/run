@@ -1,4 +1,5 @@
 import { PageHeader } from '@/components/page-header'
+import { PageShell } from '@/components/page-shell'
 import { ConnectorsManager } from '@/components/connectors/connectors-manager'
 import { getUserIdentity } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
@@ -23,7 +24,7 @@ export default async function ConnectorsPage() {
   ])
 
   return (
-    <div className="p-6 md:p-8">
+    <PageShell>
       <PageHeader
         title="Connectors"
         description="The accounts your agents work in. You connect your own, and every agent you own can use them."
@@ -31,6 +32,6 @@ export default async function ConnectorsPage() {
       <ConnectorsManager
         connections={{ gmail: Boolean(gmail), google_drive: Boolean(drive) }}
       />
-    </div>
+    </PageShell>
   )
 }

@@ -18,7 +18,9 @@ export function ConnectorsManager({
   const router = useRouter()
 
   return (
-    <div className="flex max-w-2xl flex-col gap-3">
+    // Width comes from the PageShell column; a second cap here would put
+    // this page out of step with every other one.
+    <div className="flex flex-col gap-3">
       <ConnectorList
         connections={connections}
         onChanged={() => router.refresh()}
