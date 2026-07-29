@@ -69,18 +69,28 @@ export async function getRunAllowance(
 ): Promise<RunAllowance> {
   const { limits } = planFor(planId)
   const start = monthStart()
-  const { data } = await supabase
-    .from('usage_monthly')
-    .select('runs')
+
+  // Counted straight off the table rather than read from usage_monthly, and
+  // the difference is not cosmetic. The view groups by date_trunc('month'),
+  // and a filter on a computed column cannot use an index, so reading it costs
+  // a scan of everything the person has ever done. This runs in the layout, on
+  // every route, so that scan would grow with their whole history forever. A
+  // plain range on created_at is the same answer from an index.
+  //
+  // head: true asks for the count without the rows.
+  const { count } = await supabase
+    .from('usage_events')
+    .select('id', { count: 'exact', head: true })
     .eq('user_id', userId)
-    .eq('month', start.toISOString())
-    .maybeSingle()
+    .eq('event_type', 'mission_run')
+    .eq('status', 'completed')
+    .gte('created_at', start.toISOString())
 
   const resetsAt = new Date(
     Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 1)
   ).toISOString()
 
-  return { used: data?.runs ?? 0, limit: limits.runsPerMonth, resetsAt }
+  return { used: count ?? 0, limit: limits.runsPerMonth, resetsAt }
 }
 
 export async function canRunAgent(

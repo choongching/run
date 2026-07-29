@@ -232,6 +232,11 @@ export function ChatThread({
           ])
         }
         setDraft(null)
+        // The turn just spent a run, and the meter lives in the shell where
+        // this component cannot reach it. Refreshing re-renders the server
+        // layout with the new count, which also means a turn that failed or
+        // paused correctly does not move the number.
+        router.refresh()
         return
       case 'error':
         finishWithError(frame.message)

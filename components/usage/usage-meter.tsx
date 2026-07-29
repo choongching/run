@@ -26,23 +26,15 @@ export type UsageMeterProps = {
 // nothing to someone deciding whether they can finish their work. Cost stays
 // out of this surface entirely.
 export function UsageMeter({ userId, used, limit, resetsAt }: UsageMeterProps) {
-  // Seeded from the server on page load, then kept current by the runs the
-  // server records. A person can be talking to an agent in another tab, and
-  // later a schedule will run with nobody watching at all.
+  // Seeded from the server, which is the only thing that knows whether a turn
+  // actually counted: a run that failed, or paused to ask you something, is
+  // not one. The chat client refreshes the route when a turn finishes, so the
+  // number is server truth rather than a client guess.
   //
   // The caller keys this component by `used`, so a fresh server count remounts
   // it and re-seeds the state below. Syncing a prop into state from an effect
   // instead would fight React and is what the lint rule forbids.
   const [count, setCount] = useState(used)
-  useEffect(
-    () =>
-      subscribeToRuns(userId, (event) => {
-        if (event.event_type === 'mission_run' && event.status === 'completed') {
-          setCount((n) => n + 1)
-        }
-      }),
-    [userId]
-  )
 
   const pct = limit > 0 ? Math.min(100, Math.round((count / limit) * 100)) : 0
   // Green is the app's action colour and stays rare, so a healthy meter is
@@ -83,7 +75,13 @@ export function UsageMeter({ userId, used, limit, resetsAt }: UsageMeterProps) {
         </div>
       </DialogTrigger>
       <DialogContent className="sm:max-w-xl">
-        <UsageHistory count={count} limit={limit} resetsAt={resetsAt} />
+        <UsageHistory
+          userId={userId}
+          count={count}
+          limit={limit}
+          resetsAt={resetsAt}
+          onRun={() => setCount((n) => n + 1)}
+        />
       </DialogContent>
     </Dialog>
   )
@@ -93,15 +91,51 @@ export function UsageMeter({ userId, used, limit, resetsAt }: UsageMeterProps) {
 // fetch below runs fresh each time the panel opens instead of holding a list
 // that goes stale while nobody is looking at it.
 function UsageHistory({
+  userId,
   count,
   limit,
   resetsAt,
+  onRun,
 }: {
+  userId: string
   count: number
   limit: number
   resetsAt: string
+  onRun: () => void
 }) {
   const [runs, setRuns] = useState<RunHistoryEntry[] | null>(null)
+
+  // Live only while this panel is open. A socket held for the whole session
+  // would spend a connection per tab, permanently, on a number that changes a
+  // few times an hour and that nobody is looking at. Here it is bounded by the
+  // panel being on screen, which is the only time the liveness is observable.
+  // When scheduled runs land and work happens with nobody watching, widening
+  // this back out is one line.
+  useEffect(
+    () =>
+      subscribeToRuns(userId, (event) => {
+        if (event.event_type !== 'mission_run') return
+        setRuns((prev) =>
+          prev === null
+            ? prev
+            : [
+                {
+                  id: event.id,
+                  createdAt: event.created_at,
+                  agentId: event.agent_id,
+                  agentName: event.agent_name,
+                  threadId: event.thread_id,
+                  source: event.source,
+                  status: event.status,
+                  costUsd: event.cost_usd,
+                },
+                ...prev,
+              ]
+        )
+        if (event.status === 'completed') onRun()
+      }),
+    [userId, onRun]
+  )
 
   useEffect(() => {
     let cancelled = false
