@@ -56,10 +56,12 @@ export function ConnectorsManager({
         showBlurb
       />
       <ClaudeRow />
+      {/* Three short beats: the trust promise, the built-in extra, and what
+          is coming. The promise stays because this is the page where people
+          hand over their inbox. */}
       <p className="px-0.5 text-xs text-muted-foreground">
-        Agents read from a connected account on their own, and always show you
-        a preview before they send or change anything. Web search needs no
-        connector and is always on.
+        Agents read on their own, but nothing is sent or changed without your
+        okay. Web search is built in. More connectors are on the way.
       </p>
     </div>
   )
