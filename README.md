@@ -204,10 +204,21 @@ Failures have been designed rather than left to chance. Every error in the chat
 now reaches you as a plain sentence with one thing to press, instead of whatever
 string an exception happened to carry.
 
-The app has also been through a performance pass. Moving between pages responds
-immediately rather than waiting on the server before anything happens, the
-signed-in session is verified locally instead of over the network on every
-request, and opening a chat asks the database for far less than it used to.
+The app has also been through two performance passes. Every page now paints
+instantly and fills in as its data arrives, instead of showing nothing until
+the slowest query finished. Checking who you are happens locally instead of
+over the network, which used to sit in front of every page and every message.
+Pages you are likely to click next are fetched before you click them, and
+opening a chat asks the database for half of what it used to. Signing in now
+reacts the moment you press the button.
+
+The pages themselves have been made consistent. Settings, Knowledge and
+Connectors sit in the same centered column the chat uses, so every screen has
+the same shape. The Connectors page tells the whole truth about what an agent
+runs on: your Gmail and Drive, and a Claude row for the AI behind every agent,
+web search included. Buttons explain themselves when you hover, empty pages
+say in one quiet line what will live there, and most of the words on these
+pages got shorter.
 
 Natural next steps: giving every person their own space with their own plan,
 deploying for more users, exporting documents to Google Docs and PDF, multiple
