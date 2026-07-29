@@ -27,9 +27,74 @@ database round trips to two. On 2026-07-29 people can finally see what they
 have used: the app had been recording only a tiny fraction of what a
 conversation actually costs and now records all of it, and a meter beside your
 account shows how much of the month is left and opens into a history of every
-run an agent has done for you. Next step: set the real monthly allowance,
-decide whether running out should stop a run, and give each entry in that
-history the detail that says what the run actually did.
+run an agent has done for you. Later the same day, setting up an agent gained a
+checkpoint: it now shows you the name and the job it wrote for itself and waits
+for you, and every failure in the chat was rewritten to be readable by a person.
+Next step: set the real monthly allowance, decide whether running out should
+stop a run, and give agents their own connector list so a documents agent
+cannot reach your inbox at all.
+
+---
+
+## 2026-07-29 (later): Asking before it starts, and failing in plain English
+
+Two pieces of the conversation itself, both prompted by watching it work rather
+than by a plan.
+
+**A checkpoint before an agent begins**
+
+- Setting up an agent used to end with the interview and the agent immediately
+  beginning its first task. The name had been chosen for the person and never
+  shown, and their answers were written into the instructions without them
+  reading a word. If either was wrong, they found out after it had acted. This
+  was the one place the product did not ask first, which is the promise it makes
+  everywhere else.
+- The agent now proposes its own name and job, in its own words, and waits. Both
+  are editable in place.
+- Agreeing is not the only way out, which turned out to be the important part.
+  Editing a field fixes a clumsy word; it does not fix being misunderstood, and
+  asking someone to rewrite the brief by hand is exactly the work they came here
+  to avoid. So the composer stays open, and telling the agent what to change
+  makes it revise and show the card again.
+- Two things only running it could teach. A plain message is refused while the
+  session is waiting on a tool call, so a typed correction has to answer that
+  call first. And handing the correction to the model as a tool result makes it
+  reply as though it had looked something up, so the person's words have to
+  reach it as a message.
+- The card names a connected account only when the person named it first. Every
+  agent is currently handed both Gmail and Drive, so listing what one could
+  touch would tell someone whose agent reads documents that it also wants their
+  email.
+
+**Failures written for people**
+
+- Every error reached the screen as whatever string an exception carried. In one
+  week that included a JavaScript variable name and a raw Anthropic payload,
+  printed in red. Neither says what happened, whose fault it was, or what to do,
+  and both were dead ends.
+- Mapped every failure the chat can hit, from our own bugs to a busy model, an
+  expired connection, a message too long to send, a dropped network, and a turn
+  that outran its time. One translation layer now stands between an exception
+  and the screen, so the wording cannot drift apart across six routes.
+- Trying again repeats the same turn without anyone retyping, and does not leave
+  a second copy of the message in the conversation. Once it works, the failure
+  disappears rather than staying in the history.
+- A reference appears only when the fault is ours, so someone has something to
+  quote and we have something to search for.
+- Auditing the whole surface rather than the streaming path found three more: a
+  page that crashed had nothing catching it at all and showed a blank screen, an
+  expired session said "Unauthorized", and a workspace that was not ready called
+  itself a runtime.
+- The one path that deliberately stays different: a tool failure goes to the
+  agent, so it can explain in its own words or try another way. That made it the
+  only route a raw payload could still reach a person, by being quoted back at
+  them, so it is stripped of anything machine shaped first.
+
+**The principle underneath both**
+
+- Design the failure before the success. In an agent product the failures are
+  not edge cases: models are non-deterministic, tools are other people's APIs,
+  and turns run for minutes. The failure path is the product, most days.
 
 ---
 

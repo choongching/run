@@ -37,7 +37,9 @@ Gmail.
 flowchart TD
     A["Home: describe what you want"] --> B["Run creates an agent<br/>and opens its chat"]
     B --> C["Setup interview:<br/>the agent asks a few quick questions"]
-    C --> D["You chat and give it work"]
+    C --> R["It shows you the name and job it<br/>wrote for itself, and waits"]
+    R -->|Not quite| C
+    R -->|Looks good| D["You chat and give it work"]
     D --> E{"Needs your Gmail<br/>or Drive?"}
     E -->|Not connected yet| F["Connect card appears in chat<br/>you sign in once"]
     F --> G
@@ -61,27 +63,37 @@ Step by step:
    asks a couple of quick questions (tap-to-answer, with a free-text option) to
    understand exactly what you want and how you want it. Those answers shape how
    it behaves from then on.
-3. **Give it work.** You chat normally. As the agent works it streams its
+3. **Check what it understood, before it starts.** The agent shows you the name
+   and the job it wrote for itself, and waits. You can edit either one on the
+   spot, or just tell it what to change and it rewrites them. Nothing runs until
+   you say it looks good. This is the same promise the product makes about
+   sending an email, applied to the agent's own setup.
+4. **Give it work.** You chat normally. As the agent works it streams its
    thinking and shows a live line for each step ("Searching your inbox from the
    last 2 days", then "Read an email"), so you can see what it is doing.
-4. **Connect your tools inline.** The first time the agent needs your Gmail or
+5. **Connect your tools inline.** The first time the agent needs your Gmail or
    Drive, a Connect card appears right in the conversation. You sign in once
    through a secure popup, and the agent picks up automatically where it left
    off. Everyone connects their own accounts.
-5. **It reads freely.** Searching and reading your inbox and Drive happen on
+6. **It reads freely.** Searching and reading your inbox and Drive happen on
    their own, no approval needed, because reading has no side effect.
-6. **It asks before it writes.** When the agent wants to do something with a
+7. **It asks before it writes.** When the agent wants to do something with a
    consequence (create a Gmail draft, for example), it pauses and shows an
    approval card with the complete draft. Nothing is created until you press
    Approve. Cancel and it simply carries on.
-7. **It hands back real output.** Answers stream into the chat. When you ask for
+8. **It hands back real output.** Answers stream into the chat. When you ask for
    a document, the agent produces a titled Markdown file that appears as a card
    with a preview and a Download button. Approved email drafts land in your
    actual Gmail, one click from sent.
-8. **You can hand it files too.** Attach a document or a screenshot to a message
+9. **You can hand it files too.** Attach a document or a screenshot to a message
    (paperclip, drag-and-drop, or paste) and the agent reads it as reference for
    that turn.
-9. **Come back any time.** Each agent lives in the sidebar as an ongoing chat.
+10. **See what you have used.** Beside your account is a quiet meter showing how
+    many runs you have left this month. Clicking it opens the history behind the
+    number: every run, which agent did it, and when. It counts runs rather than
+    tokens, because a token is a unit of our cost and means nothing to someone
+    deciding whether they can finish their work.
+11. **Come back any time.** Each agent lives in the sidebar as an ongoing chat.
    Reopen it and the whole conversation is there, timestamped, with date
    dividers, so you pick up exactly where you left off.
 
@@ -122,6 +134,11 @@ instructions, tools, and connected data.
 Because agents act on real accounts, safety is built into the loop, not bolted
 on:
 
+- **It asks before it starts, not just before it writes.** Setting an agent up
+  ends with it showing you the name and the job it wrote for itself, and waiting.
+  Before this, the name was chosen for you and never shown, and your answers were
+  written into its instructions without you reading a word, so a misunderstanding
+  only surfaced after the agent had acted on it.
 - **Reads are free, writes ask first.** The run loop auto-runs only an explicit
   allowlist of read-only tools. Anything else, including any tool that could have
   a side effect, is gated behind your approval by default.
@@ -133,6 +150,31 @@ on:
   its job and points you back to what it can help with.
 - **Per-user connections.** Each person connects their own Gmail and Drive; an
   agent acts on the signed-in user's accounts, scoped by row-level security.
+
+## When something goes wrong
+
+Agent products fail differently from ordinary software. Models are
+non-deterministic, tools are other people's APIs, and a single turn can run for
+minutes. Failure is not an edge case here, so it gets designed rather than
+handled.
+
+- **You never meet the machine.** No exception text, no status codes, no
+  payloads. If nobody wrote the sentence for a person to read, it does not reach
+  the screen. Every failure passes through one translation layer, so the wording
+  cannot drift apart across the app.
+- **It says whose fault it is.** "Something went wrong on our end" and "That
+  message is too long to send" lead to completely different next moves, and that
+  is the thing a raw error never tells you.
+- **A failed turn is not a broken conversation.** The chat stays usable, and
+  trying again repeats the same turn without you retyping anything. Once it
+  works, the failure disappears rather than sitting in your history.
+- **The agent's voice and Run's voice stay separate.** "I could not open that
+  file" is the agent. "Something went wrong on our end" is us. Dressing our own
+  bug in the agent's voice would make the agent look unreliable for something it
+  did not do.
+- **Errors have two audiences.** A tool failure is handed to the agent, so it can
+  explain in its own words or try another way. Infrastructure failures never are,
+  because a model cannot see them and will invent an explanation instead.
 
 ## Under the hood
 
@@ -178,6 +220,20 @@ many agents you can create is set by a plan.
 Configuring an agent happens beside the conversation rather than over it: the
 panel slides in as its own column and the chat stays readable, because the
 reason to open it is usually something the agent just said.
+
+Everyone can now see what they have used. A meter beside your account shows how
+much of the month is left and opens into a history of every run an agent has
+done for you, including runs by agents you have since deleted. Underneath it,
+the app now records what a conversation actually costs: it had been counting
+only the small uncached part of each prompt and missing almost all of it.
+
+Setting an agent up ends with a checkpoint rather than the agent simply
+starting. It shows you the name and the job it wrote for itself, you edit either
+one or tell it what to change, and nothing runs until you agree.
+
+Failures have been designed rather than left to chance. Every error in the chat
+now reaches you as a plain sentence with one thing to press, instead of whatever
+string an exception happened to carry.
 
 The app has also been through a performance pass. Moving between pages responds
 immediately rather than waiting on the server before anything happens, the
