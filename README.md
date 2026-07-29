@@ -8,8 +8,8 @@ assistant you talk to like a person. It works on your real Gmail and Google
 Drive, so it can go through your actual inbox, draft replies, find your
 documents, and turn them into new ones.
 
-It reads on its own. Before it sends or changes anything, it shows you exactly
-what it will do and waits for your okay.
+Reading your email is harmless, so it does that on its own. Sending one is not,
+so it always shows you exactly what it wrote and waits for your okay.
 
 Nothing to configure: no forms, no flowcharts, no settings. You build it and use
 it in the same place, a conversation.
@@ -109,8 +109,8 @@ instructions, tools, and connected data.
 
 ## Trust and safety
 
-Because agents act on real accounts, safety is built into the loop, not bolted
-on:
+These agents work on your actual email and files, so the interesting question is
+not what they can do. It is what they do without asking:
 
 - **It asks before it starts, not just before it writes.** Setting an agent up
   ends with it showing you the name and the job it wrote for itself, and waiting.
