@@ -23,12 +23,13 @@ covering it, and one consistent card treatment across every page. Later on
 2026-07-28 the app was audited end to end for speed and made meaningfully
 faster: navigation no longer hangs on a dead click, the session is checked
 locally instead of over the network, and the chat page went from about eight
-database round trips to two. On 2026-07-29 the groundwork for showing people
-what they have used was laid: the app had been recording only a tiny fraction
-of what a conversation actually costs, and now records all of it, keeps a
-readable history of every run, and can tell a person how much of their month
-is left. None of this is on screen yet. Next step: confirm the recording on a
-live conversation, then build the usage meter and its history list.
+database round trips to two. On 2026-07-29 people can finally see what they
+have used: the app had been recording only a tiny fraction of what a
+conversation actually costs and now records all of it, and a meter beside your
+account shows how much of the month is left and opens into a history of every
+run an agent has done for you. Next step: set the real monthly allowance,
+decide whether running out should stop a run, and give each entry in that
+history the detail that says what the run actually did.
 
 ---
 
@@ -80,6 +81,41 @@ Backend and data work only. Nothing changed on screen.
 - A reader for the history list itself, newest first, paged by time rather than
   position so a growing list does not skip entries.
 
+**Then the part people can see**
+
+- Confirmed the recording on a real conversation before building anything on
+  top of it. One ordinary question recorded 10 tokens of fresh prompt and 7,203
+  tokens of reused prompt. The old code would have counted only the 10, which
+  is the whole bug in one line.
+- A meter sits beside your account: how many runs you have used this month,
+  a quiet bar, and the date you get more. It counts runs rather than tokens,
+  because a token is our unit of cost and means nothing to someone deciding
+  whether they can finish their work.
+- Clicking it opens the history: every run, which agent did it, and when.
+  A run whose agent has since been deleted still names what it was.
+- Making it update by itself surfaced a quiet failure worth writing down. The
+  live connection carries its own credentials and does not inherit the ones the
+  rest of the app uses, so it connected as nobody, subscribed successfully, and
+  then received nothing at all, which looks exactly like an account with no
+  activity. It now signs in before it listens, and says so when it cannot.
+
+**Then made it cheap**
+
+- The meter is drawn on the server, because it is always on screen and fetching
+  it in the browser would trade a spinner for nothing. But it was asking the
+  question in a way no index can answer, so every page view read everything the
+  person had ever done and got slower for the rest of their life. Asked as a
+  date range instead, it comes off the index.
+- The history is fetched only when the panel is opened. Most visits never open
+  it, and carrying it on every page load would cost everyone for a few.
+- The live connection now exists only while that panel is open. Held open all
+  session it would spend a connection per tab, permanently, on a number that
+  changes a few times an hour and that nobody is looking at. Measured: none
+  open while the app sits idle, one while the panel is open, released on close.
+  The meter itself updates when a conversation finishes, which is also more
+  honest, since the server knows a run that failed or stopped to ask you
+  something does not count.
+
 **Decisions**
 
 - A run is one unit, not a weighted credit. A reference design we looked at
@@ -87,9 +123,11 @@ Backend and data work only. Nothing changed on screen.
   research job, but it makes the number unpredictable: you cannot tell what
   your next run will cost until it is over. This product hides the machinery
   everywhere else, so the meter counts runs and keeps cost internal.
-- Usage will be shown as a plan meter behind the avatar rather than as a
-  dashboard page. The shell is deliberately flat and a separate analytics page
-  would fight it.
+- Usage is shown as a plan meter beside the account rather than as a dashboard
+  page. The shell is deliberately flat and a separate analytics page would
+  fight it.
+- A run that fails is recorded and costed but not charged to the person.
+  Charging someone for our own failure is a way to lose them.
 
 **Known limits**
 
