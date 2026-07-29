@@ -76,9 +76,14 @@ export function AppSidebar({
       <SidebarFooter>
         <SidebarMenu>
           <SidebarMenuItem>
+            {/* Fetched before it is clicked, so the page is already in the
+                browser by then. Only these two: their data is small, stable,
+                and invalidated whenever it changes. A chat is none of those
+                things, and prefetching one would cache a message list that
+                goes out of date the moment the next reply lands. */}
             <SidebarMenuButton
               isActive={pathname.startsWith('/knowledge')}
-              render={<Link href="/knowledge" />}
+              render={<Link href="/knowledge" prefetch />}
             >
               <KnowledgeIcon className="size-4.5 shrink-0" />
               <span>Knowledge</span>
@@ -87,7 +92,7 @@ export function AppSidebar({
           <SidebarMenuItem>
             <SidebarMenuButton
               isActive={pathname.startsWith('/connectors')}
-              render={<Link href="/connectors" />}
+              render={<Link href="/connectors" prefetch />}
             >
               <ConnectorsIcon className="size-4.5 shrink-0" />
               <span>Connectors</span>

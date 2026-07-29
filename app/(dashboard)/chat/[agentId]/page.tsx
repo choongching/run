@@ -16,7 +16,7 @@ import {
   summarizeProposal,
   summarizeWrite,
 } from '@/lib/tools/definitions'
-import { getUserProfile } from '@/lib/auth'
+import { getUserIdentity } from '@/lib/auth'
 import {
   neededConnectors,
   parseSetupAnswers,
@@ -32,7 +32,7 @@ export default async function ChatPage({
   params: Promise<{ agentId: string }>
 }) {
   const { agentId } = await params
-  const { userId } = await getUserProfile()
+  const { userId } = await getUserIdentity()
   const supabase = await createClient()
 
   // Everything that depends only on the ids we already hold, in one round trip

@@ -3,7 +3,7 @@ import {
   KnowledgeLibrary,
   type LibrarySource,
 } from '@/components/knowledge/knowledge-library'
-import { getUserProfile } from '@/lib/auth'
+import { getUserIdentity } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 
 // The library: every source this user owns, and which agents use each one.
@@ -14,7 +14,7 @@ import { createClient } from '@/lib/supabase/server'
 // is also the only place an orphaned source (attached to nothing) can be
 // reached, which is why the split matters rather than being cosmetic.
 export default async function KnowledgePage() {
-  const { userId } = await getUserProfile()
+  const { userId } = await getUserIdentity()
   const supabase = await createClient()
 
   const [{ data: sources }, { data: links }] = await Promise.all([
