@@ -72,8 +72,8 @@ Step by step:
 7. **You get real things back.** Answers, documents you can download, and
    drafts waiting in your Gmail.
 8. **Send it files.** Attach a document or a screenshot and it reads it.
-9. **See what you have used.** A meter next to your name shows how much of the
-   month is left. Click it for the list of everything your agents have done.
+9. **Keep track of your usage.** How much of the month you have left, and what
+   your agents spent it on.
 
 ## How it is structured
 
