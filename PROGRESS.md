@@ -30,9 +30,101 @@ account shows how much of the month is left and opens into a history of every
 run an agent has done for you. Later the same day, setting up an agent gained a
 checkpoint: it now shows you the name and the job it wrote for itself and waits
 for you, and every failure in the chat was rewritten to be readable by a person.
+Late on 2026-07-29 into 2026-07-30 the app went through a second, deeper speed
+pass (every page paints instantly and streams its data in, identity is checked
+locally everywhere, likely-next pages are fetched before the click, a chat
+opens in one database round trip) and a consistency pass over Settings,
+Knowledge and Connectors: one centered column everywhere, a Claude row on the
+Connectors page so the product names the AI it runs on, tooltips on hover,
+quieter empty states, and much shorter words. Signing in now reacts the moment
+the button is pressed. The README opening was rewritten in the plain
+declarative style the founder wants all Run copy to follow from now on.
 Next step: set the real monthly allowance, decide whether running out should
 stop a run, and give agents their own connector list so a documents agent
 cannot reach your inbox at all.
+
+---
+
+## 2026-07-30 (with the late hours of 07-29): Faster everywhere, consistent everywhere, shorter everywhere
+
+Nineteen pull requests, #88 through #106, in three arcs: a deeper speed pass,
+a design consistency pass, and a writing pass that ended with a style the
+founder wants kept.
+
+**The second speed pass (#89, #102)**
+
+The Settings page felt slow, and the reasons turned out to sit in front of
+every page, not just that one.
+
+- Checking who you are was a network call to the auth server on every page and
+  every API request, measured at 123 to 651ms. It is now verified locally
+  against the project's signing key in about 12ms. The proxy had already been
+  fixed this way in the previous pass; two other callers had been missed.
+- The dashboard layout used to wait for all of its data before sending a
+  single byte, which also blocked every page's loading skeleton. The sidebar
+  is now a shell that paints immediately with three slots that stream in.
+  Measured on a production build, first paint went from 319ms of blank page to
+  about 30ms on every route.
+- Knowledge and Connectors are prefetched, so clicking them costs no network
+  at all: 846ms and about 2s down to 20ms and 14ms. Chat links are deliberately
+  not prefetched, because a cached chat would freeze its message list and a
+  reply could seem to vanish.
+- Opening a chat folded its messages into the thread query, one round trip
+  instead of two in series, on the most-walked path in the app.
+- Signing in was audited too. The password check itself costs 264 to 491ms at
+  the auth server and is deliberately slow, so the fix was feel: the button now
+  answers the press instantly with a spinner and cannot be pressed twice, the
+  fields carry autocomplete hints so password managers fill them at once, and
+  the email field takes focus on arrival.
+- Honest finding recorded for later: every request to Supabase carries a flat
+  ~120ms floor even for a no-op, proven by timing a health check against a
+  one-row read. That is likely the plan tier, not code, and checking it costs
+  no engineering time.
+- Also dropped two duplicate indexes on the usage table (migration 032) that
+  were maintained on every insert and served no read.
+
+**The consistency pass (#90 through #101)**
+
+The founder put three screenshots side by side and asked why only the chat
+page felt right. The answer was that only the chat page had a column.
+
+- One PageShell now wraps Settings, Knowledge and Connectors and their loading
+  skeletons: the same centered width the chat column uses. Four different
+  page widths became one, and the stray inner caps went with them.
+- The Connectors page now tells the whole truth about what an agent runs on: a
+  Claude row (official icon, "Always on", "Built in") joined Gmail and Drive,
+  and web search moved onto that row because that is where it actually comes
+  from. Connected states sit beside the app name with a small green check,
+  icon tiles grew to match the two text lines beside them, and Connect and
+  Disconnect explain themselves on hover in one line each.
+- The usage meter also explains itself on hover ("See this month's runs"), and
+  a brand-new user's empty sidebar now keeps the Agents heading with one quiet
+  dashed slot, "Your agents will live here", instead of going blank.
+- The words got shorter everywhere the founder pointed: both page subtitles cut
+  to one line each ("What your agents always know." / "What your agents can
+  use."), the Knowledge empty state boxed, its headline stepped down a level,
+  and every tooltip and footnote rewritten until it read like a person.
+
+**The writing pass (#104, #105, #106)**
+
+The README opening was rewritten in Paul Graham's style and the founder loved
+it outright, the first copy this project produced that came back without a
+revision round. The shape is now recorded in the write-copy skill as the north
+star for all Run copy: the headline is a claim, one idea per sentence, a
+concrete example early, and the best line saved for last as a turn
+("Describing what you want is the setup"). The three "What makes it different"
+bullets were reshaped the same way, and that section doubles as future landing
+page copy.
+
+**Skills taught what the sessions learned (#88)**
+
+Two new skills (write-copy, usage-accounting) and three updated ones
+(chat-tools, build-ui, phase-gate) now carry this week's hard-won rules:
+cache tokens are the cost, realtime needs setAuth before subscribe, a session
+waiting on a tool call rejects a plain user message, never run prettier, and
+a line that fails two rewrites should be deleted rather than polished.
+
+Merged to `main` via pull requests #88 through #106.
 
 ---
 
