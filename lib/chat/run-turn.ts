@@ -127,7 +127,7 @@ export function toolActivity(
 // stream text/activity, auto-execute read tools, and pause for approval when
 // the agent asks to run a write tool. Persists activity + the final reply and
 // records usage. Shared by the chat message route and the approve route.
-export async function drainSession(opts: {
+type DrainOpts = {
   anthropic: Anthropic
   sessionId: string
   supabase: SupabaseClient<Database>
@@ -137,21 +137,60 @@ export async function drainSession(opts: {
   threadId: string
   initialEvents: InitialEvents
   send: (frame: Frame) => void
-}): Promise<{ status: TurnStatus }> {
-  const {
-    anthropic,
-    sessionId,
-    supabase,
-    userId,
-    agentId,
-    agentModel,
-    threadId,
-    initialEvents,
-    send,
-  } = opts
+}
 
-  let inputTokens = 0
-  let outputTokens = 0
+// Tokens are tallied into a caller-owned object rather than local variables so
+// that a turn which throws halfway still reports what it spent. Locals would
+// be lost with the stack frame, and the spend would vanish from the ledger.
+type TokenTally = {
+  inputTokens: number
+  cacheCreationInputTokens: number
+  cacheReadInputTokens: number
+  outputTokens: number
+}
+
+// A turn always writes a usage row, whether it finished or fell over: the
+// tokens were spent either way, and a meter that silently misses every failure
+// drifts further from the truth with each one. A failed row is recorded but
+// not counted against the person's runs.
+export async function drainSession(
+  opts: DrainOpts
+): Promise<{ status: TurnStatus }> {
+  const tally: TokenTally = {
+    inputTokens: 0,
+    cacheCreationInputTokens: 0,
+    cacheReadInputTokens: 0,
+    outputTokens: 0,
+  }
+  let failed = false
+  try {
+    return await drainSessionInner(opts, tally)
+  } catch (err) {
+    failed = true
+    throw err
+  } finally {
+    void recordUsage({
+      userId: opts.userId,
+      agentId: opts.agentId,
+      threadId: opts.threadId,
+      model: opts.agentModel,
+      ...tally,
+      eventType: 'mission_run',
+      source: 'chat',
+      status: failed ? 'failed' : 'completed',
+    })
+  }
+}
+
+async function drainSessionInner(
+  opts: DrainOpts,
+  tally: TokenTally
+): Promise<{ status: TurnStatus }> {
+  // agentId and agentModel are the wrapper's business now: they describe the
+  // usage row, not the drain.
+  const { anthropic, sessionId, supabase, userId, threadId, initialEvents, send } =
+    opts
+
   const activityLabels: string[] = []
   const artifacts: { title: string; content: string }[] = []
   const agentParts: string[] = []
@@ -223,8 +262,15 @@ export async function drainSession(opts: {
         send({ type: 'activity', present: act.present, past: act.past })
       }
     } else if (event.type === 'span.model_request_end') {
-      inputTokens += event.model_usage.input_tokens
-      outputTokens += event.model_usage.output_tokens
+      // A session caches its prompt, so input_tokens alone is the small
+      // uncached remainder: on a real turn nearly the whole prompt arrives as
+      // cache reads instead. Count all three or the row understates input by
+      // orders of magnitude.
+      tally.inputTokens += event.model_usage.input_tokens
+      tally.cacheCreationInputTokens +=
+        event.model_usage.cache_creation_input_tokens
+      tally.cacheReadInputTokens += event.model_usage.cache_read_input_tokens
+      tally.outputTokens += event.model_usage.output_tokens
     } else if (event.type === 'session.error') {
       sessionError = event.error.message
     }
@@ -328,15 +374,6 @@ export async function drainSession(opts: {
       })
     }
   }
-
-  void recordUsage({
-    userId,
-    agentId,
-    model: agentModel,
-    inputTokens,
-    outputTokens,
-    eventType: 'mission_run',
-  })
 
   for (const label of activityLabels) {
     await supabase

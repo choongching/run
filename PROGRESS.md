@@ -23,8 +23,82 @@ covering it, and one consistent card treatment across every page. Later on
 2026-07-28 the app was audited end to end for speed and made meaningfully
 faster: navigation no longer hangs on a dead click, the session is checked
 locally instead of over the network, and the chat page went from about eight
-database round trips to two. Next step: give every person their own space with
-their own plan, then deploy for real users beyond the founder.
+database round trips to two. On 2026-07-29 the groundwork for showing people
+what they have used was laid: the app had been recording only a tiny fraction
+of what a conversation actually costs, and now records all of it, keeps a
+readable history of every run, and can tell a person how much of their month
+is left. None of this is on screen yet. Next step: confirm the recording on a
+live conversation, then build the usage meter and its history list.
+
+---
+
+## 2026-07-29: Counting what a conversation actually costs
+
+Backend and data work only. Nothing changed on screen.
+
+**The problem found**
+
+- The app has recorded usage since early on, and 129 real rows existed. They
+  were wrong. Between them, 118 recorded conversation turns claimed 990 input
+  tokens, about three per turn, which is impossible.
+- The cause: a conversation reuses most of its prompt, and the model reports
+  the reused part in separate fields we were ignoring. We counted only the
+  small leftover. Estimated cost was therefore understating a typical turn by
+  roughly 79 percent.
+- Two further gaps came out of tracing it. A turn that failed halfway recorded
+  nothing at all, so every failure quietly lost the money it had already spent.
+  And naming a new agent, which is a real model call, was never recorded.
+
+**What was built**
+
+- Usage rows now store the reused prompt counts as well, and price them
+  properly: reading back a cached prompt costs a tenth of the normal rate, and
+  saving one costs a quarter more. Checked the arithmetic on a typical turn:
+  2.48 cents where the old code said 0.53.
+- Pinned model versions are now priced as the model they are, instead of
+  falling through to a default that overcharged the small fast model threefold.
+- Every turn now writes its row whether it finished or fell over, and a failed
+  run is marked as such. Failures are not counted against a person's monthly
+  allowance, because charging someone for our own failure is a way to lose
+  them, but what they cost us is still recorded honestly.
+- Each run now records the name of the agent that did it, copied at the time.
+  Agents are deleted for real, so without this a deleted agent silently erased
+  itself from the whole history. Verified against the live database: after
+  deleting the agent, the history row keeps the name.
+- Each run also records which conversation it belongs to, so a history entry
+  can be clicked through to the work itself, and what started it: a person, a
+  schedule, or the app acting on their behalf. Scheduled runs do not exist yet,
+  but the column does, so their history will be right from the first one.
+- A monthly rollup, one row per person per month, so a usage meter is a single
+  cheap read rather than a scan. It respects the same permissions as the raw
+  table: verified that a person sees only their own months and a stranger sees
+  nothing.
+- The plan seam that already governs how many agents you can have now also
+  carries a monthly run allowance, and can answer "how much is left and when
+  does it come back". Not enforced anywhere yet; that is a product decision,
+  not a plumbing one.
+- A reader for the history list itself, newest first, paged by time rather than
+  position so a growing list does not skip entries.
+
+**Decisions**
+
+- A run is one unit, not a weighted credit. A reference design we looked at
+  bills fractional credits, which is fairer between a quick question and a long
+  research job, but it makes the number unpredictable: you cannot tell what
+  your next run will cost until it is over. This product hides the machinery
+  everywhere else, so the meter counts runs and keeps cost internal.
+- Usage will be shown as a plan meter behind the avatar rather than as a
+  dashboard page. The shell is deliberately flat and a separate analytics page
+  would fight it.
+
+**Known limits**
+
+- 113 of the 129 existing rows show no agent name. Their agents were deleted
+  before the column existed and there is nothing left to recover. New rows are
+  fine.
+- Rows written before this session undercount input and cannot be repaired.
+- The monthly rollup buckets by UTC, which will read slightly off for someone
+  far from that timezone near a month boundary.
 
 ---
 

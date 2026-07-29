@@ -21,6 +21,7 @@ import { canCreateAgent } from '@/lib/entitlements/assert'
 import { resetAgentSessions } from '@/lib/agents/recompose'
 import { loadAgentKnowledge } from '@/lib/knowledge/load'
 import { createClient } from '@/lib/supabase/server'
+import { recordUsage } from '@/lib/usage'
 
 // Fallback name when the model naming call is unavailable: a short slice of the
 // prompt so an agent is never left unnamed.
@@ -35,7 +36,14 @@ function deriveAgentName(prompt: string): string {
 
 // Name a new agent from its first prompt with a quick, cheap model call. Falls
 // back to the prompt slice if the call fails, so creation never blocks on it.
-async function generateAgentName(prompt: string): Promise<string> {
+//
+// Small, but a real model call: it is recorded like any other so the usage
+// table accounts for everything we spend on a person's behalf, not only the
+// turns they can see. No agent exists yet, hence no agent id on the row.
+async function generateAgentName(
+  prompt: string,
+  userId: string
+): Promise<string> {
   try {
     const anthropic = getAnthropicClient()
     const res = await anthropic.messages.create({
@@ -45,6 +53,17 @@ async function generateAgentName(prompt: string): Promise<string> {
         'You name AI agents. Given what an agent should do, reply with a short, human name of 2 to 4 words in Title Case that captures its job. Reply with only the name: no quotes, no punctuation, no preamble.',
       messages: [{ role: 'user', content: prompt.slice(0, 500) }],
     })
+    void recordUsage({
+      userId,
+      model: NAMING_MODEL,
+      inputTokens: res.usage.input_tokens,
+      cacheCreationInputTokens: res.usage.cache_creation_input_tokens ?? 0,
+      cacheReadInputTokens: res.usage.cache_read_input_tokens ?? 0,
+      outputTokens: res.usage.output_tokens,
+      eventType: 'agent_naming',
+      source: 'system',
+    })
+
     const block = res.content.find((b) => b.type === 'text')
     const raw = block && block.type === 'text' ? block.text : ''
     const name = raw
@@ -76,7 +95,7 @@ export async function startAgentFromPrompt(formData: FormData) {
     redirect(`/?error=${encodeURIComponent(allowed.reason)}`)
   }
 
-  const name = await generateAgentName(prompt)
+  const name = await generateAgentName(prompt, userId)
   // The prompt seeds the agent's instructions; the agent refines these
   // through conversation (Phase 2) or the config panel (Phase 4).
   // buildSystemPrompt folds in the always-on role boundary from creation so a
