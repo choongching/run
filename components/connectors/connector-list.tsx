@@ -7,6 +7,12 @@ import { toast } from 'sonner'
 import { GmailIcon } from '@/components/icons/gmail'
 import { GoogleDriveIcon } from '@/components/icons/google-drive'
 import { Button } from '@/components/ui/button'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 // The connectors a user can link, and the row that links them.
 //
@@ -165,16 +171,47 @@ export function ConnectorRow({
           <p className="mt-1 text-xs text-muted-foreground">{detail}</p>
         )}
       </div>
-      {connected ? (
-        <Button variant="ghost" size="sm" onClick={disconnect} disabled={busy}>
-          {busy ? <Loader2 className="size-3.5 animate-spin" /> : 'Disconnect'}
-        </Button>
-      ) : (
-        <Button size="sm" onClick={connect} disabled={busy}>
-          {busy && <Loader2 className="size-3.5 animate-spin" />}
-          {busy ? 'Connecting' : 'Connect'}
-        </Button>
-      )}
+      {/* One line on hover saying what the click does, in consequences, not
+          mechanics. Same recipe as the configure toggle in config-dock. */}
+      <TooltipProvider delay={300}>
+        <Tooltip>
+          {connected ? (
+            <>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={disconnect}
+                    disabled={busy}
+                  />
+                }
+              >
+                {busy ? (
+                  <Loader2 className="size-3.5 animate-spin" />
+                ) : (
+                  'Disconnect'
+                )}
+              </TooltipTrigger>
+              <TooltipContent side="bottom" sideOffset={8}>
+                Your agents lose access to this account
+              </TooltipContent>
+            </>
+          ) : (
+            <>
+              <TooltipTrigger
+                render={<Button size="sm" onClick={connect} disabled={busy} />}
+              >
+                {busy && <Loader2 className="size-3.5 animate-spin" />}
+                {busy ? 'Connecting' : 'Connect'}
+              </TooltipTrigger>
+              <TooltipContent side="bottom" sideOffset={8}>
+                Sign in to give your agents access
+              </TooltipContent>
+            </>
+          )}
+        </Tooltip>
+      </TooltipProvider>
     </div>
   )
 }
