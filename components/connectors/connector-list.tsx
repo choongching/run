@@ -194,7 +194,7 @@ export function ConnectorRow({
                 )}
               </TooltipTrigger>
               <TooltipContent side="bottom" sideOffset={8}>
-                Your agents lose access to this account
+                Your agents will stop using this account
               </TooltipContent>
             </>
           ) : (
