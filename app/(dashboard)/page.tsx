@@ -3,7 +3,7 @@ import Image from 'next/image'
 import { AmbientBackdrop } from '@/components/home/ambient-backdrop'
 import { FlipWord } from '@/components/home/flip-word'
 import { PromptComposer } from '@/components/home/prompt-composer'
-import { getUserProfile } from '@/lib/auth'
+import { getUserIdentity } from '@/lib/auth'
 import { canCreateAgent } from '@/lib/entitlements/assert'
 import { createClient } from '@/lib/supabase/server'
 
@@ -20,7 +20,7 @@ export default async function HomePage({
 }: {
   searchParams: Promise<{ error?: string }>
 }) {
-  const { userId } = await getUserProfile()
+  const { userId } = await getUserIdentity()
   const { error } = await searchParams
 
   // Ask the same helper the server action asks, so the box is only enabled

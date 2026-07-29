@@ -1,48 +1,51 @@
-import { AppSidebar } from '@/components/app-sidebar'
-import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
-import { getUserProfile } from '@/lib/auth'
-import { getRunAllowance } from '@/lib/entitlements/assert'
-import { createClient } from '@/lib/supabase/server'
-import type { SidebarAgent } from '@/components/app-sidebar'
+import { Suspense } from 'react'
 
-export default async function DashboardLayout({
+import { AppSidebar } from '@/components/app-sidebar'
+import {
+  AccountFallback,
+  AccountSection,
+  AgentsFallback,
+  AgentsSection,
+  MeterFallback,
+  MeterSection,
+} from '@/components/sidebar/sections'
+import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+
+// This layout awaits nothing.
+//
+// It used to resolve the identity, the profile, the agent list and the usage
+// count before returning a single byte, and a layout blocks everything inside
+// it: the page's own loading.tsx could not show either, so a person sat looking
+// at nothing for as long as the slowest of those took. Measured from a laptop
+// against a remote database that was most of a second.
+//
+// Now the shell and the page skeleton paint immediately and each piece of data
+// streams into its own Suspense boundary as it arrives. The reads still run
+// concurrently, so nothing got slower; what changed is that the first paint no
+// longer waits for any of them.
+export default function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const { userId, email, profile } = await getUserProfile()
-  const supabase = await createClient()
-
-  // Both reads feed the sidebar and neither depends on the other, so they go
-  // together rather than one after the other.
-  const [{ data: agentRows }, usage] = await Promise.all([
-    // The sidebar is the user's list of agents (each an ongoing chat). v1 shows
-    // the agents they own; RLS scopes the read regardless.
-    supabase
-      .from('agents')
-      .select('id, name, status')
-      .eq('owner_id', userId)
-      .neq('status', 'archived')
-      .order('updated_at', { ascending: false }),
-    // No plan column exists yet, so everyone resolves to the default
-    // plan. The argument is here for when billing gives them one.
-    getRunAllowance(supabase, userId),
-  ])
-
-  const agents: SidebarAgent[] = (agentRows ?? []).map((row) => ({
-    id: row.id,
-    name: row.name,
-  }))
-
   return (
     <SidebarProvider>
       <AppSidebar
-        displayName={profile?.display_name ?? ''}
-        email={email}
-        avatarUrl={profile?.avatar_url ?? null}
-        agents={agents}
-        userId={userId}
-        usage={usage}
+        agentSlot={
+          <Suspense fallback={<AgentsFallback />}>
+            <AgentsSection />
+          </Suspense>
+        }
+        meterSlot={
+          <Suspense fallback={<MeterFallback />}>
+            <MeterSection />
+          </Suspense>
+        }
+        accountSlot={
+          <Suspense fallback={<AccountFallback />}>
+            <AccountSection />
+          </Suspense>
+        }
       />
       <SidebarInset>
         {/* The scroll container for page content. Normal pages scroll here;

@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache'
 
 import { recomposeAgentPrompt } from '@/lib/agents/recompose'
-import { getUserProfile } from '@/lib/auth'
+import { getUserIdentity } from '@/lib/auth'
 import {
   attachRefusal,
   MAX_LIBRARY_SOURCES,
@@ -43,7 +43,7 @@ export async function addKnowledgeNote(
     return { ok: false, confirm: true, reason: sensitiveWarning(findings) }
   }
 
-  const { userId } = await getUserProfile()
+  const { userId } = await getUserIdentity()
   const supabase = await createClient()
 
   // Before creating anything, so a non-owner never leaves an orphaned source
@@ -93,7 +93,7 @@ export async function attachKnowledge(
   agentId: string,
   sourceId: string
 ): Promise<KnowledgeResult> {
-  const { userId } = await getUserProfile()
+  const { userId } = await getUserIdentity()
   const supabase = await createClient()
   if (!(await ownsAgent(supabase, agentId, userId))) {
     return { ok: false, reason: NOT_AGENT_OWNER }
@@ -123,7 +123,7 @@ async function attachAndRecompose(
   agentId: string,
   sourceId: string
 ): Promise<KnowledgeResult> {
-  const { userId } = await getUserProfile()
+  const { userId } = await getUserIdentity()
   const supabase = await createClient()
 
   const { error } = await supabase
@@ -149,7 +149,7 @@ export async function detachKnowledge(
   agentId: string,
   sourceId: string
 ): Promise<KnowledgeResult> {
-  const { userId } = await getUserProfile()
+  const { userId } = await getUserIdentity()
   const supabase = await createClient()
   // Without this, RLS quietly matches no rows and the caller is told it worked
   // while the source stays attached.
@@ -175,7 +175,7 @@ export async function detachKnowledge(
 export async function deleteKnowledgeSource(
   sourceId: string
 ): Promise<KnowledgeResult> {
-  const { userId } = await getUserProfile()
+  const { userId } = await getUserIdentity()
   const supabase = await createClient()
 
   // Capture the affected agents before the cascade removes the links.
@@ -213,7 +213,7 @@ export async function setKnowledgeScope(
   sourceId: string,
   appliesToAll: boolean
 ): Promise<KnowledgeResult> {
-  const { userId } = await getUserProfile()
+  const { userId } = await getUserIdentity()
   const supabase = await createClient()
 
   const { data: source } = await supabase
@@ -286,7 +286,7 @@ export async function renameKnowledgeSource(
   const title = rawTitle.trim().replace(/\s+/g, ' ').slice(0, 120)
   if (!title) return { ok: false, reason: 'Give this a name.' }
 
-  const { userId } = await getUserProfile()
+  const { userId } = await getUserIdentity()
   const supabase = await createClient()
 
   const { data: links } = await supabase

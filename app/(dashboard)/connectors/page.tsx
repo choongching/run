@@ -1,6 +1,6 @@
 import { PageHeader } from '@/components/page-header'
 import { ConnectorsManager } from '@/components/connectors/connectors-manager'
-import { getUserProfile } from '@/lib/auth'
+import { getUserIdentity } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import { getUserConnection } from '@/lib/pipedream/connections'
 
@@ -14,7 +14,7 @@ import { getUserConnection } from '@/lib/pipedream/connections'
 // management half: see what is linked, link something before you need it, and
 // disconnect without hunting through an agent.
 export default async function ConnectorsPage() {
-  const { userId } = await getUserProfile()
+  const { userId } = await getUserIdentity()
   const supabase = await createClient()
 
   const [gmail, drive] = await Promise.all([

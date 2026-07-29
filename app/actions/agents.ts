@@ -11,7 +11,7 @@ import {
   NAMING_MODEL,
   getAnthropicClient,
 } from '@/lib/anthropic/client'
-import { getUserProfile } from '@/lib/auth'
+import { getUserIdentity } from '@/lib/auth'
 import {
   DEFAULT_PERSONALITY,
   isPersonality,
@@ -85,7 +85,7 @@ export async function startAgentFromPrompt(formData: FormData) {
   const prompt = String(formData.get('prompt') ?? '').trim()
   if (!prompt) redirect('/')
 
-  const { userId } = await getUserProfile()
+  const { userId } = await getUserIdentity()
   const supabase = await createClient()
 
   // Before the naming call and before anything is created remotely, so hitting
@@ -169,7 +169,7 @@ export async function renameAgent(agentId: string, rawName: string) {
   const name = rawName.trim().replace(/\s+/g, ' ').slice(0, 60)
   if (!name) return
 
-  const { userId } = await getUserProfile()
+  const { userId } = await getUserIdentity()
   const supabase = await createClient()
 
   const { data: agent, error } = await supabase
@@ -224,7 +224,7 @@ export async function updateAgentConfig(
     : DEFAULT_PERSONALITY
   if (!name) return
 
-  const { userId } = await getUserProfile()
+  const { userId } = await getUserIdentity()
   const supabase = await createClient()
 
   const { data: current } = await supabase
@@ -295,7 +295,7 @@ export async function updateAgentConfig(
 // agent so the console is not littered. Owner-scoped: a non-owner call is a
 // silent no-op. The client navigates away afterward, since the chat is gone.
 export async function deleteAgent(agentId: string) {
-  const { userId } = await getUserProfile()
+  const { userId } = await getUserIdentity()
   const supabase = await createClient()
 
   // Capture the remote id before the row is gone; it cannot be looked up after.

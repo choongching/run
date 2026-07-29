@@ -16,7 +16,7 @@ import {
   summarizeProposal,
   summarizeWrite,
 } from '@/lib/tools/definitions'
-import { getUserProfile } from '@/lib/auth'
+import { getUserIdentity } from '@/lib/auth'
 import {
   neededConnectors,
   parseSetupAnswers,
@@ -32,7 +32,7 @@ export default async function ChatPage({
   params: Promise<{ agentId: string }>
 }) {
   const { agentId } = await params
-  const { userId } = await getUserProfile()
+  const { userId } = await getUserIdentity()
   const supabase = await createClient()
 
   // Everything that depends only on the ids we already hold, in one round trip
@@ -45,6 +45,12 @@ export default async function ChatPage({
   // always needed a second query to learn the id. Reading first inverts that:
   // after the first visit, which is almost every visit, this is the only query
   // the thread costs.
+  //
+  // The messages come EMBEDDED in the thread read. They used to be a separate
+  // query that waited on the thread id, which put a second full round trip to
+  // Supabase behind the first on every chat open, the most-walked path in the
+  // app. The join collapses that to one. A thread created below has no
+  // messages by definition, so only this path ever needs them.
   const [{ data: agent }, { data: existingThread }] = await Promise.all([
     supabase
       .from('agents')
@@ -55,9 +61,12 @@ export default async function ChatPage({
       .single(),
     supabase
       .from('threads')
-      .select('id, pending_tools, pending_attachment')
+      .select(
+        'id, pending_tools, pending_attachment, messages(id, role, content, attachments, payload, created_at)'
+      )
       .eq('agent_id', agentId)
       .eq('user_id', userId)
+      .order('id', { referencedTable: 'messages' })
       .maybeSingle(),
   ])
 
@@ -85,18 +94,16 @@ export default async function ChatPage({
       )
     const { data: created } = await supabase
       .from('threads')
-      .select('id, pending_tools, pending_attachment')
+      .select(
+        'id, pending_tools, pending_attachment, messages(id, role, content, attachments, payload, created_at)'
+      )
       .eq('agent_id', agent.id)
       .eq('user_id', userId)
       .single()
     thread = created
   }
 
-  const { data: rows } = await supabase
-    .from('messages')
-    .select('id, role, content, attachments, payload, created_at')
-    .eq('thread_id', thread!.id)
-    .order('id')
+  const rows = thread?.messages ?? []
 
   const initialMessages: ChatMessage[] = (rows ?? []).map((r) => {
     const artifact = (r.payload as { artifact?: ArtifactMeta } | null)?.artifact
