@@ -52,5 +52,5 @@ export function agentLimitReason(limit: number): string {
 }
 
 export function runLimitReason(limit: number): string {
-  return `You have used all ${limit} runs for this month. They come back at the start of next month.`
+  return `You have used all ${limit} of your runs this month. You get a fresh ${limit} at the start of next month.`
 }

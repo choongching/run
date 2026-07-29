@@ -123,13 +123,21 @@ function UsageHistory({
     day: 'numeric',
   })
 
+  // Say it the way a person would: what you have used, then when you get more.
+  // "132 of 200" is a status line, not a sentence, and nobody says their runs
+  // "come back". When they are all gone, spell that out rather than making
+  // someone compare two identical numbers.
+  const summary =
+    count >= limit
+      ? `You've used all ${limit.toLocaleString()} of your runs this month.`
+      : `You've used ${count.toLocaleString()} of your ${limit.toLocaleString()} runs this month.`
+
   return (
     <>
       <DialogHeader>
         <DialogTitle>Usage</DialogTitle>
         <DialogDescription>
-          {count.toLocaleString()} of {limit.toLocaleString()} runs this month.
-          They come back on {resets}.
+          {summary} You get a fresh {limit.toLocaleString()} on {resets}.
         </DialogDescription>
       </DialogHeader>
 
@@ -139,8 +147,8 @@ function UsageHistory({
         </p>
       ) : runs.length === 0 ? (
         <p className="py-8 text-center text-sm text-muted-foreground">
-          Nothing yet this month. Every time an agent does a piece of work for
-          you, it shows up here.
+          Nothing yet this month. Every time one of your agents does something
+          for you, it will show up here.
         </p>
       ) : (
         <div className="max-h-96 divide-y overflow-y-auto rounded-xl border">
