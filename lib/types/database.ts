@@ -9,7 +9,16 @@ export type Json =
 export type UserRole = 'admin' | 'user'
 export type AgentEnabledTools = { web_search: boolean; drive: boolean }
 export type AgentStatus = 'draft' | 'active' | 'paused' | 'archived'
-export type UsageEventType = 'mission_run' | 'prompt_generation'
+export type UsageEventType =
+  | 'mission_run'
+  | 'prompt_generation'
+  | 'agent_naming'
+// What started the work: the person asked, a schedule fired, or we did it on
+// their behalf. Separate from UsageEventType, which says what kind of work.
+export type UsageSource = 'chat' | 'schedule' | 'system'
+// A failed run still cost us, so it is still recorded; it just is not charged
+// to the person or shown to them as work delivered.
+export type UsageStatus = 'completed' | 'failed'
 export type MessageRole = 'user' | 'agent' | 'activity'
 // How a knowledge source's text got here: typed in, or extracted from an
 // upload. Connector-backed sources will add their own kind.
@@ -216,8 +225,14 @@ export type Database = {
           id: string
           user_id: string
           agent_id: string | null
+          agent_name: string | null
+          thread_id: string | null
+          source: UsageSource
+          status: UsageStatus
           model: string
           input_tokens: number
+          cache_creation_input_tokens: number
+          cache_read_input_tokens: number
           output_tokens: number
           cost_usd: number
           event_type: UsageEventType
@@ -227,8 +242,14 @@ export type Database = {
           id?: string
           user_id: string
           agent_id?: string | null
+          agent_name?: string | null
+          thread_id?: string | null
+          source?: UsageSource
+          status?: UsageStatus
           model: string
           input_tokens?: number
+          cache_creation_input_tokens?: number
+          cache_read_input_tokens?: number
           output_tokens?: number
           cost_usd?: number
           event_type: UsageEventType
@@ -238,8 +259,14 @@ export type Database = {
           id?: string
           user_id?: string
           agent_id?: string | null
+          agent_name?: string | null
+          thread_id?: string | null
+          source?: UsageSource
+          status?: UsageStatus
           model?: string
           input_tokens?: number
+          cache_creation_input_tokens?: number
+          cache_read_input_tokens?: number
           output_tokens?: number
           cost_usd?: number
           event_type?: UsageEventType
@@ -258,6 +285,13 @@ export type Database = {
             columns: ['agent_id']
             isOneToOne: false
             referencedRelation: 'agents'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'usage_events_thread_id_fkey'
+            columns: ['thread_id']
+            isOneToOne: false
+            referencedRelation: 'threads'
             referencedColumns: ['id']
           },
         ]
@@ -372,7 +406,33 @@ export type Database = {
         Relationships: []
       }
     }
-    Views: Record<string, never>
+    Views: {
+      // One row per person per month. Read-only rollup of usage_events; RLS
+      // is the table's own (security_invoker), so a reader sees only months
+      // they are allowed to see.
+      usage_monthly: {
+        Row: {
+          user_id: string
+          month: string
+          runs: number
+          failed_runs: number
+          input_tokens: number
+          cache_creation_input_tokens: number
+          cache_read_input_tokens: number
+          output_tokens: number
+          cost_usd: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'usage_events_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+    }
     Functions: {
       get_my_role: {
         Args: Record<string, never>
@@ -397,3 +457,4 @@ export type Thread = Database['public']['Tables']['threads']['Row']
 export type Message = Database['public']['Tables']['messages']['Row']
 export type UserConnection = Database['public']['Tables']['user_connections']['Row']
 export type UsageEvent = Database['public']['Tables']['usage_events']['Row']
+export type UsageMonth = Database['public']['Views']['usage_monthly']['Row']

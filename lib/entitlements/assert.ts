@@ -1,6 +1,10 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-import { agentLimitReason, planFor } from '@/lib/entitlements/plans'
+import {
+  agentLimitReason,
+  planFor,
+  runLimitReason,
+} from '@/lib/entitlements/plans'
 import type { Database } from '@/lib/types/database'
 
 // The one place a limit is enforced.
@@ -38,6 +42,65 @@ export async function canCreateAgent(
   const used = await countAgents(supabase, userId)
   if (used >= limits.agents) {
     return { ok: false, reason: agentLimitReason(limits.agents) }
+  }
+  return { ok: true }
+}
+
+// What a meter needs: used, the limit it is measured against, and when it
+// refills. One read of the monthly rollup rather than a scan the caller sums.
+//
+// The period is the calendar month, so "when does this come back" is a date a
+// person can already picture. A row is missing until the first run of a month,
+// which reads as zero rather than as an error.
+export type RunAllowance = {
+  used: number
+  limit: number
+  resetsAt: string
+}
+
+function monthStart(now = new Date()): Date {
+  return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1))
+}
+
+export async function getRunAllowance(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  planId?: string | null
+): Promise<RunAllowance> {
+  const { limits } = planFor(planId)
+  const start = monthStart()
+
+  // Counted straight off the table rather than read from usage_monthly, and
+  // the difference is not cosmetic. The view groups by date_trunc('month'),
+  // and a filter on a computed column cannot use an index, so reading it costs
+  // a scan of everything the person has ever done. This runs in the layout, on
+  // every route, so that scan would grow with their whole history forever. A
+  // plain range on created_at is the same answer from an index.
+  //
+  // head: true asks for the count without the rows.
+  const { count } = await supabase
+    .from('usage_events')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', userId)
+    .eq('event_type', 'mission_run')
+    .eq('status', 'completed')
+    .gte('created_at', start.toISOString())
+
+  const resetsAt = new Date(
+    Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 1)
+  ).toISOString()
+
+  return { used: count ?? 0, limit: limits.runsPerMonth, resetsAt }
+}
+
+export async function canRunAgent(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  planId?: string | null
+): Promise<Allowance> {
+  const { used, limit } = await getRunAllowance(supabase, userId, planId)
+  if (used >= limit) {
+    return { ok: false, reason: runLimitReason(limit) }
   }
   return { ok: true }
 }
