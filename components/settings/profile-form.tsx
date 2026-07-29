@@ -80,7 +80,7 @@ export function ProfileForm({
   }
 
   return (
-    <Card className="max-w-xl">
+    <Card>
       <CardHeader>
         <CardTitle>Profile</CardTitle>
         <CardDescription>

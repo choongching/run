@@ -1,4 +1,5 @@
 import { PageHeader } from '@/components/page-header'
+import { PageShell } from '@/components/page-shell'
 import {
   KnowledgeLibrary,
   type LibrarySource,
@@ -49,12 +50,12 @@ export default async function KnowledgePage() {
   const totalChars = items.reduce((sum, s) => sum + s.chars, 0)
 
   return (
-    <div className="p-6 md:p-8">
+    <PageShell>
       <PageHeader
         title="Knowledge"
-        description="What your agents always know. Add a source from inside an agent's Configure panel, then manage it here and choose whether it applies to one agent or to all of them."
+        description="What your agents always know."
       />
       <KnowledgeLibrary items={items} totalChars={totalChars} />
-    </div>
+    </PageShell>
   )
 }
