@@ -8,8 +8,13 @@ import {
   DialogDescription,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from '@/components/ui/dialog'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { subscribeToRuns } from '@/lib/usage-live'
 import type { RunHistoryEntry } from '@/lib/usage'
 
@@ -35,6 +40,10 @@ export function UsageMeter({ userId, used, limit, resetsAt }: UsageMeterProps) {
   // it and re-seeds the state below. Syncing a prop into state from an effect
   // instead would fight React and is what the lint rule forbids.
   const [count, setCount] = useState(used)
+  // The dialog is controlled here rather than by a DialogTrigger, because the
+  // button doubles as a TooltipTrigger and one element cannot be two base-nova
+  // triggers at once.
+  const [open, setOpen] = useState(false)
 
   const pct = limit > 0 ? Math.min(100, Math.round((count / limit) * 100)) : 0
   // Green is the app's action colour and stays rare, so a healthy meter is
@@ -44,36 +53,44 @@ export function UsageMeter({ userId, used, limit, resetsAt }: UsageMeterProps) {
     pct >= 100 ? 'bg-destructive' : pct >= 80 ? 'bg-chart-4' : 'bg-foreground/70'
 
   return (
-    <Dialog>
-      <DialogTrigger
-        render={
-          <button
-            type="button"
-            className="w-full cursor-pointer rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-sidebar-accent/60"
-            aria-label="Usage this month"
-          />
-        }
-      >
-        <div className="flex items-baseline justify-between gap-2">
-          <span className="text-xs font-medium tabular-nums">
-            {count.toLocaleString()}
-            <span className="text-muted-foreground">
-              {' / '}
-              {limit.toLocaleString()}
-            </span>
-          </span>
-          <span className="text-xs text-muted-foreground">runs</span>
-        </div>
-        {/* The track is the hairline token, not the muted fill: muted and the
-            sidebar canvas are within a shade of each other, so the unspent
-            part of the month would read as empty space. */}
-        <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-border">
-          <div
-            className={`h-full rounded-full transition-[width] ${fill}`}
-            style={{ width: `${pct}%` }}
-          />
-        </div>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <TooltipProvider delay={300}>
+        <Tooltip>
+          <TooltipTrigger
+            render={
+              <button
+                type="button"
+                onClick={() => setOpen(true)}
+                className="w-full cursor-pointer rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-sidebar-accent/60"
+                aria-label="Usage this month"
+              />
+            }
+          >
+            <div className="flex items-baseline justify-between gap-2">
+              <span className="text-xs font-medium tabular-nums">
+                {count.toLocaleString()}
+                <span className="text-muted-foreground">
+                  {' / '}
+                  {limit.toLocaleString()}
+                </span>
+              </span>
+              <span className="text-xs text-muted-foreground">runs</span>
+            </div>
+            {/* The track is the hairline token, not the muted fill: muted and
+                the sidebar canvas are within a shade of each other, so the
+                unspent part of the month would read as empty space. */}
+            <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-border">
+              <div
+                className={`h-full rounded-full transition-[width] ${fill}`}
+                style={{ width: `${pct}%` }}
+              />
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="top" sideOffset={8}>
+            Your runs this month. Click to see each one
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
       <DialogContent className="sm:max-w-xl">
         <UsageHistory
           userId={userId}
