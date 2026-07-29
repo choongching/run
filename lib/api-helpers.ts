@@ -15,7 +15,15 @@ export async function requireUser(): Promise<UserCheck> {
   } = await supabase.auth.getUser()
   if (!user) {
     return {
-      error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }),
+      // Reaches a person, so it is written for one. "Unauthorized" tells
+      // someone whose session quietly expired nothing about what to do.
+      error: NextResponse.json(
+        {
+          error: 'You have been signed out.',
+          sub: 'Sign in again and your conversations will be where you left them.',
+        },
+        { status: 401 }
+      ),
       supabase: null,
       userId: null,
     }

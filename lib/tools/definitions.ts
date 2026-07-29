@@ -56,6 +56,36 @@ export function isAskTool(name: string): boolean {
   return name === ASK_USER_TOOL
 }
 
+// propose_setup ends the setup interview by showing the user what the agent is
+// about to become, and waiting. It pauses the turn exactly like a question
+// does, because the point of it is to stop.
+//
+// The agent writes the proposal rather than the server, so that a person who
+// says "no, I meant invoices" gets a rewritten card instead of a nice reply
+// next to a stale one. It rides the closing turn the interview already takes.
+export const PROPOSE_SETUP_TOOL = 'propose_setup'
+
+export function isProposeTool(name: string): boolean {
+  return name === PROPOSE_SETUP_TOOL
+}
+
+export type SetupProposal = { name: string; instructions: string }
+
+// Normalize a propose_setup call into what the review card renders. Tolerant
+// of loose model output; the caller supplies fallbacks for anything missing so
+// the card can always be drawn.
+export function summarizeProposal(
+  input: Record<string, unknown>,
+  fallback: SetupProposal
+): SetupProposal {
+  const name = String(input.name ?? '').trim()
+  const instructions = String(input.instructions ?? '').trim()
+  return {
+    name: name.slice(0, 60) || fallback.name,
+    instructions: instructions || fallback.instructions,
+  }
+}
+
 // create_document is neither a read nor an external write: it produces a
 // downloadable Markdown artifact IN the chat, with no external side effect
 // (nothing leaves the app). It auto-runs like a read.
@@ -288,6 +318,28 @@ export const CHAT_TOOL_DEFINITIONS = [
         },
       },
       required: ['question'],
+    },
+  },
+  {
+    type: 'custom' as const,
+    name: PROPOSE_SETUP_TOOL,
+    description:
+      "End the first-run setup interview. Call this INSTEAD of replying with a plain confirmation sentence, once you understand what the user wants. Pass the `name` the agent should be called and the `instructions` describing its job, both written in the user's own terms and in plain language. The user sees them, can edit them, and taps to confirm before you begin any work. If they reply asking for something different, revise and call this again with the new wording. Setup only: never call this once setup is complete.",
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        name: {
+          type: 'string',
+          description:
+            'Short, human name for the agent, 2 to 4 words in Title Case.',
+        },
+        instructions: {
+          type: 'string',
+          description:
+            "One short paragraph, written to the user, saying what this agent will do for them and how. Plain sentences, no headings or lists.",
+        },
+      },
+      required: ['name', 'instructions'],
     },
   },
 ]

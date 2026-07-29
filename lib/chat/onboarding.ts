@@ -17,9 +17,9 @@ export const ONBOARDING_KICKOFF = `[SETUP] This is your first conversation with 
 1. Introduce yourself in one or two warm, plain sentences based on what you are for. No jargon.
 2. Say you have a couple of quick questions so you can set things up well.
 3. Then use the ask_user tool to interview them ONE question at a time to understand exactly what they want from you and how they want it. For each question give 3 to 6 concrete options, each with a short label and a one-line description, and set step and total so they see progress (aim for about 3 questions). Adapt each question to their previous answers.
-4. Keep going until their intent and goal are clear, then stop asking and reply with one short sentence confirming what you understood and will do for them.
+4. Keep going until their intent and goal are clear, then stop asking. Say one short sentence confirming what you understood, and in the SAME turn call the propose_setup tool with the name you should be called and the instructions describing your job, both in their words. They will see it, edit it if they want, and confirm before you begin. If they reply asking for something different, revise and call propose_setup again.
 
-Write in plain, warm sentences with normal punctuation; do not use em dashes. Do not use any tool other than ask_user during setup, and do not start the actual task yet. This is setup only.`
+Write in plain, warm sentences with normal punctuation; do not use em dashes. Do not use any tool other than ask_user and propose_setup during setup, and do not start the actual task yet. This is setup only.`
 
 // After the brief is saved, the agent runs the first real task. Also hidden.
 export const FIRST_TASK_KICKOFF = `[SETUP COMPLETE] Setup is done and saved. Now go ahead and do the first, most useful thing the user set you up for, based on everything you just learned. If you need access to a tool that is not connected yet, ask them to connect it. Do not repeat the setup questions.`
@@ -31,6 +31,42 @@ export const FIRST_TASK_KICKOFF = `[SETUP COMPLETE] Setup is done and saved. Now
 export const CONNECTED_KICKOFF = `[CONNECTED] The user has just connected the account you asked for. Begin your reply with one short, friendly sentence confirming you can see it is connected now (for example: "Great, I can see your Gmail is connected now."). Then continue exactly where you left off: retry the step you could not complete before, and carry on with what they originally asked you to do. Do not ask them to connect anything again, and do not repeat earlier questions.`
 
 export type SetupAnswer = { q: string; a: string }
+
+// Which connected account a new agent is going to want, read off what the
+// person just said rather than off its configuration.
+//
+// Configuration cannot answer this today: every agent is handed the same five
+// tools, three for Gmail and two for Drive, so "what this agent can touch" is
+// the same sentence for all of them. Saying that out loud would tell someone
+// whose agent reads documents that it also wants their email, which is worse
+// than saying nothing.
+//
+// So this only ever names something the person named first, in their own
+// answers or in the prompt they wrote. When nothing matches it returns
+// nothing, and the line disappears rather than guessing.
+export type NeededConnector = 'gmail' | 'google_drive'
+
+const CONNECTOR_HINTS: { app: NeededConnector; pattern: RegExp }[] = [
+  { app: 'gmail', pattern: /\b(gmail|inbox|e-?mail|emails?|reply|replies)\b/i },
+  {
+    app: 'google_drive',
+    pattern: /\b(drive|documents?|docs?|files?|folders?|spreadsheets?|sheets?|slides?|pdfs?)\b/i,
+  },
+]
+
+export function neededConnectors(
+  answers: SetupAnswer[],
+  baseInstructions: string | null
+): NeededConnector[] {
+  const haystack = [
+    baseInstructions ?? '',
+    ...answers.flatMap((entry) => [entry.q, entry.a]),
+  ].join(' ')
+
+  return CONNECTOR_HINTS.filter(({ pattern }) => pattern.test(haystack)).map(
+    ({ app }) => app
+  )
+}
 
 // A fixed security policy on every agent. It defends against indirect prompt
 // injection: the agent reads untrusted content (emails, files, uploads, web

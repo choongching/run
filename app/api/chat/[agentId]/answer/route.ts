@@ -1,8 +1,9 @@
 import { requireUser } from '@/lib/api-helpers'
+import { toChatError } from '@/lib/chat/errors'
 import { getAnthropicClient } from '@/lib/anthropic/client'
 import {
-  finalizeOnboarding,
-  FIRST_TASK_KICKOFF,
+  neededConnectors,
+  stripBrief,
   type SetupAnswer,
 } from '@/lib/chat/onboarding'
 import { drainSession, type Frame, type PendingCall } from '@/lib/chat/run-turn'
@@ -31,11 +32,11 @@ export async function POST(
 
   const { data: agent } = await supabase
     .from('agents')
-    .select('id, model, onboarded, system_prompt, claude_agent_id, claude_version, personality')
+    .select('id, name, model, onboarded, system_prompt, claude_agent_id, claude_version, personality')
     .eq('id', agentId)
     .single()
   if (!agent) {
-    return Response.json({ error: 'Agent not found' }, { status: 404 })
+    return Response.json({ error: 'That agent is not here any more.' }, { status: 404 })
   }
 
   const { data: thread } = await supabase
@@ -48,7 +49,7 @@ export async function POST(
   const pending = (thread?.pending_tools as unknown as PendingCall[] | null) ?? []
   const askCall = pending.find((c) => isAskTool(c.name))
   if (!thread?.session_id || !askCall) {
-    return Response.json({ error: 'Nothing is awaiting an answer' }, { status: 409 })
+    return Response.json({ error: 'That question has already been answered.' }, { status: 409 })
   }
 
   const sessionId = thread.session_id
@@ -85,6 +86,10 @@ export async function POST(
           agentId: agent.id,
           agentModel: agent.model,
           threadId: thread.id,
+          proposalFallback: {
+            name: agent.name,
+            instructions: stripBrief(agent.system_prompt ?? ''),
+          },
           initialEvents: [
             {
               type: 'user.custom_tool_result',
@@ -95,42 +100,26 @@ export async function POST(
           send,
         })
 
-        // The agent asked another question (or a write approval): stay paused.
+        // The agent asked another question, proposed its setup, or hit a write
+        // approval: stay paused.
         if (status) return
 
-        // The interview is over. If this agent was still being set up, save the
-        // brief, then run its first task in the same stream.
+        // The interview ended without a proposal, which means the agent talked
+        // instead of calling propose_setup. Draw the card from what we already
+        // hold so a missed tool call cannot strand someone mid-setup with no
+        // way forward.
         if (!agent.onboarded) {
-          await finalizeOnboarding({
-            anthropic,
-            supabase,
-            agentId: agent.id,
-            claudeAgentId: agent.claude_agent_id,
-            claudeVersion: agent.claude_version,
-            baseSystemPrompt: agent.system_prompt,
-            answers,
-            personality: agent.personality,
-          })
-          send({ type: 'onboarded' })
-
-          await drainSession({
-            anthropic,
-            sessionId,
-            supabase,
-            userId,
-            agentId: agent.id,
-            agentModel: agent.model,
-            threadId: thread.id,
-            initialEvents: [
-              { type: 'user.message', content: [{ type: 'text', text: FIRST_TASK_KICKOFF }] },
-            ],
-            send,
+          const instructions = stripBrief(agent.system_prompt ?? '')
+          send({
+            type: 'review',
+            id: '',
+            name: agent.name,
+            instructions,
+            connectors: neededConnectors(answers, instructions),
           })
         }
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : 'Something went wrong'
-        send({ type: 'error', message })
+        send({ type: 'error', ...toChatError(err) })
       } finally {
         controller.close()
       }

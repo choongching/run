@@ -6,11 +6,15 @@ import {
   isAskTool,
   isAutoRunTool,
   isCreateDocumentTool,
+  isProposeTool,
   summarizeAsk,
   summarizeDocument,
+  summarizeProposal,
   summarizeWrite,
   type AskOption,
 } from '@/lib/tools/definitions'
+import { neededConnectors, type NeededConnector } from '@/lib/chat/onboarding'
+import { toChatError, type ChatError } from '@/lib/chat/errors'
 import { executeTool } from '@/lib/tools/execute'
 import { recordUsage } from '@/lib/usage'
 import type { Database, Json } from '@/lib/types/database'
@@ -36,14 +40,21 @@ export type Frame =
       step?: number
       total?: number
     }
+  | {
+      type: 'review'
+      id: string
+      name: string
+      instructions: string
+      connectors: NeededConnector[]
+    }
   | { type: 'onboarded' }
   | { type: 'done'; text: string }
-  | { type: 'error'; message: string }
+  | ({ type: 'error' } & ChatError)
 
 // How a turn ended: paused for the user (write approval or a question), or ran
 // to completion. The onboarding answer route uses null to know the interview
 // is over and it can save the brief.
-export type TurnStatus = 'approval' | 'ask' | null
+export type TurnStatus = 'approval' | 'ask' | 'review' | null
 
 export type PendingCall = {
   id: string
@@ -137,6 +148,10 @@ type DrainOpts = {
   threadId: string
   initialEvents: InitialEvents
   send: (frame: Frame) => void
+  // What to show on the review card if the agent ends setup without proposing
+  // anything, so a missed tool call degrades to the values we already hold
+  // rather than stalling the flow.
+  proposalFallback?: { name: string; instructions: string }
 }
 
 // Tokens are tallied into a caller-owned object rather than local variables so
@@ -188,8 +203,16 @@ async function drainSessionInner(
 ): Promise<{ status: TurnStatus }> {
   // agentId and agentModel are the wrapper's business now: they describe the
   // usage row, not the drain.
-  const { anthropic, sessionId, supabase, userId, threadId, initialEvents, send } =
-    opts
+  const {
+    anthropic,
+    sessionId,
+    supabase,
+    userId,
+    threadId,
+    initialEvents,
+    send,
+    proposalFallback = { name: '', instructions: '' },
+  } = opts
 
   const activityLabels: string[] = []
   const artifacts: { title: string; content: string }[] = []
@@ -254,8 +277,9 @@ async function drainSessionInner(
       if (messageText) agentParts.push(messageText)
     } else if (event.type === 'agent.custom_tool_use') {
       pending.push({ id: event.id, name: event.name, input: event.input })
-      // ask_user is a question, not work: it gets a card, not an activity line.
-      if (!isAskTool(event.name)) {
+      // ask_user and propose_setup are the agent talking to the person, not
+      // work it did: they get a card, not an activity line.
+      if (!isAskTool(event.name) && !isProposeTool(event.name)) {
         const act = toolActivity(event.name, event.input)
         // Persist the past form: a stored activity is always a completed step.
         activityLabels.push(act.past)
@@ -289,6 +313,29 @@ async function drainSessionInner(
           .eq('id', threadId)
         send({ type: 'ask', id: askCall.id, ...summarizeAsk(askCall.input) })
         status = 'ask'
+        break
+      }
+
+      // The agent has finished the interview and is proposing what it should
+      // become. Same pause as a question: persist and wait for the person to
+      // confirm, edit, or tell it what to change.
+      const proposeCall = pending.find((c) => isProposeTool(c.name))
+      if (proposeCall) {
+        await supabase
+          .from('threads')
+          .update({ pending_tools: pending as unknown as Json })
+          .eq('id', threadId)
+        const proposal = summarizeProposal(proposeCall.input, {
+          name: proposalFallback.name,
+          instructions: proposalFallback.instructions,
+        })
+        send({
+          type: 'review',
+          id: proposeCall.id,
+          ...proposal,
+          connectors: neededConnectors([], proposal.instructions),
+        })
+        status = 'review'
         break
       }
 
@@ -430,10 +477,9 @@ async function drainSessionInner(
     send({ type: 'done', text: noReplyText })
   } else if (!finalText) {
     // A genuine failure with no text: surface the underlying session error.
-    send({
-      type: 'error',
-      message: sessionError ?? 'Something went wrong. Please try again.',
-    })
+    // A session error is the model's own failure report, not a sentence we
+    // wrote, so it goes through the same translation as an exception.
+    send({ type: 'error', ...toChatError(sessionError ?? new Error('no reply')) })
   } else {
     send({ type: 'done', text: finalText })
   }
