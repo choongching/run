@@ -1,4 +1,5 @@
 import { requireUser } from '@/lib/api-helpers'
+import { toChatError } from '@/lib/chat/errors'
 import { getAnthropicClient } from '@/lib/anthropic/client'
 import {
   neededConnectors,
@@ -35,7 +36,7 @@ export async function POST(
     .eq('id', agentId)
     .single()
   if (!agent) {
-    return Response.json({ error: 'Agent not found' }, { status: 404 })
+    return Response.json({ error: 'That agent is not here any more.' }, { status: 404 })
   }
 
   const { data: thread } = await supabase
@@ -48,7 +49,7 @@ export async function POST(
   const pending = (thread?.pending_tools as unknown as PendingCall[] | null) ?? []
   const askCall = pending.find((c) => isAskTool(c.name))
   if (!thread?.session_id || !askCall) {
-    return Response.json({ error: 'Nothing is awaiting an answer' }, { status: 409 })
+    return Response.json({ error: 'That question has already been answered.' }, { status: 409 })
   }
 
   const sessionId = thread.session_id
@@ -118,9 +119,7 @@ export async function POST(
           })
         }
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : 'Something went wrong'
-        send({ type: 'error', message })
+        send({ type: 'error', ...toChatError(err) })
       } finally {
         controller.close()
       }

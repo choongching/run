@@ -1,4 +1,5 @@
 import { requireUser } from '@/lib/api-helpers'
+import { toChatError } from '@/lib/chat/errors'
 import { ensureEnvironment } from '@/lib/anthropic/environment'
 import {
   buildAgentToolset,
@@ -91,9 +92,12 @@ export async function POST(
 
   const body = await request.json().catch(() => null)
   const text = typeof body?.text === 'string' ? body.text.trim() : ''
+  // A retry re-runs a turn whose message is already in the thread. Send it to
+  // the model again, but do not write a second copy into the transcript.
+  const isRetry = body?.retry === true
   if (text.length > MAX_MESSAGE_CHARS) {
     return Response.json(
-      { error: 'That message is too long. Please shorten it and try again.' },
+      { error: 'That message is too long to send.', sub: 'Try trimming it, or attach it as a file instead.' },
       { status: 400 }
     )
   }
@@ -108,7 +112,7 @@ export async function POST(
     .gte('created_at', since)
   if ((recentTurns ?? 0) >= MAX_TURNS_PER_MINUTE) {
     return Response.json(
-      { error: 'You are sending messages very quickly. Give it a moment, then try again.' },
+      { error: 'That is a lot of messages very quickly.', sub: 'Give it a minute and carry on.' },
       { status: 429 }
     )
   }
@@ -120,10 +124,10 @@ export async function POST(
     .single()
 
   if (!agent) {
-    return Response.json({ error: 'Agent not found' }, { status: 404 })
+    return Response.json({ error: 'That agent is not here any more.' }, { status: 404 })
   }
   if (agent.status !== 'active') {
-    return Response.json({ error: 'This agent is not active' }, { status: 400 })
+    return Response.json({ error: 'This agent is paused.', sub: 'Resume it in Configure and it will pick things up again.' }, { status: 400 })
   }
   if (!agent.claude_agent_id) {
     return Response.json(
@@ -140,13 +144,13 @@ export async function POST(
     .maybeSingle()
 
   if (!thread) {
-    return Response.json({ error: 'Thread not found' }, { status: 404 })
+    return Response.json({ error: 'This conversation could not be opened.' }, { status: 404 })
   }
 
   const attachment =
     (thread.pending_attachment as PendingAttachment | null) ?? null
   if (!text && !attachment) {
-    return Response.json({ error: 'Message is required' }, { status: 400 })
+    return Response.json({ error: 'Type a message first.' }, { status: 400 })
   }
 
   // Provisioned on demand: the runtime is a platform resource, not something
@@ -159,7 +163,7 @@ export async function POST(
 
   // Persist the user's message (with any attachment's metadata for reload)
   // before streaming, so it is never lost even if the agent turn fails midway.
-  await supabase.from('messages').insert({
+  if (!isRetry) await supabase.from('messages').insert({
     thread_id: thread.id,
     role: 'user',
     content: text,
@@ -298,9 +302,7 @@ export async function POST(
           })
         }
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : 'Something went wrong'
-        send({ type: 'error', message })
+        send({ type: 'error', ...toChatError(err) })
       } finally {
         controller.close()
       }

@@ -14,6 +14,7 @@ import {
   type AskOption,
 } from '@/lib/tools/definitions'
 import { neededConnectors, type NeededConnector } from '@/lib/chat/onboarding'
+import { toChatError, type ChatError } from '@/lib/chat/errors'
 import { executeTool } from '@/lib/tools/execute'
 import { recordUsage } from '@/lib/usage'
 import type { Database, Json } from '@/lib/types/database'
@@ -48,7 +49,7 @@ export type Frame =
     }
   | { type: 'onboarded' }
   | { type: 'done'; text: string }
-  | { type: 'error'; message: string }
+  | ({ type: 'error' } & ChatError)
 
 // How a turn ended: paused for the user (write approval or a question), or ran
 // to completion. The onboarding answer route uses null to know the interview
@@ -476,10 +477,9 @@ async function drainSessionInner(
     send({ type: 'done', text: noReplyText })
   } else if (!finalText) {
     // A genuine failure with no text: surface the underlying session error.
-    send({
-      type: 'error',
-      message: sessionError ?? 'Something went wrong. Please try again.',
-    })
+    // A session error is the model's own failure report, not a sentence we
+    // wrote, so it goes through the same translation as an exception.
+    send({ type: 'error', ...toChatError(sessionError ?? new Error('no reply')) })
   } else {
     send({ type: 'done', text: finalText })
   }

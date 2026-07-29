@@ -1,4 +1,5 @@
 import { requireUser } from '@/lib/api-helpers'
+import { toChatError } from '@/lib/chat/errors'
 import { ensureEnvironment } from '@/lib/anthropic/environment'
 import {
   buildAgentToolset,
@@ -30,7 +31,7 @@ export async function POST(
     .single()
 
   if (!agent) {
-    return Response.json({ error: 'Agent not found' }, { status: 404 })
+    return Response.json({ error: 'That agent is not here any more.' }, { status: 404 })
   }
   if (!agent.claude_agent_id) {
     return Response.json(
@@ -47,7 +48,7 @@ export async function POST(
     .maybeSingle()
 
   if (!thread) {
-    return Response.json({ error: 'Thread not found' }, { status: 404 })
+    return Response.json({ error: 'This conversation could not be opened.' }, { status: 404 })
   }
 
   // Provisioned on demand: the runtime is a platform resource, not something
@@ -108,9 +109,7 @@ export async function POST(
           send,
         })
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : 'Something went wrong'
-        send({ type: 'error', message })
+        send({ type: 'error', ...toChatError(err) })
       } finally {
         controller.close()
       }

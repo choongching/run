@@ -1,4 +1,5 @@
 import { requireUser } from '@/lib/api-helpers'
+import { toChatError } from '@/lib/chat/errors'
 import { getAnthropicClient, MANAGED_AGENTS_BETA } from '@/lib/anthropic/client'
 import {
   finalizeOnboarding,
@@ -40,7 +41,7 @@ export async function POST(
     .eq('id', agentId)
     .single()
   if (!agent) {
-    return Response.json({ error: 'Agent not found' }, { status: 404 })
+    return Response.json({ error: 'That agent is not here any more.' }, { status: 404 })
   }
 
   const { data: thread } = await supabase
@@ -50,7 +51,7 @@ export async function POST(
     .eq('user_id', userId)
     .maybeSingle()
   if (!thread?.session_id) {
-    return Response.json({ error: 'Nothing to confirm' }, { status: 409 })
+    return Response.json({ error: 'There is nothing waiting to be confirmed.' }, { status: 409 })
   }
 
   const pending = (thread.pending_tools as unknown as PendingCall[] | null) ?? []
@@ -134,9 +135,7 @@ export async function POST(
           send,
         })
       } catch (err) {
-        const message =
-          err instanceof Error ? err.message : 'Something went wrong'
-        send({ type: 'error', message })
+        send({ type: 'error', ...toChatError(err) })
       } finally {
         controller.close()
       }

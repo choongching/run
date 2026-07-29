@@ -28,6 +28,8 @@ import { ConnectCard } from '@/components/chat/connect-card'
 import { Markdown } from '@/components/chat/markdown'
 import { OptionsCard } from '@/components/chat/options-card'
 import { ReviewCard, type ReviewSpec } from '@/components/chat/review-card'
+import { ErrorNote } from '@/components/chat/error-note'
+import type { ChatError } from '@/lib/chat/errors'
 import {
   ACCEPT_ATTR,
   ACCEPTED_HINT,
@@ -96,7 +98,7 @@ type Frame =
   | ({ type: 'review'; id: string } & ReviewSpec)
   | { type: 'onboarded' }
   | { type: 'done'; text: string }
-  | { type: 'error'; message: string }
+  | ({ type: 'error' } & ChatError)
 
 export function ChatThread({
   agentId,
@@ -129,6 +131,15 @@ export function ChatThread({
   // happens in the thread, including the person typing a correction, because
   // the agent will propose again with the new wording.
   const [review, setReview] = useState<ReviewSpec | null>(initialReview)
+  // The last turn's failure, and the way to run that same turn again. Retrying
+  // is only offered where repeating the request is safe, which is why it lives
+  // in a ref set by whoever started the turn rather than being assumed.
+  const [failure, setFailure] = useState<ChatError | null>(null)
+  // Whether this particular failure has something safe to repeat. Captured when
+  // the failure happens rather than read from the ref while rendering, which
+  // React forbids.
+  const [canRetry, setCanRetry] = useState(false)
+  const retryRef = useRef<(() => Promise<void>) | null>(null)
   const [attachment, setAttachment] = useState<Attachment | null>(
     initialAttachment ? { ...initialAttachment, status: 'ready' } : null
   )
@@ -163,18 +174,13 @@ export function ChatThread({
     })
   }
 
-  function finishWithError(message: string) {
+  function finishWithError(error: ChatError) {
     setDraft(null)
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: tempId.current--,
-        role: 'agent',
-        content: message,
-        error: true,
-        createdAt: nowIso(),
-      },
-    ])
+    // An empty message means nothing went wrong worth saying: a turn the person
+    // stopped themselves, for instance.
+    if (!error.message) return
+    setCanRetry(error.retry && retryRef.current !== null)
+    setFailure(error)
   }
 
   function handleFrame(frame: Frame) {
@@ -254,7 +260,7 @@ export function ChatThread({
         router.refresh()
         return
       case 'error':
-        finishWithError(frame.message)
+        finishWithError(frame)
         return
     }
   }
@@ -263,8 +269,14 @@ export function ChatThread({
   // a new message and an approval decision (both resume the same session).
   async function consumeStream(res: Response) {
     if (!res.ok || !res.body) {
+      // A route refused before any streaming started. Those messages are ours
+      // and already written for a person, so they pass straight through.
       const info = await res.json().catch(() => null)
-      finishWithError(info?.error ?? 'The agent could not respond.')
+      finishWithError({
+        message: info?.error ?? 'Your agent could not answer just now.',
+        sub: info?.sub,
+        retry: res.status >= 500 || res.status === 429,
+      })
       return
     }
     const reader = res.body.getReader()
@@ -290,15 +302,18 @@ export function ChatThread({
     setApproval(null)
     setAsk(null)
     setReview(null)
+    setFailure(null)
     setDraft({ text: '', phase: 'thinking' })
     try {
       await consumeStream(await fetchStream(controller.signal))
-    } catch (err) {
+    } catch {
       if (controller.signal.aborted) commitDraft()
       else
-        finishWithError(
-          err instanceof Error ? err.message : 'The connection dropped.'
-        )
+        finishWithError({
+          message: 'We lost the connection partway through.',
+          sub: 'Anything above is what arrived before it dropped.',
+          retry: true,
+        })
     } finally {
       if (abortRef.current === controller) abortRef.current = null
       setRunning(false)
@@ -400,14 +415,19 @@ export function ChatThread({
         createdAt: nowIso(),
       },
     ])
-    await runStream((signal) =>
-      fetch(`/api/chat/${agentId}/message`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ text }),
-        signal,
-      })
-    )
+    const run = (retry: boolean) => () =>
+      runStream((signal) =>
+        fetch(`/api/chat/${agentId}/message`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, retry }),
+          signal,
+        })
+      )
+    // The retry sends the same text again, flagged so the transcript does not
+    // gain a second copy of a message that is already in it.
+    retryRef.current = run(true)
+    await run(false)()
   }
 
   async function respondToApproval(decision: 'approve' | 'deny') {
@@ -577,6 +597,20 @@ export function ChatThread({
           {ask && <OptionsCard spec={ask} onAnswer={respondToAsk} />}
 
           {review && <ReviewCard spec={review} onConfirm={confirmSetup} />}
+
+          {failure && (
+            <ErrorNote
+              error={failure}
+              onRetry={
+                canRetry
+                  ? () => {
+                      const again = retryRef.current
+                      if (again) void again()
+                    }
+                  : undefined
+              }
+            />
+          )}
         </StickToBottom.Content>
         <JumpToLatest />
       </StickToBottom>
