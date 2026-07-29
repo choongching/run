@@ -1,7 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { login, register } from '@/app/actions/auth'
-import { Button } from '@/components/ui/button'
+import { SubmitButton } from '@/components/auth/submit-button'
 import {
   Card,
   CardContent,
@@ -48,6 +48,8 @@ export function AuthForm({ mode, error, message }: AuthFormProps) {
               name="email"
               type="email"
               placeholder="you@company.com"
+              autoComplete="email"
+              autoFocus
               required
             />
           </div>
@@ -57,15 +59,17 @@ export function AuthForm({ mode, error, message }: AuthFormProps) {
               id="password"
               name="password"
               type="password"
+              autoComplete={isLogin ? 'current-password' : 'new-password'}
               required
               minLength={6}
             />
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
           {message && <p className="text-sm text-muted-foreground">{message}</p>}
-          <Button type="submit" className="w-full">
-            {isLogin ? 'Sign in' : 'Create account'}
-          </Button>
+          <SubmitButton
+            label={isLogin ? 'Sign in' : 'Create account'}
+            pendingLabel={isLogin ? 'Signing in' : 'Creating your account'}
+          />
           <p className="text-center text-sm text-muted-foreground">
             {isLogin ? (
               <>
