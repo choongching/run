@@ -3,18 +3,16 @@
 **Run lets you build your own AI assistant just by describing it. No setup, no
 technical skills.**
 
-Think of an agent as a personal assistant you create in one sentence. Tell Run
-what you need ("help me keep on top of my inbox"), and it builds you an assistant
-you talk to like a person. It connects to your own Gmail and Google Drive, so it
-works on your real emails and files, not a demo. It can go through your inbox,
-draft replies, find and read your documents, and turn them into new ones.
+Tell it what you need, like *"help me keep on top of my inbox"*, and you get an
+assistant you talk to like a person. It works on your real Gmail and Google
+Drive, so it can go through your actual inbox, draft replies, find your
+documents, and turn them into new ones.
 
-It is safe by default. Your assistant reads things on its own, but before it
-sends or changes anything, it shows you exactly what it will do and waits for
-your okay.
+Reading your email is harmless, so it does that on its own. Sending one is not,
+so it always shows you exactly what it wrote and waits for your okay.
 
-And there is nothing to configure. No forms, no flowcharts, no settings to learn.
-You build your assistant and use it in the very same place: a conversation.
+Nothing to configure: no forms, no flowcharts, no settings. You build it and use
+it in the same place, a conversation.
 
 ## What makes it different
 
@@ -55,47 +53,27 @@ flowchart TD
 
 Step by step:
 
-1. **Describe it.** On the home screen you get a single prompt box: *"what do you
-   want to create?"* You type something like *"Summarize my inbox each morning
-   and flag anything that needs a reply."* Run creates an agent, gives it a clean
-   name, and drops you straight into a chat with it.
-2. **Let it set itself up.** On the first turn the agent introduces itself and
-   asks a couple of quick questions (tap-to-answer, with a free-text option) to
-   understand exactly what you want and how you want it. Those answers shape how
-   it behaves from then on.
-3. **Check what it understood, before it starts.** The agent shows you the name
-   and the job it wrote for itself, and waits. You can edit either one on the
-   spot, or just tell it what to change and it rewrites them. Nothing runs until
-   you say it looks good. This is the same promise the product makes about
-   sending an email, applied to the agent's own setup.
-4. **Give it work.** You chat normally. As the agent works it streams its
-   thinking and shows a live line for each step ("Searching your inbox from the
-   last 2 days", then "Read an email"), so you can see what it is doing.
-5. **Connect your tools inline.** The first time the agent needs your Gmail or
-   Drive, a Connect card appears right in the conversation. You sign in once
-   through a secure popup, and the agent picks up automatically where it left
-   off. Everyone connects their own accounts.
-6. **It reads freely.** Searching and reading your inbox and Drive happen on
-   their own, no approval needed, because reading has no side effect.
-7. **It asks before it writes.** When the agent wants to do something with a
-   consequence (create a Gmail draft, for example), it pauses and shows an
-   approval card with the complete draft. Nothing is created until you press
-   Approve. Cancel and it simply carries on.
-8. **It hands back real output.** Answers stream into the chat. When you ask for
-   a document, the agent produces a titled Markdown file that appears as a card
-   with a preview and a Download button. Approved email drafts land in your
-   actual Gmail, one click from sent.
-9. **You can hand it files too.** Attach a document or a screenshot to a message
-   (paperclip, drag-and-drop, or paste) and the agent reads it as reference for
-   that turn.
-10. **See what you have used.** Beside your account is a quiet meter showing how
-    many runs you have left this month. Clicking it opens the history behind the
-    number: every run, which agent did it, and when. It counts runs rather than
-    tokens, because a token is a unit of our cost and means nothing to someone
-    deciding whether they can finish their work.
-11. **Come back any time.** Each agent lives in the sidebar as an ongoing chat.
-   Reopen it and the whole conversation is there, timestamped, with date
-   dividers, so you pick up exactly where you left off.
+1. **Say what you want.** One box, one sentence: *"Summarize my inbox each
+   morning and flag anything that needs a reply."* You get an agent and a chat
+   with it.
+2. **It asks a few questions.** Enough to understand the job properly. Tap an
+   answer or type your own.
+3. **It shows you what it understood.** Its name and its job, before it does
+   anything. Change either one, or tell it what to fix. Nothing happens until
+   you agree.
+4. **Give it work.** Chat with it normally, and watch each step as it goes:
+   *"Searching your inbox from the last 2 days"*, then *"Read an email"*.
+5. **Sign in when it needs you to.** The first time it wants your Gmail or
+   Drive, it asks. You sign in once and it carries on from where it stopped.
+   Everyone connects their own accounts.
+6. **It reads on its own, and asks before it acts.** Looking through your inbox
+   and files needs no permission. Anything that sends or changes something stops
+   and shows you the whole thing first.
+7. **You get real things back.** Answers, documents you can download, and
+   drafts waiting in your Gmail.
+8. **Send it files.** Attach a document or a screenshot and it reads it.
+9. **Keep track of your usage.** How much of the month you have left, and what
+   your agents spent it on.
 
 ## How it is structured
 
@@ -131,8 +109,8 @@ instructions, tools, and connected data.
 
 ## Trust and safety
 
-Because agents act on real accounts, safety is built into the loop, not bolted
-on:
+These agents work on your actual email and files, so the interesting question is
+not what they can do. It is what they do without asking:
 
 - **It asks before it starts, not just before it writes.** Setting an agent up
   ends with it showing you the name and the job it wrote for itself, and waiting.
