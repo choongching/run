@@ -118,11 +118,10 @@ export function KnowledgeLibrary({
             the page keeps a single loudest voice: Knowledge, then this, then
             the one-line how. */}
         <h2 className="text-base font-medium">Nothing in your library yet</h2>
-        {/* One job: how to get something here. What knowledge IS belongs to
-            the page subtitle, and saying it twice is why this ran long. */}
+        {/* One job: how to get something here. Said the way a person would,
+            not the way the system is built: no panel names. */}
         <p className="mt-1.5 max-w-lg text-sm text-muted-foreground">
-          Add a note or a file from any agent&apos;s Configure panel. It shows
-          up here.
+          Add notes or files to any of your agents. They all end up here.
         </p>
       </div>
     )
