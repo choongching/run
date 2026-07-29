@@ -8,12 +8,6 @@ assistant you talk to like a person. It works on your real Gmail and Google
 Drive, so it can go through your actual inbox, draft replies, find your
 documents, and turn them into new ones.
 
-Reading your email is harmless, so it does that on its own. Sending one is not,
-so it always shows you exactly what it wrote and waits for your okay.
-
-Building it and using it are the same thing. You describe what you want, and a
-moment later you are talking to it in the same window.
-
 ## What makes it different
 
 - **You build it by talking.** Say what you need in one sentence and it exists.
