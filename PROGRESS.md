@@ -38,10 +38,37 @@ Knowledge and Connectors: one centered column everywhere, a Claude row on the
 Connectors page so the product names the AI it runs on, tooltips on hover,
 quieter empty states, and much shorter words. Signing in now reacts the moment
 the button is pressed. The README opening was rewritten in the plain
-declarative style the founder wants all Run copy to follow from now on.
+declarative style the founder wants all Run copy to follow from now on. The
+session closed with a security audit (every commit ever made is clean, no key
+or password has ever been in the repo) and standing guards: GitHub push
+protection plus a pre-commit hook that blocks anything shaped like a secret.
 Next step: set the real monthly allowance, decide whether running out should
 stop a run, and give agents their own connector list so a documents agent
 cannot reach your inbox at all.
+
+---
+
+## 2026-07-30 (closing): Making sure nothing leaks
+
+The founder saw the env example file on GitHub and asked the right question.
+The audit answer: that file holds only the word placeholder eleven times, the
+real env file has never been tracked, and a scan of every commit ever made
+(157 of them) found no key, no token, no password, and no project identifier,
+anywhere, ever. The one file that looks like it contains key patterns is the
+app's own secret detector, which holds the shapes of keys so it can warn
+people, never keys themselves.
+
+Then the one-time audit became standing protection. GitHub secret scanning
+and push protection are switched on, so a push containing a known key shape
+is rejected at the server no matter whose machine it comes from. A pre-commit
+hook now blocks real env files and anything shaped like a credential before
+it can even be committed, proven by staging a fake key and watching it bounce.
+Project-specific strings the hook watches for live in a git-ignored file,
+because a public hook must not name the secrets it blocks; the first draft
+embedded one in its own pattern and was caught before commit, which is
+exactly the mistake the layers now exist to catch.
+
+Merged to `main` via pull request #108.
 
 ---
 
