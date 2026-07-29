@@ -69,8 +69,8 @@ Step by step:
 6. **It reads on its own, and asks before it acts.** Looking through your inbox
    and files needs no permission. Anything that sends or changes something stops
    and shows you the whole thing first.
-7. **You get real things back.** Answers in the chat, documents you can
-   download, and email drafts sitting in your actual Gmail.
+7. **You get real things back.** Answers, documents you can download, and
+   drafts waiting in your Gmail.
 8. **Send it files.** Attach a document or a screenshot and it reads it.
 9. **See what you have used.** A meter next to your name shows how much of the
    month is left. Click it for the list of everything your agents have done.
