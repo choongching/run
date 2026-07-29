@@ -27,7 +27,7 @@ export default async function ConnectorsPage() {
     <PageShell>
       <PageHeader
         title="Connectors"
-        description="The accounts your agents work in. You connect your own, and every agent you own can use them."
+        description="The accounts your agents work in."
       />
       <ConnectorsManager
         connections={{ gmail: Boolean(gmail), google_drive: Boolean(drive) }}
