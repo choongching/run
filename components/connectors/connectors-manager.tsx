@@ -28,7 +28,8 @@ function ClaudeRow() {
           </span>
         </div>
         <p className="mt-1 text-xs text-muted-foreground">
-          The AI that runs every agent, made by Anthropic. Nothing to set up.
+          The AI that runs every agent, made by Anthropic. Web search
+          included, nothing to set up.
         </p>
       </div>
       <span className="px-3 text-xs text-muted-foreground">Built in</span>
@@ -56,12 +57,13 @@ export function ConnectorsManager({
         showBlurb
       />
       <ClaudeRow />
-      {/* Three short beats: the trust promise, the built-in extra, and what
-          is coming. The promise stays because this is the page where people
-          hand over their inbox. */}
+      {/* Two beats: the trust promise, then what is coming. The promise stays
+          because this is the page where people hand over their inbox. Web
+          search lives on the Claude row above, because that is where it
+          actually comes from. */}
       <p className="px-0.5 text-xs text-muted-foreground">
         Agents read on their own, but nothing is sent or changed without your
-        okay. Web search is built in. More connectors are on the way.
+        okay. More connectors are on the way.
       </p>
     </div>
   )
