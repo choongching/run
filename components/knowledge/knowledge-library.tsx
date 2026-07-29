@@ -114,7 +114,10 @@ export function KnowledgeLibrary({
         <span className="mb-5 flex size-11 items-center justify-center rounded-lg border border-border bg-background">
           <KnowledgeIcon className="size-5 text-muted-foreground" />
         </span>
-        <h2 className="text-xl font-semibold">Nothing in your library yet</h2>
+        {/* One step below the page title, the same level as a card title, so
+            the page keeps a single loudest voice: Knowledge, then this, then
+            the one-line how. */}
+        <h2 className="text-base font-medium">Nothing in your library yet</h2>
         {/* One job: how to get something here. What knowledge IS belongs to
             the page subtitle, and saying it twice is why this ran long. */}
         <p className="mt-1.5 max-w-lg text-sm text-muted-foreground">
