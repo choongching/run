@@ -11,12 +11,12 @@ There is nothing to set up. Describing what you want is the setup.
 
 ## What makes it different
 
-- **You build it by talking.** Say what you need in one sentence and it exists.
-  It asks a couple of questions, and that is the whole setup.
-- **It works on your real email and files.** Your actual inbox, your actual
-  Drive, through accounts you connect yourself.
-- **It asks before it acts.** It reads freely, but anything that sends or
-  changes something stops and shows you the whole thing first.
+- **You build it by talking.** Say what you need and it exists. It asks a
+  couple of questions to be sure, then starts working. There is no other step.
+- **It works on your real email and files.** Not a demo, not a sandbox: your
+  inbox and your Drive, through accounts you connect yourself.
+- **It asks before it acts.** It reads on its own. But nothing is sent or
+  changed until you have seen the whole thing and said yes.
 
 ## The end-to-end journey
 
