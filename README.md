@@ -1,12 +1,13 @@
 # Run
 
-**Run lets you build your own AI assistant just by describing it. No setup, no
-technical skills.**
+**Run turns a sentence into an assistant.**
 
-Tell it what you need, like *"help me keep on top of my inbox"*, and you get an
-assistant you talk to like a person. It works on your real Gmail and Google
-Drive, so it can go through your actual inbox, draft replies, find your
-documents, and turn them into new ones.
+Say what you want, like *"help me keep on top of my inbox"*, and you have one.
+You talk to it like a person. It works on your real Gmail and Google Drive: it
+reads your inbox, drafts replies, finds your documents, and turns them into new
+ones.
+
+There is nothing to set up. Describing what you want is the setup.
 
 ## What makes it different
 
