@@ -62,6 +62,23 @@ PR and I kept describing the new wording instead of shipping it. **Commit,
 merge, then reply.** Never answer a copy complaint with a description of the
 copy you would write.
 
+## Recipes that survived review (2026-07-30 design pass)
+
+- **Page subtitle: one line naming the page's job.** "What your agents always
+  know." / "What your agents can use." The pair shape was chosen on purpose;
+  match it for new pages. How-to sentences do not belong in a subtitle.
+- **Empty state body: only the action.** What the thing IS lives in the
+  subtitle; saying it twice is why these run long. "Add notes or files to any
+  of your agents. They all end up here."
+- **Tooltip: the action or the consequence, once, no period.** "See this
+  month's runs." beat two longer drafts. "Your agents will stop using this
+  account" beat "lose access", which is permissions-speak.
+- **Never name UI machinery** (panels, Configure, modals) in copy when the
+  action can be said without it.
+- **Facts live where they are true.** "Web search included" belongs on the
+  Claude row, not in a page footnote, because Claude is where it comes from.
+  Moving a sentence is often the fix, not rewording it.
+
 ## Checks before shipping a line
 
 1. Read it aloud. If you stumble, or it sounds like a system talking, rewrite.
