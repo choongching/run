@@ -6,7 +6,9 @@ import {
   MANAGED_AGENTS_BETA,
 } from '@/lib/anthropic/client'
 import { MAX_MESSAGE_CHARS, MAX_TURNS_PER_MINUTE } from '@/lib/chat/limits'
-import { drainSession, type Frame } from '@/lib/chat/run-turn'
+import { drainSession, type Frame, type PendingCall } from '@/lib/chat/run-turn'
+import { isProposeTool } from '@/lib/tools/definitions'
+import { neededConnectors, stripBrief } from '@/lib/chat/onboarding'
 import { CHAT_TOOL_DEFINITIONS } from '@/lib/tools/definitions'
 import type { Json } from '@/lib/types/database'
 
@@ -113,7 +115,7 @@ export async function POST(
 
   const { data: agent } = await supabase
     .from('agents')
-    .select('id, name, status, model, claude_agent_id')
+    .select('id, name, status, model, claude_agent_id, onboarded, system_prompt')
     .eq('id', agentId)
     .single()
 
@@ -132,7 +134,7 @@ export async function POST(
 
   const { data: thread } = await supabase
     .from('threads')
-    .select('id, session_id, pending_attachment')
+    .select('id, session_id, pending_attachment, pending_tools')
     .eq('agent_id', agentId)
     .eq('user_id', userId)
     .maybeSingle()
@@ -185,6 +187,21 @@ export async function POST(
 
   const content = buildContent(text, attachment)
 
+  // A message typed while the agent is waiting on its own setup proposal IS the
+  // answer to that proposal: the person is saying "not quite, change this". The
+  // session is blocked on the tool call and rejects a plain user.message, so
+  // hand the correction back as the tool's result and let the agent propose
+  // again with the new wording.
+  const pendingTools =
+    (thread.pending_tools as unknown as PendingCall[] | null) ?? []
+  const proposeCall = pendingTools.find((c) => isProposeTool(c.name))
+  if (proposeCall) {
+    await supabase
+      .from('threads')
+      .update({ pending_tools: null })
+      .eq('id', thread.id)
+  }
+
   const anthropic = getAnthropicClient()
   const encoder = new TextEncoder()
 
@@ -231,7 +248,7 @@ export async function POST(
             .insert({ thread_id: thread.id, role: 'activity', content: past })
         }
 
-        await drainSession({
+        const { status } = await drainSession({
           anthropic,
           sessionId,
           supabase,
@@ -239,9 +256,47 @@ export async function POST(
           agentId: agent.id,
           agentModel: agent.model,
           threadId: thread.id,
-          initialEvents: [{ type: 'user.message', content }],
+          proposalFallback: {
+            name: agent.name,
+            instructions: stripBrief(agent.system_prompt ?? ''),
+          },
+          // Resolving the tool call has to come first, because the session
+          // refuses a plain message while it waits. Keep that result neutral
+          // and let the person's own words arrive as their message: handing
+          // the model their correction as a tool output reads as data it
+          // fetched rather than as someone talking to it, and it answers the
+          // wrong question.
+          initialEvents: proposeCall
+            ? [
+                {
+                  type: 'user.custom_tool_result',
+                  custom_tool_use_id: proposeCall.id,
+                  content: [
+                    {
+                      type: 'text',
+                      text: 'The user has not confirmed yet. Read their next message, revise the setup, and call propose_setup again with the updated name and instructions.',
+                    },
+                  ],
+                },
+                { type: 'user.message', content },
+              ]
+            : [{ type: 'user.message', content }],
           send,
         })
+
+        // Setup is still unconfirmed and the agent stopped without proposing
+        // again. Redraw the card from what we hold so a correction cannot leave
+        // someone with no way to finish.
+        if (!status && !agent.onboarded) {
+          const instructions = stripBrief(agent.system_prompt ?? '')
+          send({
+            type: 'review',
+            id: '',
+            name: agent.name,
+            instructions,
+            connectors: neededConnectors([], instructions),
+          })
+        }
       } catch (err) {
         const message =
           err instanceof Error ? err.message : 'Something went wrong'

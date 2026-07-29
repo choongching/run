@@ -27,6 +27,7 @@ import { ArtifactCard, type ArtifactMeta } from '@/components/chat/artifact-card
 import { ConnectCard } from '@/components/chat/connect-card'
 import { Markdown } from '@/components/chat/markdown'
 import { OptionsCard } from '@/components/chat/options-card'
+import { ReviewCard, type ReviewSpec } from '@/components/chat/review-card'
 import {
   ACCEPT_ATTR,
   ACCEPTED_HINT,
@@ -92,6 +93,7 @@ type Frame =
   | { type: 'connect'; app: string }
   | { type: 'approval'; calls: ApprovalCall[] }
   | ({ type: 'ask' } & AskState)
+  | ({ type: 'review'; id: string } & ReviewSpec)
   | { type: 'onboarded' }
   | { type: 'done'; text: string }
   | { type: 'error'; message: string }
@@ -103,6 +105,7 @@ export function ChatThread({
   initialApproval,
   onboarding,
   initialAsk,
+  initialReview,
   initialAttachment,
 }: {
   agentId: string
@@ -111,6 +114,7 @@ export function ChatThread({
   initialApproval: ApprovalCall[] | null
   onboarding: boolean
   initialAsk: AskState | null
+  initialReview: ReviewSpec | null
   initialAttachment: AttachmentMeta | null
 }) {
   const router = useRouter()
@@ -121,6 +125,10 @@ export function ChatThread({
   const [connectApp, setConnectApp] = useState<string | null>(null)
   const [approval, setApproval] = useState<ApprovalCall[] | null>(initialApproval)
   const [ask, setAsk] = useState<AskState | null>(initialAsk)
+  // The setup proposal awaiting a decision. Cleared the moment anything else
+  // happens in the thread, including the person typing a correction, because
+  // the agent will propose again with the new wording.
+  const [review, setReview] = useState<ReviewSpec | null>(initialReview)
   const [attachment, setAttachment] = useState<Attachment | null>(
     initialAttachment ? { ...initialAttachment, status: 'ready' } : null
   )
@@ -218,6 +226,13 @@ export function ChatThread({
       case 'ask':
         setAsk(frame)
         return
+      case 'review':
+        setReview({
+          name: frame.name,
+          instructions: frame.instructions,
+          connectors: frame.connectors,
+        })
+        return
       case 'onboarded':
         // Setup finished: refresh so the server no longer treats this as a new
         // agent (the first task keeps streaming in this same response).
@@ -274,6 +289,7 @@ export function ChatThread({
     setConnectApp(null)
     setApproval(null)
     setAsk(null)
+    setReview(null)
     setDraft({ text: '', phase: 'thinking' })
     try {
       await consumeStream(await fetchStream(controller.signal))
@@ -436,6 +452,20 @@ export function ChatThread({
     )
   }
 
+  // Confirm the proposed setup: save it, then let the agent begin. The card
+  // disappears as the first task starts streaming into the thread.
+  async function confirmSetup(values: { name: string; instructions: string }) {
+    if (running) return
+    await runStream((signal) =>
+      fetch(`/api/chat/${agentId}/confirm`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values),
+        signal,
+      })
+    )
+  }
+
   // The first-run setup interview. Fires once when a brand-new agent's chat
   // opens with nothing in it; the agent introduces itself and asks its
   // questions. Reloads mid-interview show the pending question instead.
@@ -545,6 +575,8 @@ export function ChatThread({
           )}
 
           {ask && <OptionsCard spec={ask} onAnswer={respondToAsk} />}
+
+          {review && <ReviewCard spec={review} onConfirm={confirmSetup} />}
         </StickToBottom.Content>
         <JumpToLatest />
       </StickToBottom>

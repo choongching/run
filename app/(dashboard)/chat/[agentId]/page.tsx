@@ -9,9 +9,19 @@ import {
   type AttachmentMeta,
   type ChatMessage,
 } from '@/components/chat/chat-thread'
-import { isAskTool, summarizeAsk, summarizeWrite } from '@/lib/tools/definitions'
+import {
+  isAskTool,
+  isProposeTool,
+  summarizeAsk,
+  summarizeProposal,
+  summarizeWrite,
+} from '@/lib/tools/definitions'
 import { getUserProfile } from '@/lib/auth'
-import { parseSetupAnswers, stripBrief } from '@/lib/chat/onboarding'
+import {
+  neededConnectors,
+  parseSetupAnswers,
+  stripBrief,
+} from '@/lib/chat/onboarding'
 import { createClient } from '@/lib/supabase/server'
 
 // The live chat surface (Phase 2): loads the thread's history and hands it to
@@ -125,8 +135,25 @@ export default async function ChatPage({
   const initialAsk = askCall
     ? { id: askCall.id, ...summarizeAsk(askCall.input) }
     : null
+
+  // A setup proposal is the third thing a pause can be. Its values live in the
+  // stored call, so restoring it costs nothing beyond the row we already read.
+  const proposeCall = pending?.find((c) => isProposeTool(c.name))
+  const proposal = proposeCall
+    ? summarizeProposal(proposeCall.input, {
+        name: agent.name,
+        instructions,
+      })
+    : null
+  const initialReview = proposal
+    ? {
+        ...proposal,
+        connectors: neededConnectors([], proposal.instructions),
+      }
+    : null
+
   const initialApproval: ApprovalCall[] | null =
-    pending && !askCall
+    pending && !askCall && !proposeCall
       ? pending.map((c) => ({ id: c.id, ...summarizeWrite(c.name, c.input) }))
       : null
 
@@ -156,6 +183,7 @@ export default async function ChatPage({
         initialApproval={initialApproval}
         onboarding={!agent.onboarded}
         initialAsk={initialAsk}
+        initialReview={initialReview}
         initialAttachment={initialAttachment}
       />
     </ConfigDock>
