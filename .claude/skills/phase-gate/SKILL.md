@@ -26,6 +26,12 @@ npx tsc --noEmit
 
 Both must be clean.
 
+**NEVER run prettier.** The repo has no prettier config, and its own style is
+single quotes with no semicolons. Running it reformatted 554 lines of
+`lib/chat/run-turn.ts` in a change that touched three of them, and the only way
+back was `git checkout` plus reapplying every edit by hand. `npm run lint` is
+the formatter of record; there is no format script on purpose.
+
 ## 2. Dev server
 
 Check it is up before browser work:

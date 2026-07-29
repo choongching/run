@@ -62,6 +62,23 @@ Goal: zero re-derivation, zero styling drift.
 - **Overlay exit animations:** keep the selected record in state after close
   (a separate `open` boolean drives visibility) so the overlay keeps its
   content through the exit transition instead of flashing empty.
+- **Re-seeding state outside overlays:** the same lint
+  (`react-hooks/set-state-in-effect`) fires anywhere props are synced into
+  state. The general fix is the same as the overlay one: key the component by
+  the data it seeds from, so a change remounts it and the `useState`
+  initializers run again (`<UsageMeter key={usage.used} …>`). Reach for a key
+  before reaching for an effect.
+- **Never read a ref during render** (`react-hooks/refs`, "Cannot access refs
+  during render"). If JSX needs a value that a callback knows, put it in state
+  at the moment it becomes true, not in a ref you read while rendering. This
+  bit the retry button: `retryRef.current` in JSX had to become a `canRetry`
+  state set at failure time.
+- **Error boundaries are Next 16 shaped:** an `error.tsx` receives
+  `unstable_retry`, NOT `reset`. See `app/(dashboard)/error.tsx`.
+- **Track and rail colours:** `bg-muted` is indistinguishable from the sidebar
+  canvas. Use `bg-border` for the unfilled part of any meter or progress track,
+  and `bg-foreground/70` for the fill, escalating to `bg-chart-4` and
+  `bg-destructive` at threshold.
 
 ## 3. Verify visually before declaring done
 
