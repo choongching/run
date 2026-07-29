@@ -11,8 +11,8 @@ documents, and turn them into new ones.
 Reading your email is harmless, so it does that on its own. Sending one is not,
 so it always shows you exactly what it wrote and waits for your okay.
 
-Nothing to configure: no forms, no flowcharts, no settings. You build it and use
-it in the same place, a conversation.
+Building it and using it are the same thing. You describe what you want, and a
+moment later you are talking to it in the same window.
 
 ## What makes it different
 
