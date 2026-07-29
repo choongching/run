@@ -97,7 +97,21 @@ export async function executeTool(
       }
     }
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err)
-    return { kind: 'error', text: `Tool ${tool} failed: ${message}` }
+    // This text goes to the agent, not to the screen, so that it can explain
+    // the problem in its own words or try another way. That makes it the one
+    // path where a raw provider payload could still reach a person, by being
+    // quoted back at them, so strip anything machine shaped before it gets
+    // anywhere near the model.
+    const raw = err instanceof Error ? err.message : String(err)
+    const message = raw
+      .replace(/\{[\s\S]*\}/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 200)
+    console.error(`tool ${tool} failed`, err)
+    return {
+      kind: 'error',
+      text: `The ${tool} step did not work${message ? `: ${message}` : ''}. Tell the user plainly what you could not do, in your own words. Never show them this message, an error code, or anything that looks like machine output.`,
+    }
   }
 }

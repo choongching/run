@@ -30,7 +30,7 @@ function adminClient() {
 export async function ensureEnvironment(): Promise<EnvironmentResult> {
   const supabase = adminClient()
   if (!supabase) {
-    return { ok: false, reason: 'The agent runtime is not configured.' }
+    return { ok: false, reason: 'Run is still finishing your workspace setup.' }
   }
 
   const { data: settings } = await supabase
@@ -41,7 +41,7 @@ export async function ensureEnvironment(): Promise<EnvironmentResult> {
     .single()
 
   if (!settings) {
-    return { ok: false, reason: 'The agent runtime is not configured.' }
+    return { ok: false, reason: 'Run is still finishing your workspace setup.' }
   }
   if (settings.anthropic_environment_id) {
     return { ok: true, environmentId: settings.anthropic_environment_id }
@@ -60,7 +60,7 @@ export async function ensureEnvironment(): Promise<EnvironmentResult> {
   } catch {
     return {
       ok: false,
-      reason: 'We could not start the agent runtime. Please try again.',
+      reason: 'Run could not start your workspace just now.',
     }
   }
 

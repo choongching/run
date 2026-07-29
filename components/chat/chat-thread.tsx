@@ -68,7 +68,6 @@ export type ChatMessage = {
   content: string
   // ISO timestamp, for the day divider and the hover-reveal time.
   createdAt?: string
-  error?: boolean
   attachments?: AttachmentMeta[]
   artifact?: ArtifactMeta
   // For activity rows: the present-tense label to show while the step runs
@@ -848,8 +847,11 @@ function MessageRow({
 
   return (
     <div className="group">
-      <div className={cn('text-sm', message.error && 'text-destructive')}>
-        {message.error ? message.content : <Markdown>{message.content}</Markdown>}
+      {/* A failure is never a message. It is a note below the conversation
+          that clears the moment the next turn starts, so a transcript read back
+          later shows the work rather than an outage we already recovered from. */}
+      <div className="text-sm">
+        <Markdown>{message.content}</Markdown>
       </div>
       {showTime && message.createdAt && (
         <time className="mt-1 block text-[11px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
