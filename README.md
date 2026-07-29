@@ -244,6 +244,10 @@ Anthropic, and Pipedream keys, then open
 
 ## Checks
 
+Before your first commit, wire up the repo's pre-commit secret guard:
+`git config core.hooksPath .githooks`. It blocks anything that looks like a
+key or credential, and GitHub push protection backs it up server side.
+
 ```bash
 npm run lint       # ESLint
 npx tsc --noEmit   # TypeScript

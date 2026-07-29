@@ -26,6 +26,13 @@ npx tsc --noEmit
 
 Both must be clean.
 
+**No secrets in the diff.** The pre-commit hook in `.githooks/` blocks key
+shapes and private strings (wire it per clone: `git config core.hooksPath
+.githooks`; project-specific patterns live in the git-ignored
+`.githooks/private-patterns`, listed in private memory). GitHub secret
+scanning + push protection are ON for the repo as the outer layer. If the
+hook fires a false positive, `--no-verify` and say why in the commit message.
+
 **NEVER run prettier.** The repo has no prettier config, and its own style is
 single quotes with no semicolons. Running it reformatted 554 lines of
 `lib/chat/run-turn.ts` in a change that touched three of them, and the only way

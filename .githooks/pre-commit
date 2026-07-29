@@ -1,0 +1,38 @@
+#!/bin/sh
+# Blocks a commit that stages a secret. Second line of defense behind
+# GitHub's push protection (enabled on the repo), and the only line that
+# works offline. Wire it up once per clone with:
+#
+#   git config core.hooksPath .githooks
+#
+# Patterns mirror the 2026-07-30 audit: env files themselves, Anthropic
+# keys, Supabase JWTs, and assigned secrets. Project-specific strings
+# (dev passwords, the project ref) load from .githooks/private-patterns,
+# which is git-ignored, because a public hook must not name the secrets
+# it blocks.
+
+staged=$(git diff --cached --name-only --diff-filter=ACM)
+[ -z "$staged" ] && exit 0
+
+for f in $staged; do
+  case "$f" in
+    *.env.local|*.env|.env.local|.env)
+      echo "BLOCKED: $f looks like a real env file. Only .env.local.example belongs in git." >&2
+      exit 1 ;;
+  esac
+done
+
+# lib/knowledge/sensitive.ts legitimately contains these PATTERNS (it is the
+# app's own secret detector), so it is the one exemption.
+hits=$(git diff --cached -U0 -- . ':!lib/knowledge/sensitive.ts' ':!.githooks/pre-commit' \
+  | grep -E '^\+' \
+  | grep -nE "sk-ant-[A-Za-z0-9_-]{20,}|eyJhbGciOi[A-Za-z0-9_-]{20,}|(SERVICE_ROLE_KEY|CLIENT_SECRET|API_KEY)=[A-Za-z0-9]$([ -f .githooks/private-patterns ] && sed 's/^/|/' .githooks/private-patterns | tr -d '\n')" \
+  | head -5)
+
+if [ -n "$hits" ]; then
+  echo "BLOCKED: staged changes look like they contain a secret:" >&2
+  echo "$hits" | cut -c1-80 >&2
+  echo "If this is a false positive, commit with --no-verify and say why in the message." >&2
+  exit 1
+fi
+exit 0

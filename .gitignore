@@ -55,3 +55,4 @@ skills-lock.json
 
 # llm-council run artifacts stay local
 /llm-council/
+.githooks/private-patterns
