@@ -110,15 +110,16 @@ export function KnowledgeLibrary({
 
   if (items.length === 0) {
     return (
-      <div className="flex flex-col items-center py-14 text-center">
+      <div className="flex flex-col items-center rounded-xl border border-border bg-card py-14 text-center">
         <span className="mb-5 flex size-11 items-center justify-center rounded-lg border border-border bg-background">
           <KnowledgeIcon className="size-5 text-muted-foreground" />
         </span>
         <h2 className="text-xl font-semibold">Nothing in your library yet</h2>
+        {/* One job: how to get something here. What knowledge IS belongs to
+            the page subtitle, and saying it twice is why this ran long. */}
         <p className="mt-1.5 max-w-lg text-sm text-muted-foreground">
-          Knowledge is what an agent always knows: how you write, the facts you
-          repeat, the words your team uses. Open any agent, go to Configure, and
-          add a note or a file. It will show up here.
+          Add a note or a file from any agent&apos;s Configure panel. It shows
+          up here.
         </p>
       </div>
     )

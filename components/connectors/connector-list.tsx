@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Loader2 } from 'lucide-react'
+import { Check, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { GmailIcon } from '@/components/icons/gmail'
@@ -142,14 +142,25 @@ export function ConnectorRow({
 
   return (
     <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
-      <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-background">
-        <Icon className="size-4.5" />
+      <span className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border bg-background">
+        <Icon className="size-5" />
       </span>
       <div className="min-w-0 flex-1">
-        <p className="text-sm font-medium">{label}</p>
-        <p className="text-xs text-muted-foreground">
-          {connected ? 'Connected' : 'Not connected'}
-        </p>
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-medium">{label}</p>
+          {/* Same recipe as the chat connect card's connected state: the app's
+              green (text-primary) with a small check, so "connected" looks the
+              same everywhere it appears. Beside the name, not under it: it is
+              a state of the thing, not a second line about it. */}
+          {connected ? (
+            <span className="flex items-center gap-1 text-xs text-primary">
+              <Check className="size-3 shrink-0" />
+              Connected
+            </span>
+          ) : (
+            <span className="text-xs text-muted-foreground">Not connected</span>
+          )}
+        </div>
         {detail && (
           <p className="mt-1 text-xs text-muted-foreground">{detail}</p>
         )}

@@ -53,7 +53,7 @@ export default async function KnowledgePage() {
     <PageShell>
       <PageHeader
         title="Knowledge"
-        description="What your agents always know. Add a source from inside an agent's Configure panel, then manage it here and choose whether it applies to one agent or to all of them."
+        description="What your agents always know."
       />
       <KnowledgeLibrary items={items} totalChars={totalChars} />
     </PageShell>
