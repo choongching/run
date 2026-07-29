@@ -28,8 +28,7 @@ function ClaudeRow() {
           </span>
         </div>
         <p className="mt-1 text-xs text-muted-foreground">
-          The AI that runs every agent, made by Anthropic. Web search
-          included, nothing to set up.
+          Anthropic's AI behind every agent. Web search included.
         </p>
       </div>
       <span className="px-3 text-xs text-muted-foreground">Built in</span>
