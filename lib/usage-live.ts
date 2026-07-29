@@ -20,6 +20,8 @@ export function subscribeToRuns(
   onRun: (event: UsageEvent) => void
 ): () => void {
   const supabase = createClient()
+  let cancelled = false
+
   const channel = supabase
     .channel(`usage:${userId}`)
     .on(
@@ -32,9 +34,27 @@ export function subscribeToRuns(
       },
       (payload) => onRun(payload.new as UsageEvent)
     )
-    .subscribe()
+  // The socket carries its own credentials, and they are NOT the ones the rest
+  // of the client uses. Left alone it connects as `anon`, which subscribes
+  // happily and then receives nothing at all: row-level security evaluates
+  // auth.uid() as null, so every row is filtered out on the way to us. That
+  // failure is silent and looks exactly like an account with no activity, so
+  // hand it the session token before subscribing.
+  void supabase.auth.getSession().then(async ({ data }) => {
+    if (cancelled) return
+    await supabase.realtime.setAuth(data.session?.access_token)
+    if (cancelled) return
+    // A meter that quietly stops updating looks identical to a meter with
+    // nothing to report, so a channel that fails says so.
+    channel.subscribe((status) => {
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+        console.error('usage realtime channel:', status)
+      }
+    })
+  })
 
   return () => {
+    cancelled = true
     void supabase.removeChannel(channel)
   }
 }

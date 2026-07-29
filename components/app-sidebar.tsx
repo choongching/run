@@ -34,6 +34,7 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
 } from '@/components/ui/sidebar'
+import { UsageMeter } from '@/components/usage/usage-meter'
 
 export type SidebarAgent = {
   id: string
@@ -41,17 +42,21 @@ export type SidebarAgent = {
 }
 
 type AppSidebarProps = {
+  userId: string
   displayName: string
   email: string
   avatarUrl: string | null
   agents: SidebarAgent[]
+  usage: { used: number; limit: number; resetsAt: string }
 }
 
 export function AppSidebar({
+  userId,
   displayName,
   email,
   avatarUrl,
   agents,
+  usage,
 }: AppSidebarProps) {
   const pathname = usePathname()
   const name = displayName || email
@@ -131,6 +136,16 @@ export function AppSidebar({
           </SidebarMenuItem>
         </SidebarMenu>
         <SidebarSeparator />
+        {/* The meter sits with the account rather than in the nav: what is
+            left this month belongs to the person, the way their plan does,
+            not to any one agent. */}
+        <UsageMeter
+          key={usage.used}
+          userId={userId}
+          used={usage.used}
+          limit={usage.limit}
+          resetsAt={usage.resetsAt}
+        />
         {/* Everything about the person sits behind their own face: their
             profile, and signing out. Knowledge and Connectors stay in the nav
             above because those belong to the agents, not to the account. */}
