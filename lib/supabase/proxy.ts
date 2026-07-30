@@ -52,7 +52,13 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith('/register') ||
     pathname.startsWith('/forgot-password') ||
     pathname.startsWith('/auth/confirm')
-  const isDashboardRoute = !isAuthRoute && !pathname.startsWith('/api') && pathname !== '/'
+  // '/' is the dashboard home (the agent builder), so it is gated like every
+  // other dashboard route. It used to be exempt, from the era when the root
+  // might have become a public landing page; the exemption meant a signed-out
+  // visit served the whole app shell and then bounced client-side, a flash of
+  // an empty app instead of a 3ms redirect. When a marketing site exists it
+  // will live on its own domain, not behind this exemption.
+  const isDashboardRoute = !isAuthRoute && !pathname.startsWith('/api')
 
   if (!user && isDashboardRoute) {
     const url = request.nextUrl.clone()
