@@ -98,6 +98,10 @@ copy you would write.
 - **Empty state body: only the action.** What the thing IS lives in the
   subtitle; saying it twice is why these run long. "Add notes or files to any
   of your agents. They all end up here."
+- **Tooltip on a self-evident control: one word.** An X's tooltip is
+  "Close"; both "Close the panel" and a consequence clause were rejected in
+  one round. The consequence recipe below is for controls whose OUTCOME is
+  the unclear part.
 - **Tooltip: the action or the consequence, once, no period.** "See this
   month's runs." beat two longer drafts. "Your agents will stop using this
   account" beat "lose access", which is permissions-speak.
