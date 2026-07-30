@@ -45,9 +45,41 @@ protection plus a pre-commit hook that blocks anything shaped like a secret.
 There is now a way back in for someone who forgets their password, and a
 Password section in Settings; sending those reset emails in production needs
 an SMTP provider connected to Supabase, which is a deploy-day task.
-Next step: set the real monthly allowance, decide whether running out should
-stop a run, and give agents their own connector list so a documents agent
-cannot reach your inbox at all.
+The allowance questions are settled: 200 runs a month is the real number, and
+using the last one stops the next run with a plain sentence and the refill
+date. A performance gate now runs at every phase end so speed cannot quietly
+regress, and the front page redirects a signed-out visitor in a few
+milliseconds instead of flashing an empty app.
+Next step: give agents their own connector list so a documents agent cannot
+reach your inbox at all, then deploy for real users (SMTP for reset emails and
+the production redirect allowlist are the recorded deploy-day tasks).
+
+---
+
+## 2026-07-30 (evening): Decisions enforced, and a gate that watches speed
+
+The two allowance questions stopped being open. The founder decided the free
+plan really is 200 runs a month, and that using the last one stops the next
+run. The meter's number is now enforced where turns begin: a new message past
+the limit gets a plain refusal with the refill date, while approvals and
+answers still complete, because stranding a half-finished conversation would
+be worse than one extra run. Proven by lowering the limit below the dev
+account's usage and watching the refusal fire; no real run was burned testing
+it. The check costs no time, riding a batch of reads the route already made.
+
+Performance testing became standing machinery instead of something the
+founder has to request. A script measures what needs no sign-in (public page
+speed, the signed-out redirect map, bundle weight) against budgets set from
+measured baselines, and the phase-end checklist runs it every time. The
+founder signed in themselves on a production build while the agent timed it:
+every page paints in under 30ms, clicking between pages costs zero network,
+and the sign-in button's waiting spinner was confirmed by eye.
+
+The front page also joined the rest of the app behind the sign-in gate: a
+signed-out visit used to be served the entire app shell and then bounced,
+a flash of an empty app; now it is one redirect in a few milliseconds.
+
+Merged to `main` via pull requests #110 through #114.
 
 ---
 
