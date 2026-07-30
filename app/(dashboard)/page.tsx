@@ -41,7 +41,8 @@ export default async function HomePage({
       {/* Hero sizing: the home screen is the one sanctioned exception to the
           24px page-title cap. Every size on this screen is local to these two
           home components, so nothing else inherits it. */}
-      <h1 className="mb-10 text-3xl font-semibold tracking-tight md:text-4xl">
+      {/* 7% under text-3xl/4xl, set by the founder's eye. */}
+      <h1 className="mb-10 text-[28px]/9 font-semibold tracking-tight md:text-[33px]/10">
         <span className="sr-only">
           Build an agent for your inbox, drafts, writing or research.
         </span>
