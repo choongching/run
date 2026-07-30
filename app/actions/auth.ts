@@ -73,8 +73,8 @@ export async function updatePassword(formData: FormData) {
   const confirm = String(formData.get('confirm') ?? '')
   const from = formData.get('from') === 'settings' ? '/settings' : '/reset-password'
 
-  if (password.length < 6) {
-    redirect(`${from}?error=${encodeURIComponent('Use at least 6 characters.')}`)
+  if (password.length < 8) {
+    redirect(`${from}?error=${encodeURIComponent('Use at least 8 characters.')}`)
   }
   if (password !== confirm) {
     redirect(`${from}?error=${encodeURIComponent('Those two do not match.')}`)

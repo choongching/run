@@ -1,6 +1,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { login, register } from '@/app/actions/auth'
+import { PasswordInput } from '@/components/auth/password-input'
 import { SubmitButton } from '@/components/auth/submit-button'
 import {
   Card,
@@ -65,14 +66,17 @@ export function AuthForm({ mode, error, message }: AuthFormProps) {
                 </Link>
               )}
             </div>
-            <Input
+            <PasswordInput
               id="password"
               name="password"
-              type="password"
               autoComplete={isLogin ? 'current-password' : 'new-password'}
-              required
-              minLength={6}
+              minLength={isLogin ? undefined : 8}
             />
+            {!isLogin && (
+              <p className="text-xs text-muted-foreground">
+                At least 8 characters.
+              </p>
+            )}
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
           {message && <p className="text-sm text-muted-foreground">{message}</p>}
