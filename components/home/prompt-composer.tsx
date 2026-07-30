@@ -77,6 +77,9 @@ export function PromptComposer({
             type="submit"
             disabled={!canSubmit}
             aria-label="Build agent"
+            // Hero sizing, home only: a touch over the default button
+            // (15% up, then 9% back down on review = about 5% net).
+            className="h-9.5 px-4.5 text-[15px]"
           >
             {pending ? 'Building...' : 'Build my agent'}
             {!pending && <ArrowUp className="size-4" />}
