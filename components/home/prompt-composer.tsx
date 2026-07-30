@@ -13,10 +13,13 @@ import { Button } from '@/components/ui/button'
 // Every chip must be a job the tool list in lib/tools/definitions.ts can
 // actually finish (a chip is the agent's first task), and together they
 // mirror the headline's cycle: inbox, drafts, writing/research, documents.
+// The organize chip came back once Drive write tools (folders, move,
+// rename) shipped; it was removed while Drive was read-only.
 const SUGGESTIONS = [
   'Summarize my inbox and flag what needs a reply',
   'Draft replies to emails waiting on me',
   'Research a topic and write it up for me',
+  'Organize my Google Drive files',
   'Answer questions from my documents',
 ]
 

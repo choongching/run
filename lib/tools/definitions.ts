@@ -11,6 +11,9 @@ export type ToolName =
   | 'gmail_create_draft'
   | 'drive_list_files'
   | 'drive_read_file'
+  | 'drive_create_folder'
+  | 'drive_move_file'
+  | 'drive_rename_file'
 
 // Which connection each tool needs, so the run loop can surface a connect card
 // when the user has not linked that app yet.
@@ -20,11 +23,19 @@ export const TOOL_APP: Record<ToolName, ConnectableApp> = {
   gmail_create_draft: 'gmail',
   drive_list_files: 'google_drive',
   drive_read_file: 'google_drive',
+  drive_create_folder: 'google_drive',
+  drive_move_file: 'google_drive',
+  drive_rename_file: 'google_drive',
 }
 
 // Write tools have external side effects and must be approved by the user
 // before they run ("writes ask first").
-export const WRITE_TOOLS = new Set<ToolName>(['gmail_create_draft'])
+export const WRITE_TOOLS = new Set<ToolName>([
+  'gmail_create_draft',
+  'drive_create_folder',
+  'drive_move_file',
+  'drive_rename_file',
+])
 
 export function isWriteTool(name: string): boolean {
   return WRITE_TOOLS.has(name as ToolName)
@@ -168,6 +179,33 @@ export function summarizeWrite(
       detail: `Subject: ${subject}\n\n${body}`,
     }
   }
+  // The Drive write tools require the human-readable names in their input
+  // (alongside the ids) exactly so these cards can say what is about to
+  // happen in words the user recognizes, never a file id.
+  if (name === 'drive_create_folder') {
+    const folder = String(input.name ?? 'a folder')
+    const parent = String(input.parent_name ?? '')
+    return {
+      title: `Create a Drive folder called "${folder}"`,
+      detail: parent ? `Inside "${parent}".` : 'In your Google Drive.',
+    }
+  }
+  if (name === 'drive_move_file') {
+    const file = String(input.file_name ?? 'a file')
+    const folder = String(input.folder_name ?? 'another folder')
+    return {
+      title: `Move "${file}" into "${folder}"`,
+      detail: 'In your Google Drive.',
+    }
+  }
+  if (name === 'drive_rename_file') {
+    const file = String(input.file_name ?? 'a file')
+    const newName = String(input.new_name ?? '')
+    return {
+      title: `Rename "${file}" to "${newName}"`,
+      detail: 'In your Google Drive.',
+    }
+  }
   return { title: `Run ${name.replace(/_/g, ' ')}`, detail: '' }
 }
 
@@ -250,6 +288,71 @@ export const CHAT_TOOL_DEFINITIONS = [
         file_id: { type: 'string', description: 'The Drive file id.' },
       },
       required: ['file_id'],
+    },
+  },
+  {
+    type: 'custom' as const,
+    name: 'drive_create_folder',
+    description:
+      "Create a new folder in the user's Google Drive. Use when organizing files into a structure the user asked for. Pass `parent_name` (and `parent_id`) when creating it inside another folder; omit both for the top level. The user approves the call before the folder is created.",
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        name: { type: 'string', description: 'Name for the new folder.' },
+        parent_id: {
+          type: 'string',
+          description: 'Drive id of the folder to create it inside (optional).',
+        },
+        parent_name: {
+          type: 'string',
+          description:
+            'Human name of that parent folder, shown to the user on the approval card (required when parent_id is set).',
+        },
+      },
+      required: ['name'],
+    },
+  },
+  {
+    type: 'custom' as const,
+    name: 'drive_move_file',
+    description:
+      "Move one Google Drive file or folder into a folder. Get ids from drive_list_files or drive_create_folder. ALWAYS pass `file_name` and `folder_name` (the human names) so the user can read what will happen on the approval card. The user approves each move before it happens.",
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        file_id: { type: 'string', description: 'Drive id of the file to move.' },
+        file_name: {
+          type: 'string',
+          description: 'Human name of that file, shown on the approval card.',
+        },
+        folder_id: {
+          type: 'string',
+          description: 'Drive id of the destination folder.',
+        },
+        folder_name: {
+          type: 'string',
+          description: 'Human name of that folder, shown on the approval card.',
+        },
+      },
+      required: ['file_id', 'file_name', 'folder_id', 'folder_name'],
+    },
+  },
+  {
+    type: 'custom' as const,
+    name: 'drive_rename_file',
+    description:
+      "Rename one Google Drive file or folder. ALWAYS pass `file_name` (the current human name) so the user can read what will happen on the approval card. The user approves each rename before it happens.",
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        file_id: { type: 'string', description: 'Drive id of the file to rename.' },
+        file_name: {
+          type: 'string',
+          description: 'Current name of that file, shown on the approval card.',
+        },
+        new_name: { type: 'string', description: 'The new name.' },
+      },
+      required: ['file_id', 'file_name', 'new_name'],
     },
   },
   {
