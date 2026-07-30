@@ -344,6 +344,14 @@
     --text-xl: 1.3125rem; /* 21px */
     --text-2xl: 1.5625rem; /* 25px */
   }
+  /* Agent replies render through the Typography plugin, whose prose-sm sets a
+     literal 0.875rem on the container rather than reading the token above, so
+     it missed the chat's 1px lift. Pointing the container at the token brings
+     it in line, and prose sizes every internal element in em, so headings,
+     code and lists rescale with it. */
+  .run-chat-type .prose {
+    font-size: var(--text-sm);
+  }
 
   /* Chat micro-states. The thinking shimmer sweeps a light band across muted
      text while the agent composes; the caret blinks at the end of streaming
