@@ -46,8 +46,12 @@ knowledge_sources, messages, threads must all be 0. Run
 `get_advisors(security)` and triage every WARN.
 
 - TRAP: `authenticated` needs EXECUTE on the SECURITY DEFINER policy helpers
-  (policies evaluate them with the caller's privileges); revoke only `anon`.
+  (policies evaluate them with the caller's privileges).
   Trigger functions like handle_new_user need no API-role EXECUTE at all.
+- TRAP: revoking EXECUTE from `anon` alone does NOTHING while the default
+  grant to PUBLIC stands (has_function_privilege('anon', ...) stays true).
+  Revoke from PUBLIC, then grant back `authenticated` explicitly
+  (migrations 033+034). Always re-check with has_function_privilege after.
 - TRAP: a storage SELECT policy cannot be dropped to stop bucket listing;
   uploads read the object row back. Scope it to the uploader's folder.
 - Schema security changes (revokes, policy swaps) are blocked by the
@@ -65,8 +69,8 @@ knowledge_sources, messages, threads must all be 0. Run
 
 ## Open items ledger (update as they close)
 
-- Migration 033 (anon RPC revokes + avatar listing scope): written, awaiting
-  founder approval to apply.
+- Migration 033+034 (RPC lockdown + avatar listing scope): APPLIED
+  2026-07-31, verified via has_function_privilege + RLS probe.
 - Leaked-password protection: Supabase dashboard toggle, founder only.
 - Drive approval-card name resolution: founder undecided.
 
