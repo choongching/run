@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Check, CircleDashed, Loader2 } from 'lucide-react'
+import { Check, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { GmailIcon } from '@/components/icons/gmail'
@@ -154,10 +154,12 @@ export function ConnectorRow({
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-1.5">
           <p className="text-sm font-medium">{label}</p>
-          {/* State is an icon beside the name, words on hover: a green check
-              when connected, a muted dashed circle (an empty slot, not an
-              error) when not. The tooltip carries the label the row no longer
-              shows, and screen readers get it from the aria-label. */}
+          {/* State is one icon beside the name, words on hover: the same
+              check in both states, green when connected and faint ink when
+              not, so colour alone carries the state (founder's call after a
+              dashed-circle attempt read as weird). The tooltip carries the
+              label the row no longer shows; screen readers get it from the
+              aria-label. */}
           <TooltipProvider delay={300}>
             <Tooltip>
               <TooltipTrigger
@@ -169,11 +171,13 @@ export function ConnectorRow({
                   />
                 }
               >
-                {connected ? (
-                  <Check className="size-3.5 text-primary" />
-                ) : (
-                  <CircleDashed className="size-3 text-muted-foreground/70" />
-                )}
+                <Check
+                  className={
+                    connected
+                      ? 'size-3.5 text-primary'
+                      : 'size-3.5 text-muted-foreground/40'
+                  }
+                />
               </TooltipTrigger>
               <TooltipContent side="top" sideOffset={6}>
                 {connected ? 'Connected' : 'Not connected yet'}
