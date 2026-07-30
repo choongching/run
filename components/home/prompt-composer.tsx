@@ -66,7 +66,7 @@ export function PromptComposer({
           placeholder={
             blocked
               ? 'Delete an agent to make room for a new one'
-              : 'Describe what you need done, and Run will build an agent for you...'
+              : 'Describe what you need done, and Run will build an agent for you. Plain words are all it takes: say what the job is, what it should look at (your inbox, your files, the web), and what you want back.'
           }
           // Hero sizing, home only: body-size text in a roomier box. The rest
           // of the app keeps text-sm inputs.
