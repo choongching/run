@@ -47,29 +47,32 @@ flowchart TD
     K --> D
 ```
 
-Step by step:
+The loop, in five beats:
 
-1. **Say what you want.** One box, one sentence: *"Summarize my inbox each
-   morning and flag anything that needs a reply."* You get an agent and a chat
-   with it.
-2. **It asks a few questions.** Enough to understand the job properly. Tap an
-   answer or type your own.
-3. **It shows you what it understood.** Its name and its job, before it does
-   anything. Change either one, or tell it what to fix. Nothing happens until
-   you agree.
-4. **Give it work.** Chat with it normally, and watch each step as it goes:
-   *"Searching your inbox from the last 2 days"*, then *"Read an email"*.
-5. **Sign in when it needs you to.** The first time it wants your Gmail or
-   Drive, it asks. You sign in once and it carries on from where it stopped.
-   Everyone connects their own accounts.
-6. **It reads on its own, and asks before it acts.** Looking through your inbox
-   and files needs no permission. Anything that sends or changes something stops
-   and shows you the whole thing first.
-7. **You get real things back.** Answers, documents you can download, and
-   drafts waiting in your Gmail.
-8. **Send it files.** Attach a document or a screenshot and it reads it.
-9. **Keep track of your usage.** How much of the month you have left, and what
-   your agents spent it on.
+1. **You state the intent.** One box, one sentence: *"Summarize my inbox each
+   morning and flag anything that needs a reply."*
+2. **It writes its own job description.** A few quick questions, then the name
+   and the job it understood, shown to you on a card.
+3. **You approve it.** Edit either field, or tell it what to fix. Nothing runs
+   before your yes.
+4. **It does the work.** Reading your inbox and files needs no permission, and
+   it narrates each step as it goes: *"Searching your inbox from the last 2
+   days"*, then *"Read an email"*.
+5. **It delivers, and asks first when it matters.** Answers and downloadable
+   documents come straight back. Anything that sends or changes something
+   stops, shows you the whole thing, and waits. Approve it, and a real draft
+   lands in your Gmail.
+
+You provide the intent, it provides the labor, and everything with
+consequences passes through your hands.
+
+Along the way:
+
+- The first time it needs your Gmail or Drive, a connect card appears in the
+  chat. You sign in once and it carries on from where it stopped.
+- Attach a document or a screenshot and it reads it.
+- A meter shows how much of the month is left and what your agents spent it
+  on.
 
 ## How it is structured
 
