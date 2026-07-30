@@ -33,6 +33,21 @@ shapes and private strings (wire it per clone: `git config core.hooksPath
 scanning + push protection are ON for the repo as the outer layer. If the
 hook fires a false positive, `--no-verify` and say why in the commit message.
 
+**Performance gate (always, the founder should never have to ask):**
+
+```bash
+node scripts/perf-check.mjs          # dev server: informational table
+node scripts/perf-check.mjs --prod   # production build: budgets ENFORCED
+```
+
+It checks public-page TTFB, the signed-out redirect graph (every gated route
+exactly one local hop to /login, no app-shell flash, no chains), the confirm
+route's failure path, and bundle weight against budgets set from the
+2026-07-30 baselines. Run the dev form during work; run the --prod form
+before declaring a phase done. Signed-in first paint is the browser half:
+see the perf-audit skill. A budget failure is a regression to fix or to
+explicitly justify in the PR body, never to ignore.
+
 **NEVER run prettier.** The repo has no prettier config, and its own style is
 single quotes with no semicolons. Running it reformatted 554 lines of
 `lib/chat/run-turn.ts` in a change that touched three of them, and the only way

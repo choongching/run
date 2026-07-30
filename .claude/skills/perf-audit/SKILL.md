@@ -8,6 +8,24 @@ description: Audit or improve page load, navigation, or perceived speed in the R
 Two passes (2026-07-28 and 07-30) took first paint from most of a second to
 about 30ms. Every rule here was paid for with a measurement.
 
+## The standing gate (run it, do not wait to be asked)
+
+`node scripts/perf-check.mjs` against a running server; `--prod` against a
+production build enforces budgets (public TTFB 150ms, proxy redirects 60ms,
+biggest chunk 350KB, total client JS 2.5MB, set from 2026-07-30 baselines
+with headroom). It also audits the signed-out redirect graph: exactly one
+local hop to /login from every gated route, no chains, no 200s. This runs as
+part of phase-gate on every phase end.
+
+The browser half, for what needs a session (do after any change to a layout,
+a page's data fetching, or navigation):
+
+1. First paint per route via the RSC first-chunk timing below; budget 100ms
+   prod against the ~30ms baseline.
+2. Nav clicks to Knowledge/Connectors: zero fetches at click time (they are
+   prefetched); chat clicks are allowed their one fetch, by design.
+3. New client components: justify each against the zero-JS default.
+
 ## Measure before touching anything
 
 - **Production build only.** Prefetching does not exist in dev, so dev clicks
