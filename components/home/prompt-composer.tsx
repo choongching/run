@@ -48,7 +48,9 @@ export function PromptComposer({
       <form
         action={startAgentFromPrompt}
         onSubmit={() => setPending(true)}
-        className="rounded-xl border border-input bg-card focus-within:ring-2 focus-within:ring-ring/50"
+        // rounded-[9px] is a founder-set hero exception to the 4-6px radius
+        // scale, local to this composer only.
+        className="rounded-[9px] border border-input bg-card focus-within:ring-2 focus-within:ring-ring/50"
       >
         <textarea
           ref={textareaRef}
