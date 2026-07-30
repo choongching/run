@@ -24,8 +24,17 @@ function filename(title: string): string {
 // A document the agent produced, shown in the thread as a card: title, a
 // collapsible preview, and a Download button that saves the Markdown file. The
 // artifact lives in the message payload, so it survives a reload.
-export function ArtifactCard({ artifact }: { artifact: ArtifactMeta }) {
+export function ArtifactCard({ artifact: raw }: { artifact: ArtifactMeta }) {
   const [open, setOpen] = useState(false)
+  // New documents are cleaned of <cite> markup at creation (see
+  // summarizeDocument), but documents stored before that fix carry the tags in
+  // their saved payload, so the card cleans again on the way out. Covers the
+  // preview and the downloaded file alike.
+  const artifact = {
+    ...raw,
+    title: raw.title.replace(/<\/?cite\b[^>]*>/g, ''),
+    content: raw.content.replace(/<\/?cite\b[^>]*>/g, ''),
+  }
 
   function download() {
     const blob = new Blob([artifact.content], {

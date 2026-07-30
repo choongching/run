@@ -116,13 +116,24 @@ export function isAutoRunTool(name: string): boolean {
 
 // Pull a document artifact out of a create_document call, tolerant of loose
 // model output.
+//
+// Web-search results reach the model wrapped in <cite index="..."> tags, and
+// when it quotes them inside a document body the tags come along; the platform
+// strips them from chat replies but a document is tool input the model wrote,
+// so they ride through raw. The sentence inside the tag is the content, so
+// keep it and drop the markup. Every consumer of a document (preview,
+// download, reloaded history) goes through here.
+function stripCiteTags(text: string): string {
+  return text.replace(/<\/?cite\b[^>]*>/g, '')
+}
+
 export function summarizeDocument(input: Record<string, unknown>): {
   title: string
   content: string
 } {
   return {
-    title: String(input.title ?? '').trim() || 'Document',
-    content: String(input.content ?? '').trim(),
+    title: stripCiteTags(String(input.title ?? '')).trim() || 'Document',
+    content: stripCiteTags(String(input.content ?? '')).trim(),
   }
 }
 
