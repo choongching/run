@@ -346,7 +346,20 @@
     background-clip: text;
     -webkit-background-clip: text;
     color: transparent;
-    animation: run-shimmer 1.6s linear infinite;
+    /* 2.4s after review against the reference loaders: the slower sweep is
+       what makes it read as composure rather than busyness. The animated
+       property is background-position on a few words of text-sized paint, so
+       the repaint cost stays negligible. */
+    animation: run-shimmer 2.4s linear infinite;
+  }
+  /* Without the sweep the gradient is just text frozen mid-band, so reduced
+     motion gets plain muted text instead. */
+  @media (prefers-reduced-motion: reduce) {
+    .text-shimmer {
+      animation: none;
+      background: none;
+      color: var(--muted-foreground);
+    }
   }
 
   @keyframes run-caret {
