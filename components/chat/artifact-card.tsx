@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { ChevronDown, Download, FileText } from 'lucide-react'
 
 import { Markdown } from '@/components/chat/markdown'
@@ -29,12 +29,17 @@ export function ArtifactCard({ artifact: raw }: { artifact: ArtifactMeta }) {
   // New documents are cleaned of <cite> markup at creation (see
   // summarizeDocument), but documents stored before that fix carry the tags in
   // their saved payload, so the card cleans again on the way out. Covers the
-  // preview and the downloaded file alike.
-  const artifact = {
-    ...raw,
-    title: raw.title.replace(/<\/?cite\b[^>]*>/g, ''),
-    content: raw.content.replace(/<\/?cite\b[^>]*>/g, ''),
-  }
+  // preview and the downloaded file alike. Memoized because the thread
+  // re-renders this card on every streaming frame, and regexing a long
+  // document per frame is wasted work.
+  const artifact = useMemo(
+    () => ({
+      ...raw,
+      title: raw.title.replace(/<\/?cite\b[^>]*>/g, ''),
+      content: raw.content.replace(/<\/?cite\b[^>]*>/g, ''),
+    }),
+    [raw]
+  )
 
   function download() {
     const blob = new Blob([artifact.content], {
