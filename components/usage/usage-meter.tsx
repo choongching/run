@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { History } from 'lucide-react'
 
 import {
   Dialog,
@@ -192,20 +193,30 @@ function UsageHistory({
         </DialogDescription>
       </DialogHeader>
 
-      {runs === null ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">
-          Loading your runs...
-        </p>
-      ) : runs.length === 0 ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">
-          Nothing yet this month. Every time one of your agents does something
-          for you, it will show up here.
-        </p>
-      ) : (
+      {runs !== null && runs.length > 0 ? (
         <div className="max-h-96 divide-y overflow-y-auto rounded-xl border">
           {runs.map((run) => (
             <RunRow key={run.id} run={run} />
           ))}
+        </div>
+      ) : (
+        // Loading and empty share one dashed box at one height, so the dialog
+        // holds its shape instead of collapsing around a floating sentence and
+        // jumping when the answer arrives.
+        <div className="flex min-h-64 flex-col items-center justify-center rounded-xl border border-dashed border-border px-6 py-12 text-center">
+          {runs === null ? (
+            <p className="text-sm text-muted-foreground">Loading your runs...</p>
+          ) : (
+            <>
+              <span className="mb-4 flex size-11 items-center justify-center rounded-lg border border-border bg-background">
+                <History className="size-5 text-muted-foreground" />
+              </span>
+              <p className="text-sm font-medium">No runs yet this month</p>
+              <p className="mt-1.5 text-sm text-muted-foreground">
+                Everything your agents do for you will land here.
+              </p>
+            </>
+          )}
         </div>
       )}
     </>

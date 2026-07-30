@@ -189,12 +189,18 @@ export function KnowledgeSection({
             style={{ width: `${pct}%` }}
           />
         </div>
-        <p className="text-xs text-muted-foreground">
-          {sources.length === 0
-            ? 'Nothing attached yet.'
-            : `${budgetLabel(used)}, ${sources.length} of ${MAX_SOURCES_PER_AGENT} sources.`}
-        </p>
+        {sources.length > 0 && (
+          <p className="text-xs text-muted-foreground">
+            {`${budgetLabel(used)}, ${sources.length} of ${MAX_SOURCES_PER_AGENT} sources.`}
+          </p>
+        )}
       </div>
+
+      {sources.length === 0 && (
+        <div className="rounded-lg border border-dashed border-border px-2.5 py-2 text-xs text-muted-foreground">
+          Notes and files you attach will live here
+        </div>
+      )}
 
       {sources.length > 0 && (
         <ul className="flex flex-col divide-y divide-border rounded-xl border border-border bg-card">

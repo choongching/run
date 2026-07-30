@@ -59,6 +59,16 @@ Goal: zero re-derivation, zero styling drift.
   overlay content, so the `useState` initializers re-seed fresh on every open
   (canonical example: the keyed inner body in
   `components/chat/config-panel.tsx`, `key={agentId}`).
+- **Empty states are dashed boxes, app-wide (founder decision 2026-07-30).**
+  Never a floating sentence. Two sizes: FULL (pages, dialogs) is
+  `rounded-xl border border-dashed border-border` with centered icon tile
+  (`size-11 rounded-lg border bg-background`, icon `size-5
+  text-muted-foreground`), a `font-medium` title one step below the surface's
+  heading, and a one-line muted sub; COMPACT (sidebar, docked panels) is
+  `rounded-lg border border-dashed border-border px-2.5 py-2 text-xs
+  text-muted-foreground`, one line, no icon. In dialogs, loading and empty
+  share the same min-height box so the surface holds its shape (see
+  `components/usage/usage-meter.tsx`).
 - **Overlay exit animations:** keep the selected record in state after close
   (a separate `open` boolean drives visibility) so the overlay keeps its
   content through the exit transition instead of flashing empty.
