@@ -211,6 +211,32 @@
     }
   }
 
+  /* The home hero's entrance (app/(dashboard)/page.tsx and
+     components/home/prompt-composer.tsx): each element fades and lifts in
+     once, in reading order, staggered by --rise-delay. Deliberately quieter
+     than run-flip: a short travel, no blur, and done in under a second so it
+     reads as the page settling rather than performing. Transform and opacity
+     only, so it composites. Home only; nothing else takes an entrance. */
+  .run-rise {
+    animation: run-rise-in 640ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    animation-delay: var(--rise-delay, 0ms);
+  }
+  @keyframes run-rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .run-rise {
+      animation: none;
+    }
+  }
+
   /* Ambient wash behind the home prompt box (components/home/ambient-backdrop).
      Built from the palette, not invented colour: two deep-forest-green washes
      and one warm paper wash, all at single-digit alpha. The styleguide reserves
