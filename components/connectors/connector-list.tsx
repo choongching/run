@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Check, Loader2 } from 'lucide-react'
+import { Check, CircleDashed, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { GmailIcon } from '@/components/icons/gmail'
@@ -152,20 +152,34 @@ export function ConnectorRow({
         <Icon className="size-5" />
       </span>
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1.5">
           <p className="text-sm font-medium">{label}</p>
-          {/* Same recipe as the chat connect card's connected state: the app's
-              green (text-primary) with a small check, so "connected" looks the
-              same everywhere it appears. Beside the name, not under it: it is
-              a state of the thing, not a second line about it. */}
-          {connected ? (
-            <span className="flex items-center gap-1 text-xs text-primary">
-              <Check className="size-3 shrink-0" />
-              Connected
-            </span>
-          ) : (
-            <span className="text-xs text-muted-foreground">Not connected</span>
-          )}
+          {/* State is an icon beside the name, words on hover: a green check
+              when connected, a muted dashed circle (an empty slot, not an
+              error) when not. The tooltip carries the label the row no longer
+              shows, and screen readers get it from the aria-label. */}
+          <TooltipProvider delay={300}>
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <span
+                    role="img"
+                    aria-label={connected ? 'Connected' : 'Not connected'}
+                    className="flex shrink-0 items-center"
+                  />
+                }
+              >
+                {connected ? (
+                  <Check className="size-3.5 text-primary" />
+                ) : (
+                  <CircleDashed className="size-3 text-muted-foreground/70" />
+                )}
+              </TooltipTrigger>
+              <TooltipContent side="top" sideOffset={6}>
+                {connected ? 'Connected' : 'Not connected yet'}
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
         {detail && (
           <p className="mt-1 text-xs text-muted-foreground">{detail}</p>
