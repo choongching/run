@@ -74,37 +74,12 @@ Along the way:
 - A meter shows how much of the month is left and what your agents spent it
   on.
 
-## How it is structured
-
-Run is a single, focused app. These are the surfaces you move between:
-
-- **Sidebar** (always present): your list of agents, plus "New agent". Each agent
-  is one entry you can jump back into.
-- **Home** (`/`): the prompt box where you create a new agent by describing it.
-- **Chat thread** (`/chat/[agent]`): the heart of the product. A ChatGPT-style
-  view with a pinned header and composer and a scrolling message list, this is
-  where you talk to an agent, watch it work, approve its actions, and read its
-  output.
-- **Configure panel**: a column that docks beside the chat for tuning an agent
-  without leaving the conversation, or losing sight of it. It is grouped into **Profile** (name and
-  personality), **Behavior** (instructions and model), **Connections** (Gmail and
-  Drive), a read-only record of the setup interview, and a delete action.
-- **Connectors** (`/connectors`): your own Gmail and Drive links, offered inline
-  when an agent needs them, and managed here or from the Configure panel.
-
-### The agent model
-
-The mental model is a worker and their tasks:
-
-- An **agent** is a durable worker. Its role, instructions, connected accounts,
-  and personality define who it is.
-- A **conversation** is a task it is doing. The runtime supports many
-  conversations per agent (an agent is separate from its chat sessions), which is
-  the natural structure for "one worker, many jobs over time".
-
-A good agent is a coherent cluster of related work ("my email assistant"), not a
-do-everything bot, because an agent's competence is exactly its configured
-instructions, tools, and connected data.
+One more thing worth knowing: an agent outlives its conversations. Think of
+each one as a worker you hired, not a chat you opened. It keeps its job, its
+instructions, and its connected accounts, and every conversation is one task on
+its desk. The best agents have one coherent job, like an email assistant,
+rather than a little of everything, because an agent is exactly as good as the
+job description you gave it.
 
 ## Trust and safety
 
