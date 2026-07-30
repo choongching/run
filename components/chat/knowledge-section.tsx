@@ -6,13 +6,13 @@ import Link from 'next/link'
 import {
   Ellipsis,
   FileText,
+  FileUp,
   Globe,
   Loader2,
   Plus,
   StickyNote,
   TriangleAlert,
   Unlink,
-  Upload,
 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -94,6 +94,7 @@ export function KnowledgeSection({
   const [renaming, setRenaming] = useState<{ id: string; title: string } | null>(
     null
   )
+  const [dragging, setDragging] = useState(false)
 
   const used = sources.reduce((sum, s) => sum + s.chars, 0)
   const pct = Math.min(100, Math.round((used / MAX_AGENT_CHARS) * 100))
@@ -389,6 +390,41 @@ export function KnowledgeSection({
         </p>
       )}
 
+      {/* The drop zone is a real button, so it is also the click-to-browse
+          path and keyboard users reach it like any control. Dashed, like every
+          "something goes here" surface in the app. */}
+      {canEdit && (
+        <button
+          type="button"
+          onClick={() => fileInput.current?.click()}
+          disabled={full || busy !== null}
+          onDragOver={(e) => {
+            e.preventDefault()
+            if (!full && busy === null) setDragging(true)
+          }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={(e) => {
+            e.preventDefault()
+            setDragging(false)
+            if (full || busy !== null) return
+            const file = e.dataTransfer.files?.[0]
+            if (file) void upload(file)
+          }}
+          className={`flex w-full flex-col items-center gap-1 rounded-xl border border-dashed px-4 py-6 text-center transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
+            dragging
+              ? 'border-primary bg-primary/5'
+              : 'border-border hover:bg-muted/50'
+          }`}
+        >
+          <FileUp className="mb-1 size-5 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">
+            Drag and drop a file here, or click to browse
+          </span>
+          <span className="text-xs text-muted-foreground">
+            {KNOWLEDGE_ACCEPTED_HINT}, up to 15 MB
+          </span>
+        </button>
+      )}
       {canEdit && (
       <div className="flex flex-wrap items-center gap-2">
         <Button
@@ -399,15 +435,6 @@ export function KnowledgeSection({
         >
           <Plus className="size-3.5" />
           Add note
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => fileInput.current?.click()}
-          disabled={full || busy !== null}
-        >
-          <Upload className="size-3.5" />
-          Upload file
         </Button>
         <input
           ref={fileInput}
@@ -447,7 +474,7 @@ export function KnowledgeSection({
         <p className="px-0.5 text-xs text-muted-foreground">
           {full
             ? `This agent is at its limit of ${MAX_SOURCES_PER_AGENT} sources. Detach one to add another.`
-            : `${KNOWLEDGE_ACCEPTED_HINT}. Long files are trimmed to fit.`}
+            : 'Long files are trimmed to fit.'}
         </p>
       )}
     </div>
