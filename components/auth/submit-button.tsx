@@ -15,13 +15,15 @@ import { Button } from '@/components/ui/button'
 export function SubmitButton({
   label,
   pendingLabel,
+  className = 'w-full',
 }: {
   label: string
   pendingLabel: string
+  className?: string
 }) {
   const { pending } = useFormStatus()
   return (
-    <Button type="submit" className="w-full" disabled={pending}>
+    <Button type="submit" className={className} disabled={pending}>
       {pending && <Loader2 className="size-4 animate-spin" />}
       {pending ? pendingLabel : label}
     </Button>

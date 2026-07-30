@@ -43,7 +43,15 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims()
   const user = data?.claims ?? null
   const { pathname } = request.nextUrl
-  const isAuthRoute = pathname.startsWith('/login') || pathname.startsWith('/register')
+  // /forgot-password is reachable signed out (that is its whole point) and
+  // /auth/confirm must pass the email link through untouched. /reset-password
+  // is NOT here: it needs the recovery session the link creates, so the
+  // signed-out redirect below is the correct behavior for a cold visit.
+  const isAuthRoute =
+    pathname.startsWith('/login') ||
+    pathname.startsWith('/register') ||
+    pathname.startsWith('/forgot-password') ||
+    pathname.startsWith('/auth/confirm')
   const isDashboardRoute = !isAuthRoute && !pathname.startsWith('/api') && pathname !== '/'
 
   if (!user && isDashboardRoute) {
@@ -51,7 +59,9 @@ export async function updateSession(request: NextRequest) {
     url.pathname = '/login'
     return NextResponse.redirect(url)
   }
-  if (user && isAuthRoute) {
+  // A signed-in person clicking a recovery link must still reach the verify
+  // step, so the bounce below never applies to /auth/confirm.
+  if (user && isAuthRoute && !pathname.startsWith('/auth/confirm')) {
     const url = request.nextUrl.clone()
     url.pathname = '/'
     return NextResponse.redirect(url)

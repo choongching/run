@@ -87,7 +87,7 @@ export function UsageMeter({ userId, used, limit, resetsAt }: UsageMeterProps) {
             </div>
           </TooltipTrigger>
           <TooltipContent side="top" sideOffset={8}>
-            See this month's runs
+            See this month&apos;s runs
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
