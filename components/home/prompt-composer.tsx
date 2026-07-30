@@ -63,7 +63,7 @@ export function PromptComposer({
           placeholder={
             blocked
               ? 'Delete an agent to make room for a new one'
-              : 'Describe what you need done, and Run turns it into an agent'
+              : 'Describe what you need done, and Run will build an agent for you...'
           }
           className="w-full resize-none bg-transparent px-4 pt-3.5 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
         />
