@@ -88,6 +88,16 @@ a page's data fetching, or navigation):
   `.scope .prose { font-size: var(--text-sm) }` rule (see run-chat-type in
   globals.css), and em-based prose internals then follow.
 
+## Production baselines (Vercel sin1, measured 2026-07-31 from Singapore)
+
+`node scripts/perf-check.mjs --prod --base https://<site>` runs the standing
+gate against the deployed site. Baselines, all budgets passing: public pages
+55-76ms TTFB, signed-out redirects 28-36ms, signed-in RSC first chunk
+70-92ms on every route (chat the heaviest at 92), fully streamed 220-420ms,
+prefetched nav clicks 0 fetches and ~130ms to the destination heading. The
+220-420ms drain is the ~120ms Supabase floor stacking, not app code; do not
+chase it until the plan-tier question is answered.
+
 ## Known floors (do not chase these in code)
 
 - **~120ms per Supabase request, flat.** Proven with a no-op
