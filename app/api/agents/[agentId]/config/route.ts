@@ -19,10 +19,18 @@ export async function GET(
   if (error) return error
   const { agentId } = await params
 
-  if (!(await ownsAgent(supabase, agentId, userId))) {
+  // The ownership check gates the RESPONSE, not the queries: both run
+  // concurrently (each Supabase round trip costs ~120ms flat, and serially
+  // this was the panel's whole open latency), and on a failed check the
+  // loaded data is discarded without ever reaching the caller. Every query
+  // inside loadPanelExtras is itself RLS-scoped, so running it for an agent
+  // the caller does not own reads nothing the caller could not query anyway.
+  const [owned, extras] = await Promise.all([
+    ownsAgent(supabase, agentId, userId),
+    loadPanelExtras(supabase, agentId, userId),
+  ])
+  if (!owned) {
     return NextResponse.json({ error: 'Not found' }, { status: 404 })
   }
-
-  const extras = await loadPanelExtras(supabase, agentId, userId)
   return NextResponse.json(extras)
 }
