@@ -71,7 +71,9 @@ knowledge_sources, messages, threads must all be 0. Run
 
 - Migration 033+034 (RPC lockdown + avatar listing scope): APPLIED
   2026-07-31, verified via has_function_privilege + RLS probe.
-- Leaked-password protection: Supabase dashboard toggle, founder only.
+- Leaked-password protection: PLAN-GATED (no toggle on Free, verified
+  2026-07-31). Closes with the plan-tier upgrade, required before open
+  signup.
 - Drive approval-card name resolution: founder undecided.
 
 ## Report
