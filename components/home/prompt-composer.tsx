@@ -50,7 +50,7 @@ export function PromptComposer({
         onSubmit={() => setPending(true)}
         // rounded-[9px] is a founder-set hero exception to the 4-6px radius
         // scale, local to this composer only.
-        className="rounded-[9px] border border-input bg-card focus-within:ring-2 focus-within:ring-ring/50"
+        className="run-rise rounded-[9px] border border-input bg-card [--rise-delay:180ms] focus-within:ring-2 focus-within:ring-ring/50"
       >
         <textarea
           ref={textareaRef}
@@ -95,7 +95,7 @@ export function PromptComposer({
         </p>
       )}
 
-      <div className="mt-5 flex flex-wrap justify-center gap-2.5">
+      <div className="run-rise mt-5 flex flex-wrap justify-center gap-2.5 [--rise-delay:270ms]">
         {SUGGESTIONS.map((text) => (
           <button
             key={text}
