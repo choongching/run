@@ -2,10 +2,14 @@
 
 **Run turns a sentence into an assistant.**
 
-Say what you want, like *"help me keep on top of my inbox"*, and you have one.
-You talk to it like a person. It works on your real Gmail and Google Drive: it
-reads your inbox, drafts replies, finds your documents, and turns them into new
-ones.
+Most AI tools wait for your next prompt. You ask, they answer, they stop.
+
+An agent is different. It works toward a goal. Tell Run *"help me keep on top
+of my inbox"* and it reads, sorts, and drafts in your real Gmail and Google
+Drive until the job is done.
+
+Think of a chatbot as a calculator and an agent as a colleague. You provide
+the intent, and the agent provides the labor.
 
 There is nothing to set up. Describing what you want is the setup.
 
