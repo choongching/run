@@ -154,62 +154,37 @@ flowchart LR
 
 ## Project status
 
-The core loop works end to end on real accounts: describe an agent, connect your
-Gmail and Drive, have it read your inbox and files, get genuinely useful output
-(inbox summaries, document answers and critiques, drafted replies, downloadable
-documents), and approve any action before it happens. Drafts approved in the chat
-are created as real Gmail drafts.
+The core loop works end to end on real accounts. Describe an agent, connect
+your Gmail and Drive, and it comes back with genuinely useful work: inbox
+summaries, document answers and critiques, drafted replies, downloadable
+documents. A draft you approve in the chat lands in your actual Gmail.
 
-Agents can also be taught. You can give one a note or a file it always knows,
-whether that is how you write, the facts you repeat, or the words your team
-uses, and it shows up in the very next reply. Sources belong to you rather than
-to a single agent, so one voice guide can feed several of them, and a source can
-be set to apply to every agent you own so you write it once and edit it once.
-Your Gmail and Drive connectors have their own page, since they belong to you
-rather than to any one agent. Getting started needs no administrator, and how
-many agents you can create is set by a plan.
+Around that loop, the product has filled out:
 
-Configuring an agent happens beside the conversation rather than over it: the
-panel slides in as its own column and the chat stays readable, because the
-reason to open it is usually something the agent just said.
+- **Agents can be taught.** Give one a note or a file it always knows, how you
+  write, the facts you repeat, and it shows up in the very next reply. Sources
+  belong to you rather than to one agent, so a single voice guide can feed
+  several of them, or every agent you own.
+- **You can see what you have used.** A meter beside your account shows how
+  much of the month is left and opens into a history of every run, including
+  runs by agents you have since deleted. When the month is spent, agents stop
+  and say so, and the meter refills on the first.
+- **Failure is designed, not handled.** Every error reaches you as a plain
+  sentence with one thing to press, never a raw exception.
+- **It is fast.** Every page paints instantly and fills in as its data
+  arrives, checking who you are happens locally instead of over the network,
+  and the pages you are likely to click next are fetched before you click.
+- **It is consistent.** Every screen shares the chat's centered column,
+  buttons explain themselves when you hover, and empty pages say in one quiet
+  line what will live there.
 
-Everyone can now see what they have used. A meter beside your account shows how
-much of the month is left and opens into a history of every run an agent has
-done for you, including runs by agents you have since deleted. Underneath it,
-the app now records what a conversation actually costs: it had been counting
-only the small uncached part of each prompt and missing almost all of it.
-
-Setting an agent up ends with a checkpoint rather than the agent simply
-starting. It shows you the name and the job it wrote for itself, you edit either
-one or tell it what to change, and nothing runs until you agree.
-
-Failures have been designed rather than left to chance. Every error in the chat
-now reaches you as a plain sentence with one thing to press, instead of whatever
-string an exception happened to carry.
-
-The app has also been through two performance passes. Every page now paints
-instantly and fills in as its data arrives, instead of showing nothing until
-the slowest query finished. Checking who you are happens locally instead of
-over the network, which used to sit in front of every page and every message.
-Pages you are likely to click next are fetched before you click them, and
-opening a chat asks the database for half of what it used to. Signing in now
-reacts the moment you press the button.
-
-The pages themselves have been made consistent. Settings, Knowledge and
-Connectors sit in the same centered column the chat uses, so every screen has
-the same shape. The Connectors page tells the whole truth about what an agent
-runs on: your Gmail and Drive, and a Claude row for the AI behind every agent,
-web search included. Buttons explain themselves when you hover, empty pages
-say in one quiet line what will live there, and most of the words on these
-pages got shorter.
-
-Natural next steps: giving every person their own space with their own plan,
-deploying for more users, exporting documents to Google Docs and PDF, multiple
-conversations per agent in the UI, and scheduled runs so an agent can work on
-its own (for example a daily inbox summary that arrives without you asking).
+Next: giving every person their own space with their own plan, deploying for
+more users, exporting documents to Google Docs and PDF, multiple conversations
+per agent, and scheduled runs so an agent can work on its own (a daily inbox
+summary that arrives without you asking).
 
 The full, plain-English history, session by session, lives in
-**[PROGRESS.md](./PROGRESS.md)**, updated at the end of every work session.
+**[PROGRESS.md](./PROGRESS.md)**.
 
 ## Getting started
 
