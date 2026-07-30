@@ -22,6 +22,15 @@ declarative. A concrete example arrives early. The best line goes last, as a
 turn ("Describing what you want is the setup"). Draft PG-shaped from the
 start; descriptive-then-trimmed is how every rewrite loop began.
 
+A second register exists for teaching sections (the README intro and journey,
+PRs #116/#117, both accepted): the explainer voice from the founder's style
+studies. Open on a contrast (what most tools do, then what this does), teach
+with one analogy (calculator vs colleague), keep sequences pure (one arc,
+plain verb phrases, no glue), and call back the section's key pair as the
+closing line. PG for headlines and claims, explainer for sections that teach.
+Whether that split is permanent is the founder's call; until they say
+otherwise, treat them as two registers of one style.
+
 ## The rules
 
 - **Plain sentences.** No jargon, no product-speak, no abstractions the reader
@@ -61,6 +70,25 @@ request does not exist.
 PR and I kept describing the new wording instead of shipping it. **Commit,
 merge, then reply.** Never answer a copy complaint with a description of the
 copy you would write.
+
+## Rules earned in the 2026-07-30 review pass
+
+- **The one-job test applies at every size.** Not just lines: whole sections
+  and single UI strings die by the same test. "How it is structured" died
+  because the journey already did its job; the composer placeholder died as an
+  example because the chips below it were already examples. When a section
+  fails, do not rewrite it: cut it and distill its one non-duplicated idea
+  into a short paragraph in the surviving section's voice.
+- **Status describes state, not order.** A section that grows one appended
+  paragraph per session becomes a changelog in disguise. The tell is
+  chronological glue: "also", "now", "used to", narration of fixed bugs.
+  Rewrite from the present looking around (what stands, in one paragraph plus
+  bullets); PROGRESS.md keeps the timeline.
+- **Study a competitor's move, not their words.** When adapting copy from a
+  reference screen, name the job each string does (Claygent's placeholder
+  states the screen's contract), then write that job in Run's voice from
+  scratch. Their actual words will usually fail our rules ("natural
+  language", "AI Agent", speaking as "we").
 
 ## Recipes that survived review (2026-07-30 design pass)
 
