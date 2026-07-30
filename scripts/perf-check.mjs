@@ -17,7 +17,10 @@
 import { readdirSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 
-const BASE = 'http://localhost:3000'
+// --base https://... points the gate at a deployed site (budgets then include
+// real network time, so judge against a same-network baseline, not localhost).
+const baseArg = process.argv.indexOf('--base')
+const BASE = baseArg > -1 ? process.argv[baseArg + 1].replace(/\/$/, '') : 'http://localhost:3000'
 const PROD = process.argv.includes('--prod')
 
 const BUDGET = {
