@@ -197,12 +197,6 @@ export function KnowledgeSection({
         )}
       </div>
 
-      {sources.length === 0 && (
-        <div className="rounded-lg border border-dashed border-border px-2.5 py-2 text-xs text-muted-foreground">
-          Notes and files you attach will live here
-        </div>
-      )}
-
       {sources.length > 0 && (
         <ul className="flex flex-col divide-y divide-border rounded-xl border border-border bg-card">
           {sources.map((s) => (
@@ -418,10 +412,10 @@ export function KnowledgeSection({
         >
           <FileUp className="mb-1 size-5 text-muted-foreground" />
           <span className="text-sm text-muted-foreground">
-            Drag and drop a file here, or click to browse
+            Drag a file here, or click to browse
           </span>
           <span className="text-xs text-muted-foreground">
-            {KNOWLEDGE_ACCEPTED_HINT}, up to 15 MB
+            {KNOWLEDGE_ACCEPTED_HINT}, up to 15&nbsp;MB
           </span>
         </button>
       )}
