@@ -61,19 +61,20 @@ export function PromptComposer({
               e.currentTarget.form?.requestSubmit()
             }
           }}
-          rows={3}
+          rows={4}
           disabled={blocked}
           placeholder={
             blocked
               ? 'Delete an agent to make room for a new one'
               : 'Describe what you need done, and Run will build an agent for you...'
           }
-          className="w-full resize-none bg-transparent px-4 pt-3.5 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
+          // Hero sizing, home only: body-size text in a roomier box. The rest
+          // of the app keeps text-sm inputs.
+          className="w-full resize-none bg-transparent px-5 pt-4 text-base outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed"
         />
-        <div className="flex items-center justify-end px-3 pb-3">
+        <div className="flex items-center justify-end px-3.5 pb-3.5">
           <Button
             type="submit"
-            size="sm"
             disabled={!canSubmit}
             aria-label="Build agent"
           >
@@ -89,14 +90,14 @@ export function PromptComposer({
         </p>
       )}
 
-      <div className="mt-4 flex flex-wrap justify-center gap-2">
+      <div className="mt-5 flex flex-wrap justify-center gap-2.5">
         {SUGGESTIONS.map((text) => (
           <button
             key={text}
             type="button"
             onClick={() => pickSuggestion(text)}
             disabled={pending || blocked}
-            className="rounded-lg border border-border bg-card px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+            className="rounded-lg border border-border bg-card px-3.5 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
           >
             {text}
           </button>

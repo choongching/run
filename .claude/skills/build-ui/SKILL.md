@@ -43,7 +43,12 @@ Goal: zero re-derivation, zero styling drift.
   line-height token. Page title `text-2xl font-semibold` (24px is the page
   maximum, no tracking classes), subtitle `text-base text-muted-foreground
   mt-1.5` (use `components/page-header.tsx`). Weights: 500 for active/labels,
-  600 for titles, 700 rare.
+  600 for titles, 700 rare. ONE sanctioned exception to the 24px cap: the
+  home hero (`app/(dashboard)/page.tsx` + `components/home/`) sizes up
+  (text-3xl/4xl headline, text-base composer). It is expressed as local
+  utility classes in those files only, never as tokens, props, or shared
+  variants, and no other page takes hero sizing without the founder saying
+  so.
 - **CSS overrides:** Tailwind v4 cascade layers mean the utilities layer beats
   `@layer components` regardless of selector specificity. Any custom rule that
   must override a utility-classed element goes in `@layer utilities` in
