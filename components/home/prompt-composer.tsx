@@ -9,10 +9,14 @@ import { Button } from '@/components/ui/button'
 // One-click seeds that teach what an agent can be. Clicking fills the box
 // (editable) rather than submitting: the user learns plain language is the
 // interface. See docs/revamp-happy-path (Beat 1).
+//
+// Every chip must be a job the tool list in lib/tools/definitions.ts can
+// actually finish (a chip is the agent's first task), and together they
+// mirror the headline's cycle: inbox, drafts, writing/research, documents.
 const SUGGESTIONS = [
   'Summarize my inbox and flag what needs a reply',
   'Draft replies to emails waiting on me',
-  'Organize my Google Drive files',
+  'Research a topic and write it up for me',
   'Answer questions from my documents',
 ]
 
