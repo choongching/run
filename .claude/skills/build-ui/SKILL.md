@@ -48,7 +48,12 @@ Goal: zero re-derivation, zero styling drift.
   (text-3xl/4xl headline, text-base composer). It is expressed as local
   utility classes in those files only, never as tokens, props, or shared
   variants, and no other page takes hero sizing without the founder saying
-  so.
+  so. Second founder-set exception: the chat surface reads 1px up via
+  `.run-chat-type` on ConfigDock's root, which overrides the theme's
+  `--text-*` font-size variables in a scoped block in globals.css; every
+  text-* utility inside rescales (line heights are ratios and follow), and
+  nothing outside the class moves. That variable-override trick is THE way
+  to rescale a whole surface; never bulk-edit utility classes to do it.
 - **CSS overrides:** Tailwind v4 cascade layers mean the utilities layer beats
   `@layer components` regardless of selector specificity. Any custom rule that
   must override a utility-classed element goes in `@layer utilities` in

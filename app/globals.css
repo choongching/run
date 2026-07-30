@@ -328,6 +328,23 @@
     }
   }
 
+  /* The chat page reads at one size up: every text token inside it is 1px
+     larger than the app default (founder decision 2026-07-30). Done here as a
+     scoped override of the theme's font-size variables, which every text-*
+     utility reads at the element, so the whole page rescales without a single
+     component changing. Line heights are ratios in the theme, so they follow
+     automatically; text-xs has a fixed leading token, bumped alongside.
+     Scoped to the chat surface only; no other page takes this. */
+  .run-chat-type {
+    --text-xs: 0.8125rem; /* 13px */
+    --text-xs--line-height: 1.1875rem; /* 19px */
+    --text-sm: 0.9375rem; /* 15px */
+    --text-base: 1.0625rem; /* 17px */
+    --text-lg: 1.1875rem; /* 19px */
+    --text-xl: 1.3125rem; /* 21px */
+    --text-2xl: 1.5625rem; /* 25px */
+  }
+
   /* Chat micro-states. The thinking shimmer sweeps a light band across muted
      text while the agent composes; the caret blinks at the end of streaming
      text. Both read the same in light and dark (they use current tokens). */
