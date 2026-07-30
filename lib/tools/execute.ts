@@ -1,7 +1,13 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 import { getUserConnection } from '@/lib/pipedream/connections'
-import { driveListFiles, driveReadFile } from '@/lib/tools/drive'
+import {
+  driveCreateFolder,
+  driveListFiles,
+  driveMoveFile,
+  driveReadFile,
+  driveRenameFile,
+} from '@/lib/tools/drive'
 import {
   gmailCreateDraft,
   gmailGetMessage,
@@ -22,6 +28,9 @@ const KNOWN_TOOLS = new Set<ToolName>([
   'gmail_create_draft',
   'drive_list_files',
   'drive_read_file',
+  'drive_create_folder',
+  'drive_move_file',
+  'drive_rename_file',
 ])
 
 // Execute one agent tool call against the signed-in user's connected account.
@@ -86,6 +95,39 @@ export async function executeTool(
             typeof input.max_results === 'number' ? input.max_results : undefined,
         })
         return { kind: 'result', text: JSON.stringify(files) }
+      }
+      case 'drive_create_folder': {
+        const folder = await driveCreateFolder({
+          userId,
+          accountId,
+          name: String(input.name ?? ''),
+          parentId: input.parent_id ? String(input.parent_id) : undefined,
+        })
+        return {
+          kind: 'result',
+          text: `Folder created (id ${folder.folder_id}). Use this id as folder_id when moving files into it.`,
+        }
+      }
+      case 'drive_move_file': {
+        await driveMoveFile({
+          userId,
+          accountId,
+          fileId: String(input.file_id ?? ''),
+          folderId: String(input.folder_id ?? ''),
+        })
+        return {
+          kind: 'result',
+          text: `Moved "${String(input.file_name ?? 'the file')}" into "${String(input.folder_name ?? 'the folder')}".`,
+        }
+      }
+      case 'drive_rename_file': {
+        const renamed = await driveRenameFile({
+          userId,
+          accountId,
+          fileId: String(input.file_id ?? ''),
+          newName: String(input.new_name ?? ''),
+        })
+        return { kind: 'result', text: `Renamed to "${renamed.name}".` }
       }
       case 'drive_read_file': {
         const file = await driveReadFile({

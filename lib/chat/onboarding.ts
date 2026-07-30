@@ -35,8 +35,8 @@ export type SetupAnswer = { q: string; a: string }
 // Which connected account a new agent is going to want, read off what the
 // person just said rather than off its configuration.
 //
-// Configuration cannot answer this today: every agent is handed the same five
-// tools, three for Gmail and two for Drive, so "what this agent can touch" is
+// Configuration cannot answer this today: every agent is handed the same
+// tools, three for Gmail and five for Drive, so "what this agent can touch" is
 // the same sentence for all of them. Saying that out loud would tell someone
 // whose agent reads documents that it also wants their email, which is worse
 // than saying nothing.
