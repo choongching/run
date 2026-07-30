@@ -1,4 +1,5 @@
 import { requireUser } from '@/lib/api-helpers'
+import { getRunAllowance } from '@/lib/entitlements/assert'
 import { toChatError } from '@/lib/chat/errors'
 import { ensureEnvironment } from '@/lib/anthropic/environment'
 import {
@@ -102,14 +103,27 @@ export async function POST(
     )
   }
 
-  // Rate backstop: cap new turns per minute so a runaway loop cannot burn
-  // tokens. RLS scopes the count to this user's own messages.
+  // Three pre-flight reads, one round-trip's worth of waiting: the rate
+  // backstop, the monthly allowance, and the agent row. They are independent,
+  // and each alone costs the flat per-request floor, so running them in
+  // series would tax every message three times for one answer.
   const since = new Date(Date.now() - 60_000).toISOString()
-  const { count: recentTurns } = await supabase
-    .from('messages')
-    .select('id', { count: 'exact', head: true })
-    .eq('role', 'user')
-    .gte('created_at', since)
+  const [{ count: recentTurns }, allowance, { data: agent }] = await Promise.all([
+    // Rate backstop: cap new turns per minute so a runaway loop cannot burn
+    // tokens. RLS scopes the count to this user's own messages.
+    supabase
+      .from('messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('role', 'user')
+      .gte('created_at', since),
+    getRunAllowance(supabase, userId),
+    supabase
+      .from('agents')
+      .select('id, name, status, model, claude_agent_id, onboarded, system_prompt')
+      .eq('id', agentId)
+      .single(),
+  ])
+
   if ((recentTurns ?? 0) >= MAX_TURNS_PER_MINUTE) {
     return Response.json(
       { error: 'That is a lot of messages very quickly.', sub: 'Give it a minute and carry on.' },
@@ -117,11 +131,23 @@ export async function POST(
     )
   }
 
-  const { data: agent } = await supabase
-    .from('agents')
-    .select('id, name, status, model, claude_agent_id, onboarded, system_prompt')
-    .eq('id', agentId)
-    .single()
+  // The meter's number, enforced rather than just drawn. Only NEW turns are
+  // gated: approvals, answers and resumes finish a turn that already started
+  // (and was already counted), and stranding a pending tool call mid-flight
+  // would be worse than the one extra run.
+  if (allowance.used >= allowance.limit) {
+    const refill = new Date(allowance.resetsAt).toLocaleDateString('en-US', {
+      month: 'long',
+      day: 'numeric',
+    })
+    return Response.json(
+      {
+        error: `You've used all ${allowance.limit.toLocaleString()} of your runs this month.`,
+        sub: `You get a fresh ${allowance.limit.toLocaleString()} on ${refill}.`,
+      },
+      { status: 429 }
+    )
+  }
 
   if (!agent) {
     return Response.json({ error: 'That agent is not here any more.' }, { status: 404 })
