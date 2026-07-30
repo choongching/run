@@ -110,7 +110,7 @@ export function KnowledgeLibrary({
 
   if (items.length === 0) {
     return (
-      <div className="flex flex-col items-center rounded-xl border border-border bg-card py-14 text-center">
+      <div className="flex flex-col items-center rounded-xl border border-dashed border-border py-14 text-center">
         <span className="mb-5 flex size-11 items-center justify-center rounded-lg border border-border bg-background">
           <KnowledgeIcon className="size-5 text-muted-foreground" />
         </span>
