@@ -237,6 +237,31 @@
     }
   }
 
+  /* Building an agent: while the composer shows its creation state
+     (.run-building, see components/home/prompt-composer), everything else in
+     the hero (.run-hero-dim: the mark, the headline) breathes out, and the
+     creation state rises in on a delay, so the swap reads as one slow
+     sequence instead of a cut. :has() keeps the server-rendered hero and the
+     client composer coordinated without any shared state. */
+  .run-hero .run-hero-dim {
+    transition: opacity 600ms ease;
+  }
+  .run-hero:has(.run-building) .run-hero-dim {
+    /* run-rise's fill-mode still holds these elements' opacity long after the
+       entrance, and an animation outranks a transition, so the fade only
+       works if the finished entrance animation is detached first. */
+    animation: none;
+    opacity: 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .run-hero .run-hero-dim {
+      transition: none;
+    }
+    .run-hero:has(.run-building) .run-hero-dim {
+      opacity: 1;
+    }
+  }
+
   /* Ambient wash behind the home prompt box (components/home/ambient-backdrop).
      Built from the palette, not invented colour: two deep-forest-green washes
      and one warm paper wash, all at single-digit alpha. The styleguide reserves
