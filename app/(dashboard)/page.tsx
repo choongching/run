@@ -34,7 +34,9 @@ export default async function HomePage({
     <div className="relative flex flex-1 flex-col overflow-hidden px-6 py-16 md:px-8">
       <AmbientBackdrop />
       <div className="relative z-10 mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center">
-      <Image src="/run-icon.png" alt="" width={56} height={56} className="run-rise mb-7" />
+      {/* priority: this is the first thing the entrance reveals, and a
+          lazy-loaded mark would fade in as an empty box on a cold visit. */}
+      <Image src="/run-icon.png" alt="" width={56} height={56} priority className="run-rise mb-7" />
       {/* The sentence is spoken once, as a fixed string. The visible version
           is the same words with one of them cycling, which is decoration and
           is hidden from assistive technology inside FlipWord. */}
