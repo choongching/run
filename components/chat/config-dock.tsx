@@ -174,7 +174,7 @@ function PanelPlaceholder({
 }) {
   return (
     <div className="flex h-full flex-col">
-      <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-4 pt-5 pb-3">
+      <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-4 py-4">
         <h2 className="min-w-0 truncate text-sm font-semibold">Configure</h2>
         <Button
           variant="ghost"
