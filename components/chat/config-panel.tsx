@@ -301,7 +301,7 @@ function ConfigPanelBody({
         {/* Knowledge: what it always knows, before anyone asks it anything. */}
         <AccordionSection
           title="Knowledge"
-          hint="Things it should always know: how you write, key facts, your terms. It carries these into every message."
+          hint="What this agent always knows."
         >
           <KnowledgeSection
             agentId={agentId}
