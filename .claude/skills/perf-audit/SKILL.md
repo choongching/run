@@ -71,6 +71,23 @@ a page's data fetching, or navigation):
   submit button (see `components/auth/submit-button.tsx`) is the fix. Same
   family: autocomplete hints so password managers fill instantly.
 
+- **Ownership checks gate the response, not the queries.** When every query
+  in a route is RLS-scoped, run the ownership check and the data load in one
+  Promise.all and discard on failure; serial was the whole open latency of
+  the config panel (A/B measured 467ms to 341ms, one ~120ms round trip).
+- **A/B on the live route with git stash.** Measure the new code, `git stash`
+  the change, measure again from the signed-in browser tab (median of 6,
+  discard the cold first), `git stash pop`. The only honest before/after on
+  a dev server.
+- **Anything rendered per streaming frame memoizes derived work.** The chat
+  thread re-renders every message component on every frame of a live turn;
+  a regex or transform over full message/document content must be useMemo'd
+  (the ArtifactCard cite-strip was re-regexing a whole document per frame).
+- **prose does not read the type tokens.** Typography-plugin containers
+  hardcode their font-size; a token-variable rescale needs a companion
+  `.scope .prose { font-size: var(--text-sm) }` rule (see run-chat-type in
+  globals.css), and em-based prose internals then follow.
+
 ## Known floors (do not chase these in code)
 
 - **~120ms per Supabase request, flat.** Proven with a no-op

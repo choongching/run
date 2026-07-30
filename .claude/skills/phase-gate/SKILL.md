@@ -48,6 +48,10 @@ before declaring a phase done. Signed-in first paint is the browser half:
 see the perf-audit skill. A budget failure is a regression to fix or to
 explicitly justify in the PR body, never to ignore.
 
+**Security sweep** (before deploy, and whenever a phase adds a tool, route,
+or policy): run the `security-audit` skill. Its open-items ledger lists what
+is still pending founder action.
+
 **NEVER run prettier.** The repo has no prettier config, and its own style is
 single quotes with no semicolons. Running it reformatted 554 lines of
 `lib/chat/run-turn.ts` in a change that touched three of them, and the only way

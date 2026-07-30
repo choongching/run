@@ -79,6 +79,17 @@ Goal: zero re-derivation, zero styling drift.
   text-muted-foreground`, one line, no icon. In dialogs, loading and empty
   share the same min-height box so the surface holds its shape (see
   `components/usage/usage-meter.tsx`).
+- **Status is one icon, colour carries the state.** Beside the thing's name:
+  the same Check in `text-primary` (on) or `text-muted-foreground/40` (off),
+  tooltip holds the word, aria-label keeps it for screen readers (see
+  `components/connectors/connector-list.tsx`). A different icon per state
+  (dashed circle, X) read as weird or as an error; the founder rejected it.
+- **Drop zones are dashed boxes that are real buttons.** Same language as
+  empty states; the button doubles as click-to-browse and keyboard access,
+  drops feed the same handler as the picker, and the size ("15&nbsp;MB")
+  keeps a non-breaking space (see `components/chat/knowledge-section.tsx`).
+  Do not stack a drop zone beside an empty-state strip; the zone IS the
+  empty state.
 - **Overlay exit animations:** keep the selected record in state after close
   (a separate `open` boolean drives visibility) so the overlay keeps its
   content through the exit transition instead of flashing empty.
