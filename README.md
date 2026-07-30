@@ -154,10 +154,11 @@ flowchart LR
 
 ## Project status
 
-The core loop works end to end on real accounts. Describe an agent, connect
-your Gmail and Drive, and it comes back with genuinely useful work: inbox
-summaries, document answers and critiques, drafted replies, downloadable
-documents. A draft you approve in the chat lands in your actual Gmail.
+Run is live in production. The core loop works end to end on real accounts:
+describe an agent, connect your Gmail and Drive, and it comes back with
+genuinely useful work: inbox summaries, document answers and critiques,
+drafted replies, downloadable documents. A draft you approve in the chat
+lands in your actual Gmail.
 
 Around that loop, the product has filled out:
 
@@ -178,10 +179,10 @@ Around that loop, the product has filled out:
   buttons explain themselves when you hover, and empty pages say in one quiet
   line what will live there.
 
-Next: giving every person their own space with their own plan, deploying for
-more users, exporting documents to Google Docs and PDF, multiple conversations
-per agent, and scheduled runs so an agent can work on its own (a daily inbox
-summary that arrives without you asking).
+Next: opening the doors to more users (real sign-up emails and Google's app
+verification), exporting documents to Google Docs and PDF, multiple
+conversations per agent, and scheduled runs so an agent can work on its own
+(a daily inbox summary that arrives without you asking).
 
 The full, plain-English history, session by session, lives in
 **[PROGRESS.md](./PROGRESS.md)**.

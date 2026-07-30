@@ -50,9 +50,90 @@ using the last one stops the next run with a plain sentence and the refill
 date. A performance gate now runs at every phase end so speed cannot quietly
 regress, and the front page redirects a signed-out visitor in a few
 milliseconds instead of flashing an empty app.
-Next step: give agents their own connector list so a documents agent cannot
-reach your inbox at all, then deploy for real users (SMTP for reset emails and
-the production redirect allowlist are the recorded deploy-day tasks).
+Then, late on 2026-07-30 into 2026-07-31, Run went live. The app deployed to
+Vercel in the same region as its database, the founder signed in on the
+production URL and ran real agent conversations, and the whole verification
+gate was re-run against the live site: every page and API refuses strangers,
+security headers are on, and every speed budget passes over the real
+internet. The database lockdown that had been waiting for approval was
+applied and verified, and passwords got a show and hide toggle plus an
+eight character minimum enforced in three layers. From now on, every merge
+to main deploys itself.
+Next step: point the founder's own domain at the deployment, then the
+before-more-users trio: an email provider for sign-up and reset emails,
+Google's app verification so new people can connect Gmail and Drive, and the
+database plan upgrade that unlocks leaked-password checking and backups.
+
+---
+
+## 2026-07-30 (late) into 2026-07-31: A full design pass, and then Run went live
+
+This session had two halves: an evening of design and copy work over the
+whole surface, and then, because everything kept passing its checks, the
+first production deployment.
+
+The design half, merged as pull requests #118 through #146:
+
+- The README lost its structure lecture and its changelog-shaped status
+  section; status now describes what stands, in one paragraph and five
+  claims.
+- The New Agent composer learned to explain itself: the placeholder states
+  the screen's contract in one friendly line with a tip in brackets, after
+  studying how Clay's Claygent does it and rewriting the job in Run's voice.
+- The suggested agent chips were audited against what the tools can actually
+  do. One chip promised Drive organizing that no tool could deliver, so the
+  agent got three new Drive tools (create a folder, move a file, rename a
+  file), all pausing for approval before they touch anything, and the chip
+  came back honest.
+- Every empty state in the app became the same quiet dashed box, the
+  Configure panel gained a drag and drop zone for knowledge files, connector
+  status became one small tick beside the app's name with a tooltip, and the
+  panel closes with a plain X.
+- The home hero got its own sanctioned sizes, a 9px composer radius the
+  founder picked by eye, and a subtle staggered fade-in. The chat surface
+  reads one pixel larger through a single scoped token override, which also
+  taught us that the typography plugin ignores those tokens and needs one
+  companion rule.
+- The agent's thinking words got a gentle shimmer, tuned down and disabled
+  for people who prefer reduced motion.
+- Documents written from web research stopped showing raw citation markup;
+  the tags are stripped where documents are created and healed on old ones.
+- Two engineer-hat sweeps closed the evening: a performance pass over
+  everything new (one config route got a third faster by running its
+  ownership check beside its reads) and a security pass over guardrails,
+  APIs, and row-level security, whose findings became a reusable
+  security-audit skill (#146).
+
+The deployment half, pull requests #147 through #151 plus dashboard work:
+
+- Citation markup turned out to leak into chat replies too, not just
+  documents; replies are now cleaned when saved and when rendered (#147).
+- The founder connected the GitHub repo to Vercel, moved the server to
+  Singapore beside the database, set the environment variables, and pointed
+  Supabase's sign-in URLs at the live address. Signed in on the production
+  URL, chatted with a real agent, watched the meter count the run.
+- The database lockdown migration was finally applied, and applying it
+  taught a real lesson: revoking access from the anonymous role does nothing
+  while the default grant to everyone still stands. A follow-up migration
+  (#148) revoked the default and granted back only signed-in users, verified
+  by probing, not by reading the file. Avatar listing is now scoped to each
+  person's own folder.
+- Leaked-password checking turned out to be locked to Supabase's paid plan,
+  recorded honestly instead of left as a pending click (#149). In its place,
+  every password field gained a show and hide eye toggle and new passwords
+  need eight characters, enforced in the form, in the server, and in the
+  database's own settings (#150).
+- The session closed with the first production speed assessment (#151): the
+  standing performance gate can now aim at any deployed URL, and the live
+  site passes every budget from the real internet. Pages paint in under a
+  tenth of a second signed in, navigation is prefetched and instant, and the
+  one slower number (data streaming in at 220 to 420ms) is the database
+  plan's per-request floor, recorded as the boundary rather than chased in
+  code.
+
+Merged to `main` via pull requests #118 through #151. Not done, by choice:
+the founder's domain (ten minutes whenever wanted), SMTP, Google's app
+verification for new Gmail and Drive connections, and the plan upgrade.
 
 ---
 
