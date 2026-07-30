@@ -118,12 +118,12 @@ export function isAutoRunTool(name: string): boolean {
 // model output.
 //
 // Web-search results reach the model wrapped in <cite index="..."> tags, and
-// when it quotes them inside a document body the tags come along; the platform
-// strips them from chat replies but a document is tool input the model wrote,
-// so they ride through raw. The sentence inside the tag is the content, so
-// keep it and drop the markup. Every consumer of a document (preview,
-// download, reloaded history) goes through here.
-function stripCiteTags(text: string): string {
+// when it quotes them the tags come along, in documents (tool input the model
+// wrote) and, it turns out, in chat replies too. The sentence inside the tag
+// is the content, so keep it and drop the markup. Documents are cleaned here
+// at creation; replies are cleaned in run-turn at persistence and in the
+// Markdown renderer for live streams and already-stored rows.
+export function stripCiteTags(text: string): string {
   return text.replace(/<\/?cite\b[^>]*>/g, '')
 }
 

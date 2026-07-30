@@ -7,6 +7,7 @@ import {
   isAutoRunTool,
   isCreateDocumentTool,
   isProposeTool,
+  stripCiteTags,
   summarizeAsk,
   summarizeDocument,
   summarizeProposal,
@@ -269,11 +270,12 @@ async function drainSessionInner(
         send({ type: 'delta', text: event.delta.content.text })
       }
     } else if (event.type === 'agent.message') {
-      const messageText = event.content
-        .filter((b) => b.type === 'text')
-        .map((b) => b.text)
-        .join('')
-        .trim()
+      const messageText = stripCiteTags(
+        event.content
+          .filter((b) => b.type === 'text')
+          .map((b) => b.text)
+          .join(''),
+      ).trim()
       if (messageText) agentParts.push(messageText)
     } else if (event.type === 'agent.custom_tool_use') {
       pending.push({ id: event.id, name: event.name, input: event.input })
