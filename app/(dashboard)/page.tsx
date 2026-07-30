@@ -34,11 +34,14 @@ export default async function HomePage({
     <div className="relative flex flex-1 flex-col overflow-hidden px-6 py-16 md:px-8">
       <AmbientBackdrop />
       <div className="relative z-10 mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center">
-      <Image src="/run-icon.png" alt="" width={44} height={44} className="mb-6" />
+      <Image src="/run-icon.png" alt="" width={56} height={56} className="mb-7" />
       {/* The sentence is spoken once, as a fixed string. The visible version
           is the same words with one of them cycling, which is decoration and
           is hidden from assistive technology inside FlipWord. */}
-      <h1 className="mb-8 text-2xl font-semibold">
+      {/* Hero sizing: the home screen is the one sanctioned exception to the
+          24px page-title cap. Every size on this screen is local to these two
+          home components, so nothing else inherits it. */}
+      <h1 className="mb-10 text-3xl font-semibold tracking-tight md:text-4xl">
         <span className="sr-only">
           Build an agent for your inbox, drafts, writing or research.
         </span>
