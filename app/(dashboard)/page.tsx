@@ -33,10 +33,10 @@ export default async function HomePage({
     // on the outer region while the content keeps its narrow column.
     <div className="relative flex flex-1 flex-col overflow-hidden px-6 py-16 md:px-8">
       <AmbientBackdrop />
-      <div className="relative z-10 mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center">
+      <div className="run-hero relative z-10 mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center">
       {/* priority: this is the first thing the entrance reveals, and a
           lazy-loaded mark would fade in as an empty box on a cold visit. */}
-      <Image src="/run-icon.png" alt="" width={56} height={56} priority className="run-rise mb-7" />
+      <Image src="/run-icon.png" alt="" width={56} height={56} priority className="run-rise run-hero-dim mb-7" />
       {/* The sentence is spoken once, as a fixed string. The visible version
           is the same words with one of them cycling, which is decoration and
           is hidden from assistive technology inside FlipWord. */}
@@ -44,7 +44,7 @@ export default async function HomePage({
           24px page-title cap. Every size on this screen is local to these two
           home components, so nothing else inherits it. */}
       {/* 7% under text-3xl/4xl, set by the founder's eye. */}
-      <h1 className="run-rise mb-10 text-[28px]/9 font-semibold tracking-tight [--rise-delay:90ms] md:text-[33px]/10">
+      <h1 className="run-rise run-hero-dim mb-10 text-[28px]/9 font-semibold tracking-tight [--rise-delay:90ms] md:text-[33px]/10">
         <span className="sr-only">
           Build an agent for your inbox, drafts, writing or research.
         </span>

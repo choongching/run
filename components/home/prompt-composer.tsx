@@ -1,10 +1,11 @@
 'use client'
 
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { ArrowUp } from 'lucide-react'
 
 import { startAgentFromPrompt } from '@/app/actions/agents'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
 // One-click seeds that teach what an agent can be. Clicking fills the box
 // (editable) rather than submitting: the user learns plain language is the
@@ -23,6 +24,46 @@ const SUGGESTIONS = [
   'Answer questions from my documents',
 ]
 
+// What creation genuinely does, in its true order (see startAgentFromPrompt:
+// name generation, instructions, the remote create, the save). The timings
+// approximate what each step costs; the words never claim work that is not
+// happening. No fake streamed "thinking": we stream nothing during creation,
+// and showing invented reasoning would be a lie.
+const BUILD_STAGES = [
+  'Reading your description',
+  'Naming it',
+  'Writing its instructions',
+  'Setting up its workspace',
+]
+
+function BuildingState() {
+  const [stage, setStage] = useState(0)
+  useEffect(() => {
+    // Slow on purpose (founder call): each line holds long enough to be read
+    // as composure. A typical build finishes during the second line.
+    const timers = [3200, 6400, 9600].map((ms, i) =>
+      setTimeout(() => setStage(i + 1), ms)
+    )
+    return () => timers.forEach(clearTimeout)
+  }, [])
+  return (
+    // min-h matches the composer-plus-chips block it replaces, so the hero
+    // holds its shape and nothing on the page jumps. Text only, no mark
+    // (founder call: the hero above already carries the brand).
+    // .run-building also dims the rest of the hero via :has() in globals;
+    // the 450ms delay lets that fade lead before this rises in.
+    <div className="run-building run-rise flex min-h-72 flex-col items-center justify-center gap-3 text-center [--rise-delay:450ms]">
+      <p className="text-shimmer text-base font-medium">Building your agent</p>
+      {/* key={stage} replays the rise on each stage change: a quiet crossfade
+          without any new animation machinery. Reduced motion still reads the
+          current stage as plain text. */}
+      <p key={stage} className="run-rise text-sm text-muted-foreground">
+        {BUILD_STAGES[stage]}
+      </p>
+    </div>
+  )
+}
+
 export function PromptComposer({
   // Why creating another agent is not possible right now, or null when it is.
   // The server enforces the same rule; this only saves the user from typing a
@@ -34,6 +75,7 @@ export function PromptComposer({
   const [value, setValue] = useState('')
   const [pending, setPending] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const formRef = useRef<HTMLFormElement>(null)
 
   function pickSuggestion(text: string) {
     setValue(text)
@@ -43,14 +85,29 @@ export function PromptComposer({
   const blocked = blockedReason !== null
   const canSubmit = value.trim().length > 0 && !pending && !blocked
 
+  // Show the creation state first, submit a beat later. The head start buys
+  // the fade-out room to play, and the first stage line a moment to be read,
+  // before the real work (which the stages then narrate) begins.
+  function startBuild() {
+    if (!canSubmit) return
+    setPending(true)
+    setTimeout(() => formRef.current?.requestSubmit(), 1500)
+  }
+
   return (
     <div className="w-full">
+      {pending && <BuildingState />}
       <form
+        ref={formRef}
         action={startAgentFromPrompt}
-        onSubmit={() => setPending(true)}
+        // Hidden (not unmounted) while building: the in-flight server action
+        // belongs to this form, so it must stay in the tree.
         // rounded-[9px] is a founder-set hero exception to the 4-6px radius
         // scale, local to this composer only.
-        className="run-rise rounded-[9px] border border-input bg-card [--rise-delay:180ms] focus-within:ring-2 focus-within:ring-ring/50"
+        className={cn(
+          'run-rise rounded-[9px] border border-input bg-card [--rise-delay:180ms] focus-within:ring-2 focus-within:ring-ring/50',
+          pending && 'hidden'
+        )}
       >
         <textarea
           ref={textareaRef}
@@ -60,7 +117,7 @@ export function PromptComposer({
           onKeyDown={(e) => {
             if (e.key === 'Enter' && !e.shiftKey && canSubmit) {
               e.preventDefault()
-              e.currentTarget.form?.requestSubmit()
+              startBuild()
             }
           }}
           rows={4}
@@ -76,7 +133,8 @@ export function PromptComposer({
         />
         <div className="flex items-center justify-end px-3.5 pb-3.5">
           <Button
-            type="submit"
+            type="button"
+            onClick={startBuild}
             disabled={!canSubmit}
             aria-label="Build agent"
             // Hero sizing, home only: a touch over the default button
@@ -95,7 +153,12 @@ export function PromptComposer({
         </p>
       )}
 
-      <div className="run-rise mt-5 flex flex-wrap justify-center gap-2.5 [--rise-delay:270ms]">
+      <div
+        className={cn(
+          'run-rise mt-5 flex flex-wrap justify-center gap-2.5 [--rise-delay:270ms]',
+          pending && 'hidden'
+        )}
+      >
         {SUGGESTIONS.map((text) => (
           <button
             key={text}
