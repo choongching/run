@@ -88,7 +88,9 @@ export function ConfigDock({
     // globals.css) so the canvas shows through the gap, which is what makes the
     // panel read as its own surface arriving beside the conversation rather
     // than as a region carved out of it.
-    <div data-shell="split" className="flex min-h-0 flex-1">
+    // run-chat-type lifts every text token inside the chat surface (thread,
+    // header, and docked panel) by 1px; see globals.css for the values.
+    <div data-shell="split" className="run-chat-type flex min-h-0 flex-1">
       <div className="flex min-h-0 min-w-0 flex-1 flex-col rounded-shell border border-border bg-background px-6 pt-5 md:px-8">
         <header className="mx-auto flex w-full max-w-thread shrink-0 items-center justify-between gap-2 border-b border-border pb-3">
           {header}
