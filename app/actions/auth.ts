@@ -43,3 +43,49 @@ export async function logout() {
   await supabase.auth.signOut()
   redirect('/login')
 }
+
+// Sends the reset email. The success message is identical whether the account
+// exists or not, so this form cannot be used to probe which emails have
+// accounts. One Supabase call, nothing else on the path.
+export async function requestReset(formData: FormData) {
+  const supabase = await createClient()
+  const email = String(formData.get('email') ?? '').trim()
+  if (email) {
+    const site = process.env.NEXT_PUBLIC_APP_URL ?? 'http://localhost:3000'
+    await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${site}/auth/confirm?next=/reset-password`,
+    })
+  }
+  redirect(
+    '/forgot-password?message=' +
+      encodeURIComponent(
+        'Check your email. The link signs you in so you can set a new password.'
+      )
+  )
+}
+
+// Sets a new password for whoever is signed in: the recovery session from the
+// email link, or a normal session changing it from Settings. `from` decides
+// where errors and success land so both surfaces reuse this one action.
+export async function updatePassword(formData: FormData) {
+  const supabase = await createClient()
+  const password = String(formData.get('password') ?? '')
+  const confirm = String(formData.get('confirm') ?? '')
+  const from = formData.get('from') === 'settings' ? '/settings' : '/reset-password'
+
+  if (password.length < 6) {
+    redirect(`${from}?error=${encodeURIComponent('Use at least 6 characters.')}`)
+  }
+  if (password !== confirm) {
+    redirect(`${from}?error=${encodeURIComponent('Those two do not match.')}`)
+  }
+
+  const { error } = await supabase.auth.updateUser({ password })
+  if (error) {
+    redirect(`${from}?error=${encodeURIComponent(error.message)}`)
+  }
+  if (from === '/settings') {
+    redirect('/settings?message=' + encodeURIComponent('Password changed.'))
+  }
+  redirect('/')
+}

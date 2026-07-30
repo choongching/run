@@ -42,9 +42,39 @@ declarative style the founder wants all Run copy to follow from now on. The
 session closed with a security audit (every commit ever made is clean, no key
 or password has ever been in the repo) and standing guards: GitHub push
 protection plus a pre-commit hook that blocks anything shaped like a secret.
+There is now a way back in for someone who forgets their password, and a
+Password section in Settings; sending those reset emails in production needs
+an SMTP provider connected to Supabase, which is a deploy-day task.
 Next step: set the real monthly allowance, decide whether running out should
 stop a run, and give agents their own connector list so a documents agent
 cannot reach your inbox at all.
+
+---
+
+## 2026-07-30 (later): A way back in
+
+Forgetting your password used to be permanent: the login page had no reset
+link and there was nothing behind one. Now there is the standard way back in.
+A Forgot password link on the login page leads to a one-field page that sends
+a reset email, the emailed link signs you in through a verify step, and you
+set a new password. The message after requesting a link is the same whether
+the email has an account or not, so the form cannot be used to find out who
+has one. The verify step accepts both link formats Supabase can send, because
+which one arrives depends on dashboard settings, and coding for only one is
+the classic way this flow breaks. An expired or reused link lands on the login
+page with a plain sentence, never an error code.
+
+Settings gained a Password section that uses the same machinery, and the
+sign-in pages stay as fast as they were: server rendered, no new JavaScript,
+6 to 13ms on a production build.
+
+Not yet done, recorded as a deploy-day task: production email needs an SMTP
+provider connected to Supabase (the built-in dev mailer sends a handful per
+hour), and the reset link's landing URL must be added to Supabase's redirect
+allowlist for the production domain. The founder verifies the full email round
+trip with their own account, since the agent does not handle passwords.
+
+Merged to `main` via pull request #111.
 
 ---
 

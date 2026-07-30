@@ -54,7 +54,17 @@ export function AuthForm({ mode, error, message }: AuthFormProps) {
             />
           </div>
           <div className="flex flex-col gap-2">
-            <Label htmlFor="password">Password</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="password">Password</Label>
+              {isLogin && (
+                <Link
+                  href="/forgot-password"
+                  className="text-xs text-muted-foreground underline underline-offset-4 hover:text-foreground"
+                >
+                  Forgot password?
+                </Link>
+              )}
+            </div>
             <Input
               id="password"
               name="password"
