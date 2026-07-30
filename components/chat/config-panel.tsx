@@ -2,13 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import {
-  ChevronDown,
-  ChevronRight,
-  Loader2,
-  Sparkles,
-  Trash2,
-} from 'lucide-react'
+import { ChevronDown, Loader2, Sparkles, Trash2, X } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { deleteAgent, updateAgentConfig } from '@/app/actions/agents'
@@ -33,6 +27,12 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import {
   ConnectorList,
   type ConnectorState,
@@ -87,14 +87,28 @@ export function ConfigPanel({
     <div className="flex h-full flex-col">
       <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-4 py-4">
         <h2 className="min-w-0 truncate text-sm font-semibold">Configure</h2>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={onClose}
-          aria-label="Close the configure panel"
-        >
-          <ChevronRight className="size-4" />
-        </Button>
+        {/* A plain X: the chevron read as "slide somewhere", not "close"
+            (founder's call). One line on hover, same recipe as every other
+            tooltip. */}
+        <TooltipProvider delay={300}>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={onClose}
+                  aria-label="Close the configure panel"
+                />
+              }
+            >
+              <X className="size-4" />
+            </TooltipTrigger>
+            <TooltipContent side="bottom" sideOffset={8}>
+              Close
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
       <ConfigPanelBody
         agentId={agentId}

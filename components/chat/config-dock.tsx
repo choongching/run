@@ -176,14 +176,25 @@ function PanelPlaceholder({
     <div className="flex h-full flex-col">
       <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-4 py-4">
         <h2 className="min-w-0 truncate text-sm font-semibold">Configure</h2>
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          onClick={onClose}
-          aria-label="Close the configure panel"
-        >
-          <X className="size-4" />
-        </Button>
+        <TooltipProvider delay={300}>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={onClose}
+                  aria-label="Close the configure panel"
+                />
+              }
+            >
+              <X className="size-4" />
+            </TooltipTrigger>
+            <TooltipContent side="bottom" sideOffset={8}>
+              Close
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
       </div>
       {failed ? (
         <div className="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center">
