@@ -97,7 +97,8 @@ export function AgentList({ agents }: { agents: SidebarAgent[] }) {
               <SidebarMenuButton
                 isActive={pathname === `/chat/${agent.id}`}
                 render={<Link href={`/chat/${agent.id}`} />}
-                className="pr-7"
+                // min-h-11: the mobile tap floor (styleguide 5b); md resets.
+                className="min-h-11 pr-7 md:min-h-0"
               >
                 <AgentsIcon className="size-4.5 shrink-0" />
                 <TruncatedLabel text={agent.name} />
@@ -108,7 +109,10 @@ export function AgentList({ agents }: { agents: SidebarAgent[] }) {
               <SidebarMenuAction
                 showOnHover
                 aria-label={`Delete ${agent.name}`}
-                className="text-muted-foreground/60 peer-hover/menu-button:text-muted-foreground/60 hover:bg-transparent hover:text-destructive [&>svg]:size-3.5"
+                // after:-inset-3 grows the tap area to ~44px on touch (the
+                // visible icon stays small); max-md re-centers it in the
+                // taller mobile row.
+                className="text-muted-foreground/60 peer-hover/menu-button:text-muted-foreground/60 hover:bg-transparent hover:text-destructive [&>svg]:size-3.5 after:-inset-3 max-md:top-1/2 max-md:-translate-y-1/2"
                 onClick={() => {
                   setTarget(agent)
                   setConfirmOpen(true)

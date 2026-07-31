@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import Image from 'next/image'
 
 import { AppSidebar } from '@/components/app-sidebar'
 import {
@@ -55,7 +56,14 @@ export default function DashboardLayout({
             docks a panel against the card's own edges, which it cannot do from
             inside a gutter it does not control. */}
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-          <SidebarTrigger className="mt-4 ml-4 md:hidden" />
+          {/* The mobile top bar (styleguide 5b): the one mobile-only piece
+              of chrome. Sticky so the drawer is reachable mid-scroll; the
+              chat page fills the height below it and pins its own composer. */}
+          <header className="sticky top-0 z-20 flex h-12 shrink-0 items-center gap-1.5 border-b border-border bg-background px-1.5 md:hidden">
+            <SidebarTrigger className="size-11" />
+            <Image src="/run-icon.png" alt="" width={20} height={20} />
+            <span className="text-sm font-semibold">Run</span>
+          </header>
           {children}
         </div>
       </SidebarInset>

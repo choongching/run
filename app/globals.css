@@ -9,6 +9,20 @@
    caption (text-xs) runs a taller 18px line-height. */
 @theme {
   --text-xs--line-height: 1.125rem;
+
+  /* Viewport breakpoints, written out so the scale is a decision rather
+     than an inherited default. The app splits on ONE line: mobile is below
+     md (768px, matching the sidebar's own isMobile); a tablet gets the
+     desktop layout. lg exists only for the chat's docked config panel.
+     Mobile rules (see the Mobile section of docs/styleguide.md): 44px tap
+     targets (size-11), 16px input text (below it iOS zooms on focus),
+     full-bleed surfaces with a px-4 gutter, and nothing operable only by
+     hover. */
+  --breakpoint-sm: 40rem;
+  --breakpoint-md: 48rem;
+  --breakpoint-lg: 64rem;
+  --breakpoint-xl: 80rem;
+  --breakpoint-2xl: 96rem;
 }
 
 @theme inline {

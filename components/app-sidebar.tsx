@@ -61,6 +61,7 @@ export function AppSidebar({
                 <SidebarMenuButton
                   isActive={pathname === '/'}
                   render={<Link href="/" />}
+                  className="min-h-11 md:min-h-0"
                 >
                   <Plus className="size-4.5 shrink-0" />
                   <span className="font-medium">New agent</span>
@@ -84,6 +85,7 @@ export function AppSidebar({
             <SidebarMenuButton
               isActive={pathname.startsWith('/knowledge')}
               render={<Link href="/knowledge" prefetch />}
+              className="min-h-11 md:min-h-0"
             >
               <KnowledgeIcon className="size-4.5 shrink-0" />
               <span>Knowledge</span>
@@ -93,6 +95,7 @@ export function AppSidebar({
             <SidebarMenuButton
               isActive={pathname.startsWith('/connectors')}
               render={<Link href="/connectors" prefetch />}
+              className="min-h-11 md:min-h-0"
             >
               <ConnectorsIcon className="size-4.5 shrink-0" />
               <span>Connectors</span>
