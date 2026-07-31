@@ -22,16 +22,19 @@ type AuthFormProps = {
 export function AuthForm({ mode, error, message }: AuthFormProps) {
   const isLogin = mode === 'login'
   return (
-    <Card className="w-full max-w-sm">
+    <div className="flex w-full max-w-sm flex-col items-center gap-5">
+    <Card className="w-full">
       <CardHeader className="items-center text-center">
         <Image src="/run-icon.png" alt="Run" width={40} height={40} className="mx-auto mb-2" />
         <CardTitle className="text-xl">
           {isLogin ? 'Sign in to Run' : 'Create your Run account'}
         </CardTitle>
         <CardDescription>
+          {/* Login greets a returning person; register makes the claim.
+              Both say it the way a person would, no "AI squad". */}
           {isLogin
-            ? 'Brief your AI squad and get work done.'
-            : 'Join your company workspace.'}
+            ? 'Your agents are waiting.'
+            : 'Build an agent in a sentence.'}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -104,5 +107,10 @@ export function AuthForm({ mode, error, message }: AuthFormProps) {
         </form>
       </CardContent>
     </Card>
+      {/* The maker's mark: quiet, outside the card, present on both doors. */}
+      <p className="text-xs text-muted-foreground/70">
+        Designed and built by CC Teo
+      </p>
+    </div>
   )
 }
