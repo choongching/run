@@ -111,9 +111,12 @@ mark instead of the framework's default icon, the sign-in card greets a
 returning person ("Your agents are waiting.") and the register card makes
 the product's claim ("Build an agent in a sentence."), the submit button
 stands taller as the one big action on the page, and beneath both cards
-sits a quiet maker's mark: Designed and built by CC Teo.
+sits a quiet maker's mark: Designed and built by CC Teo. A last wordplay
+pass made the two doors a matched pair, each ending on the product's name
+as a verb: "Welcome back. Your agents are ready to run." and "Create your
+Run account. Describe the job. Watch it run."
 
-Merged to `main` via pull requests #153 through #168, each deployed to
+Merged to `main` via pull requests #153 through #171, each deployed to
 tryrun.today on merge.
 
 ---
