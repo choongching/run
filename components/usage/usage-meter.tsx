@@ -95,7 +95,7 @@ export function UsageMeter({ userId, used, limit, resetsAt }: UsageMeterProps) {
               setHovering(false)
               setOpen(true)
             }}
-            className="absolute bottom-full left-0 z-20 mb-2 w-60 cursor-pointer rounded-xl border border-border bg-card p-4 text-left shadow-md transition-colors hover:bg-muted/40"
+            className="absolute bottom-full left-0 z-20 mb-2 w-60 cursor-pointer rounded-xl border border-border bg-card p-4 text-left shadow-md transition-colors hover:bg-muted"
           >
             <RunsCard used={count} limit={limit} resetsAt={resetsAt} />
           </button>
