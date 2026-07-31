@@ -55,6 +55,9 @@ export function RunDonut({ agentId }: { agentId: string }) {
       <button
         type="button"
         aria-label={`${summary.used} of ${summary.limit} runs used this month`}
+        // Tap toggles on touch (hover never fires there); focus/blur keep
+        // it working from a keyboard.
+        onClick={() => setOpen((o) => !o)}
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
         className="flex size-11 items-center justify-center rounded-lg hover:bg-muted md:size-8"
