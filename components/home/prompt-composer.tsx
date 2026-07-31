@@ -156,10 +156,15 @@ export function PromptComposer({
             aria-label="Build agent"
             // Hero sizing, home only: a touch over the default button
             // (15% up, then 9% back down on review = about 5% net).
-            className="h-11 px-4.5 text-[15px] md:h-9.5"
+            // Icon-only on mobile: a square arrow at the tap floor, the send
+            // affordance a phone already knows; the words return at md. The
+            // aria-label keeps the name for screen readers on both.
+            className="size-11 px-0 md:h-9.5 md:w-auto md:px-4.5 md:text-[15px]"
           >
-            {pending ? 'Building...' : 'Build my agent'}
-            {!pending && <ArrowUp className="size-4" />}
+            <span className="max-md:hidden">
+              {pending ? 'Building...' : 'Build my agent'}
+            </span>
+            {!pending && <ArrowUp className="size-5 md:size-4" />}
           </Button>
         </div>
       </form>
