@@ -1,7 +1,7 @@
-# Run — Visual Style Guide
+# Run: Visual Style Guide
 
 Distilled from the reference screenshots (AirOps-style workspace UI). This guide defines
-**tokens, type, spacing, radii, and component recipes only** — page content and structure
+**tokens, type, spacing, radii, and component recipes only**; page content and structure
 are out of scope. All values below map to CSS variables in `app/globals.css`; always style
 through tokens (`bg-primary`, `text-muted-foreground`, …), never hard-coded hex.
 
@@ -39,7 +39,10 @@ primary flips to a lighter green with dark text.
 
 ## 3. Typography
 
-Matched to the reference design tokens (Geist-based scale).
+Matched to the reference design tokens (Geist-based scale). The sizes below
+are the DESKTOP APP tier; type is a three-tier ladder (app, chat, Configure)
+with a larger mobile scale per tier, defined entirely as `--text-*` variable
+overrides. The ladder table and the rules live in section 5b.
 
 - **Family:** Geist (`--font-sans`, variable), Geist Mono for code. No serif.
 - **Scale** (Tailwind classes → reference tokens):
@@ -47,9 +50,9 @@ Matched to the reference design tokens (Geist-based scale).
     (`--text-xs--line-height` in globals.css).
   - `text-sm` = body-sm, **14px/20px** (Tailwind default; the old 15px retune
     is gone). This is the body size: nav items, table cells, controls.
-  - `text-base` = body-md, 16px/24px — page subtitles, prose.
-  - `text-xl` = body-xl, 20px — auth-card titles and similar.
-  - `text-2xl` = display-xs, **24px/32px** — page titles. Nothing on an app
+  - `text-base` = body-md, 16px/24px: page subtitles, prose.
+  - `text-xl` = body-xl, 20px: auth-card titles and similar.
+  - `text-2xl` = display-xs, **24px/32px**: page titles. Nothing on an app
     page renders larger than 24px.
 - **Weights:** 400 body, 500 medium (active nav, labels, chips), 600 semibold
   (page titles, card titles, table headers), 700 reserved for rare emphasis.
@@ -81,7 +84,7 @@ above clamped to 6px), so `rounded-xl` and larger render at 6px too.
   Those are the largest surfaces on screen, where a 6px corner reads as almost
   square. It is a named token so it stays countable; do not reach for it on
   anything that sits inside a card.
-- Tooltips: dark ink bubble — `bg-foreground text-background rounded-lg px-3 py-2 text-sm font-medium`.
+- Tooltips: dark ink bubble: `bg-foreground text-background rounded-lg px-3 py-2 text-sm font-medium`.
 
 ## 5. Spacing & layout
 
@@ -89,7 +92,7 @@ above clamped to 6px), so `rounded-xl` and larger render at 6px too.
 - Sidebar inner padding `p-2`; nav item height **36px** (`h-9`), icon 16px, `gap-2`.
 - Nav groups separated by spacing + occasional `SidebarSeparator`; group labels 12px.
 - Main content padding `p-6 md:p-8`; title block ~32px from card top.
-- Table rows ~52–56px tall with 1px `--border` dividers; generous first column.
+- Table rows ~52 to 56px tall with 1px `--border` dividers; generous first column.
 
 ### 5b. Mobile (below `md`, 768px)
 
@@ -149,7 +152,7 @@ exists only for the chat's docked config panel. Rules on mobile:
   (`stroke-[1.75]`), 18px (`size-4.5`) in nav, 16px (`size-4`) in dense contexts like
   tables. No multi-color/filled illustration icons.
 - Icons inherit text color: ink in nav, muted in secondary contexts.
-- App nav icons live in `components/nav-icons.tsx` as re-exported lucide icons —
+- App nav icons live in `components/nav-icons.tsx` as re-exported lucide icons;
   swap there, never inline new icon styles in pages.
 - **Exception, connector logos:** third-party integrations (Google Drive, etc.)
   show their official multicolor product mark, inlined as an SVG component in
@@ -194,12 +197,12 @@ exists only for the chat's docked config panel. Rules on mobile:
 - **Table:** semibold ink header row, hover row wash `bg-muted/50`, green checkboxes,
   kebab (`⋮`) as `icon-sm` ghost/outline button, circular initial avatars in chart colors.
 - **Listing section row** (between page header and a grid/table): count + meta
-  + trailing hairline — `flex items-center gap-3`, `text-sm font-medium` count,
+  + trailing hairline: `flex items-center gap-3`, `text-sm font-medium` count,
   `text-sm text-muted-foreground` meta, then `h-px flex-1 bg-border`. Sort
   listings so working items lead and archived items always sit at the back.
 - **Card overflow menu:** actions live in a kebab (`Ellipsis` icon, ghost
   `icon-sm` button, `text-muted-foreground`) in `CardAction`, opening a
-  `DropdownMenu` — routine actions first, then a separator and the destructive
+  `DropdownMenu`: routine actions first, then a separator and the destructive
   action (`variant="destructive"`) always last. While the menu is open the
   card shows a selected state: `ring-ring/50`.
 - **Meta chips** (card base): `h-6 rounded-md border border-border
@@ -232,7 +235,7 @@ exists only for the chat's docked config panel. Rules on mobile:
   naming the job to be done; `pr-12` clears the X button. Body lists are the
   standard `divide-y rounded-xl border` rows with per-row toggle buttons that
   auto-save instantly (outline "+ Assign" ↔ secondary "✓ In squad", spinner
-  while pending, toast only on failure) — no Save button, no dirty state, safe
+  while pending, toast only on failure): no Save button, no dirty state, safe
   to close anytime. Footer: a single full-width outline "Done". The trigger
   row in the listing stays clickable end to end (`cursor-pointer`), with the
   explicit button as the discoverable affordance; empty cells render the call
@@ -266,5 +269,5 @@ exists only for the chat's docked config panel. Rules on mobile:
 - Do use `--sidebar` canvas + white cards for any new full-screen layout.
 - Don't reintroduce colored/filled icons, pure-gray-cold neutrals, raw
   `rounded-[Npx]` values, or any corner outside the 4-6px range (except circles).
-- Don't restyle ad-hoc in pages — change tokens here + `globals.css` so it applies
+- Don't restyle ad-hoc in pages; change tokens here + `globals.css` so it applies
   everywhere.

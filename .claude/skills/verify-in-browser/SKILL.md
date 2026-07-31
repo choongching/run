@@ -42,6 +42,18 @@ The founder values live verification of each phase. This is the loop.
 - A model turn takes seconds; `wait` 6-10s between an action and the screenshot
   that checks its result.
 
+## Narrow-width (mobile) checks
+
+- `resize_window` LIES in macOS fullscreen: it reports success while the
+  window stays put. Have the user exit fullscreen first, then ALWAYS
+  confirm with `window.innerWidth` via the javascript tool before trusting
+  any responsive screenshot.
+- Even windowed, macOS Chrome will not go below ~500px wide, so true
+  phone width (412) is unreachable here; below-md behavior is testable,
+  exact phone layout is not. The founder's real device is the standing
+  gate for keyboards, safe areas, and tap feel: emulation lies about all
+  three.
+
 ## Verify what you did not change
 
 For anything touching the shell, `globals.css`, or a `components/ui/` primitive,
