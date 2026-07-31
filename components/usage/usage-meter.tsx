@@ -87,9 +87,18 @@ export function UsageMeter({ userId, used, limit, resetsAt }: UsageMeterProps) {
           </div>
         </button>
         {hovering && (
-          <div className="absolute bottom-full left-0 z-20 mb-2 w-60 rounded-xl border border-border bg-card p-4 shadow-md">
+          // The whole card is a button into the history (founder call), so
+          // the chevron in its title keeps the promise the card makes.
+          <button
+            type="button"
+            onClick={() => {
+              setHovering(false)
+              setOpen(true)
+            }}
+            className="absolute bottom-full left-0 z-20 mb-2 w-60 cursor-pointer rounded-xl border border-border bg-card p-4 text-left shadow-md transition-colors hover:bg-muted/40"
+          >
             <RunsCard used={count} limit={limit} resetsAt={resetsAt} />
-          </div>
+          </button>
         )}
       </div>
       <DialogContent className="sm:max-w-2xl">
