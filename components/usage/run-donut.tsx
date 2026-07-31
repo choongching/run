@@ -37,7 +37,6 @@ export function RunDonut({ agentId }: { agentId: string }) {
   if (!summary) return null
 
   const share = summary.limit > 0 ? summary.used / summary.limit : 0
-  const pct = Math.min(100, Math.round(share * 100))
   const tone =
     share >= 0.95
       ? 'text-destructive'
@@ -87,38 +86,27 @@ export function RunDonut({ agentId }: { agentId: string }) {
       </button>
 
       {open && (
+        // Chat-first (founder call): inside a chat, this chat's runs take
+        // center stage; the month is one supporting row, since its full
+        // story lives in the sidebar meter.
         <div className="absolute bottom-full left-0 z-20 mb-2 w-60 rounded-xl border border-border bg-card p-4 shadow-md">
-          <div className="flex flex-col gap-2.5">
-            <p className="text-sm font-medium">Runs this month</p>
+          <div className="flex flex-col gap-2.5 text-left">
+            <p className="text-sm font-medium">This chat</p>
             <div className="flex items-baseline justify-between text-sm">
-              <span className="text-muted-foreground">{pct}%</span>
-              <span className="tabular-nums">
-                {summary.used} / {summary.limit} runs
-              </span>
+              <span className="text-muted-foreground">Runs this month</span>
+              <span className="tabular-nums">{summary.threadRuns}</span>
             </div>
-            <div className="h-1.5 overflow-hidden rounded-full bg-border">
-              <div
-                className={`h-full rounded-full ${
-                  share >= 0.95
-                    ? 'bg-destructive'
-                    : share >= 0.8
-                      ? 'bg-chart-4'
-                      : 'bg-foreground/70'
-                }`}
-                style={{ width: `${Math.max(2, pct)}%` }}
-              />
+            <div className="border-t border-border pt-2.5">
+              <div className="flex items-baseline justify-between text-sm">
+                <span className="text-muted-foreground">All your agents</span>
+                <span className="tabular-nums">
+                  {summary.used} / {summary.limit}
+                </span>
+              </div>
             </div>
             <p className="text-xs text-muted-foreground">
               Fresh {summary.limit} on {refillMonth} 1.
             </p>
-            <div className="border-t border-border pt-2.5">
-              <div className="flex items-baseline justify-between text-sm">
-                <span className="text-muted-foreground">This chat</span>
-                <span className="tabular-nums">
-                  {summary.threadRuns} {summary.threadRuns === 1 ? 'run' : 'runs'}
-                </span>
-              </div>
-            </div>
           </div>
         </div>
       )}
