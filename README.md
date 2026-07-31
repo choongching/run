@@ -181,6 +181,9 @@ Around that loop, the product has filled out:
 - **It is fast.** Every page paints instantly and fills in as its data
   arrives, checking who you are happens locally instead of over the network,
   and the pages you are likely to click next are fetched before you click.
+- **It fits your phone.** Every screen is designed for a thumb, not shrunk
+  for one: panels take the whole screen, every tap target is finger-sized,
+  and the text steps up so nothing needs a squint.
 - **It is consistent.** Every screen shares the chat's centered column,
   buttons explain themselves when you hover, and empty pages say in one quiet
   line what will live there.

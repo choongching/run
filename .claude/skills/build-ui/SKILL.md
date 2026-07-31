@@ -65,6 +65,17 @@ Goal: zero re-derivation, zero styling drift.
   ladder of variable overrides (app 14/15, chat 15/16, config 15/17
   desktop/mobile body): a surface's scale is defined in one scope class in
   globals, never by editing utility classes.
+- **Mobile patterns proven on the founder's device (2026-07-31 night):**
+  the drawer is a full-screen sheet (`w-full max-w-none` on the mobile
+  SheetContent, its own close button unhidden and grown to the tap floor);
+  the chat card sheds border/radius/padding below md (card px-4 + thread
+  px-1 = ~20px text inset, founder's cap is 32); a primary button may go
+  icon-only on mobile (`max-md:hidden` on the label, square at size-11,
+  aria-label carrying the name); FlipWord centres on the ACTIVE word below
+  md by making inactive words `max-md:absolute` (the desktop ghost-width
+  that prevents reflow visibly pushes short words sideways on a phone).
+  TRAP: a component's own size-variant classes (peer-data top-2) outrank
+  `max-md:` overrides unpredictably; pin with a trailing `!` (max-md:top-3!).
 - **CSS overrides:** Tailwind v4 cascade layers mean the utilities layer beats
   `@layer components` regardless of selector specificity. Any custom rule that
   must override a utility-classed element goes in `@layer utilities` in
