@@ -54,6 +54,17 @@ Goal: zero re-derivation, zero styling drift.
   text-* utility inside rescales (line heights are ratios and follow), and
   nothing outside the class moves. That variable-override trick is THE way
   to rescale a whole surface; never bulk-edit utility classes to do it.
+- **Mobile (below md) is a first-class mode**: read styleguide section 5b
+  before any responsive work. The essentials: mobile = below md, ONE split;
+  44px tap floor (`size-11`/`min-h-11`, `md:` resets); inputs are 16px on
+  mobile (the Input primitive and both composers already carry it: below
+  16px iOS zooms on focus); full-bleed surfaces with a `px-4` gutter;
+  full-screen takeovers for Configure and dialogs (inset-0 + h-svh +
+  reset the dialog's centering transform); safe-area padding on
+  bottom-pinned bars; nothing operable only by hover. TYPE is a three-tier
+  ladder of variable overrides (app 14/15, chat 15/16, config 15/17
+  desktop/mobile body): a surface's scale is defined in one scope class in
+  globals, never by editing utility classes.
 - **CSS overrides:** Tailwind v4 cascade layers mean the utilities layer beats
   `@layer components` regardless of selector specificity. Any custom rule that
   must override a utility-classed element goes in `@layer utilities` in
