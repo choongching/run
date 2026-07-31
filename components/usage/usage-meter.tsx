@@ -88,12 +88,7 @@ export function UsageMeter({ userId, used, limit, resetsAt }: UsageMeterProps) {
         </button>
         {hovering && (
           <div className="absolute bottom-full left-0 z-20 mb-2 w-60 rounded-xl border border-border bg-card p-4 shadow-md">
-            <RunsCard
-              used={count}
-              limit={limit}
-              resetsAt={resetsAt}
-              hint="Click for the full history"
-            />
+            <RunsCard used={count} limit={limit} resetsAt={resetsAt} />
           </div>
         )}
       </div>
