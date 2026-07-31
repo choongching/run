@@ -1,4 +1,4 @@
-import { History } from 'lucide-react'
+import { ChevronRight } from 'lucide-react'
 
 // The sidebar meter's hover card. The history icon beside the title is the
 // click affordance: quieter and shorter than a sentence saying the same.
@@ -27,7 +27,7 @@ export function RunsCard({
     <div className="flex flex-col gap-2.5 text-left">
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium">Total runs this month</p>
-        <History className="size-3.5 text-muted-foreground" />
+        <ChevronRight className="size-3.5 text-muted-foreground" />
       </div>
       <div className="flex items-baseline justify-between text-sm">
         <span className="text-muted-foreground">{pct}%</span>
