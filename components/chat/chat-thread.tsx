@@ -1133,7 +1133,9 @@ function Composer({
         placeholder={
           blocked ? 'Choose an option above to continue' : `Message ${agentName}...`
         }
-        className="max-h-40 w-full resize-none bg-transparent px-4 pt-3.5 text-sm outline-none placeholder:text-muted-foreground disabled:opacity-60"
+        // text-base below md: 16px inputs stop iOS zooming on focus
+        // (styleguide 5b).
+        className="max-h-40 w-full resize-none bg-transparent px-4 pt-3.5 text-base outline-none placeholder:text-muted-foreground disabled:opacity-60 md:text-sm"
       />
       {/* All three controls sit together at the trailing edge (founder
           call): the meter, then attach, then send. */}

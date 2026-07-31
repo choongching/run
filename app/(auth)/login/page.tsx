@@ -7,7 +7,7 @@ export default async function LoginPage({
 }) {
   const { error, message } = await searchParams
   return (
-    <div className="flex min-h-svh items-center justify-center bg-muted/40 p-6">
+    <div className="flex min-h-svh items-center justify-center bg-muted/40 p-6 max-md:bg-background max-md:px-4">
       <AuthForm mode="login" error={error} message={message} />
     </div>
   )
