@@ -92,16 +92,23 @@ export function AgentList({ agents }: { agents: SidebarAgent[] }) {
         <SidebarMenu>
           {agents.map((agent) => (
             <SidebarMenuItem key={agent.id}>
+              {/* pr-7 reserves the action's lane, so the truncating label
+                  never runs under the trash and its tooltip never fights it. */}
               <SidebarMenuButton
                 isActive={pathname === `/chat/${agent.id}`}
                 render={<Link href={`/chat/${agent.id}`} />}
+                className="pr-7"
               >
                 <AgentsIcon className="size-4.5 shrink-0" />
                 <TruncatedLabel text={agent.name} />
               </SidebarMenuButton>
+              {/* Quiet at rest (muted, smaller than nav icons), destructive
+                  only on its own hover: it should read as an option, not a
+                  warning, until pointed at. */}
               <SidebarMenuAction
                 showOnHover
                 aria-label={`Delete ${agent.name}`}
+                className="text-muted-foreground/60 peer-hover/menu-button:text-muted-foreground/60 hover:bg-transparent hover:text-destructive [&>svg]:size-3.5"
                 onClick={() => {
                   setTarget(agent)
                   setConfirmOpen(true)
