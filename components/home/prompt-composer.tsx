@@ -47,12 +47,13 @@ function BuildingState() {
     return () => timers.forEach(clearTimeout)
   }, [])
   return (
-    // min-h matches the composer-plus-chips block it replaces, so the hero
-    // holds its shape and nothing on the page jumps. Text only, no mark
-    // (founder call: the hero above already carries the brand).
+    // Absolutely centered over the whole hero region: the faded-out mark and
+    // headline keep their layout space (they only fade, so nothing jumps),
+    // which would push an in-flow block below true center. Text only, no
+    // mark (founder call: the hero above already carries the brand).
     // .run-building also dims the rest of the hero via :has() in globals;
     // the 450ms delay lets that fade lead before this rises in.
-    <div className="run-building run-rise flex min-h-72 flex-col items-center justify-center gap-3 text-center [--rise-delay:450ms]">
+    <div className="run-building run-rise absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 text-center [--rise-delay:450ms]">
       <p className="text-shimmer text-base font-medium">Building your agent</p>
       {/* key={stage} replays the rise on each stage change: a quiet crossfade
           without any new animation machinery. Reduced motion still reads the
