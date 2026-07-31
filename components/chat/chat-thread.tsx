@@ -3,6 +3,7 @@
 import {
   Fragment,
   useEffect,
+  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
@@ -544,6 +545,35 @@ export function ChatThread({
 
   const isEmpty = messages.length === 0 && !draft
 
+  // Two or more step lines in a row collapse into one compact block, so the
+  // work is there for whoever wants it without filling the conversation.
+  // A single step stays a plain line: one line IS the compact form.
+  // Memoized because this recomputes on every frame of a live turn.
+  const blocks = useMemo(() => {
+    const out: {
+      kind: 'msg' | 'steps'
+      items: ChatMessage[]
+      startIndex: number
+    }[] = []
+    for (let i = 0; i < messages.length; i++) {
+      const m = messages[i]
+      if (m.role === 'activity') {
+        const run: ChatMessage[] = [m]
+        while (messages[i + 1]?.role === 'activity') run.push(messages[++i])
+        out.push({
+          kind: run.length > 1 ? 'steps' : 'msg',
+          items: run.length > 1 ? run : [m],
+          startIndex: i - run.length + 1,
+        })
+        // A run of single activities: each its own msg block.
+        if (run.length === 1) continue
+      } else {
+        out.push({ kind: 'msg', items: [m], startIndex: i })
+      }
+    }
+    return out
+  }, [messages])
+
   return (
     <div
       className="relative flex min-h-0 flex-1 flex-col"
@@ -564,21 +594,30 @@ export function ChatThread({
             </p>
           )}
 
-          {messages.map((m, i) => {
-            const prev = messages[i - 1]
+          {blocks.map((block) => {
+            const first = block.items[0]
+            const prev = messages[block.startIndex - 1]
             const showDay =
-              m.createdAt &&
-              (!prev?.createdAt || dayKey(prev.createdAt) !== dayKey(m.createdAt))
+              first.createdAt &&
+              (!prev?.createdAt ||
+                dayKey(prev.createdAt) !== dayKey(first.createdAt))
+            const blockIsLive =
+              running &&
+              block.startIndex + block.items.length === messages.length
             return (
-              <Fragment key={m.id}>
+              <Fragment key={first.id}>
                 {showDay && mounted && (
-                  <DayDivider label={formatDay(m.createdAt!, now)} />
+                  <DayDivider label={formatDay(first.createdAt!, now)} />
                 )}
-                <MessageRow
-                  message={m}
-                  live={running && i === messages.length - 1}
-                  showTime={mounted}
-                />
+                {block.kind === 'steps' ? (
+                  <StepsBlock steps={block.items} running={blockIsLive} />
+                ) : (
+                  <MessageRow
+                    message={first}
+                    live={blockIsLive}
+                    showTime={mounted}
+                  />
+                )}
               </Fragment>
             )
           })}
@@ -767,6 +806,69 @@ function JumpToLatest() {
       >
         <ChevronDown className="size-4.5" />
       </button>
+    </div>
+  )
+}
+
+// A run of steps folded into one quiet line. Closed it reads "5 steps";
+// while the agent is still working it shows the step underway instead, so
+// the feedback never disappears. Open, it lists every step. Closed is the
+// default, including on reload: not everyone wants the little details.
+function StepsBlock({
+  steps,
+  running,
+}: {
+  steps: ChatMessage[]
+  running: boolean
+}) {
+  const [open, setOpen] = useState(false)
+  const current = steps[steps.length - 1]
+  const headerLabel =
+    running && !open
+      ? `${current.activityPresent ?? current.content}…`
+      : `${steps.length} steps`
+  return (
+    <div className="text-xs text-muted-foreground">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="flex items-center gap-2 hover:text-foreground"
+      >
+        {running && !open ? (
+          <Loader2 className="size-3.5 shrink-0 animate-spin" />
+        ) : (
+          <ChevronDown
+            className={cn(
+              'size-3.5 shrink-0 transition-transform',
+              !open && '-rotate-90'
+            )}
+          />
+        )}
+        <span className={cn(running && !open && 'text-shimmer font-medium')}>
+          {headerLabel}
+        </span>
+      </button>
+      {open && (
+        <div className="mt-2 flex flex-col gap-2 pl-5.5">
+          {steps.map((s, idx) => {
+            const isLive = running && idx === steps.length - 1
+            return (
+              <div key={s.id} className="flex items-center gap-2">
+                {isLive ? (
+                  <Loader2 className="size-3.5 shrink-0 animate-spin" />
+                ) : (
+                  <CircleCheck className="size-3.5 shrink-0 text-primary/70" />
+                )}
+                <span className={cn(isLive && 'text-shimmer font-medium')}>
+                  {isLive ? (s.activityPresent ?? s.content) : s.content}
+                  {isLive ? '…' : ''}
+                </span>
+              </div>
+            )
+          })}
+        </div>
+      )}
     </div>
   )
 }

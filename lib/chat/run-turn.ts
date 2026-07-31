@@ -135,6 +135,34 @@ export function toolActivity(
   }
 }
 
+// The platform's built-in tools arrive as agent.tool_use events. Web search
+// and page reads become steps a person can follow, with the real query or
+// site in the line. The sandbox's internal tools (bash, file ops) return
+// null on purpose: "Ran ls" would confuse more than it informs.
+export function builtinActivity(
+  name: string,
+  input: Record<string, unknown> = {}
+): ToolActivity | null {
+  if (name === 'web_search') {
+    const q = String(input.query ?? '').trim()
+    return q
+      ? { present: `Searching the web for "${q}"`, past: `Searched the web for "${q}"` }
+      : { present: 'Searching the web', past: 'Searched the web' }
+  }
+  if (name === 'web_fetch') {
+    let host = ''
+    try {
+      host = new URL(String(input.url ?? '')).hostname.replace(/^www\./, '')
+    } catch {
+      // Not a parseable URL; the plain fallback below covers it.
+    }
+    return host
+      ? { present: `Reading ${host}`, past: `Read ${host}` }
+      : { present: 'Reading a page', past: 'Read a page' }
+  }
+  return null
+}
+
 // Open the event stream, send the triggering events, and drain the turn:
 // stream text/activity, auto-execute read tools, and pause for approval when
 // the agent asks to run a write tool. Persists activity + the final reply and
@@ -277,6 +305,14 @@ async function drainSessionInner(
           .join(''),
       ).trim()
       if (messageText) agentParts.push(messageText)
+    } else if (event.type === 'agent.tool_use') {
+      // Built-in tools (web search, page reads) run on the platform and never
+      // pause the session; they only become visible steps.
+      const act = builtinActivity(event.name, event.input ?? {})
+      if (act) {
+        activityLabels.push(act.past)
+        send({ type: 'activity', present: act.present, past: act.past })
+      }
     } else if (event.type === 'agent.custom_tool_use') {
       pending.push({ id: event.id, name: event.name, input: event.input })
       // ask_user and propose_setup are the agent talking to the person, not
