@@ -59,10 +59,55 @@ internet. The database lockdown that had been waiting for approval was
 applied and verified, and passwords got a show and hide toggle plus an
 eight character minimum enforced in three layers. From now on, every merge
 to main deploys itself.
-Next step: point the founder's own domain at the deployment, then the
-before-more-users trio: an email provider for sign-up and reset emails,
-Google's app verification so new people can connect Gmail and Drive, and the
-database plan upgrade that unlocks leaked-password checking and backups.
+On the morning of 2026-07-31 the app moved onto its real address,
+https://tryrun.today, and the first-time experience got its polish: a calm
+building moment when an agent is created, a blank-page bug fixed for good,
+Delete on every sidebar row so nobody is ever trapped, and a warmer voice
+through the composer and the setup card.
+Next step: the before-more-users trio: an email provider for sign-up and
+reset emails, Google's app verification so new people can connect Gmail and
+Drive, and the database plan upgrade that unlocks leaked-password checking
+and backups.
+
+---
+
+## 2026-07-31 (morning): The real address, and a warmer first impression
+
+Run moved onto its domain. The founder added tryrun.today in Vercel and
+repointed two records at GoDaddy; the site now answers there with its
+certificate, the www spelling redirects permanently, and the sign-in emails
+and redirect rules all point at the new address. The vercel.app address
+still works, and local development is untouched.
+
+Then the first-time experience, in a founder-driven loop, pull requests
+#153 through #164:
+
+- Creating an agent is now a moment instead of a stuck button. The whole
+  home screen breathes out and a shimmering "Building your agent" line takes
+  the center, narrating what creation really does, in its true order:
+  reading your description, working out what you need done, choosing a name,
+  writing its instructions, picking the tools it will need, setting up its
+  workspace. The submit deliberately waits three seconds so the sequence
+  gets room to play; every line is work that genuinely happens.
+- The founder's blank-page report was diagnosed, and the culprit was not the
+  setup questions: it was a chat whose agent no longer existed, and the app
+  had no screen for that, so it rendered nothing. Now it says "This agent is
+  gone" with a button to build a new one. And every agent row in the sidebar
+  carries its own quiet Delete with the usual confirmation, so removing an
+  agent never depends on any other page working. The founder set the
+  principle out loud: the user has a choice at every step, whatever state a
+  page is in. It is written into the code as a comment now.
+- Copy got warmer everywhere the loop touched: the blocked composer explains
+  itself with a hover ("Your 2 agent spots are full") instead of a repeated
+  sentence, the placeholder stopped repeating the headline and button, and
+  the setup card traded "Quick setup" and its AI sparkles for a checklist
+  mark and "A few questions, and you're on your way".
+- One layout lesson recorded: elements that fade but keep their space push
+  an in-flow sibling below center, so the building state is absolutely
+  positioned and was verified centered by measurement, not by eye.
+
+Merged to `main` via pull requests #153 through #164, each deployed to
+tryrun.today on merge.
 
 ---
 

@@ -154,7 +154,8 @@ flowchart LR
 
 ## Project status
 
-Run is live in production. The core loop works end to end on real accounts:
+Run is live at [tryrun.today](https://tryrun.today). The core loop works end
+to end on real accounts:
 describe an agent, connect your Gmail and Drive, and it comes back with
 genuinely useful work: inbox summaries, document answers and critiques,
 drafted replies, downloadable documents. A draft you approve in the chat
