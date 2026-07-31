@@ -87,9 +87,9 @@ export function RunDonut({ agentId }: { agentId: string }) {
         // the sidebar meter; repeating them here was noise. The ring itself
         // still fills against the month, the one bounded number.
         <div className="absolute bottom-full left-0 z-20 mb-2 w-60 rounded-xl border border-border bg-card p-4 shadow-md">
-          <div className="flex flex-col gap-2.5 text-left">
-            <p className="text-sm font-medium">This chat</p>
-            <div className="flex items-baseline justify-between text-sm">
+          <div className="flex flex-col gap-2 text-left">
+            <p className="text-xs font-medium">This chat</p>
+            <div className="flex items-baseline justify-between text-xs">
               <span className="text-muted-foreground">Runs this month</span>
               <span className="tabular-nums">{summary.threadRuns}</span>
             </div>
