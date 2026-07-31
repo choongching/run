@@ -23,7 +23,9 @@ export function AuthForm({ mode, error, message }: AuthFormProps) {
   const isLogin = mode === 'login'
   return (
     <div className="flex w-full max-w-sm flex-col items-center gap-5">
-    <Card className="w-full">
+    {/* On a phone the card sheds its box (styleguide 5b): the form lives on
+        the page rather than in a frame within a frame. */}
+    <Card className="w-full max-md:border-0 max-md:bg-transparent max-md:shadow-none">
       <CardHeader className="items-center text-center">
         <Image src="/run-icon.png" alt="Run" width={40} height={40} className="mx-auto mb-2" />
         <CardTitle className="text-xl">

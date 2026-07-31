@@ -23,7 +23,7 @@ export default async function ForgotPasswordPage({
 }) {
   const { error, message } = await searchParams
   return (
-    <div className="flex min-h-svh items-center justify-center bg-muted/40 p-6">
+    <div className="flex min-h-svh items-center justify-center bg-muted/40 p-6 max-md:bg-background max-md:px-4">
       <Card className="w-full max-w-sm">
         <CardHeader className="items-center text-center">
           <Image src="/run-icon.png" alt="Run" width={40} height={40} className="mx-auto mb-2" />
