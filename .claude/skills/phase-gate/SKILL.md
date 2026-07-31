@@ -120,6 +120,11 @@ Walk every route (`/`, `/chat/[id]`, `/knowledge`, `/connectors`, `/settings`)
 and compare the surface you changed. A shell change that looks right on the
 page you were working on can be silently absent everywhere else.
 
+Since the 2026-07-31 mobile pass, this walk happens at BOTH widths: desktop
+and below-md (narrow window; see the verify-in-browser skill's narrow-width
+notes for the macOS resize traps). The mobile type ladder and tap floor are
+token-driven, so a globals change can move every phone screen at once.
+
 The specific trap: a rule in `globals.css` targeting `[data-slot="sidebar-inset"]`
 LOSES to the component's own `md:peer-data-[variant=inset]:*` classes, which are
 a compound selector with a sibling combinator and outrank a plain attribute
