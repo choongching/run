@@ -132,10 +132,14 @@ export function ConfigDock({
         className={cn(
           'shrink-0 overflow-hidden transition-[width] duration-200 ease-out motion-reduce:transition-none',
           'max-lg:fixed max-lg:inset-y-2 max-lg:right-2 max-lg:z-50',
-          open ? 'w-92' : 'w-0'
+          // Below md the panel is a full-screen takeover (styleguide 5b):
+          // the whole viewport, no gutters, no radius. The width track only
+          // means anything docked or floating; full-screen sizes from inset.
+          'max-md:inset-0',
+          open ? 'w-92 max-md:w-auto' : 'w-0'
         )}
       >
-        <div className="ml-2 flex h-full w-90 flex-col overflow-hidden rounded-shell border border-border bg-card">
+        <div className="ml-2 flex h-full w-90 flex-col overflow-hidden rounded-shell border border-border bg-card max-md:ml-0 max-md:w-full max-md:rounded-none max-md:border-0 max-md:pb-[env(safe-area-inset-bottom)]">
           {extras ? (
             <ConfigPanel
               key={`${panel.agentId}:${opens}`}
