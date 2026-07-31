@@ -84,6 +84,34 @@ Goal: zero re-derivation, zero styling drift.
   tooltip holds the word, aria-label keeps it for screen readers (see
   `components/connectors/connector-list.tsx`). A different icon per state
   (dashed circle, X) read as weird or as an error; the founder rejected it.
+- **Runs of step lines fold into one compact block** (see StepsBlock in
+  chat-thread): closed by default reading "N steps" with a chevron; while
+  live, the header IS the current step (shimmer + spinner) so feedback never
+  disappears; open lists every step. Steps only ever narrate real work from
+  real events; never invent detail the stream did not provide.
+- **Rich hover cards are hand-rolled, not tooltips.** The base-nova tooltip
+  is a dark one-line chip; a breakdown card is a relative wrapper +
+  mouseenter state + absolute bottom-full card (see run-donut, usage-meter).
+  Anchor from the edge nearest the container's edge (right-0 in a right
+  corner) so it opens inward. The surface stays fully opaque: an alpha
+  hover tint turns a floating card into glass (bg-muted/40 let the sidebar
+  bleed through), and the founder's final call was no tint at all: solid
+  card, cursor-pointer and a title-row chevron carry the affordance, and
+  the WHOLE card is the click target so the chevron keeps its promise.
+- **In a history list, status speaks only for the exception.** "Done" on
+  every row of finished work read as meaningless and "Active" would
+  misdescribe a past event; ordinary rows carry nothing, failures carry one
+  quiet chip.
+- **All rows clickable or none.** Linking only the rows that still have a
+  live target (deleted agents did not) made a list feel broken. Founder
+  decision: a log row is a receipt, not a door; consistency beats the
+  shortcut.
+- **History/list rows take the deployment-list shape**: no header row, no
+  vertical hairlines; the name leads, the facts (date · time, exception
+  chip) gather at the trailing edge.
+- **Composer action row**: all controls sit together at the trailing edge
+  (meter ring, paperclip, send). The attach icon is Paperclip, a founder
+  reversal of the earlier + decision; do not flip it back without them.
 - **Drop zones are dashed boxes that are real buttons.** Same language as
   empty states; the button doubles as click-to-browse and keyboard access,
   drops feed the same handler as the picker, and the size ("15&nbsp;MB")

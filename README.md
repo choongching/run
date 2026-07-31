@@ -168,10 +168,14 @@ Around that loop, the product has filled out:
   write, the facts you repeat, and it shows up in the very next reply. Sources
   belong to you rather than to one agent, so a single voice guide can feed
   several of them, or every agent you own.
-- **You can see what you have used.** A meter beside your account shows how
-  much of the month is left and opens into a history of every run, including
-  runs by agents you have since deleted. When the month is spent, agents stop
-  and say so, and the meter refills on the first.
+- **It shows its work.** While an agent researches, every web search it runs
+  appears as a step with the actual query, folded into one quiet line you can
+  open or ignore. Nothing is invented; the steps are the real calls.
+- **You can see what you have used.** A meter beside your account and a small
+  ring in every chat show how much of the month is left. The meter opens into
+  a breakdown of where the month went, agent by agent, and a log of every
+  run, including runs by agents you have since deleted. When the month is
+  spent, agents stop and say so, and the meter refills on the first.
 - **Failure is designed, not handled.** Every error reaches you as a plain
   sentence with one thing to press, never a raw exception.
 - **It is fast.** Every page paints instantly and fills in as its data
