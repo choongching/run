@@ -194,10 +194,32 @@ function UsageHistory({
       </DialogHeader>
 
       {runs !== null && runs.length > 0 ? (
-        <div className="max-h-96 divide-y overflow-y-auto rounded-xl border">
-          {runs.map((run) => (
-            <RunRow key={run.id} run={run} />
-          ))}
+        // A real table (founder call, after the stacked list): one run per
+        // row, one fact per column, hairline grid.
+        <div className="max-h-96 overflow-y-auto rounded-xl border">
+          <table className="w-full border-collapse text-sm">
+            <thead className="sticky top-0 bg-card">
+              <tr>
+                <th className="border-b border-r border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground">
+                  Agent
+                </th>
+                <th className="border-b border-r border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground">
+                  Date
+                </th>
+                <th className="border-b border-r border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground">
+                  Time
+                </th>
+                <th className="border-b border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground">
+                  Status
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {runs.map((run) => (
+                <RunRow key={run.id} run={run} />
+              ))}
+            </tbody>
+          </table>
         </div>
       ) : (
         // Loading and empty share one dashed box at one height, so the dialog
@@ -224,31 +246,33 @@ function UsageHistory({
 }
 
 function RunRow({ run }: { run: RunHistoryEntry }) {
-  const when = new Date(run.createdAt).toLocaleString(undefined, {
-    month: 'short',
+  const at = new Date(run.createdAt)
+  const date = at.toLocaleDateString(undefined, {
     day: 'numeric',
-    hour: 'numeric',
+    month: 'short',
+  })
+  const time = at.toLocaleTimeString(undefined, {
+    hour: '2-digit',
     minute: '2-digit',
   })
+  // A status column states the status; a dash read as missing data
+  // (founder caught it). "Done" for the ordinary case.
+  const status = run.status === 'failed' ? 'Did not finish' : 'Done'
 
   return (
-    <div className="flex min-h-12 items-center justify-between gap-3 px-3 py-2">
-      <div className="flex min-w-0 flex-col">
-        {/* The name is the one the agent had when it did the work. An agent can
-            be deleted; what it did for you still happened. */}
-        <span className="truncate text-sm font-medium">
-          {run.agentName ?? 'A deleted agent'}
-        </span>
-        <span className="text-xs text-muted-foreground">
-          {when}
-          {run.source === 'schedule' ? ' · On a schedule' : ''}
-        </span>
-      </div>
-      {run.status === 'failed' ? (
-        <span className="shrink-0 text-xs text-muted-foreground">
-          Did not finish
-        </span>
-      ) : null}
-    </div>
+    <tr className="border-b border-border last:border-b-0">
+      {/* The name is the one the agent had when it did the work. An agent can
+          be deleted; what it did for you still happened. */}
+      <td className="max-w-48 truncate border-r border-border px-3 py-2.5 font-medium">
+        {run.agentName ?? 'A deleted agent'}
+      </td>
+      <td className="whitespace-nowrap border-r border-border px-3 py-2.5 text-muted-foreground tabular-nums">
+        {date}
+      </td>
+      <td className="whitespace-nowrap border-r border-border px-3 py-2.5 text-muted-foreground tabular-nums">
+        {time}
+      </td>
+      <td className="px-3 py-2.5 text-xs text-muted-foreground">{status}</td>
+    </tr>
   )
 }
