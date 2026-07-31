@@ -44,7 +44,7 @@ export default async function HomePage({
           24px page-title cap. Every size on this screen is local to these two
           home components, so nothing else inherits it. */}
       {/* 7% under text-3xl/4xl, set by the founder's eye. */}
-      <h1 className="run-rise run-hero-dim mb-10 text-[28px]/9 font-semibold tracking-tight [--rise-delay:90ms] md:text-[33px]/10">
+      <h1 className="run-rise run-hero-dim mb-10 text-balance text-[24px]/8 font-semibold tracking-tight [--rise-delay:90ms] sm:text-[28px]/9 md:text-[33px]/10">
         <span className="sr-only">
           Build an agent for your inbox, drafts, writing or research.
         </span>
