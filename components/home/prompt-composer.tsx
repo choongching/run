@@ -5,6 +5,12 @@ import { ArrowUp } from 'lucide-react'
 
 import { startAgentFromPrompt } from '@/app/actions/agents'
 import { Button } from '@/components/ui/button'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { cn } from '@/lib/utils'
 
 // One-click seeds that teach what an agent can be. Clicking fills the box
@@ -102,9 +108,10 @@ export function PromptComposer({
     setTimeout(() => formRef.current?.requestSubmit(), 3000)
   }
 
-  return (
-    <div className="w-full">
-      {pending && <BuildingState />}
+  // The form is built once and wrapped in a tooltip only when blocked: the
+  // placeholder says what to do, the tooltip says why (the plan's limit),
+  // and no line under the composer repeats either.
+  const composerForm = (
       <form
         ref={formRef}
         action={startAgentFromPrompt}
@@ -154,11 +161,22 @@ export function PromptComposer({
           </Button>
         </div>
       </form>
+  )
 
-      {blockedReason && (
-        <p className="mt-3 text-center text-sm text-muted-foreground">
-          {blockedReason}
-        </p>
+  return (
+    <div className="w-full">
+      {pending && <BuildingState />}
+      {blocked ? (
+        <TooltipProvider delay={300}>
+          <Tooltip>
+            <TooltipTrigger render={<div />}>{composerForm}</TooltipTrigger>
+            <TooltipContent side="top" sideOffset={6}>
+              {blockedReason}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      ) : (
+        composerForm
       )}
 
       <div
