@@ -140,7 +140,9 @@ export function PromptComposer({
           placeholder={
             blocked
               ? 'Delete an agent to make room for a new one'
-              : 'Describe what you need done, and Run will build an agent for you... (Tip: say what it should read and what you want back)'
+              : // The headline and button already say "build an agent", so
+                // this line does not: just the action and the tip.
+                'Describe what you need done... (Tip: say what it should read and what you want back)'
           }
           // Hero sizing, home only: body-size text in a roomier box. The rest
           // of the app keeps text-sm inputs.
