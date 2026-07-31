@@ -106,7 +106,14 @@ Then the first-time experience, in a founder-driven loop, pull requests
   an in-flow sibling below center, so the building state is absolutely
   positioned and was verified centered by measurement, not by eye.
 
-Merged to `main` via pull requests #153 through #164, each deployed to
+The session closed at the front door: the browser tab now shows the Run
+mark instead of the framework's default icon, the sign-in card greets a
+returning person ("Your agents are waiting.") and the register card makes
+the product's claim ("Build an agent in a sentence."), the submit button
+stands taller as the one big action on the page, and beneath both cards
+sits a quiet maker's mark: Designed and built by CC Teo.
+
+Merged to `main` via pull requests #153 through #168, each deployed to
 tryrun.today on merge.
 
 ---
