@@ -111,6 +111,29 @@ copy you would write.
   Claude row, not in a page footnote, because Claude is where it comes from.
   Moving a sentence is often the fix, not rewording it.
 
+## Rules earned in the 2026-07-31 first-impression and usage passes
+
+- **When copy or layout will not settle, the jobs are not defined yet.** The
+  usage log churned through five styling rounds (grid, chips, "Done",
+  "Active", dashes) until the founder asked what the table is FOR. Writing
+  the jobs-to-be-done as sentences ("where did my month go", "take me back
+  to the work", "was anything wasted") settled in one move what styling
+  could not. Stop and define the jobs after the second unsettled round.
+- **A header can invite AND promise the payoff**; counters do the counting.
+  "A few questions, and you're on your way" beat both "Quick setup" (cold)
+  and every variant that counted its own steps.
+- **End on the product's name as a verb when it fits.** The auth doors are
+  a matched pair: "Your agents are ready to run." / "Describe the job.
+  Watch it run." The pun lands because the sentence is true without it.
+- **Status labels only for exceptions.** A history of finished work needs no
+  "Done" per row, and "Active" would misdescribe a past event. Silence is
+  the label for the ordinary case.
+- **Offer the founder a menu of four.** Three times running (setup header,
+  chat-card line, sign-in line), four labeled drafts with one recommended
+  got a decision in one round, versus many rounds of single-draft rewrites.
+- **A receipt line folds at its colon** when it needs two lines: muted label
+  above, figure below ("Total for this chat:" / "12 runs this month.").
+
 ## Checks before shipping a line
 
 1. Read it aloud. If you stumble, or it sounds like a system talking, rewrite.

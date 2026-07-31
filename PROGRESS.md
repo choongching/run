@@ -64,10 +64,61 @@ https://tryrun.today, and the first-time experience got its polish: a calm
 building moment when an agent is created, a blank-page bug fixed for good,
 Delete on every sidebar row so nobody is ever trapped, and a warmer voice
 through the composer and the setup card.
+That evening the chat learned to show its work and the usage story grew up:
+web searches now appear as real steps folded into a quiet block, a small
+ring in the composer answers for the chat while the sidebar meter answers
+for the month, and the usage panel was redesigned around its jobs, opening
+with where the month went, agent by agent.
 Next step: the before-more-users trio: an email provider for sign-up and
 reset emails, Google's app verification so new people can connect Gmail and
 Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
+
+---
+
+## 2026-07-31 (evening): The chat shows its work, and usage grows up
+
+Two threads, both founder-driven loops, pull requests #173 through #189.
+
+The chat now shows its work. The platform's built-in web searches used to
+run invisibly: nothing between "Thinking" and the answer. Each search and
+page-read now becomes a step carrying its real content ("Searched the web
+for ..."), and two or more steps fold into one quiet line reading "5 steps"
+that opens on a click. While the agent works, that line shows the step
+underway, so the live feedback never disappears; reopening a chat later
+finds the block folded. Nothing is invented: every step is an actual call
+from the event stream, and the sandbox's internal tools stay unlabeled on
+purpose. Verified live on the founder's own briefing agent in production.
+
+Usage went from one meter to a small system, shaped by writing the
+jobs-to-be-done down when the design would not settle:
+
+- A small ring in the chat composer's corner fills as the month is spent,
+  in the meter's own warning colours. Hovering answers for the chat alone:
+  "Total for this chat: 12 runs this month."
+- The sidebar meter's one-line tooltip became a proper card: total, bar,
+  refill date, a chevron in its title, and the whole card is the button
+  into the history. Solid white, always: an alpha hover tint turned the
+  card into glass, a lesson now recorded.
+- The usage panel opens with "By agent": the month's runs grouped and
+  ranked, bars against the biggest spender, aggregated server-side and
+  live while the panel is open. The log below keeps the deployment-list
+  shape: name leading, date and time trailing, and status speaking only
+  for the exception, because "Done" on every row of a history read as
+  meaningless. Rows are deliberately flat: linking only the rows whose
+  agent still existed made the list feel broken, and the founder ruled
+  that a receipt is not a door.
+- The composer's controls regrouped at the trailing edge (ring, paperclip,
+  send), the attach icon returning to a paperclip by founder call.
+
+The skills learned all of it: the steps recipe, the hover-card recipe with
+its opacity trap, exception-only status, all-or-none clickability, the
+menu-of-four copy process, and the big one: when copy or layout will not
+settle after two rounds, stop and write the jobs-to-be-done; the usage
+panel proved it by settling in one move after five rounds of styling.
+
+Merged to `main` via pull requests #173 through #189, each deployed to
+tryrun.today on merge.
 
 ---
 

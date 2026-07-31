@@ -38,6 +38,14 @@ Empty `done` text is fine; the client skips it.
 `error` is not a free-text field: it is `{ type: 'error' } & ChatError`, always
 built by `toChatError`. See "Errors" below.
 
+Two event families feed `activity`: our custom tools via `toolActivity`, and
+the platform's built-in tools (`agent.tool_use`: web_search, web_fetch) via
+`builtinActivity`, which labels each step with its REAL input (the query, the
+host). Sandbox internals (bash, file ops) return null there on purpose: "Ran
+ls" confuses more than it informs. Never invent step detail the stream did
+not provide. Client-side, consecutive activity rows fold into the compact
+StepsBlock (see build-ui).
+
 ## Pause / resume (the load-bearing mechanic)
 
 At `session.status_idle` with `stop_reason.type === 'requires_action'`, the
