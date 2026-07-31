@@ -194,32 +194,13 @@ function UsageHistory({
       </DialogHeader>
 
       {runs !== null && runs.length > 0 ? (
-        // A real table (founder call, after the stacked list): one run per
-        // row, one fact per column, hairline grid.
-        <div className="max-h-96 overflow-y-auto rounded-xl border">
-          <table className="w-full border-collapse text-sm">
-            <thead className="sticky top-0 bg-card">
-              <tr>
-                <th className="border-b border-r border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground">
-                  Agent
-                </th>
-                <th className="border-b border-r border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground">
-                  Date
-                </th>
-                <th className="border-b border-r border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground">
-                  Time
-                </th>
-                <th className="border-b border-border px-3 py-2 text-left text-xs font-medium text-muted-foreground">
-                  Status
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {runs.map((run) => (
-                <RunRow key={run.id} run={run} />
-              ))}
-            </tbody>
-          </table>
+        // Deployment-list shape (founder's reference): no header row, no
+        // vertical lines. The name leads each row; the facts gather at the
+        // trailing edge as quiet values and one status chip.
+        <div className="max-h-96 divide-y overflow-y-auto rounded-xl border">
+          {runs.map((run) => (
+            <RunRow key={run.id} run={run} />
+          ))}
         </div>
       ) : (
         // Loading and empty share one dashed box at one height, so the dialog
@@ -255,24 +236,28 @@ function RunRow({ run }: { run: RunHistoryEntry }) {
     hour: '2-digit',
     minute: '2-digit',
   })
-  // A status column states the status; a dash read as missing data
-  // (founder caught it). "Done" for the ordinary case.
-  const status = run.status === 'failed' ? 'Did not finish' : 'Done'
+  const failed = run.status === 'failed'
 
   return (
-    <tr className="border-b border-border last:border-b-0">
+    <div className="flex min-h-12 items-center justify-between gap-3 px-3.5 py-2.5">
       {/* The name is the one the agent had when it did the work. An agent can
           be deleted; what it did for you still happened. */}
-      <td className="max-w-48 truncate border-r border-border px-3 py-2.5 font-medium">
+      <span className="min-w-0 truncate text-sm font-medium">
         {run.agentName ?? 'A deleted agent'}
-      </td>
-      <td className="whitespace-nowrap border-r border-border px-3 py-2.5 text-muted-foreground tabular-nums">
-        {date}
-      </td>
-      <td className="whitespace-nowrap border-r border-border px-3 py-2.5 text-muted-foreground tabular-nums">
-        {time}
-      </td>
-      <td className="px-3 py-2.5 text-xs text-muted-foreground">{status}</td>
-    </tr>
+      </span>
+      <span className="flex shrink-0 items-center gap-3">
+        <span className="text-xs text-muted-foreground tabular-nums">
+          {date} · {time}
+        </span>
+        {/* Status speaks only for the exception. A history of finished work
+            needs no label saying it finished; "Done" on every row read as
+            meaningless, and "Active" would misdescribe a past event. */}
+        {failed && (
+          <span className="rounded-md border border-border px-2 py-0.5 text-xs text-muted-foreground">
+            Did not finish
+          </span>
+        )}
+      </span>
+    </div>
   )
 }
