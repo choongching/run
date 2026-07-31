@@ -57,7 +57,7 @@ export function RunDonut({ agentId }: { agentId: string }) {
         aria-label={`${summary.used} of ${summary.limit} runs used this month`}
         onFocus={() => setOpen(true)}
         onBlur={() => setOpen(false)}
-        className="flex size-8 items-center justify-center rounded-lg hover:bg-muted"
+        className="flex size-11 items-center justify-center rounded-lg hover:bg-muted md:size-8"
       >
         <svg viewBox="0 0 16 16" className="size-4 -rotate-90">
           <circle

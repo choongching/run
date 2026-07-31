@@ -156,7 +156,7 @@ export function PromptComposer({
             aria-label="Build agent"
             // Hero sizing, home only: a touch over the default button
             // (15% up, then 9% back down on review = about 5% net).
-            className="h-9.5 px-4.5 text-[15px]"
+            className="h-11 px-4.5 text-[15px] md:h-9.5"
           >
             {pending ? 'Building...' : 'Build my agent'}
             {!pending && <ArrowUp className="size-4" />}
@@ -193,7 +193,7 @@ export function PromptComposer({
             type="button"
             onClick={() => pickSuggestion(text)}
             disabled={pending || blocked}
-            className="rounded-lg border border-border bg-card px-3.5 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+            className="min-h-11 rounded-lg border border-border bg-card px-3.5 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50 md:min-h-0"
           >
             {text}
           </button>

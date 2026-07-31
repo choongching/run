@@ -588,7 +588,7 @@ export function ChatThread({
         resize="smooth"
         initial="instant"
       >
-        <StickToBottom.Content className="mx-auto flex w-full max-w-thread flex-col gap-5 px-1 py-6">
+        <StickToBottom.Content className="mx-auto flex w-full max-w-thread flex-col gap-5 px-4 py-6 md:px-1">
           {isEmpty && !onboarding && (
             <p className="py-16 text-center text-sm text-muted-foreground">
               Say hello to {agentName} to get started.
@@ -654,7 +654,7 @@ export function ChatThread({
         <JumpToLatest />
       </StickToBottom>
 
-      <div className="mx-auto w-full max-w-thread px-1 pb-2">
+      <div className="mx-auto w-full max-w-thread px-4 pb-[max(0.5rem,env(safe-area-inset-bottom))] md:px-1 md:pb-2">
         <Composer
           value={input}
           onChange={setInput}
@@ -776,7 +776,7 @@ function ComposerButton({
               disabled={disabled}
               aria-label={hint ? `${label} (${hint})` : label}
               className={cn(
-                'flex size-8 shrink-0 items-center justify-center rounded-lg transition-colors disabled:opacity-40',
+                'flex size-11 shrink-0 items-center justify-center rounded-lg transition-colors disabled:opacity-40 md:size-8',
                 className
               )}
             />
@@ -804,7 +804,7 @@ function JumpToLatest() {
         type="button"
         onClick={() => scrollToBottom()}
         aria-label="Jump to the latest message"
-        className="pointer-events-auto flex size-9 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground shadow-sm transition-colors animate-in fade-in-0 slide-in-from-bottom-1 hover:text-foreground motion-reduce:animate-none"
+        className="pointer-events-auto flex size-11 md:size-9 items-center justify-center rounded-lg border border-border bg-card text-muted-foreground shadow-sm transition-colors animate-in fade-in-0 slide-in-from-bottom-1 hover:text-foreground motion-reduce:animate-none"
       >
         <ChevronDown className="size-4.5" />
       </button>
