@@ -27,13 +27,15 @@ export function AuthForm({ mode, error, message }: AuthFormProps) {
       <CardHeader className="items-center text-center">
         <Image src="/run-icon.png" alt="Run" width={40} height={40} className="mx-auto mb-2" />
         <CardTitle className="text-xl">
-          {isLogin ? 'Sign in to Run' : 'Create your Run account'}
+          {/* A person's greeting, not a system's label. The button below
+              already says Sign in, so the title is free to be warm. */}
+          {isLogin ? 'Welcome back' : 'Create your Run account'}
         </CardTitle>
         <CardDescription>
-          {/* Login greets a returning person; register makes the claim,
-              ending on the product's name as a verb (founder's pick). */}
+          {/* The doors are a matched pair, both ending on the product's
+              name as a verb. Login greets, register claims. */}
           {isLogin
-            ? 'Your agents are waiting.'
+            ? 'Your agents are ready to run.'
             : 'Describe the job. Watch it run.'}
         </CardDescription>
       </CardHeader>
