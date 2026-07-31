@@ -93,7 +93,7 @@ export function UsageMeter({ userId, used, limit, resetsAt }: UsageMeterProps) {
           </div>
         )}
       </div>
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="sm:max-w-2xl">
         <UsageHistory
           userId={userId}
           count={count}
@@ -264,7 +264,7 @@ function UsageHistory({
             <p className="mb-2 text-xs font-medium text-muted-foreground">
               Recent runs
             </p>
-            <div className="max-h-64 divide-y overflow-y-auto rounded-xl border">
+            <div className="max-h-96 divide-y overflow-y-auto rounded-xl border">
               {runs.map((run) => (
                 <RunRow key={run.id} run={run} onNavigate={onNavigate} />
               ))}
