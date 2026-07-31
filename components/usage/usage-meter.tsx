@@ -101,7 +101,9 @@ export function UsageMeter({ userId, used, limit, resetsAt }: UsageMeterProps) {
           </button>
         )}
       </div>
-      <DialogContent className="sm:max-w-2xl">
+      {/* Full-screen below md (styleguide 5b): the dialog becomes the page.
+          The centering transform is reset so inset-0 can take over. */}
+      <DialogContent className="sm:max-w-2xl max-md:top-0 max-md:left-0 max-md:h-svh max-md:max-w-none max-md:translate-x-0 max-md:translate-y-0 max-md:content-start max-md:rounded-none max-md:pb-[max(1rem,env(safe-area-inset-bottom))]">
         <UsageHistory
           userId={userId}
           count={count}

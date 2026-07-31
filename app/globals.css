@@ -25,6 +25,25 @@
   --breakpoint-2xl: 96rem;
 }
 
+/* The mobile type scale: one step up across the board, held closer to the
+   face. The values are exactly the chat's .run-chat-type scale, so on a
+   phone the whole app reads at the chat's size and the chat gains nothing
+   twice (its scoped override resolves to these same numbers). Utilities
+   read these variables at the element, so every text-* in the app rescales
+   here with zero component edits; fixed-px sizes (the hero) opt out by
+   construction. 47.9375rem = one pixel below md. */
+@media (max-width: 47.9375rem) {
+  :root {
+    --text-xs: 0.8125rem;
+    --text-xs--line-height: 1.1875rem;
+    --text-sm: 0.9375rem;
+    --text-base: 1.0625rem;
+    --text-lg: 1.1875rem;
+    --text-xl: 1.3125rem;
+    --text-2xl: 1.5625rem;
+  }
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
