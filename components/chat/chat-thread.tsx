@@ -27,6 +27,7 @@ import { ApprovalCard, type ApprovalCall } from '@/components/chat/approval-card
 import { ArtifactCard, type ArtifactMeta } from '@/components/chat/artifact-card'
 import { ConnectCard } from '@/components/chat/connect-card'
 import { Markdown } from '@/components/chat/markdown'
+import { RunDonut } from '@/components/usage/run-donut'
 import { OptionsCard } from '@/components/chat/options-card'
 import { ReviewCard, type ReviewSpec } from '@/components/chat/review-card'
 import { ErrorNote } from '@/components/chat/error-note'
@@ -662,6 +663,7 @@ export function ChatThread({
           canSend={canSend}
           running={running}
           blocked={ask !== null}
+          agentId={agentId}
           agentName={agentName}
           attachment={attachment}
           onPickFile={pickFile}
@@ -1076,6 +1078,7 @@ function Composer({
   canSend,
   running,
   blocked,
+  agentId,
   agentName,
   attachment,
   onPickFile,
@@ -1088,6 +1091,7 @@ function Composer({
   canSend: boolean
   running: boolean
   blocked: boolean
+  agentId: string
   agentName: string
   attachment: Attachment | null
   onPickFile: (file: File) => void
@@ -1131,11 +1135,12 @@ function Composer({
         }
         className="max-h-40 w-full resize-none bg-transparent px-4 pt-3.5 text-sm outline-none placeholder:text-muted-foreground disabled:opacity-60"
       />
-      {/* Both controls sit together at the trailing edge: attaching and
-          sending are the two things you do to the message you just typed, so
-          they belong next to each other under the text rather than pinned to
-          opposite corners. */}
-      <div className="flex items-center justify-end gap-1.5 px-3 pb-3">
+      {/* Attach and send sit together at the trailing edge: the two things
+          you do to the message you just typed. The run meter keeps the
+          leading corner: a fact about the month, not about this message. */}
+      <div className="flex items-center justify-between px-3 pb-3">
+        <RunDonut agentId={agentId} />
+        <div className="flex items-center gap-1.5">
         <input
           ref={fileInputRef}
           type="file"
@@ -1174,6 +1179,7 @@ function Composer({
             <ArrowUp className="size-4" />
           </ComposerButton>
         )}
+        </div>
       </div>
     </div>
   )
