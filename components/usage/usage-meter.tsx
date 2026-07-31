@@ -1,7 +1,6 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
 import { History } from 'lucide-react'
 
 import {
@@ -100,7 +99,6 @@ export function UsageMeter({ userId, used, limit, resetsAt }: UsageMeterProps) {
           limit={limit}
           resetsAt={resetsAt}
           onRun={() => setCount((n) => n + 1)}
-          onNavigate={() => setOpen(false)}
         />
       </DialogContent>
     </Dialog>
@@ -116,16 +114,12 @@ function UsageHistory({
   limit,
   resetsAt,
   onRun,
-  onNavigate,
 }: {
   userId: string
   count: number
   limit: number
   resetsAt: string
   onRun: () => void
-  // Called when a row is clicked: the dialog closes so the chat behind it
-  // can be seen.
-  onNavigate: () => void
 }) {
   const [runs, setRuns] = useState<RunHistoryEntry[] | null>(null)
   const [byAgent, setByAgent] = useState<AgentSpend[] | null>(null)
@@ -266,7 +260,7 @@ function UsageHistory({
             </p>
             <div className="max-h-96 divide-y overflow-y-auto rounded-xl border">
               {runs.map((run) => (
-                <RunRow key={run.id} run={run} onNavigate={onNavigate} />
+                <RunRow key={run.id} run={run} />
               ))}
             </div>
           </div>
@@ -295,13 +289,7 @@ function UsageHistory({
   )
 }
 
-function RunRow({
-  run,
-  onNavigate,
-}: {
-  run: RunHistoryEntry
-  onNavigate: () => void
-}) {
+function RunRow({ run }: { run: RunHistoryEntry }) {
   const at = new Date(run.createdAt)
   const date = at.toLocaleDateString(undefined, {
     day: 'numeric',
@@ -336,19 +324,12 @@ function RunRow({
     </>
   )
 
-  const rowClass = 'flex min-h-12 items-center justify-between gap-3 px-3.5 py-2.5'
-
-  // A run is a receipt for work in a conversation; the row is the way back
-  // to it. Rows for deleted agents have nowhere to go and stay flat.
-  return run.agentId ? (
-    <Link
-      href={`/chat/${run.agentId}`}
-      onClick={onNavigate}
-      className={`${rowClass} transition-colors hover:bg-muted`}
-    >
+  // Flat on purpose (founder decision): a row is a receipt, not a door.
+  // Linking only the rows whose agent still exists made some clickable and
+  // some not, which read as broken; consistency beats the shortcut.
+  return (
+    <div className="flex min-h-12 items-center justify-between gap-3 px-3.5 py-2.5">
       {inner}
-    </Link>
-  ) : (
-    <div className={rowClass}>{inner}</div>
+    </div>
   )
 }
