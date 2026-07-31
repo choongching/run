@@ -33,7 +33,9 @@ export function OptionsCard({
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-sm font-medium">
           <ListChecks className="size-4 text-muted-foreground" />
-          Quick setup
+          {/* A friendly colleague's words, not software's: it invites,
+              rather than labels a procedure. */}
+          Let&apos;s get set up
         </div>
         {hasStep && (
           <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
