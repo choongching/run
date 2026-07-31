@@ -402,6 +402,21 @@
     --text-xl: 1.3125rem; /* 21px */
     --text-2xl: 1.5625rem; /* 25px */
   }
+  /* The chat stays one step ABOVE its surface on every viewport. The mobile
+     base scale (see @theme) already equals the values above, which would
+     have erased the chat's lift on a phone; this block restores it: mobile
+     chat body reads at 16px. */
+  @media (max-width: 47.9375rem) {
+    .run-chat-type {
+      --text-xs: 0.875rem; /* 14px */
+      --text-xs--line-height: 1.25rem; /* 20px */
+      --text-sm: 1rem; /* 16px */
+      --text-base: 1.125rem; /* 18px */
+      --text-lg: 1.25rem; /* 20px */
+      --text-xl: 1.375rem; /* 22px */
+      --text-2xl: 1.625rem; /* 26px */
+    }
+  }
   /* Agent replies render through the Typography plugin, whose prose-sm sets a
      literal 0.875rem on the container rather than reading the token above, so
      it missed the chat's 1px lift. Pointing the container at the token brings
