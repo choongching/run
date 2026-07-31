@@ -109,12 +109,30 @@ exists only for the chat's docked config panel. Rules on mobile:
   hit area (`after:absolute after:-inset-*`).
 - **Input text is 16px (`text-base`) on mobile.** Below 16px iOS zooms the
   page on focus; one rule for all inputs beats platform-sniffing.
-- **The mobile type scale is one step up**, defined as `--text-*` overrides
-  in a `max-width` block in `globals.css`: xs 13/19, sm 15, base 17, lg 19,
-  xl 21, 2xl 25. The values equal the chat's `.run-chat-type` scale, so on
-  a phone the whole app reads at the chat's size (and the chat gains
-  nothing twice). This is the variable-override trick promoted to a
-  viewport: never bulk-edit utility classes to resize for mobile.
+- **Type is a three-tier ladder, each tier one step above the last, on both
+  viewports.** Every tier is `--text-*` variable overrides (the
+  variable-override trick from `.run-chat-type`, promoted); never bulk-edit
+  utility classes to resize a surface.
+
+  | Surface (scope class)            | Desktop body | Mobile body |
+  |----------------------------------|--------------|-------------|
+  | App (`:root`, max-md block)      | 14px         | 15px        |
+  | Chat (`.run-chat-type`)          | 15px         | 16px        |
+  | Configure (`.run-config-type`)   | 15px (chat)  | 17px        |
+
+  All three live together in `globals.css`: the mobile app scale in the
+  `@media` block under `@theme`, the chat and Configure mobile lifts inside
+  the `.run-chat-type` utilities block. The rule that keeps it sane: a
+  surface's scale is defined in exactly one place, and a new surface that
+  needs its own size gets a scope class and a variable block, nothing else.
+- **Full-screen takeovers**: below `md`, the Configure panel and the Usage
+  dialog become the whole screen (`inset-0`, `h-svh`, `max-w-none`,
+  `rounded-none`, safe-area bottom padding, and for dialogs the centering
+  transform reset to zero so `inset-0` can take over). A floating desktop
+  card at phone width is the smell this replaces.
+- **Hover cards on touch**: the trigger's tap must do something sensible:
+  the composer ring toggles its card on click; the sidebar meter's tap goes
+  straight to the history dialog. Focus/blur keep both keyboard-reachable.
 - **Nothing operable only by hover.** Hover cards get a tap equivalent or a
   better touch behavior (the meter goes straight to its dialog); every
   tooltip-bearing control must make sense bare, because tooltips do not

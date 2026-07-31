@@ -69,10 +69,46 @@ web searches now appear as real steps folded into a quiet block, a small
 ring in the composer answers for the chat while the sidebar meter answers
 for the month, and the usage panel was redesigned around its jobs, opening
 with where the month went, agent by agent.
+Late that night Run learned to be a phone app: a written mobile system
+(one breakpoint, a 44px tap floor, 16px inputs, full-bleed surfaces, a
+three-tier type ladder) and every surface reworked to it, with the chat and
+the Configure panel becoming true full-screen experiences.
 Next step: the before-more-users trio: an email provider for sign-up and
 reset emails, Google's app verification so new people can connect Gmail and
 Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
+
+---
+
+## 2026-07-31 (night): Run becomes a phone app
+
+The founder opened tryrun.today on their Pixel and we went part by part,
+pull requests #191 through #197, from a written plan. First the system
+itself, recorded in the styleguide before any screen changed: mobile is
+below one breakpoint (md, 768px) and only one; every tap target is at
+least 44px; input text is 16px on mobile because anything smaller makes
+iPhones zoom the page; surfaces run edge to edge with a 16px gutter;
+bottom-pinned bars pad the safe area; and nothing may be operable only by
+hover, because phones have no hover.
+
+Then the screens. A slim top bar replaced the floating drawer toggle. The
+drawer's rows grew to thumb height. The home headline gained a phone size
+and stopped orphaning words. The chat went full-screen with its composer
+riding the keyboard, its controls at thumb size, and the standard gutter.
+The Configure panel and the Usage panel stopped floating like desktop
+furniture and became the whole screen. The composer's run ring learned to
+open on tap.
+
+Type became a three-tier ladder written into the tokens: the app reads
+one step larger on a phone, the chat one step above the app on every
+viewport, and the Configure panel one step above even the chat, a
+settings screen thumbed at arm's length. All of it is variable overrides
+in one file; no component was resized by hand, which is why the whole
+pass fit in one night.
+
+Merged to `main` via pull requests #191 through #197, each deployed to
+tryrun.today on merge. The founder's real-device pass is the standing
+gate for anything that still feels off under a thumb.
 
 ---
 
