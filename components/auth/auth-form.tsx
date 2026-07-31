@@ -30,11 +30,11 @@ export function AuthForm({ mode, error, message }: AuthFormProps) {
           {isLogin ? 'Sign in to Run' : 'Create your Run account'}
         </CardTitle>
         <CardDescription>
-          {/* Login greets a returning person; register makes the claim.
-              Both say it the way a person would, no "AI squad". */}
+          {/* Login greets a returning person; register makes the claim,
+              ending on the product's name as a verb (founder's pick). */}
           {isLogin
             ? 'Your agents are waiting.'
-            : 'Build an agent in a sentence.'}
+            : 'Describe the job. Watch it run.'}
         </CardDescription>
       </CardHeader>
       <CardContent>
