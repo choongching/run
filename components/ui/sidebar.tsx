@@ -187,7 +187,10 @@ function Sidebar({
           data-sidebar="sidebar"
           data-slot="sidebar"
           data-mobile="true"
-          className="w-(--sidebar-width) bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
+          // Full-screen on mobile (styleguide 5b): the drawer is the page,
+          // so the sheet's own close button stays visible and grows to the
+          // tap floor. Desktop never renders this branch.
+          className="w-full max-w-none bg-sidebar p-0 text-sidebar-foreground [&>button]:top-1 [&>button]:right-1 [&>button]:flex [&>button]:size-11 [&>button]:items-center [&>button]:justify-center"
           style={
             {
               "--sidebar-width": SIDEBAR_WIDTH_MOBILE,

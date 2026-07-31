@@ -91,7 +91,7 @@ export function ConfigDock({
     // run-chat-type lifts every text token inside the chat surface (thread,
     // header, and docked panel) by 1px; see globals.css for the values.
     <div data-shell="split" className="run-chat-type flex min-h-0 flex-1">
-      <div className="flex min-h-0 min-w-0 flex-1 flex-col rounded-shell border border-border bg-background px-6 pt-5 md:px-8">
+      <div className="flex min-h-0 min-w-0 flex-1 flex-col rounded-shell border border-border bg-background px-4 pt-4 max-md:rounded-none max-md:border-0 md:px-8 md:pt-5">
         <header className="mx-auto flex w-full max-w-thread shrink-0 items-center justify-between gap-2 border-b border-border pb-3">
           {header}
           {/* The label follows what the click will do. Saying "Configure"

@@ -588,7 +588,7 @@ export function ChatThread({
         resize="smooth"
         initial="instant"
       >
-        <StickToBottom.Content className="mx-auto flex w-full max-w-thread flex-col gap-5 px-4 py-6 md:px-1">
+        <StickToBottom.Content className="mx-auto flex w-full max-w-thread flex-col gap-5 px-1 py-6">
           {isEmpty && !onboarding && (
             <p className="py-16 text-center text-sm text-muted-foreground">
               Say hello to {agentName} to get started.
@@ -654,7 +654,7 @@ export function ChatThread({
         <JumpToLatest />
       </StickToBottom>
 
-      <div className="mx-auto w-full max-w-thread px-4 pb-[max(0.5rem,env(safe-area-inset-bottom))] md:px-1 md:pb-2">
+      <div className="mx-auto w-full max-w-thread px-1 pb-[max(0.5rem,env(safe-area-inset-bottom))] md:pb-2">
         <Composer
           value={input}
           onChange={setInput}

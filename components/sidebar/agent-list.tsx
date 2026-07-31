@@ -112,7 +112,9 @@ export function AgentList({ agents }: { agents: SidebarAgent[] }) {
                 // after:-inset-3 grows the tap area to ~44px on touch (the
                 // visible icon stays small); max-md re-centers it in the
                 // taller mobile row.
-                className="text-muted-foreground/60 peer-hover/menu-button:text-muted-foreground/60 hover:bg-transparent hover:text-destructive [&>svg]:size-3.5 after:-inset-3 max-md:top-1/2 max-md:-translate-y-1/2"
+                // top-3! centres the 20px action in the 44px mobile row and
+                // must out-shout the component's own size-variant top-2.
+                className="text-muted-foreground/60 peer-hover/menu-button:text-muted-foreground/60 hover:bg-transparent hover:text-destructive [&>svg]:size-3.5 after:-inset-3 max-md:top-3!"
                 onClick={() => {
                   setTarget(agent)
                   setConfirmOpen(true)
