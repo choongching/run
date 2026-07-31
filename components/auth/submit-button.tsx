@@ -15,7 +15,10 @@ import { Button } from '@/components/ui/button'
 export function SubmitButton({
   label,
   pendingLabel,
-  className = 'w-full',
+  // The default is the auth pages' size: taller than the app's buttons
+  // (founder call), since it is the one big action on an otherwise empty
+  // page. Settings passes its own className and keeps the standard size.
+  className = 'h-11 w-full text-[15px]',
 }: {
   label: string
   pendingLabel: string
