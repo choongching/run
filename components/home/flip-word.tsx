@@ -41,15 +41,22 @@ export function FlipWord({
   }, [words.length, intervalMs])
 
   return (
-    <span aria-hidden className="inline-grid text-left align-bottom">
+    <span aria-hidden className="relative inline-grid text-left align-bottom">
       {words.map((word, i) => (
         <span
           // The active key changes every cycle, which remounts that word and
           // replays its animation from the start.
+          //
+          // Below md the inactive words leave the width calculation
+          // (absolute), so the line centres on the word actually showing:
+          // the longest-word ghost width that keeps desktop reflow-free
+          // visibly pushed short words leftward on a phone. The line
+          // re-centres at each flip there, which reads as the word swapping
+          // in place.
           key={i === index ? `on-${index}` : `off-${i}`}
           className={cn(
             'col-start-1 row-start-1',
-            i === index ? 'run-flip' : 'invisible'
+            i === index ? 'run-flip' : 'invisible max-md:absolute'
           )}
         >
           {word}

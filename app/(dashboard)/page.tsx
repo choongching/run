@@ -31,7 +31,7 @@ export default async function HomePage({
   return (
     // The wash needs the full width of the card to spread across, so it sits
     // on the outer region while the content keeps its narrow column.
-    <div className="relative flex flex-1 flex-col overflow-hidden px-6 py-16 md:px-8">
+    <div className="relative flex flex-1 flex-col overflow-hidden px-4 py-16 sm:px-6 md:px-8">
       <AmbientBackdrop />
       <div className="run-hero relative z-10 mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center">
       {/* priority: this is the first thing the entrance reveals, and a
