@@ -16,7 +16,7 @@ import {
   FileText,
   FileUp,
   Loader2,
-  Plus,
+  Paperclip,
   Square,
   TriangleAlert,
   X,
@@ -1135,12 +1135,11 @@ function Composer({
         }
         className="max-h-40 w-full resize-none bg-transparent px-4 pt-3.5 text-sm outline-none placeholder:text-muted-foreground disabled:opacity-60"
       />
-      {/* Attach and send sit together at the trailing edge: the two things
-          you do to the message you just typed. The run meter keeps the
-          leading corner: a fact about the month, not about this message. */}
-      <div className="flex items-center justify-between px-3 pb-3">
-        <RunDonut agentId={agentId} />
+      {/* All three controls sit together at the trailing edge (founder
+          call): the meter, then attach, then send. */}
+      <div className="flex items-center justify-end px-3 pb-3">
         <div className="flex items-center gap-1.5">
+          <RunDonut agentId={agentId} />
         <input
           ref={fileInputRef}
           type="file"
@@ -1159,7 +1158,7 @@ function Composer({
           disabled={running || blocked}
           className="bg-muted text-foreground hover:bg-muted-foreground/15"
         >
-          <Plus className="size-4" />
+          <Paperclip className="size-4" />
         </ComposerButton>
         {running ? (
           <ComposerButton

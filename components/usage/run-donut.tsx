@@ -86,7 +86,7 @@ export function RunDonut({ agentId }: { agentId: string }) {
         // nothing else. The month's story, refill date and history live in
         // the sidebar meter; repeating them here was noise. The ring itself
         // still fills against the month, the one bounded number.
-        <div className="absolute bottom-full left-0 z-20 mb-2 rounded-lg border border-border bg-card px-3 py-2.5 whitespace-nowrap shadow-md">
+        <div className="absolute bottom-full right-0 z-20 mb-2 rounded-lg border border-border bg-card px-3 py-2.5 whitespace-nowrap shadow-md">
           {/* The receipt line, folded at its colon: muted label above, the
               figure's line below. */}
           <div className="flex flex-col gap-1 text-left text-xs">
