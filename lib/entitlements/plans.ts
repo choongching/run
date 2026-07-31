@@ -48,7 +48,9 @@ export function planFor(id: string | null | undefined): Plan {
 // forward, never as a scolding, and never mentioning a "plan" the product
 // cannot yet sell.
 export function agentLimitReason(limit: number): string {
-  return `You can have ${limit} agents at the moment. Delete one to make room for another.`
+  // Shown as a tooltip over the blocked composer; the placeholder already
+  // says what to do, so this only says why.
+  return `Your plan holds ${limit} agents`
 }
 
 export function runLimitReason(limit: number): string {
