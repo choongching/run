@@ -139,7 +139,7 @@ export function ConfigDock({
           open ? 'w-92 max-md:w-auto' : 'w-0'
         )}
       >
-        <div className="ml-2 flex h-full w-90 flex-col overflow-hidden rounded-shell border border-border bg-card max-md:ml-0 max-md:w-full max-md:rounded-none max-md:border-0 max-md:pb-[env(safe-area-inset-bottom)]">
+        <div className="run-config-type ml-2 flex h-full w-90 flex-col overflow-hidden rounded-shell border border-border bg-card max-md:ml-0 max-md:w-full max-md:rounded-none max-md:border-0 max-md:pb-[env(safe-area-inset-bottom)]">
           {extras ? (
             <ConfigPanel
               key={`${panel.agentId}:${opens}`}
