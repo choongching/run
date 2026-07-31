@@ -43,11 +43,7 @@ export function RunDonut({ agentId }: { agentId: string }) {
       : share >= 0.8
         ? 'text-chart-4'
         : 'text-foreground/70'
-  const refillMonth = new Date(summary.resetsAt).toLocaleDateString('en-US', {
-    month: 'long',
-  })
-
-  // r=6 in a 16px box; the dash pair draws pct% of the circumference.
+  // r=6 in a 16px box; the dash pair draws the used share of the circle.
   const circumference = 2 * Math.PI * 6
 
   return (
@@ -86,9 +82,10 @@ export function RunDonut({ agentId }: { agentId: string }) {
       </button>
 
       {open && (
-        // Chat-first (founder call): inside a chat, this chat's runs take
-        // center stage; the month is one supporting row, since its full
-        // story lives in the sidebar meter.
+        // Chat-only (founder call): this card is the chat's own tally and
+        // nothing else. The month's story, refill date and history live in
+        // the sidebar meter; repeating them here was noise. The ring itself
+        // still fills against the month, the one bounded number.
         <div className="absolute bottom-full left-0 z-20 mb-2 w-60 rounded-xl border border-border bg-card p-4 shadow-md">
           <div className="flex flex-col gap-2.5 text-left">
             <p className="text-sm font-medium">This chat</p>
@@ -96,17 +93,6 @@ export function RunDonut({ agentId }: { agentId: string }) {
               <span className="text-muted-foreground">Runs this month</span>
               <span className="tabular-nums">{summary.threadRuns}</span>
             </div>
-            <div className="border-t border-border pt-2.5">
-              <div className="flex items-baseline justify-between text-sm">
-                <span className="text-muted-foreground">All your agents</span>
-                <span className="tabular-nums">
-                  {summary.used} / {summary.limit}
-                </span>
-              </div>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Fresh {summary.limit} on {refillMonth} 1.
-            </p>
           </div>
         </div>
       )}
