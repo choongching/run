@@ -106,7 +106,17 @@ settings screen thumbed at arm's length. All of it is variable overrides
 in one file; no component was resized by hand, which is why the whole
 pass fit in one night.
 
-Merged to `main` via pull requests #191 through #197, each deployed to
+Then the founder walked it on their Pixel and the device pass earned its
+keep: the drawer became a true full-screen panel with a proper close, the
+delete icon found the centre of its row, the headline learned to centre on
+the word it is actually showing rather than on a ghost of the longest one,
+the chat shed its desktop card chrome so text sits about 20px from each
+edge, and the build button became a square arrow at thumb size, the send
+affordance every phone already knows (#198 through #201, with the mobile
+system, the browser-testing traps, and a styleguide cleanup documented
+along the way).
+
+Merged to `main` via pull requests #191 through #201, each deployed to
 tryrun.today on merge. The founder's real-device pass is the standing
 gate for anything that still feels off under a thumb.
 
