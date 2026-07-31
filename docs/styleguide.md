@@ -91,6 +91,34 @@ above clamped to 6px), so `rounded-xl` and larger render at 6px too.
 - Main content padding `p-6 md:p-8`; title block ~32px from card top.
 - Table rows ~52–56px tall with 1px `--border` dividers; generous first column.
 
+### 5b. Mobile (below `md`, 768px)
+
+The breakpoint scale is written out in `globals.css` `@theme`
+(`--breakpoint-*`); the app splits on ONE line: **mobile = below `md`**,
+matching the sidebar's own `isMobile`. Tablets get the desktop layout; `lg`
+exists only for the chat's docked config panel. Rules on mobile:
+
+- **Full-bleed surfaces.** The card-inset chrome is `md:`-only; below it the
+  canvas is the card: no radius, no outer margins. Content keeps a `px-4`
+  (16px) gutter.
+- **Fluid widths only.** Containers are `w-full` / percentages; fixed pixel
+  widths are a desktop concept. Nothing scrolls horizontally except code.
+- **Tap floor 44px.** Interactive controls are `size-11` / `min-h-11` on
+  mobile (`md:` resets to the desktop size). Icon buttons are the usual
+  offenders; row-shaped targets may pair a shorter visual with an expanded
+  hit area (`after:absolute after:-inset-*`).
+- **Input text is 16px (`text-base`) on mobile.** Below 16px iOS zooms the
+  page on focus; one rule for all inputs beats platform-sniffing.
+- **Nothing operable only by hover.** Hover cards get a tap equivalent or a
+  better touch behavior (the meter goes straight to its dialog); every
+  tooltip-bearing control must make sense bare, because tooltips do not
+  exist on touch.
+- **Bottom-pinned bars pad the safe area**:
+  `pb-[env(safe-area-inset-bottom)]` (the composer, full-screen sheets).
+- **The mobile top bar** (`md:hidden`, in the dashboard layout) is the one
+  mobile-only component: sidebar trigger at `size-11`, the mark, the
+  wordmark, `h-12`, hairline bottom border, sticky.
+
 ## 6. Iconography
 
 - **Monochrome outline icons only** (lucide-react), `currentColor`, 1.75px stroke
