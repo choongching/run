@@ -25,23 +25,28 @@ const SUGGESTIONS = [
 ]
 
 // What creation genuinely does, in its true order (see startAgentFromPrompt:
-// name generation, instructions, the remote create, the save). The timings
-// approximate what each step costs; the words never claim work that is not
-// happening. No fake streamed "thinking": we stream nothing during creation,
-// and showing invented reasoning would be a lie.
+// reading the prompt, the naming call, buildSystemPrompt, buildAgentToolset,
+// the remote create, the thread). The timings approximate what each step
+// costs; the words never claim work that is not happening. No fake streamed
+// "thinking": we stream nothing during creation, and showing invented
+// reasoning would be a lie. The last line is a patience line for slow
+// creates only; a typical build lands around the fourth.
 const BUILD_STAGES = [
   'Reading your description',
-  'Naming it',
+  'Working out what you need done',
+  'Choosing a name',
   'Writing its instructions',
+  'Picking the tools it will need',
   'Setting up its workspace',
+  'Nearly there',
 ]
 
 function BuildingState() {
   const [stage, setStage] = useState(0)
   useEffect(() => {
-    // Slow on purpose (founder call): each line holds long enough to be read
-    // as composure. A typical build finishes during the second line.
-    const timers = [3200, 6400, 9600].map((ms, i) =>
+    // Each line holds about two seconds: long enough to read, short enough
+    // that the sequence feels like work moving.
+    const timers = [2000, 4000, 6000, 8200, 10500, 13000].map((ms, i) =>
       setTimeout(() => setStage(i + 1), ms)
     )
     return () => timers.forEach(clearTimeout)
@@ -87,12 +92,14 @@ export function PromptComposer({
   const canSubmit = value.trim().length > 0 && !pending && !blocked
 
   // Show the creation state first, submit a beat later. The head start buys
-  // the fade-out room to play, and the first stage line a moment to be read,
-  // before the real work (which the stages then narrate) begins.
+  // the fade-out room to play and the first stage lines a moment to be read,
+  // before the real work (which the stages then narrate) begins. 3s head
+  // start plus a ~4s create means about four lines show on a typical build;
+  // the founder chose depth of moment over raw speed here.
   function startBuild() {
     if (!canSubmit) return
     setPending(true)
-    setTimeout(() => formRef.current?.requestSubmit(), 1500)
+    setTimeout(() => formRef.current?.requestSubmit(), 3000)
   }
 
   return (
