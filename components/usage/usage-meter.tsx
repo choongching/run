@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { History } from 'lucide-react'
 
 import {
@@ -12,7 +13,7 @@ import {
 } from '@/components/ui/dialog'
 import { RunsCard } from '@/components/usage/runs-card'
 import { subscribeToRuns } from '@/lib/usage-live'
-import type { RunHistoryEntry } from '@/lib/usage'
+import type { AgentSpend, RunHistoryEntry } from '@/lib/usage'
 
 export type UsageMeterProps = {
   userId: string
@@ -99,6 +100,7 @@ export function UsageMeter({ userId, used, limit, resetsAt }: UsageMeterProps) {
           limit={limit}
           resetsAt={resetsAt}
           onRun={() => setCount((n) => n + 1)}
+          onNavigate={() => setOpen(false)}
         />
       </DialogContent>
     </Dialog>
@@ -114,14 +116,19 @@ function UsageHistory({
   limit,
   resetsAt,
   onRun,
+  onNavigate,
 }: {
   userId: string
   count: number
   limit: number
   resetsAt: string
   onRun: () => void
+  // Called when a row is clicked: the dialog closes so the chat behind it
+  // can be seen.
+  onNavigate: () => void
 }) {
   const [runs, setRuns] = useState<RunHistoryEntry[] | null>(null)
+  const [byAgent, setByAgent] = useState<AgentSpend[] | null>(null)
 
   // Live only while this panel is open. A socket held for the whole session
   // would spend a connection per tab, permanently, on a number that changes a
@@ -150,7 +157,25 @@ function UsageHistory({
                 ...prev,
               ]
         )
-        if (event.status === 'completed') onRun()
+        if (event.status === 'completed') {
+          onRun()
+          // Keep the breakdown honest while the panel is open: bump the
+          // agent's total, or add a first row for a brand-new spender.
+          setByAgent((prev) => {
+            if (prev === null) return prev
+            const next = prev.map((a) =>
+              a.agentId === event.agent_id ? { ...a, count: a.count + 1 } : a
+            )
+            if (!next.some((a) => a.agentId === event.agent_id)) {
+              next.push({
+                agentId: event.agent_id,
+                agentName: event.agent_name,
+                count: 1,
+              })
+            }
+            return next.sort((a, b) => b.count - a.count)
+          })
+        }
       }),
     [userId, onRun]
   )
@@ -160,10 +185,16 @@ function UsageHistory({
     fetch('/api/usage/runs')
       .then((res) => (res.ok ? res.json() : { runs: [] }))
       .then((data) => {
-        if (!cancelled) setRuns(data.runs ?? [])
+        if (!cancelled) {
+          setRuns(data.runs ?? [])
+          setByAgent(data.byAgent ?? [])
+        }
       })
       .catch(() => {
-        if (!cancelled) setRuns([])
+        if (!cancelled) {
+          setRuns([])
+          setByAgent([])
+        }
       })
     return () => {
       cancelled = true
@@ -194,13 +225,51 @@ function UsageHistory({
       </DialogHeader>
 
       {runs !== null && runs.length > 0 ? (
-        // Deployment-list shape (founder's reference): no header row, no
-        // vertical lines. The name leads each row; the facts gather at the
-        // trailing edge as quiet values and one status chip.
-        <div className="max-h-96 divide-y overflow-y-auto rounded-xl border">
-          {runs.map((run) => (
-            <RunRow key={run.id} run={run} />
-          ))}
+        <div className="flex flex-col gap-4">
+          {/* The headline job: where did my month go. Biggest spender
+              first, bars relative to it. */}
+          {byAgent !== null && byAgent.length > 0 && (
+            <div>
+              <p className="mb-2 text-xs font-medium text-muted-foreground">
+                By agent
+              </p>
+              <div className="flex flex-col gap-2.5 rounded-xl border p-3.5">
+                {byAgent.map((a) => (
+                  <div key={a.agentId ?? 'deleted'}>
+                    <div className="flex items-baseline justify-between gap-3 text-sm">
+                      <span className="min-w-0 truncate font-medium">
+                        {a.agentName ?? 'A deleted agent'}
+                      </span>
+                      <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
+                        {a.count} {a.count === 1 ? 'run' : 'runs'}
+                      </span>
+                    </div>
+                    <div className="mt-1 h-1 overflow-hidden rounded-full bg-border">
+                      <div
+                        className="h-full rounded-full bg-foreground/70"
+                        style={{
+                          width: `${Math.max(2, Math.round((a.count / byAgent[0].count) * 100))}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* The log: every run, newest first, each row a door back to the
+              conversation that spent it. */}
+          <div>
+            <p className="mb-2 text-xs font-medium text-muted-foreground">
+              Recent runs
+            </p>
+            <div className="max-h-64 divide-y overflow-y-auto rounded-xl border">
+              {runs.map((run) => (
+                <RunRow key={run.id} run={run} onNavigate={onNavigate} />
+              ))}
+            </div>
+          </div>
         </div>
       ) : (
         // Loading and empty share one dashed box at one height, so the dialog
@@ -226,7 +295,13 @@ function UsageHistory({
   )
 }
 
-function RunRow({ run }: { run: RunHistoryEntry }) {
+function RunRow({
+  run,
+  onNavigate,
+}: {
+  run: RunHistoryEntry
+  onNavigate: () => void
+}) {
   const at = new Date(run.createdAt)
   const date = at.toLocaleDateString(undefined, {
     day: 'numeric',
@@ -238,8 +313,8 @@ function RunRow({ run }: { run: RunHistoryEntry }) {
   })
   const failed = run.status === 'failed'
 
-  return (
-    <div className="flex min-h-12 items-center justify-between gap-3 px-3.5 py-2.5">
+  const inner = (
+    <>
       {/* The name is the one the agent had when it did the work. An agent can
           be deleted; what it did for you still happened. */}
       <span className="min-w-0 truncate text-sm font-medium">
@@ -258,6 +333,22 @@ function RunRow({ run }: { run: RunHistoryEntry }) {
           </span>
         )}
       </span>
-    </div>
+    </>
+  )
+
+  const rowClass = 'flex min-h-12 items-center justify-between gap-3 px-3.5 py-2.5'
+
+  // A run is a receipt for work in a conversation; the row is the way back
+  // to it. Rows for deleted agents have nowhere to go and stay flat.
+  return run.agentId ? (
+    <Link
+      href={`/chat/${run.agentId}`}
+      onClick={onNavigate}
+      className={`${rowClass} transition-colors hover:bg-muted`}
+    >
+      {inner}
+    </Link>
+  ) : (
+    <div className={rowClass}>{inner}</div>
   )
 }

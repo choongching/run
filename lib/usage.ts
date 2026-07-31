@@ -111,6 +111,55 @@ export async function listRunHistory(
   }))
 }
 
+// The month's spend grouped by agent, biggest first: the answer to "where
+// did my month go". Aggregated here rather than in the client because the
+// history list is paginated and a page cannot count a month. The month is
+// bounded by the plan's run limit, so reading the slim columns and counting
+// in memory stays small by construction.
+export type AgentSpend = {
+  agentId: string | null
+  agentName: string | null
+  count: number
+}
+
+export async function monthByAgent(
+  supabase: SupabaseClient<Database>,
+  userId: string
+): Promise<AgentSpend[]> {
+  const monthStart = new Date()
+  monthStart.setUTCDate(1)
+  monthStart.setUTCHours(0, 0, 0, 0)
+
+  const { data, error } = await supabase
+    .from('usage_events')
+    .select('agent_id, agent_name')
+    .eq('user_id', userId)
+    .eq('event_type', 'mission_run')
+    .eq('status', 'completed')
+    .gte('created_at', monthStart.toISOString())
+    // Oldest first, so the "latest name wins" pass below is actually true.
+    .order('created_at', { ascending: true })
+  if (error || !data) return []
+
+  const totals = new Map<string, AgentSpend>()
+  for (const row of data) {
+    const key = row.agent_id ?? 'deleted'
+    const entry = totals.get(key)
+    if (entry) {
+      entry.count += 1
+      // A rename keeps the latest name for the whole group.
+      if (row.agent_name) entry.agentName = row.agent_name
+    } else {
+      totals.set(key, {
+        agentId: row.agent_id,
+        agentName: row.agent_name,
+        count: 1,
+      })
+    }
+  }
+  return [...totals.values()].sort((a, b) => b.count - a.count)
+}
+
 export async function recordUsage(
   params: {
     userId: string
