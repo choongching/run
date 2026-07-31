@@ -34,8 +34,9 @@ export function OptionsCard({
         <div className="flex items-center gap-2 text-sm font-medium">
           <ListChecks className="size-4 text-muted-foreground" />
           {/* A friendly colleague's words, not software's: it invites,
-              rather than labels a procedure. */}
-          Let&apos;s get set up
+              rather than labels a procedure. No "First," because the
+              1-of-3 counter already carries the sequence. */}
+          Let&apos;s get you set up
         </div>
         {hasStep && (
           <span className="rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
