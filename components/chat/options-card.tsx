@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowUp, Loader2, Sparkles } from 'lucide-react'
+import { ArrowUp, ListChecks, Loader2 } from 'lucide-react'
 
 import type { AskSpec } from '@/lib/tools/definitions'
 
@@ -32,7 +32,7 @@ export function OptionsCard({
     <div className="rounded-xl border border-ring/60 bg-card p-4">
       <div className="flex items-center justify-between gap-2">
         <div className="flex items-center gap-2 text-sm font-medium">
-          <Sparkles className="size-4 text-muted-foreground" />
+          <ListChecks className="size-4 text-muted-foreground" />
           Quick setup
         </div>
         {hasStep && (
