@@ -82,6 +82,9 @@ knowledge_sources, messages, threads must all be 0. Run
   Narrow via reduced connector scopes or our own Google OAuth client (which
   the Google verification long pole needs anyway). Published in the
   README's Security FAQ; do not claim Google would refuse until fixed.
+  Same finding for Drive: that grant is full `auth/drive` while the tool
+  surface is five calls (list, read, create folder, move, rename), with no
+  delete or trash anywhere. Both grants are the same fix.
 
 ## Report
 
