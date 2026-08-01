@@ -3,7 +3,14 @@
 import { useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Loader2, MessageSquare, Pause, Play, Trash2 } from 'lucide-react'
+import {
+  CircleQuestionMark,
+  Loader2,
+  MessageSquare,
+  Pause,
+  Play,
+  Trash2,
+} from 'lucide-react'
 import { toast } from 'sonner'
 
 import { AgentsIcon } from '@/components/nav-icons'
@@ -15,11 +22,43 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { formatWhen } from '@/components/routines/routines-list'
 import type { RoutineListItem } from '@/lib/routines/list'
 import { nextOccurrences } from '@/lib/routines/rule'
 
 const noop = () => () => {}
+
+// The ? beside a label, for the labels that genuinely need a second
+// sentence: a heading, a plain explanation, and worked examples where they
+// help. Only where hovering tells you something the label cannot.
+function HelpTip({ children }: { children: React.ReactNode }) {
+  return (
+    <TooltipProvider delay={200}>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <button
+              type="button"
+              aria-label="What this means"
+              className="inline-flex text-muted-foreground/70 hover:text-foreground"
+            />
+          }
+        >
+          <CircleQuestionMark className="size-3.5" />
+        </TooltipTrigger>
+        <TooltipContent side="right" sideOffset={8} className="max-w-72">
+          {children}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  )
+}
 
 // One routine, opened: a centered dialog, not a side drawer (founder's call
 // after seeing both). Modeled on the same anatomy as the best routine
@@ -165,8 +204,22 @@ function DialogBody({
           </section>
 
           <section>
-            <h3 className="mb-1.5 text-xs font-medium text-muted-foreground">
+            <h3 className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
               What it does each time
+              <HelpTip>
+                <p className="font-medium">The standing brief</p>
+                <p className="mt-1">
+                  What the agent is told on every run, written like a note to
+                  a colleague: what to read, what to produce, what to leave
+                  alone. The chat history is not there, so it has to stand on
+                  its own.
+                </p>
+                <p className="mt-2 text-primary-foreground/70">For example</p>
+                <p className="mt-0.5">
+                  Read the last day of email and say what needs a reply. Do
+                  not reply to anyone.
+                </p>
+              </HelpTip>
             </h3>
             <textarea
               value={instruction}
@@ -179,8 +232,17 @@ function DialogBody({
           {routine.carry ? (
             <section>
               <div className="mb-1.5 flex items-center justify-between">
-                <h3 className="text-xs font-medium text-muted-foreground">
+                <h3 className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                   What it remembers from last time
+                  <HelpTip>
+                    <p className="font-medium">Its own last report</p>
+                    <p className="mt-1">
+                      Handed to the next run so &quot;since last time&quot;
+                      means something, and it can build on what it said
+                      instead of repeating it. Forget clears it and the next
+                      run starts fresh.
+                    </p>
+                  </HelpTip>
                 </h3>
                 <button
                   type="button"
@@ -262,7 +324,17 @@ function DialogBody({
             </span>
           </div>
           <div className="flex items-center justify-between gap-3">
-            <span className="text-xs text-muted-foreground">Cost</span>
+            <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+              Cost
+              <HelpTip>
+                <p className="font-medium">What a routine spends</p>
+                <p className="mt-1">
+                  Every run comes out of the same monthly runs as your chats,
+                  the number on the meter in the sidebar. If you run out, the
+                  routine pauses itself and says so.
+                </p>
+              </HelpTip>
+            </span>
             <span>
               About {routine.perMonth} {routine.perMonth === 1 ? 'run' : 'runs'} a
               month
@@ -297,7 +369,10 @@ function DialogBody({
           className={buttonVariants({ variant: 'outline', size: 'sm' })}
         >
           <MessageSquare className="size-3.5" />
-          Chat with {routine.agentName}
+          {/* Livelier than the list's "Chat with X" and safe here: the rail
+              names the agent right beside it, so whose chat is not in
+              question inside this dialog. */}
+          Jump to the chat
         </Link>
         <span className="flex-1" />
         <Button
