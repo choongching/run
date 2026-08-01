@@ -1,5 +1,3 @@
-import Image from 'next/image'
-
 import { AmbientBackdrop } from '@/components/home/ambient-backdrop'
 import { FlipWord } from '@/components/home/flip-word'
 import { Greeting } from '@/components/home/greeting'
@@ -40,12 +38,9 @@ export default async function HomePage({
     <div className="relative flex flex-1 flex-col overflow-hidden px-4 py-16 sm:px-6 md:px-8">
       <AmbientBackdrop />
       <div className="run-hero relative z-10 mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center">
-      {/* priority: this is the first thing the entrance reveals, and a
-          lazy-loaded mark would fade in as an empty box on a cold visit. */}
-      {/* Smaller than it was: the greeting now carries the top of the screen,
-          and two things competing for that job made the mark look like a
-          splash screen. */}
-      <Image src="/run-icon.png" alt="" width={40} height={40} priority className="run-rise run-hero-dim mb-5" />
+      {/* No mark here. The greeting opens the screen instead: the sidebar
+          already carries the brand two inches away, and a logo above a line
+          that says your name made the page read as a splash screen. */}
       <Greeting name={firstName(profile?.display_name)} />
       {/* The sentence is spoken once, as a fixed string. The visible version
           is the same words with one of them cycling, which is decoration and
