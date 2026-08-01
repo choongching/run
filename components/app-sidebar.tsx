@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { Plus } from 'lucide-react'
 
-import { ConnectorsIcon, KnowledgeIcon } from '@/components/nav-icons'
+import { ConnectorsIcon, KnowledgeIcon, RoutinesIcon } from '@/components/nav-icons'
 import {
   Sidebar,
   SidebarContent,
@@ -33,10 +33,12 @@ export function AppSidebar({
   agentSlot,
   meterSlot,
   accountSlot,
+  routinesBadgeSlot,
 }: {
   agentSlot: React.ReactNode
   meterSlot: React.ReactNode
   accountSlot: React.ReactNode
+  routinesBadgeSlot: React.ReactNode
 }) {
   const pathname = usePathname()
 
@@ -66,6 +68,22 @@ export function AppSidebar({
                   <Plus className="size-4.5 shrink-0" />
                   <span className="font-medium">New agent</span>
                 </SidebarMenuButton>
+              </SidebarMenuItem>
+              {/* Directly under the create action, above the agent list,
+                  because it is the only row in the rail that can report a
+                  state: the badge says how many routines are waiting on the
+                  person. Agents is a list of conversations; Knowledge and
+                  Connectors are cupboards. */}
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  isActive={pathname.startsWith('/routines')}
+                  render={<Link href="/routines" prefetch />}
+                  className="min-h-11 md:min-h-0"
+                >
+                  <RoutinesIcon className="size-4.5 shrink-0" />
+                  <span>Routines</span>
+                </SidebarMenuButton>
+                {routinesBadgeSlot}
               </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
