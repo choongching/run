@@ -391,6 +391,7 @@ export function RoutinesList({
                       </DropdownMenuTrigger>
                       <DropdownMenuContent
                         align="end"
+                        className="min-w-52"
                         onClick={(e: React.MouseEvent) => e.stopPropagation()}
                       >
                         {/* The row itself opens the sheet, but nothing says
@@ -427,8 +428,12 @@ export function RoutinesList({
                         <DropdownMenuItem
                           onClick={() => router.push(`/chat/${r.agentId}`)}
                         >
-                          <MessageSquare className="size-4" />
-                          Chat with {r.agentName}
+                          <MessageSquare className="size-4 shrink-0" />
+                          {/* One line always; a long agent name truncates
+                              rather than folding the menu into a paragraph. */}
+                          <span className="max-w-48 truncate whitespace-nowrap">
+                            Chat with {r.agentName}
+                          </span>
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
