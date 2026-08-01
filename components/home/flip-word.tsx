@@ -41,7 +41,10 @@ export function FlipWord({
   }, [words.length, intervalMs])
 
   return (
-    <span aria-hidden className="relative inline-grid text-left align-bottom">
+    // In primary: the moving word is the only thing on the screen that
+    // changes on its own, and the brand green marks it as the part being
+    // filled in rather than a word the reader missed.
+    <span aria-hidden className="relative inline-grid text-left align-bottom text-primary">
       {words.map((word, i) => (
         <span
           // The active key changes every cycle, which remounts that word and

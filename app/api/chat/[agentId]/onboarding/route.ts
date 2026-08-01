@@ -6,9 +6,10 @@ import {
   getAnthropicClient,
   MANAGED_AGENTS_BETA,
 } from '@/lib/anthropic/client'
-import { ONBOARDING_KICKOFF } from '@/lib/chat/onboarding'
+import { onboardingKickoff } from '@/lib/chat/onboarding'
 import { drainSession, type Frame } from '@/lib/chat/run-turn'
 import { CHAT_TOOL_DEFINITIONS } from '@/lib/tools/definitions'
+import { firstName } from '@/lib/user-name'
 
 // Start the first-run setup interview: the agent introduces itself and asks a
 // few questions (via ask_user) to learn what the user wants. The kickoff is
@@ -43,12 +44,17 @@ export async function POST(
     )
   }
 
-  const { data: thread } = await supabase
-    .from('threads')
-    .select('id, session_id')
-    .eq('agent_id', agentId)
-    .eq('user_id', userId)
-    .maybeSingle()
+  // Who the agent is about to meet. One extra read, on the first turn of a new
+  // agent only, and a missing profile just means the greeting drops the name.
+  const [{ data: thread }, { data: profile }] = await Promise.all([
+    supabase
+      .from('threads')
+      .select('id, session_id')
+      .eq('agent_id', agentId)
+      .eq('user_id', userId)
+      .maybeSingle(),
+    supabase.from('profiles').select('display_name').eq('id', userId).single(),
+  ])
 
   if (!thread) {
     return Response.json({ error: 'This conversation could not be opened.' }, { status: 404 })
@@ -111,7 +117,18 @@ export async function POST(
           agentModel: agent.model,
           threadId: thread.id,
           initialEvents: [
-            { type: 'user.message', content: [{ type: 'text', text: ONBOARDING_KICKOFF }] },
+            {
+              type: 'user.message',
+              content: [
+                {
+                  type: 'text',
+                  text: onboardingKickoff({
+                    firstName: firstName(profile?.display_name),
+                    agentName: agent.name,
+                  }),
+                },
+              ],
+            },
           ],
           send,
         })

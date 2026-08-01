@@ -12,9 +12,30 @@ import type { Database, Json } from '@/lib/types/database'
 
 // The hidden instruction that starts the first-run setup interview. The user
 // never sees this; the agent's reply (intro + first question) is what shows.
-export const ONBOARDING_KICKOFF = `[SETUP] This is your first conversation with the user, and they cannot see this message. Do this now:
+//
+// It takes the person's first name and the agent's own name because neither is
+// in the prompt otherwise: the name generated at creation lives on the agent
+// record, and the model has never been told who it is talking to. Passed on the
+// turn rather than folded into the stored system prompt, so a person who edits
+// their name in Settings is greeted correctly by the next agent they build
+// instead of by whatever was true the day the agent was made.
+//
+// Once, in the opening line. An agent that keeps saying your name is worse than
+// one that never does.
+export function onboardingKickoff(opts: {
+  firstName: string
+  agentName: string
+}): string {
+  const { firstName, agentName } = opts
+  const hello = firstName
+    ? `Open by greeting them by name and saying yours: "Hi ${firstName}, I'm ${agentName}." Use their name only here, never again later in the conversation.`
+    : `Open by saying your name: "Hi, I'm ${agentName}."`
+  return ONBOARDING_KICKOFF.replace('{{HELLO}}', hello)
+}
 
-1. Introduce yourself in one or two warm, plain sentences based on what you are for. No jargon.
+const ONBOARDING_KICKOFF = `[SETUP] This is your first conversation with the user, and they cannot see this message. Do this now:
+
+1. {{HELLO}} Then say in one warm, plain sentence what you are here to do for them, based on what you are for. No jargon, no emoji.
 2. Say you have a couple of quick questions so you can set things up well.
 3. Then use the ask_user tool to interview them ONE question at a time to understand exactly what they want from you and how they want it. For each question give 3 to 6 concrete options, each with a short label and a one-line description, and set step and total so they see progress (aim for about 3 questions). Adapt each question to their previous answers.
 4. Keep going until their intent and goal are clear, then stop asking. Say one short sentence confirming what you understood, and in the SAME turn call the propose_setup tool with the name you should be called and the instructions describing your job, both in their words. They will see it, edit it if they want, and confirm before you begin. If they reply asking for something different, revise and call propose_setup again.

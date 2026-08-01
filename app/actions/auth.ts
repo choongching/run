@@ -19,12 +19,18 @@ export async function register(formData: FormData) {
   const supabase = await createClient()
   const email = String(formData.get('email') ?? '').trim()
   const password = String(formData.get('password') ?? '')
-  const displayName = String(formData.get('display_name') ?? '').trim()
+  // Required now that both the home screen and every agent's opening line greet
+  // people by name. Checked here as well as in the form, because a browser that
+  // skips the client validation would otherwise create a nameless account.
+  const displayName = String(formData.get('display_name') ?? '').trim().slice(0, 80)
+  if (!displayName) {
+    redirect(`/register?error=${encodeURIComponent('Tell us your name first.')}`)
+  }
 
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { data: { display_name: displayName || null } },
+    options: { data: { display_name: displayName } },
   })
   if (error) {
     redirect(`/register?error=${encodeURIComponent(error.message)}`)

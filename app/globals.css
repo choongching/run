@@ -10,6 +10,17 @@
 @theme {
   --text-xs--line-height: 1.125rem;
 
+  /* Small text runs a hair open. Geist sets tight at 14px and below, and
+     sentence-length UI strings (menu items, chips, table cells) read denser
+     than they should. A hundredth of an em is roughly a seventh of a pixel
+     per letter: invisible as a measurement, visible as a page. Set on the
+     size tokens rather than sprinkled as tracking-* classes, so every
+     text-sm and text-xs in the product inherits it. Larger sizes are left
+     alone; display type wants the opposite (the home headline is already
+     tracking-tight). */
+  --text-xs--letter-spacing: 0.01em;
+  --text-sm--letter-spacing: 0.01em;
+
   /* Viewport breakpoints, written out so the scale is a decision rather
      than an inherited default. The app splits on ONE line: mobile is below
      md (768px, matching the sidebar's own isMobile); a tablet gets the
