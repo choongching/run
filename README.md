@@ -156,6 +156,43 @@ project can make today. Narrowing that grant, either through reduced
 connector scopes or a dedicated Google OAuth client, is open work. An app
 that only drafts should not hold permission to send.
 
+**Can an agent delete my Drive files?**
+
+No. There is no delete tool and no trash tool. Drive's whole surface is:
+list files, read a file, create a folder, move a file, rename a file. Moving
+and renaming are reversible and go through the same approval card as any
+write, so you see the file name and the destination before anything happens.
+The same scope caveat applies here as with Gmail, and more bluntly: the
+connector's Drive grant is full Drive access. No code path deletes anything,
+but the permission is broader than the five tools, which is the same open
+work described above.
+
+**Can one person's agent read another person's files?**
+
+No, and it is enforced in two places. Every Google connection belongs to one
+person: an agent acts only on the accounts of whoever is signed in, and the
+tokens themselves never reach this app, they stay with the integration
+provider and calls go through its proxy. Underneath, the database uses
+row-level security, so a query for someone else's agents, threads, messages,
+knowledge, or connections returns nothing rather than relying on the
+application to remember to filter.
+
+**What does the AI provider see, and does my data train anything?**
+
+Agents run on Anthropic's Managed Agents platform, so the conversation and
+whatever an agent read to answer you pass through Anthropic's API under
+their commercial terms, which do not train models on API traffic. What
+matters more for a reader here: your Gmail and Drive credentials are not
+among the things that pass through, they never leave the integration
+provider, and the model only ever sees the specific email or file text a
+tool returned.
+
+**Is there any way to have an agent act on its own, unattended?**
+
+Not today. Every run starts from a message you send. Scheduled runs are
+planned, and the same gate design applies: a scheduled run may read on its
+own, but a write still waits for you.
+
 **What about the prompt-level rule?**
 
 Every agent carries a fixed instruction that anything it reads from an
