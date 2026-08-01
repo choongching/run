@@ -71,7 +71,15 @@ for (const path of ['/login', '/register', '/forgot-password']) {
 // /login, and the hop is local proxy work. More than one hop, a hop that
 // waits on a network call, or a gated route serving 200 are all regressions
 // (the last one is the app-shell flash the root-gate fix removed).
-const gated = ['/', '/settings', '/knowledge', '/connectors', '/chat/x', '/reset-password']
+const gated = [
+  '/',
+  '/settings',
+  '/knowledge',
+  '/connectors',
+  '/routines',
+  '/chat/x',
+  '/reset-password',
+]
 for (const path of gated) {
   const { ms, res } = await median(path)
   const loc = res.headers.get('location') ?? ''
