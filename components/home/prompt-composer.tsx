@@ -18,16 +18,20 @@ import { cn } from '@/lib/utils'
 // interface. See docs/revamp-happy-path (Beat 1).
 //
 // Every chip must be a job the tool list in lib/tools/definitions.ts can
-// actually finish (a chip is the agent's first task), and together they
-// mirror the headline's cycle: inbox, drafts, writing/research, documents.
+// actually finish (a chip is the agent's first task), and the first four
+// follow the headline's cycle in order: inbox, drafts, reading, research.
 // The organize chip came back once Drive write tools (folders, move,
 // rename) shipped; it was removed while Drive was read-only.
+//
+// Written the way you would ask a colleague, not the way you would describe a
+// feature: "tell me what needs a reply" is something people say out loud, and
+// "answer questions from my documents" is not.
 const SUGGESTIONS = [
-  'Summarize my inbox and flag what needs a reply',
-  'Draft replies to emails waiting on me',
-  'Research a topic and write it up for me',
-  'Organize my Google Drive files',
-  'Answer questions from my documents',
+  'Tell me what needs a reply today',
+  'Draft replies to the emails waiting on me',
+  'Read a long document and tell me what matters',
+  'Look something up and write it up for me',
+  'Tidy my Drive into folders that make sense',
 ]
 
 // What creation genuinely does, in its true order (see startAgentFromPrompt:
@@ -141,7 +145,11 @@ export function PromptComposer({
             blocked
               ? 'Delete an agent to make room for a new one'
               : // The headline and button already say "build an agent", so
-                // this line does not: just the action and the tip.
+                // this line does not: just the action and the tip. A shorter
+                // version that folded the tip into the sentence was tried and
+                // rejected (founder, 2026-08-01): the explicit "Tip:" is doing
+                // teaching work here, and terse reads as less helpful on the
+                // one screen where someone has no idea what to type.
                 'Describe what you need done... (Tip: say what it should read and what you want back)'
           }
           // Hero sizing, home only: body-size text in a roomier box. The rest

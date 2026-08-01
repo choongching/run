@@ -56,8 +56,12 @@ overrides. The ladder table and the rules live in section 5b.
     page renders larger than 24px.
 - **Weights:** 400 body, 500 medium (active nav, labels, chips), 600 semibold
   (page titles, card titles, table headers), 700 reserved for rare emphasis.
-- **Letter-spacing:** none at app sizes; negative tracking only at display
-  sizes ≥36px, which the app does not use.
+- **Letter-spacing:** small text runs a hair open. `text-xs` and `text-sm`
+  carry **0.01em**, set as `--text-xs--letter-spacing` and
+  `--text-sm--letter-spacing` in the `@theme` block so every small string in
+  the product inherits it; never add `tracking-*` to a component to get this.
+  Larger sizes stay at zero, and display type goes the other way (the home
+  headline is `tracking-tight`).
 - Page title: `text-2xl font-semibold`; subtitle `text-base text-muted-foreground mt-1.5`.
 - Section/tab labels: `text-sm font-medium`; card titles `text-base font-medium`
   or `text-lg font-semibold` for prominent panels.

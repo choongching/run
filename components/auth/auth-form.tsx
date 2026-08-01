@@ -46,7 +46,16 @@ export function AuthForm({ mode, error, message }: AuthFormProps) {
           {!isLogin && (
             <div className="flex flex-col gap-2">
               <Label htmlFor="display_name">Name</Label>
-              <Input id="display_name" name="display_name" placeholder="Your name" />
+              {/* Required: your agents say hello by name, so an account
+                  without one starts colder than it needs to. */}
+              <Input
+                id="display_name"
+                name="display_name"
+                placeholder="Your name"
+                maxLength={80}
+                autoComplete="name"
+                required
+              />
             </div>
           )}
           <div className="flex flex-col gap-2">
