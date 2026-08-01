@@ -75,6 +75,13 @@ knowledge_sources, messages, threads must all be 0. Run
   2026-07-31). Closes with the plan-tier upgrade, required before open
   signup.
 - Drive approval-card name resolution: founder undecided.
+- Gmail OAuth scope too broad (found 2026-08-01 answering a user's
+  injection question): the Pipedream Gmail connector's grant includes
+  gmail.send, gmail.modify, gmail.settings.basic. No code path uses them,
+  but the permission exists, so the provider layer is not a backstop.
+  Narrow via reduced connector scopes or our own Google OAuth client (which
+  the Google verification long pole needs anyway). Published in the
+  README's Security FAQ; do not claim Google would refuse until fixed.
 
 ## Report
 
