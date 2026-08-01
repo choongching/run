@@ -139,18 +139,18 @@ function DialogBody({
 
   return (
     <>
-      <DialogHeader className="border-b border-border px-5 pt-5 pb-4">
+      <DialogHeader className="border-b border-border px-6 pt-6 pb-5">
         <DialogTitle>Routine</DialogTitle>
         <DialogDescription>
           {routine.sentence}
-          {routine.rule ? ` (${routine.rule.tz.replace(/_/g, ' ')})` : ''}
+          {routine.rule ? ` (${routine.rule.tz.replace(/_/g, ' ')} time)` : ''}
           {'. '}To change the schedule itself, ask {routine.agentName} in the
           chat.
         </DialogDescription>
       </DialogHeader>
 
-      <div className="grid flex-1 gap-6 px-5 py-5 md:grid-cols-[1fr_13rem]">
-        <div className="flex min-w-0 flex-col gap-5">
+      <div className="grid flex-1 gap-8 px-6 py-6 md:grid-cols-[1fr_13rem]">
+        <div className="flex min-w-0 flex-col gap-6">
           <section>
             <h3 className="mb-1.5 text-xs font-medium text-muted-foreground">
               Name
@@ -235,7 +235,7 @@ function DialogBody({
 
         {/* The facts rail: read, not operated. Everything here answers "is
             this thing alive and what does it cost me" at a glance. */}
-        <aside className="flex flex-col gap-3 text-sm md:border-l md:border-border md:pl-5">
+        <aside className="flex flex-col gap-4 text-sm md:border-l md:border-border md:pl-6">
           <div>
             <p className="text-xs text-muted-foreground">Status</p>
             <p className="mt-0.5">{statusWord}</p>
@@ -317,7 +317,7 @@ function DialogBody({
           }}
         >
           {saving ? <Loader2 className="size-3.5 animate-spin" /> : null}
-          Save
+          Save changes
         </Button>
       </div>
     </>
