@@ -7,6 +7,9 @@ import {
   type Frame,
   type PendingCall,
 } from '@/lib/chat/run-turn'
+import { createRoutine } from '@/lib/routines/create'
+import { formatOccurrence, parseRule } from '@/lib/routines/rule'
+import { isSetRoutineTool, summarizeRoutine } from '@/lib/tools/definitions'
 import { executeTool } from '@/lib/tools/execute'
 
 // Resolve a write-approval request: the user approved or denied the pending
@@ -24,6 +27,9 @@ export async function POST(
 
   const body = await request.json().catch(() => null)
   const approved = body?.decision === 'approve'
+  // The browser's timezone, sent when the pending call is a routine. A
+  // schedule means nothing without one, and only the browser knows it.
+  const tz = typeof body?.tz === 'string' ? body.tz : 'UTC'
 
   const { data: agent } = await supabase
     .from('agents')
@@ -67,6 +73,69 @@ export async function POST(
       try {
         const resultEvents = []
         for (const call of pending) {
+          // A routine confirmation, not a write. Approving CREATES the
+          // routine (through the user's own client, so RLS still decides who
+          // may put a routine on which agent) and hands the agent the real
+          // dates to confirm with.
+          if (isSetRoutineTool(call.name)) {
+            if (!approved) {
+              resultEvents.push({
+                type: 'user.custom_tool_result' as const,
+                custom_tool_use_id: call.id,
+                content: [
+                  {
+                    type: 'text' as const,
+                    text: 'The user said not to set up this routine. Do not create it; acknowledge briefly and ask what they would like instead.',
+                  },
+                ],
+                is_error: true,
+              })
+              continue
+            }
+            const draft = summarizeRoutine(call.input)
+            const result = draft
+              ? await createRoutine(supabase, userId, {
+                  agentId,
+                  name: draft.name,
+                  instruction: draft.instruction,
+                  rule: draft.rule,
+                  tz,
+                })
+              : ({ ok: false, reason: 'The schedule fields were not valid.' } as const)
+            if (!result.ok) {
+              resultEvents.push({
+                type: 'user.custom_tool_result' as const,
+                custom_tool_use_id: call.id,
+                content: [
+                  {
+                    type: 'text' as const,
+                    text: `The routine could not be created: ${result.reason} Tell the user plainly and offer to try again.`,
+                  },
+                ],
+                is_error: true,
+              })
+              continue
+            }
+            const rule = parseRule(result.routine.rule)!
+            send({
+              type: 'activity',
+              present: `Setting up "${result.routine.name}"`,
+              past: `Set up "${result.routine.name}"`,
+            })
+            resultEvents.push({
+              type: 'user.custom_tool_result' as const,
+              custom_tool_use_id: call.id,
+              content: [
+                {
+                  type: 'text' as const,
+                  text: `Created. The first three runs: ${result.firstRuns
+                    .map((d) => formatOccurrence(d, rule.tz))
+                    .join('; ')} (${rule.tz.replace(/_/g, ' ')} time). Confirm briefly in one or two sentences and mention it can be changed any time from Routines in the sidebar. Do not repeat the full schedule details.`,
+                },
+              ],
+            })
+            continue
+          }
           if (!approved) {
             resultEvents.push({
               type: 'user.custom_tool_result' as const,

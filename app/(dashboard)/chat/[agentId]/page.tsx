@@ -12,8 +12,10 @@ import {
 import {
   isAskTool,
   isProposeTool,
+  isSetRoutineTool,
   summarizeAsk,
   summarizeProposal,
+  summarizeRoutine,
   summarizeWrite,
 } from '@/lib/tools/definitions'
 import { getUserIdentity } from '@/lib/auth'
@@ -162,8 +164,16 @@ export default async function ChatPage({
       }
     : null
 
+  // A proposed routine survives a reload the same way, rebuilt from the
+  // stored call. It must be excluded from the approval catch-all below or the
+  // generic approval card would render in its place.
+  const routineCall = pending?.find((c) => isSetRoutineTool(c.name))
+  const initialRoutine = routineCall
+    ? summarizeRoutine(routineCall.input)
+    : null
+
   const initialApproval: ApprovalCall[] | null =
-    pending && !askCall && !proposeCall
+    pending && !askCall && !proposeCall && !routineCall
       ? pending.map((c) => ({ id: c.id, ...summarizeWrite(c.name, c.input) }))
       : null
 
@@ -194,6 +204,7 @@ export default async function ChatPage({
         onboarding={!agent.onboarded}
         initialAsk={initialAsk}
         initialReview={initialReview}
+        initialRoutine={initialRoutine}
         initialAttachment={initialAttachment}
       />
     </ConfigDock>
