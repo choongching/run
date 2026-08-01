@@ -86,7 +86,10 @@ export function RoutineSheet({
     <Dialog open={open} onOpenChange={onOpenChange}>
       {/* Full screen below md (the styleguide's mobile rule for big
           surfaces, same as the Configure panel); a centered card above it. */}
-      <DialogContent className="flex flex-col gap-0 overflow-y-auto p-0 max-md:top-0 max-md:left-0 max-md:h-dvh max-md:max-h-none max-md:max-w-none max-md:translate-x-0 max-md:translate-y-0 max-md:rounded-none md:max-h-[85vh] sm:max-w-4xl">
+      {/* Header and footer pinned, only the middle scrolls (founder's call,
+          matching the reference): the title and the actions are always in
+          reach no matter how long the brief or the run history grows. */}
+      <DialogContent className="flex flex-col gap-0 overflow-hidden p-0 max-md:top-0 max-md:left-0 max-md:h-dvh max-md:max-h-none max-md:max-w-none max-md:translate-x-0 max-md:translate-y-0 max-md:rounded-none md:h-[85vh] md:max-h-[85vh] sm:max-w-4xl">
         {routine ? (
           <DialogBody
             key={routine.id}
@@ -179,7 +182,7 @@ function DialogBody({
 
   return (
     <>
-      <DialogHeader className="border-b border-border px-6 pt-6 pb-5">
+      <DialogHeader className="shrink-0 border-b border-border px-6 pt-6 pb-5">
         <DialogTitle>Edit routine</DialogTitle>
         <DialogDescription>
           {routine.sentence}
@@ -189,7 +192,7 @@ function DialogBody({
         </DialogDescription>
       </DialogHeader>
 
-      <div className="grid flex-1 gap-8 px-6 py-6 md:grid-cols-[1fr_16rem]">
+      <div className="grid min-h-0 flex-1 gap-8 overflow-y-auto px-6 py-6 md:grid-cols-[1fr_16rem]">
         <div className="flex min-w-0 flex-col gap-6">
           <section>
             <h3 className="mb-1.5 text-xs font-medium text-muted-foreground">
@@ -266,12 +269,21 @@ function DialogBody({
               <h3 className="mb-1.5 text-xs font-medium text-muted-foreground">
                 Recent runs
               </h3>
+              {/* The reliability ledger, one line per run: how it went and
+                  when. Headlines came out (the founder asked what they were
+                  for, and the honest answer was nothing: agents title every
+                  report after the routine, so they repeated the name).
+                  What only this list can tell you is whether the thing has
+                  been working, and the error when it has not. */}
               <ul className="divide-y divide-border rounded-lg border border-border">
                 {routine.runs.map((run) => (
-                  <li key={run.startedAt} className="flex items-start gap-2.5 px-3 py-2.5">
+                  <li
+                    key={run.startedAt}
+                    className="flex items-center gap-2.5 px-3 py-2"
+                  >
                     <span
                       aria-hidden
-                      className={`mt-1.5 size-1.5 shrink-0 rounded-full ${
+                      className={`size-1.5 shrink-0 rounded-full ${
                         run.status === 'failed'
                           ? 'bg-destructive'
                           : run.status === 'completed'
@@ -279,16 +291,18 @@ function DialogBody({
                             : 'bg-chart-4'
                       }`}
                     />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm">
-                        {run.headline ?? run.error ?? 'Ran'}
-                      </p>
-                      {mounted ? (
-                        <p className="mt-0.5 text-xs text-muted-foreground tabular-nums">
-                          {formatWhen(run.startedAt)}
-                        </p>
-                      ) : null}
-                    </div>
+                    <span className="min-w-0 flex-1 truncate text-sm">
+                      {run.status === 'failed'
+                        ? `Did not finish${run.error ? `: ${run.error}` : ''}`
+                        : run.status === 'skipped'
+                          ? 'Skipped'
+                          : 'Ran fine'}
+                    </span>
+                    {mounted ? (
+                      <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
+                        {formatWhen(run.startedAt)}
+                      </span>
+                    ) : null}
                   </li>
                 ))}
               </ul>
@@ -361,7 +375,7 @@ function DialogBody({
         </aside>
       </div>
 
-      <div className="mt-auto flex items-center gap-2 border-t border-border p-4">
+      <div className="mt-auto flex shrink-0 items-center gap-2 border-t border-border p-4">
         {/* Button asChild/render is not supported here; a link wearing the
             button classes is the codebase convention. */}
         <Link
