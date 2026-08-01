@@ -9,6 +9,8 @@ import {
   AgentsSection,
   MeterFallback,
   MeterSection,
+  RoutinesBadgeFallback,
+  RoutinesBadgeSection,
 } from '@/components/sidebar/sections'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
 
@@ -45,6 +47,11 @@ export default function DashboardLayout({
         accountSlot={
           <Suspense fallback={<AccountFallback />}>
             <AccountSection />
+          </Suspense>
+        }
+        routinesBadgeSlot={
+          <Suspense fallback={<RoutinesBadgeFallback />}>
+            <RoutinesBadgeSection />
           </Suspense>
         }
       />

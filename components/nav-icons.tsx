@@ -6,5 +6,6 @@ export {
   Bot as AgentsIcon,
   Plug as ConnectorsIcon,
   BookOpen as KnowledgeIcon,
+  CalendarClock as RoutinesIcon,
   Settings as SettingsIcon,
 } from 'lucide-react'

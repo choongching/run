@@ -3,8 +3,10 @@ import { AgentList, type SidebarAgent } from '@/components/sidebar/agent-list'
 import { Skeleton } from '@/components/ui/skeleton'
 import {
   SidebarMenu,
+  SidebarMenuBadge,
   SidebarMenuItem,
 } from '@/components/ui/sidebar'
+import { FAILING_AFTER } from '@/lib/routines/list'
 import { UsageMeter } from '@/components/usage/usage-meter'
 import { getUserIdentity, getUserProfile } from '@/lib/auth'
 import { getRunAllowance } from '@/lib/entitlements/assert'
@@ -46,6 +48,37 @@ export async function AgentsSection() {
 // would be a guess at how many rows are coming and would shift the nav under
 // the pointer when the real list replaced it.
 export function AgentsFallback() {
+  return null
+}
+
+// How many routines are waiting on the person: paused by us, or failing.
+// Rendered as the amber badge on the Routines nav row, and only when the
+// number is not zero: a rail that shows "0" all day trains people to stop
+// reading it.
+export async function RoutinesBadgeSection() {
+  const { userId } = await getUserIdentity()
+  const supabase = await createClient()
+
+  const { data } = await supabase
+    .from('routines')
+    .select('status, consecutive_failures')
+    .eq('user_id', userId)
+
+  const count = (data ?? []).filter(
+    (r) => r.status === 'paused_system' || r.consecutive_failures >= FAILING_AFTER
+  ).length
+  if (count === 0) return null
+
+  return (
+    <SidebarMenuBadge className="bg-chart-4/15 text-chart-4">
+      {count}
+    </SidebarMenuBadge>
+  )
+}
+
+// Nothing while loading: a badge that flashes in and out is worse than one
+// that arrives a beat late.
+export function RoutinesBadgeFallback() {
   return null
 }
 
