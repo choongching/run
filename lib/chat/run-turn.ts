@@ -63,7 +63,7 @@ export type PendingCall = {
   input: Record<string, unknown>
 }
 
-type InitialEvents = Parameters<
+export type InitialEvents = Parameters<
   Anthropic['beta']['sessions']['events']['send']
 >[1]['events']
 
@@ -257,28 +257,71 @@ async function drainSessionInner(
     betas: [MANAGED_AGENTS_BETA],
   })
 
-  // Send the triggering events. If a prior turn left tool calls unresolved on
-  // the session (our pending_tools can be null while the session still waits),
-  // a fresh user.message is rejected with "waiting on responses to events ...".
-  // Recover by interrupting to clear that state, then resend. This never fires
-  // for tool-result sends (approve/answer), which the waiting session accepts.
+  // Send the triggering events.
+  //
+  // A session refuses a fresh user.message while it still owes a response,
+  // with "waiting on responses to events ...". There are two very different
+  // reasons for that, and treating them the same is what used to strand
+  // people:
+  //
+  //   1. The session is mid-flight. It is genuinely working, and in a second
+  //      or two it will be idle and accept the message. Waiting costs nothing
+  //      and keeps the work.
+  //   2. The session is stranded. A previous turn left a tool call
+  //      unanswered (our pending_tools can be null while the session still
+  //      waits), and no amount of waiting will clear it.
+  //
+  // So: wait for idle first, and only interrupt if that does not resolve it.
+  // Interrupting a working session throws away the turn it was in the middle
+  // of, which is exactly how a first task became "I looked into that, but I
+  // don't have anything to add".
   const sendInitial = () =>
     anthropic.beta.sessions.events.send(sessionId, {
       events: initialEvents,
       betas: [MANAGED_AGENTS_BETA],
     })
+  const isBusyError = (err: unknown) =>
+    /waiting on responses|only .* may be sent/i.test(
+      err instanceof Error ? err.message : String(err)
+    )
+
   try {
     await sendInitial()
   } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err)
-    if (/waiting on responses|only .* may be sent/i.test(msg)) {
+    if (!isBusyError(err)) throw err
+
+    // Give a mid-flight turn room to land. Twelve seconds is longer than any
+    // turn that is about to finish and shorter than a person's patience.
+    let settled = false
+    for (let i = 0; i < 12; i++) {
+      await new Promise((r) => setTimeout(r, 1000))
+      try {
+        const session = await anthropic.beta.sessions.retrieve(sessionId, {
+          betas: [MANAGED_AGENTS_BETA],
+        })
+        if (session.status !== 'running') break
+      } catch {
+        // The status read is a courtesy; if it fails, fall through to the
+        // resend and let that be the answer.
+        break
+      }
+    }
+    try {
+      await sendInitial()
+      settled = true
+    } catch (retryErr) {
+      if (!isBusyError(retryErr)) throw retryErr
+    }
+
+    // Still refused after it went quiet: the session is stranded on a tool
+    // call nobody will answer. Now interrupting is the repair, not the
+    // damage.
+    if (!settled) {
       await anthropic.beta.sessions.events.send(sessionId, {
         events: [{ type: 'user.interrupt' }],
         betas: [MANAGED_AGENTS_BETA],
       })
       await sendInitial()
-    } else {
-      throw err
     }
   }
 

@@ -1104,7 +1104,7 @@ function Composer({
   useAutoGrow(textRef, value)
 
   return (
-    <div className="rounded-xl border border-input bg-card focus-within:ring-2 focus-within:ring-ring/50">
+    <div className="rounded-xl border border-input bg-card run-focus-fade focus-within:border-ring focus-within:shadow-focus">
       {attachment && (
         <div className="px-3 pt-3">
           <FileChip attachment={attachment} onRemove={onRemoveAttachment} />

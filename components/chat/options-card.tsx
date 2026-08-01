@@ -86,7 +86,7 @@ export function OptionsCard({
       )}
 
       {spec.allowOther && (
-        <div className="mt-3 flex items-center gap-2 rounded-lg border border-input bg-background px-3 py-1.5 focus-within:ring-2 focus-within:ring-ring/50">
+        <div className="mt-3 flex items-center gap-2 rounded-lg border border-input bg-background px-3 py-1.5 run-focus-fade focus-within:border-ring focus-within:ring-3 focus-within:ring-ring/10">
           <input
             value={other}
             onChange={(e) => setOther(e.target.value)}
