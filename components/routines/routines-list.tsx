@@ -118,6 +118,25 @@ export function RoutinesList({
     }
   }
 
+  // Run it right now, exactly as the schedule would. Synchronous on purpose:
+  // the row shows a spinner for the real duration of a real agent run, and
+  // the result is in the agent's chat when it finishes.
+  async function runNow(r: RoutineListItem) {
+    setBusy(r.id)
+    try {
+      const res = await fetch(`/api/routines/${r.id}/run`, { method: 'POST' })
+      const data = await res.json().catch(() => null)
+      if (!res.ok) {
+        toast.error(data?.error ?? 'The run could not start.')
+        return
+      }
+      toast.success(`Done. The result is in ${r.agentName}'s chat.`)
+      router.refresh()
+    } finally {
+      setBusy(null)
+    }
+  }
+
   if (routines.length === 0) {
     return (
       <div className="flex flex-col items-center rounded-xl border border-dashed border-border py-14 text-center">
@@ -237,6 +256,9 @@ export function RoutinesList({
                         align="end"
                         onClick={(e: React.MouseEvent) => e.stopPropagation()}
                       >
+                        <DropdownMenuItem onClick={() => void runNow(r)}>
+                          Run now
+                        </DropdownMenuItem>
                         {r.status === 'active' ? (
                           <DropdownMenuItem
                             onClick={() => void patch(r.id, { action: 'pause' }, 'pause it')}

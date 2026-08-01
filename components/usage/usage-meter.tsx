@@ -320,6 +320,13 @@ function RunRow({ run }: { run: RunHistoryEntry }) {
         {run.agentName ?? 'A deleted agent'}
       </span>
       <span className="flex shrink-0 items-center gap-3">
+        {/* A run that a schedule fired, not the person. The one word keeps
+            the history honest when work happened while nobody was here. */}
+        {run.source === 'schedule' && (
+          <span className="rounded-md border border-border px-2 py-0.5 text-xs text-muted-foreground">
+            Routine
+          </span>
+        )}
         <span className="text-xs text-muted-foreground tabular-nums">
           {date} · {time}
         </span>
