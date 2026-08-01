@@ -29,7 +29,11 @@ Anthropic SDK layer under this is the `managed-agents` skill.
 ## Frame protocol (keep server + client copies in sync)
 
 `Frame` is declared in BOTH `run-turn.ts` and `chat-thread.tsx`; add a variant
-in both. Current variants: `start`, `thinking`, `delta` (token text), `activity`
+in both. Adding a FIELD to an existing variant is the quieter trap: the server
+spreads (`...proposal`) but `handleFrame` rebuilds several cards field by field
+(`setReview({ name, instructions, ... })`), so a new field type-checks
+everywhere and silently never arrives. Follow the field to the setState call,
+not just to the type. Current variants: `start`, `thinking`, `delta` (token text), `activity`
 (tool line), `artifact` (downloadable document), `connect` (needs a connection),
 `approval` (write gate), `ask` (ask_user options card), `review` (setup
 confirmation card), `onboarded` (setup done), `done` (final text), `error`.
@@ -58,6 +62,13 @@ a write OR any unclassified tool gates for approval, so a new tool can never
 auto-run a side effect just because it was left off a list.
 A pause persists the pending call(s) to `threads.pending_tools`, emits
 its card frame, and `break`s, returning `{ status: 'ask' | 'approval' | null }`.
+
+**One pending call per thread.** `threads.pending_tools` is a single column, so
+two cards can never share a turn. This is a design constraint, not a bug, and
+it decides sequencing for any feature that wants to end a turn on a card: the
+routine offer waits until AFTER the first task precisely because
+`propose_setup` already owns the setup turn. If a plan has an agent raising two
+cards at once, the plan is wrong.
 A resume route feeds `user.custom_tool_result` back and the SAME stream
 continues (verified). Reads execute inline via `executeTool`; `needs_connection`
 emits a `connect` frame + an `is_error` tool result so the agent asks the user

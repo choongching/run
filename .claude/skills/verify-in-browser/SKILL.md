@@ -73,3 +73,12 @@ radius and hairline differences are invisible at page scale and obvious at 4x.
 - After: `read_console_messages` with `onlyErrors: true` (expect none).
 - Creating an agent makes REAL Anthropic + Supabase rows. Sweep test data back
   to the demo trio when done (see the `dev-cleanup` skill).
+- There is a per-account agent cap, so a second test build fails with "Delete an
+  agent to make room for a new one". Delete the previous test agent through the
+  app (Configure panel, Delete agent), not with SQL: a `delete from agents` is
+  blocked by the permission classifier, correctly, and the app's own path is
+  the one users take anyway. Never delete an agent you did not create in this
+  session, and check `routines` for it first.
+- Testing a full setup interview costs about five runs off the monthly meter,
+  so plan the run rather than repeating it idly. The founder often takes over
+  the test agent mid-flow; ask before cleaning up anything they touched.

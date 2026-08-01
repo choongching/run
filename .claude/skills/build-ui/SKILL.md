@@ -9,6 +9,33 @@ Follow this procedure whenever creating or changing UI. It encodes the design
 system plus every convention already verified the hard way in this codebase.
 Goal: zero re-derivation, zero styling drift.
 
+## 0. Before you build any of it
+
+Two questions, in this order. Both have cost the project real work when
+skipped.
+
+**Does this need a new control at all?** Run's answer to "how does the person
+know X" is usually that the agent says X, in the conversation, at the moment
+it matters. The machinery for that already exists: `ask_user` (a question with
+options), the connect card, the review card, the routine card. A connector
+chip row and a pinned composer token were both designed, prototyped, and cut
+in one evening; what shipped instead was one more question in the setup
+interview, using cards that already existed. The comment at
+`lib/chat/onboarding.ts:59-67` is the standing argument: every agent is handed
+the same tools, so a permanent "what I can reach" display would tell someone
+whose agent reads documents that it also wants their email. Ambient chrome
+states things whether or not they are relevant; conversation states them when
+they are.
+
+**Show it before you build it.** For anything beyond a tweak, build a lo-fi
+HTML prototype in the scratchpad, publish it with the Artifact tool, and let
+the founder react. They ask for this by name ("can we see a better wireframe
+first, before committing the work") and it is cheaper than the alternative in
+every case so far: the schedule prototype settled the whole Routines shape,
+and the composer wireframe surfaced the cut above before a line of app code
+existed. Make the prototype clickable, show every state, and include the
+mobile width.
+
 ## 1. Load the rules first
 
 - Read `docs/styleguide.md` (local file, git-ignored except this one is tracked).
