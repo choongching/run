@@ -21,6 +21,11 @@
   --text-xs--letter-spacing: 0.01em;
   --text-sm--letter-spacing: 0.01em;
 
+  /* Declared here so the `shadow-focus` utility exists; the value itself is
+     set per theme in :root and .dark below, which the utility reads at the
+     element. */
+  --shadow-focus: 0 3px 22px -10px oklch(0.36 0.06 155 / 0.28);
+
   /* Viewport breakpoints, written out so the scale is a decision rather
      than an inherited default. The app splits on ONE line: mobile is below
      md (768px, matching the sidebar's own isMobile); a tablet gets the
@@ -130,7 +135,13 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.918 0.005 95);
   --input: oklch(0.895 0.005 95);
-  --ring: oklch(0.6 0.11 155);
+  /* Focus green, pulled down toward primary (0.36) from the old 0.6 so the
+     ring reads as a decision rather than a tint. Every focus state in the
+     product is drawn from this one token. */
+  --ring: oklch(0.48 0.095 155);
+  /* The lift under a focused field: the same green, low and soft, so the
+     field looks picked up off the page rather than outlined twice. */
+  --shadow-focus: 0 3px 22px -10px oklch(0.36 0.06 155 / 0.28);
   --chart-1: oklch(0.6 0.11 155);
   --chart-2: oklch(0.6 0.16 255);
   --chart-3: oklch(0.63 0.2 355);
@@ -165,7 +176,11 @@
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.65 0.1 155);
+  /* Up, not down, on a dark ground: contrast is the goal, not the hue. */
+  --ring: oklch(0.72 0.115 155);
+  /* Still the green, never a grey: on dark it takes the lighter primary and
+     more of it, because a deep green glow disappears against charcoal. */
+  --shadow-focus: 0 3px 24px -10px oklch(0.75 0.11 155 / 0.3);
   --chart-1: oklch(0.7 0.11 155);
   --chart-2: oklch(0.65 0.15 255);
   --chart-3: oklch(0.68 0.18 355);
@@ -229,6 +244,24 @@
      ours is flush to the edge instead, so the left gutter comes back. */
   [data-slot="sidebar-inset"] {
     @apply min-h-0 md:ml-2 md:border md:border-border;
+  }
+
+  /* Focus, arriving rather than snapping. Every field that can take focus
+     carries this: the border colour and the ring/lift are box-shadow and
+     colour properties, which `transition-colors` alone does not cover, so
+     they used to switch on in a single frame. 180ms out is long enough to
+     read as a shift and short enough that typing never waits for it.
+     One class rather than a long arbitrary transition-[...] repeated in
+     every primitive. */
+  .run-focus-fade {
+    transition-property: color, background-color, border-color, box-shadow;
+    transition-duration: 180ms;
+    transition-timing-function: cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .run-focus-fade {
+      transition: none;
+    }
   }
 
   /* The cycling word in the home headline (components/home/flip-word). Blurs

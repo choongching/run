@@ -124,7 +124,7 @@ export function PromptComposer({
         // rounded-[9px] is a founder-set hero exception to the 4-6px radius
         // scale, local to this composer only.
         className={cn(
-          'run-rise rounded-[9px] border border-input bg-card [--rise-delay:180ms] focus-within:ring-2 focus-within:ring-ring/50',
+          'run-rise rounded-[9px] border border-input bg-card run-focus-fade [--rise-delay:180ms] focus-within:border-ring focus-within:shadow-focus',
           pending && 'hidden'
         )}
       >

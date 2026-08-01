@@ -30,12 +30,45 @@ through tokens (`bg-primary`, `text-muted-foreground`, …), never hard-coded he
 | `--muted-foreground` | `#807D74` | timestamps, placeholders, sub-labels |
 | `--accent` / `--sidebar-accent` | `#ECEBE6` | nav hover + active item background |
 | `--border` / `--input` | `#E6E5E0` | hairlines, input borders, table dividers |
-| `--ring` | green `#3E9668` | focus rings |
+| `--ring` | deep green `oklch(0.48 0.095 155)` | focus rings |
+| `--shadow-focus` | the same green, low and soft | the lift under a focused field |
 | `--chart-1…5` | green, blue, pink, amber, purple | avatars, charts, count badges |
 | `--destructive` | red (unchanged) | Move to Trash, errors |
 
 Dark mode mirrors the same relationships on warm charcoal (`.dark` block in globals.css);
 primary flips to a lighter green with dark text.
+
+**Focus.** Two recipes, and the difference is deliberate.
+
+- **Ordinary fields** (inputs, textareas, selects, buttons, checkboxes):
+  `focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/10`.
+  The border does the work; the halo is a whisper at 10%. It used to be 50%,
+  which read as a fat tinted band around every field on a settings page.
+- **Composer shells only** (the home box and the chat box, a container
+  wrapping a textarea and its buttons): `focus-within:border-ring
+  focus-within:shadow-focus`, with `transition-shadow` so it arrives rather
+  than snaps. One 1px green edge and a soft green lift, no ring at all: a
+  2px ring around a box that wide reads as a slab (founder rejected `ring-2`
+  and a 0.8px border on the way to this).
+  **Do not put `shadow-focus` on ordinary inputs** (founder, 2026-08-01): a
+  form where every field lifts is noise. The composer earns it because it is
+  the one place someone is about to spend real effort.
+- **Focus fades in, never snaps.** Every focusable field carries
+  `run-focus-fade` (globals.css): 180ms on colour, background, border and
+  box-shadow. `transition-colors` does NOT cover box-shadow, which is what
+  rings and the lift are made of, so without this class the ring appears in
+  a single frame. Disabled under `prefers-reduced-motion`.
+- No component hand-rolls a focus style. Six files did (the chat header,
+  knowledge search, the config panel, the review card, the options card) and
+  all now use the recipe above.
+- The shadow is always the green, never a grey or black, in both themes.
+  Dark uses the lighter primary at more alpha, because a deep green glow
+  disappears against charcoal.
+- The ring sits at 0.48 lightness, close to primary, because the old 0.6 at
+  half opacity read as a tint rather than a decision. On dark it goes up, not
+  down: contrast is the goal, not the hue.
+- `--shadow-focus` is declared in `@theme` so the `shadow-focus` utility
+  exists, then given its real value per theme in `:root` and `.dark`.
 
 ## 3. Typography
 

@@ -1,12 +1,17 @@
 import { requireUser } from '@/lib/api-helpers'
 import { toChatError } from '@/lib/chat/errors'
-import { getAnthropicClient, MANAGED_AGENTS_BETA } from '@/lib/anthropic/client'
+import { getAnthropicClient } from '@/lib/anthropic/client'
 import {
   finalizeOnboarding,
   FIRST_TASK_KICKOFF,
   type SetupAnswer,
 } from '@/lib/chat/onboarding'
-import { drainSession, type Frame, type PendingCall } from '@/lib/chat/run-turn'
+import {
+  drainSession,
+  type Frame,
+  type InitialEvents,
+  type PendingCall,
+} from '@/lib/chat/run-turn'
 import { isProposeTool } from '@/lib/tools/definitions'
 
 // Confirm the setup an agent proposed, then let it start.
@@ -97,26 +102,34 @@ export async function POST(
         })
         send({ type: 'onboarded' })
 
-        // The proposal was a paused tool call, so the session is still waiting
-        // on a result. Answer it before asking for the first task, or the
-        // session rejects the message as unresolved.
-        if (proposeCall) {
-          await anthropic.beta.sessions.events.send(thread.session_id!, {
-            events: [
+        // The proposal was a paused tool call, so the session is waiting on a
+        // result. Answering it RESUMES the session, which is why the kickoff
+        // travels inside that same result rather than as a second event: two
+        // sends meant the second one arrived while the first was still
+        // running, got refused, and the recovery interrupt then killed the
+        // first task mid-flight. One send, one turn, one run.
+        //
+        // With no proposal to answer (the agent talked its way through setup
+        // instead of calling the tool), the kickoff is an ordinary message.
+        const kickoff: InitialEvents = proposeCall
+          ? [
               {
                 type: 'user.custom_tool_result',
                 custom_tool_use_id: proposeCall.id,
                 content: [
                   {
                     type: 'text',
-                    text: 'The user confirmed this setup. It is saved.',
+                    text: `The user confirmed this setup. It is saved.\n\n${FIRST_TASK_KICKOFF}`,
                   },
                 ],
               },
-            ],
-            betas: [MANAGED_AGENTS_BETA],
-          })
-        }
+            ]
+          : [
+              {
+                type: 'user.message',
+                content: [{ type: 'text', text: FIRST_TASK_KICKOFF }],
+              },
+            ]
 
         await drainSession({
           anthropic,
@@ -126,12 +139,7 @@ export async function POST(
           agentId: agent.id,
           agentModel: agent.model,
           threadId: thread.id,
-          initialEvents: [
-            {
-              type: 'user.message',
-              content: [{ type: 'text', text: FIRST_TASK_KICKOFF }],
-            },
-          ],
+          initialEvents: kickoff,
           send,
         })
       } catch (err) {

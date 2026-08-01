@@ -60,7 +60,7 @@ export function ReviewCard({
             onChange={(e) => setName(e.target.value)}
             disabled={submitted}
             maxLength={60}
-            className="w-full rounded-lg border border-input bg-background px-2.5 py-1.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
+            className="w-full rounded-lg border border-input bg-background px-2.5 py-1.5 text-sm run-focus-fade outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/10 disabled:opacity-60"
           />
         </label>
 
@@ -71,7 +71,7 @@ export function ReviewCard({
             onChange={(e) => setInstructions(e.target.value)}
             disabled={submitted}
             rows={3}
-            className="w-full resize-y rounded-lg border border-input bg-background px-2.5 py-1.5 text-sm leading-relaxed outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-60"
+            className="w-full resize-y rounded-lg border border-input bg-background px-2.5 py-1.5 text-sm leading-relaxed run-focus-fade outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/10 disabled:opacity-60"
           />
         </label>
       </div>

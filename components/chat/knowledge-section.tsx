@@ -228,7 +228,7 @@ export function KnowledgeSection({
                       }
                     }}
                     aria-label="Source name"
-                    className="w-full rounded-lg border border-input bg-card px-2 py-1 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                    className="w-full rounded-lg border border-input bg-card px-2 py-1 text-sm outline-none run-focus-fade focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/10"
                   />
                 ) : (
                   <>
@@ -316,7 +316,7 @@ export function KnowledgeSection({
             placeholder="Name it, for example How I write emails"
             maxLength={120}
             aria-label="Note name"
-            className="w-full rounded-lg border border-input bg-card px-2.5 py-1.5 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+            className="w-full rounded-lg border border-input bg-card px-2.5 py-1.5 text-sm outline-none run-focus-fade focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/10"
           />
           <Textarea
             value={noteBody}
