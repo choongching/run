@@ -38,12 +38,24 @@ const ONBOARDING_KICKOFF = `[SETUP] This is your first conversation with the use
 1. {{HELLO}} Then say in one warm, plain sentence what you are here to do for them, based on what you are for. No jargon, no emoji.
 2. Say you have a couple of quick questions so you can set things up well.
 3. Then use the ask_user tool to interview them ONE question at a time to understand exactly what they want from you and how they want it. For each question give 3 to 6 concrete options, each with a short label and a one-line description, and set step and total so they see progress (aim for about 3 questions). Adapt each question to their previous answers.
-4. Keep going until their intent and goal are clear, then stop asking. Say one short sentence confirming what you understood, and in the SAME turn call the propose_setup tool with the name you should be called and the instructions describing your job, both in their words. They will see it, edit it if they want, and confirm before you begin. If they reply asking for something different, revise and call propose_setup again.
+4. If the job is the kind of thing that could sensibly repeat, make your last question what should start you off: they ask you, or the clock does. Put it in plain words, with options like "Only when I ask", "Every weekday morning", "Once a week", "Every couple of weeks", fitted to the job. Only ever offer those two kinds of start, being asked or a time. You cannot watch for things happening, so never offer to start when an email arrives or a file changes. If the job is clearly a one-off, skip this question.
+5. Keep going until their intent and goal are clear, then stop asking. Say one short sentence confirming what you understood, and in the SAME turn call the propose_setup tool with the name you should be called and the instructions describing your job, both in their words. If they chose a regular schedule in the last question, pass their words for it as how_often so they can see the timing on its own line. They will see it, edit it if they want, and confirm before you begin. If they reply asking for something different, revise and call propose_setup again.
 
 Write in plain, warm sentences with normal punctuation; do not use em dashes. Do not use any tool other than ask_user and propose_setup during setup, and do not start the actual task yet. This is setup only.`
 
 // After the brief is saved, the agent runs the first real task. Also hidden.
-export const FIRST_TASK_KICKOFF = `[SETUP COMPLETE] Setup is done and saved. Now go ahead and do the first, most useful thing the user set you up for, based on everything you just learned. If you need access to a tool that is not connected yet, ask them to connect it. Do not repeat the setup questions.`
+//
+// This is also where a routine gets offered, and the timing is deliberate. Every
+// workflow tool opens with a trigger step, so setup asks what starts the agent
+// off (step 4 above), but the offer to make it real waits until after the first
+// run: the person has now seen what one run actually produces, so they are
+// agreeing to something they have read rather than to a description. It also
+// has to wait for a mechanical reason. Both propose_setup and set_routine pause
+// the turn on a card, and a thread holds one pending call at a time, so the two
+// cards cannot share a turn.
+export const FIRST_TASK_KICKOFF = `[SETUP COMPLETE] Setup is done and saved. Now go ahead and do the first, most useful thing the user set you up for, based on everything you just learned. If you need access to a tool that is not connected yet, ask them to connect it. Do not repeat the setup questions.
+
+If they said during setup that they want this on a regular schedule, then AFTER you have finished that first piece of work, offer to make it a routine: say in one short sentence that you can do this on that schedule from now on, and in the SAME turn call the set_routine tool using their words for the timing. They will see the real dates and decide. Do not offer a routine if they said they would rather just ask you, and never say you will run on a schedule unless they have confirmed that card.`
 
 // After the user connects an account the agent asked for, resume the blocked
 // task automatically. Hidden; only the agent's reply streams. Sent by the
@@ -164,7 +176,11 @@ function composeBrief(answers: SetupAnswer[]): string {
     .filter((x) => x.a.trim())
     .map((x) => `- ${x.q.trim()} -> ${x.a.trim()}`)
     .join('\n')
-  return `## Setup preferences\nThe user set these when they first met you; honor them in everything you do:\n${lines}`
+  // The timing answer is a wish, not a wiring. It stays in the brief because it
+  // tells the agent the rhythm the person wants, but it is spelled out that
+  // only a confirmed routine actually runs anything, so an agent never tells
+  // someone it will show up on Monday when nothing is scheduled.
+  return `## Setup preferences\nThe user set these when they first met you; honor them in everything you do:\n${lines}\n\nIf one of these describes how often or when, treat it as what they want, not as something already running. You only run on a schedule once they have confirmed a routine.`
 }
 
 // The base instructions with the generated policy region removed. Used to show

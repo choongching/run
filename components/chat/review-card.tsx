@@ -5,12 +5,14 @@ import { Check, Loader2 } from 'lucide-react'
 
 import { GmailIcon } from '@/components/icons/gmail'
 import { GoogleDriveIcon } from '@/components/icons/google-drive'
+import { RoutinesIcon } from '@/components/nav-icons'
 import type { NeededConnector } from '@/lib/chat/onboarding'
 
 export type ReviewSpec = {
   name: string
   instructions: string
   connectors: NeededConnector[]
+  cadence?: string
 }
 
 const CONNECTOR_LABEL: Record<NeededConnector, string> = {
@@ -74,6 +76,29 @@ export function ReviewCard({
             className="w-full resize-y rounded-lg border border-input bg-background px-2.5 py-1.5 text-sm leading-relaxed run-focus-fade outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/10 disabled:opacity-60"
           />
         </label>
+
+        {/* The timing reads as its own section in the same voice as the two
+            above it, rather than being left inside the job paragraph where
+            "Each weekday..." was easy to read straight past. The dashed edge
+            is the point: unlike the name and the job, this is not saved when
+            they confirm. The offer to make it real comes after the first
+            piece of work, so they agree to a routine having seen what one run
+            actually produces. */}
+        {spec.cadence && (
+          <div className="flex flex-col gap-1.5">
+            <span className="text-xs text-muted-foreground">
+              and my routine is
+            </span>
+            <span className="flex items-center gap-2 rounded-lg border border-dashed border-input px-2.5 py-1.5 text-sm">
+              <RoutinesIcon className="size-3.5 shrink-0 text-muted-foreground" />
+              {spec.cadence}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              Nothing is scheduled yet. I will offer to set this up once you
+              have seen the first one.
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Named only when the person named it first. Every agent is handed the
