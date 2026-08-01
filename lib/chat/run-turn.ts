@@ -21,7 +21,7 @@ import { neededConnectors, type NeededConnector } from '@/lib/chat/onboarding'
 import { toChatError, type ChatError } from '@/lib/chat/errors'
 import { executeTool } from '@/lib/tools/execute'
 import { recordUsage } from '@/lib/usage'
-import type { Database, Json } from '@/lib/types/database'
+import type { Database, Json, UsageSource } from '@/lib/types/database'
 
 export type Frame =
   | { type: 'start' }
@@ -195,6 +195,15 @@ type DrainOpts = {
   // anything, so a missed tool call degrades to the values we already hold
   // rather than stalling the flow.
   proposalFallback?: { name: string; instructions: string }
+  // What started this turn, for the usage ledger. Defaults to 'chat'; the
+  // routines executor passes 'schedule'.
+  usageSource?: UsageSource
+  // A scheduled run has nobody present to press a button, so under this flag
+  // nothing ever pauses: questions are answered with "use your judgment",
+  // and anything gated (writes, unclassified tools) is declined in words and
+  // the agent told to describe it instead. pending_tools is never written,
+  // which is what keeps a routine from colliding with the open chat.
+  denyWrites?: boolean
 }
 
 // Tokens are tallied into a caller-owned object rather than local variables so
@@ -211,9 +220,17 @@ type TokenTally = {
 // tokens were spent either way, and a meter that silently misses every failure
 // drifts further from the truth with each one. A failed row is recorded but
 // not counted against the person's runs.
-export async function drainSession(
-  opts: DrainOpts
-): Promise<{ status: TurnStatus }> {
+// The return carries the closing text and any session error alongside the
+// status, because a headless caller (the routines executor) has no stream to
+// watch: the error frame is invisible to it, so failure has to come back as
+// a value.
+export type DrainResult = {
+  status: TurnStatus
+  finalText: string
+  errorText: string | null
+}
+
+export async function drainSession(opts: DrainOpts): Promise<DrainResult> {
   const tally: TokenTally = {
     inputTokens: 0,
     cacheCreationInputTokens: 0,
@@ -234,7 +251,7 @@ export async function drainSession(
       model: opts.agentModel,
       ...tally,
       eventType: 'mission_run',
-      source: 'chat',
+      source: opts.usageSource ?? 'chat',
       status: failed ? 'failed' : 'completed',
     })
   }
@@ -243,7 +260,7 @@ export async function drainSession(
 async function drainSessionInner(
   opts: DrainOpts,
   tally: TokenTally
-): Promise<{ status: TurnStatus }> {
+): Promise<DrainResult> {
   // agentId and agentModel are the wrapper's business now: they describe the
   // usage row, not the drain.
   const {
@@ -255,6 +272,7 @@ async function drainSessionInner(
     initialEvents,
     send,
     proposalFallback = { name: '', instructions: '' },
+    denyWrites = false,
   } = opts
 
   const activityLabels: string[] = []
@@ -398,10 +416,13 @@ async function drainSessionInner(
     if (event.type === 'session.status_idle') {
       if (event.stop_reason.type !== 'requires_action') break
 
+      // Under denyWrites the three pause branches below are skipped: their
+      // calls fall through to the gate, which answers them in words instead
+      // of waiting for a person who is not there.
       // The agent asked the user a question: persist it and show the options
       // card. The turn pauses until the answer route resumes the session.
       const askCall = pending.find((c) => isAskTool(c.name))
-      if (askCall) {
+      if (askCall && !denyWrites) {
         await supabase
           .from('threads')
           .update({ pending_tools: pending as unknown as Json })
@@ -415,7 +436,7 @@ async function drainSessionInner(
       // become. Same pause as a question: persist and wait for the person to
       // confirm, edit, or tell it what to change.
       const proposeCall = pending.find((c) => isProposeTool(c.name))
-      if (proposeCall) {
+      if (proposeCall && !denyWrites) {
         await supabase
           .from('threads')
           .update({ pending_tools: pending as unknown as Json })
@@ -440,7 +461,7 @@ async function drainSessionInner(
       // An unusable draft bounces straight back to the model instead of
       // rendering a broken card.
       const routineCall = pending.find((c) => isSetRoutineTool(c.name))
-      if (routineCall) {
+      if (routineCall && !denyWrites) {
         const draft = summarizeRoutine(routineCall.input)
         if (!draft) {
           pending = []
@@ -476,24 +497,45 @@ async function drainSessionInner(
       // show the approval card. Nothing runs until the user approves. This is
       // the enforcement point, so a new tool can never auto-run a side effect
       // just because it was left off the write list.
+      const deniedResults: InitialEvents = []
       if (pending.some((c) => !isAutoRunTool(c.name))) {
-        await supabase
-          .from('threads')
-          .update({ pending_tools: pending as unknown as Json })
-          .eq('id', threadId)
-        send({
-          type: 'approval',
-          calls: pending.map((c) => ({
-            id: c.id,
-            ...summarizeWrite(c.name, c.input),
-          })),
-        })
-        status = 'approval'
-        break
+        if (!denyWrites) {
+          await supabase
+            .from('threads')
+            .update({ pending_tools: pending as unknown as Json })
+            .eq('id', threadId)
+          send({
+            type: 'approval',
+            calls: pending.map((c) => ({
+              id: c.id,
+              ...summarizeWrite(c.name, c.input),
+            })),
+          })
+          status = 'approval'
+          break
+        }
+        // A scheduled run. The gate holds exactly as it would in chat, but
+        // with nobody present the answer is words, not a card: reads carry
+        // on below, and everything else is declined with instructions to
+        // describe the wish instead. pending_tools stays untouched.
+        for (const call of pending) {
+          if (isAutoRunTool(call.name)) continue
+          deniedResults.push({
+            type: 'user.custom_tool_result',
+            custom_tool_use_id: call.id,
+            content: [
+              {
+                type: 'text',
+                text: 'This is a scheduled run and the user is not present, so this is not available. If you were asking a question, use your best judgment and continue. If you wanted to change or send something, do not: describe what you would have done in your reply and tell the user they can ask you to do it in the chat.',
+              },
+            ],
+          })
+        }
+        pending = pending.filter((c) => isAutoRunTool(c.name))
       }
 
       // Reads only: execute and feed results back so the stream resumes.
-      const resultEvents: InitialEvents = []
+      const resultEvents: InitialEvents = [...deniedResults]
       for (const call of pending) {
         // create_document has no external side effect: build the artifact, show
         // it in the thread, and confirm to the agent without pasting it back.
@@ -595,6 +637,8 @@ async function drainSessionInner(
     .update({ updated_at: new Date().toISOString() })
     .eq('id', threadId)
 
+  const result: DrainResult = { status, finalText, errorText: sessionError }
+
   if (status) {
     // A card (approval or question) is already sent; finalize any preamble
     // text. Empty text is fine; the client skips empty done frames.
@@ -616,5 +660,5 @@ async function drainSessionInner(
     send({ type: 'done', text: finalText })
   }
 
-  return { status }
+  return result
 }
