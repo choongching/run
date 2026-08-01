@@ -50,6 +50,25 @@ publish the layer where the answer is weakest.**
   "Google itself would refuse" is NOT a claim we may make. Narrowing this
   (reduced Pipedream scopes, or our own Google OAuth client) is an open item.
 
+## Publishing an answer
+
+A good answer belongs in the README's **Security FAQ**, not only in the
+reply. Shape: the real question as a heading in the asker's words, the
+answer in plain sentences, and the layers ranked strongest first.
+
+Two rules learned writing it:
+
+- **Role-play the next question.** After answering what was asked, ask what a
+  skeptic reads next: Drive deletion, cross-tenant access, what the model
+  provider sees, whether anything runs unattended. Verify each the same way;
+  one of those checks is how the Drive scope gap surfaced.
+- **Claims made in the FAQ can invalidate copy elsewhere.** Publishing "the
+  agent cannot send" made two lines of the journey diagram wrong (both said
+  the agent might "send"). After adding or changing an FAQ answer, grep the
+  README for the capability words in it and fix what disagrees. A doc that
+  contradicts itself two screens apart costs more trust than the weakness it
+  was hiding.
+
 ## Voice
 
 First person singular: it is one person's project, and "we" reads as fog.
