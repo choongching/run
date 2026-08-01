@@ -25,6 +25,7 @@ export type RoutineListItem = {
   lastRunAt: string | null
   consecutiveFailures: number
   carry: string | null
+  createdAt: string
   runs: {
     status: RoutineRunStatus
     headline: string | null
@@ -52,7 +53,7 @@ export async function listRoutines(
   const { data } = await supabase
     .from('routines')
     .select(
-      'id, agent_id, name, instruction, rule, status, next_run_at, last_run_at, consecutive_failures, carry, agents(name), routine_runs(status, headline, error, started_at, finished_at)'
+      'id, agent_id, name, instruction, rule, status, next_run_at, last_run_at, consecutive_failures, carry, created_at, agents(name), routine_runs(status, headline, error, started_at, finished_at)'
     )
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
@@ -75,6 +76,7 @@ export async function listRoutines(
       lastRunAt: r.last_run_at,
       consecutiveFailures: r.consecutive_failures,
       carry: r.carry,
+      createdAt: r.created_at,
       runs: (r.routine_runs ?? []).map((run) => ({
         status: run.status,
         headline: run.headline,

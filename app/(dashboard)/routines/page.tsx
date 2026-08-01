@@ -26,7 +26,7 @@ export default async function RoutinesPage() {
   ])
 
   return (
-    <PageShell>
+    <PageShell wide>
       <PageHeader
         title="Routines"
         description="Work your agents do on their own, on a schedule you set."

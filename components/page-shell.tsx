@@ -11,10 +11,24 @@
 // This is the fix at the source: one shell, the same width token the chat
 // column uses, so header, body, empty states and skeletons land in the same
 // place on every route and cannot drift apart page by page.
-export function PageShell({ children }: { children: React.ReactNode }) {
+//
+// `wide` is the one sanctioned exception (founder's call): a management list
+// like Routines is scanned left to right (name on one edge, status on the
+// other), and the reading column squeezes that into a ribbon. Still one
+// centered column, still one shell; a page and its loading skeleton must
+// pass the same value.
+export function PageShell({
+  children,
+  wide = false,
+}: {
+  children: React.ReactNode
+  wide?: boolean
+}) {
   return (
     <div className="p-6 md:p-8">
-      <div className="mx-auto w-full max-w-thread">{children}</div>
+      <div className={`mx-auto w-full ${wide ? 'max-w-4xl' : 'max-w-thread'}`}>
+        {children}
+      </div>
     </div>
   )
 }
