@@ -14,7 +14,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 
-import { RoutinesIcon } from '@/components/nav-icons'
+import { AgentsIcon, RoutinesIcon } from '@/components/nav-icons'
 import { RoutineSheet } from '@/components/routines/routine-sheet'
 import { Button } from '@/components/ui/button'
 import {
@@ -237,13 +237,17 @@ export function RoutinesList({
                     </span>
                   </span>
                   <div className="min-w-0 flex-1">
-                    {/* Card-title level per the styleguide: the name is the
-                        one loud thing on the row. */}
-                    <p className="truncate text-base font-medium">{r.name}</p>
-                    {/* Agent only: the schedule lives on the right under
-                        "Repeats", the SureThing shape, so the row never says
-                        the same thing twice. */}
-                    <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                    {/* The name is the one loud thing on the row. 15px is a
+                        deliberate off-scale size (founder's eye): base read
+                        a hair heavy against the two-line row, sm read as a
+                        label. Same sanctioned-exception treatment as the
+                        home greeting. */}
+                    <p className="truncate text-[15px]/6 font-medium">{r.name}</p>
+                    {/* "By" plus the agent icon, because a bare name under a
+                        bare name said nothing about how the two relate: the
+                        routine is the job, the agent is who does it. */}
+                    <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-muted-foreground">
+                      By <AgentsIcon className="size-3.5 shrink-0" />
                       {r.agentName}
                     </p>
                     {/* No last-run snippet here (founder's call: rows stay
@@ -312,12 +316,15 @@ export function RoutinesList({
                                   variant="ghost"
                                   size="icon-sm"
                                   aria-label={`Run ${r.name} now`}
-                                  className="text-muted-foreground"
+                                  className="text-primary hover:text-primary"
                                   onClick={() => void runNow(r)}
                                 />
                               }
                             >
-                              <Play className="size-4" />
+                              {/* Filled and in the primary color: the hero
+                                  action of the cluster. The others stay
+                                  muted outlines. */}
+                              <Play className="size-4 fill-current" />
                             </TooltipTrigger>
                             <TooltipContent side="bottom" sideOffset={8}>
                               Run now
