@@ -22,6 +22,9 @@ There is nothing to set up. Describing what you want is the setup.
   inbox and your Drive, through accounts you connect yourself.
 - **It asks before it acts.** It reads on its own. But nothing is sent or
   changed until you have seen the whole thing and said yes.
+- **It does not have to wait for you.** Setup asks what starts it off: you, or
+  the clock. Say weekday mornings and the briefing is waiting when you open
+  the app.
 
 ## The end-to-end journey
 
@@ -31,8 +34,8 @@ Gmail.
 ```mermaid
 flowchart TD
     A["Home: describe what you want"] --> B["Run creates an agent<br/>and opens its chat"]
-    B --> C["Setup interview:<br/>the agent asks a few quick questions"]
-    C --> R["It shows you the name and job it<br/>wrote for itself, and waits"]
+    B --> C["Setup interview: a few quick questions,<br/>ending with what starts you off:<br/>you ask, or the clock does"]
+    C --> R["It shows you the name, the job, and the<br/>rhythm it understood, and waits"]
     R -->|Not quite| C
     R -->|Looks good| D["You chat and give it work"]
     D --> E{"Needs your Gmail<br/>or Drive?"}
@@ -44,16 +47,21 @@ flowchart TD
     H -->|Has a side effect| I["Approval card:<br/>full preview, you decide"]
     I -->|Approve| K["The action happens<br/>e.g. a draft in your Gmail,<br/>which only you can send"]
     I -->|Cancel| D
-    J --> D
-    K --> D
+    J --> S
+    K --> S{"Did you ask for<br/>a schedule?"}
+    S -->|No| D
+    S -->|Yes, once you have seen<br/>the first one| T["Routine card:<br/>the real run dates, you confirm"]
+    T --> V["It runs on its own from then on.<br/>Reads and reports; anything it<br/>wants to write still waits for you"]
+    V --> D
 ```
 
-The loop, in five beats:
+The loop, in six beats:
 
 1. **You state the intent.** One box, one sentence: *"Summarize my inbox each
    morning and flag anything that needs a reply."*
-2. **It writes its own job description.** A few quick questions, then the name
-   and the job it understood, shown to you on a card.
+2. **It writes its own job description.** A few quick questions, the last one
+   being what starts it off, then the name, the job, and the rhythm it
+   understood, shown to you on a card.
 3. **You approve it.** Edit either field, or tell it what to fix. Nothing runs
    before your yes.
 4. **It does the work.** Reading your inbox and files needs no permission, and
@@ -65,6 +73,10 @@ The loop, in five beats:
    documents come straight back. Anything that changes something stops, shows
    you the whole thing, and waits. Approve it, and a real draft lands in your
    Gmail, where you are still the only one who can send it.
+6. **It offers to keep doing it.** If you asked for a rhythm during setup, the
+   agent offers a routine once the first piece of work is done, with the real
+   dates of the next few runs. You are agreeing to something you have read,
+   not to a description of it.
 
 You provide the intent, it provides the labor, and everything with
 consequences passes through your hands.
@@ -83,6 +95,68 @@ instructions, and its connected accounts, and every conversation is one task on
 its desk. The best agents have one coherent job, like an email assistant,
 rather than a little of everything, because an agent is exactly as good as the
 job description you gave it.
+
+## What an agent can actually do
+
+Not what it is allowed to do. This is the whole list of things it is able to
+do, and nothing outside it exists to be misused.
+
+**In your Gmail**
+
+| It can | Asks first? |
+| --- | --- |
+| Search your inbox | No, reading is free |
+| Read an email | No |
+| Write a draft | Yes |
+
+There is no send. A draft sits in your drafts folder and the only finger that
+can press Send is yours.
+
+**In your Google Drive**
+
+| It can | Asks first? |
+| --- | --- |
+| List your files | No |
+| Read a file | No |
+| Create a folder | Yes |
+| Move a file | Yes |
+| Rename a file | Yes |
+
+There is no delete and no trash. Moving and renaming are both reversible, and
+you see the file name and where it is going before anything happens.
+
+**On the web and in the chat**
+
+| It can | Asks first? |
+| --- | --- |
+| Search the web, and read a page it found | No |
+| Write you a document you can download | No, it hands it to you |
+| Ask you a question, with options to tap | It is a question |
+| Propose its own name and job at setup | Yes, that is the setup card |
+| Propose a routine | Yes, with the real run dates |
+
+**What you can give it**
+
+- **Knowledge.** Notes and files it always knows, like how you write or the
+  facts you repeat. Sources belong to you rather than to one agent, so one
+  voice guide can feed several agents, or all of them.
+- **Attachments.** Drop a document or a screenshot into the chat and it reads
+  it. Images go to the model as images, so a photo of a receipt or a chart
+  works.
+- **A personality and a model.** Both are pickable in the Configure panel, and
+  the instructions it wrote for itself stay editable there forever.
+
+**What it does when you are not there**
+
+A routine is the same agent doing the same work on a schedule, with two
+differences worth knowing. It gets a fresh memory each run, carrying only a
+short note from last time so "what changed" means something. And it cannot
+write while unattended: anything it would normally ask about, it describes in
+its reply and leaves for you, so an unattended run can never become an
+unattended action.
+
+Everything above is per person. An agent acts on the accounts of whoever is
+signed in, and the database enforces that underneath the app.
 
 ## Trust and safety
 
@@ -191,9 +265,10 @@ tool returned.
 
 **Is there any way to have an agent act on its own, unattended?**
 
-Yes: routines. Ask an agent in the chat for anything recurring, like "check
-my inbox every weekday at 8am", and it shows you the schedule with the real
-run dates before anything exists. The gate design holds unattended: a
+Yes: routines. Setup asks what starts the agent off, and you can also ask in
+the chat at any time for anything recurring, like "check my inbox every
+weekday at 8am". Either way it shows you the schedule with the real run dates
+before anything exists. The gate design holds unattended: a
 scheduled run reads and reports on its own, but anything it wants to send
 or change still waits for you. It says so in its reply and you act in the
 chat. Routines in the sidebar shows everything scheduled, what it found,
@@ -304,11 +379,14 @@ Around that loop, the product has filled out:
   buttons explain themselves when you hover, and empty pages say in one quiet
   line what will live there.
 
+- **Agents can keep a schedule.** Setup ends by asking what starts the agent
+  off, you or the clock, and after the first piece of work it offers to make
+  that real as a routine. Routines in the sidebar shows everything scheduled,
+  when each one runs next, and anything that needs you.
+
 Next: opening the doors to more users (real sign-up emails and Google's app
 verification), exporting documents to Google Docs and PDF, and multiple
-conversations per agent. Scheduled runs shipped as routines: an agent can
-now work on its own, like a daily inbox summary that arrives without you
-asking.
+conversations per agent.
 
 The full, plain-English history, session by session, lives in
 **[PROGRESS.md](./PROGRESS.md)**.
