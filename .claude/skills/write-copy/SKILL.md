@@ -134,6 +134,18 @@ copy you would write.
 - **A receipt line folds at its colon** when it needs two lines: muted label
   above, figure below ("Total for this chat:" / "12 runs this month.").
 
+## Claims must agree across the document (2026-08-01)
+
+The README now makes verified claims about what agents can and cannot do
+(the Security FAQ). Any capability word, send, delete, change, act, is a
+claim, and the same word appears in the journey diagram, the Trust and
+safety bullets, and the status list. When one of them changes, grep for the
+word and fix the others in the same commit. Two screens apart is close
+enough for a reader to notice the contradiction, and a doc caught
+contradicting itself loses more trust than the weakness it was papering
+over. See the `answer-security-questions` skill for how the claims get
+verified in the first place.
+
 ## Checks before shipping a line
 
 1. Read it aloud. If you stumble, or it sounds like a system talking, rewrite.
