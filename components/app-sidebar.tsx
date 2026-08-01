@@ -60,14 +60,17 @@ export function AppSidebar({
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                <SidebarMenuButton
-                  isActive={pathname === '/'}
-                  render={<Link href="/" />}
-                  className="min-h-11 md:min-h-0"
+                {/* The one solid button in the rail (founder's call, from
+                    the design spike): making an agent is the thing Run is
+                    for, so the way in wears the primary color. A link with
+                    button clothes, per the codebase convention. */}
+                <Link
+                  href="/"
+                  className="flex min-h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary px-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 md:min-h-9"
                 >
                   <Plus className="size-4.5 shrink-0" />
-                  <span className="font-medium">New agent</span>
-                </SidebarMenuButton>
+                  New agent
+                </Link>
               </SidebarMenuItem>
               {/* Directly under the create action, above the agent list,
                   because it is the only row in the rail that can report a
