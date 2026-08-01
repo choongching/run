@@ -259,6 +259,17 @@ export function RoutinesList({
                         align="end"
                         onClick={(e: React.MouseEvent) => e.stopPropagation()}
                       >
+                        {/* The row itself opens the sheet, but nothing says
+                            so; the menu is where people look, so the door is
+                            named here too. */}
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setSelected(r)
+                            setOpen(true)
+                          }}
+                        >
+                          View details
+                        </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => void runNow(r)}>
                           Run now
                         </DropdownMenuItem>
