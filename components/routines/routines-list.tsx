@@ -3,7 +3,15 @@
 import { useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Ellipsis, Loader2 } from 'lucide-react'
+import {
+  Ellipsis,
+  Eye,
+  Loader2,
+  MessageSquare,
+  Pause,
+  Play,
+  Trash2,
+} from 'lucide-react'
 import { toast } from 'sonner'
 
 import { RoutinesIcon } from '@/components/nav-icons'
@@ -16,6 +24,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 import { needsAttention, type RoutineListItem } from '@/lib/routines/list'
 
 // The quiet list. The name is the only loud thing on a row; status lives on
@@ -198,19 +212,22 @@ export function RoutinesList({
             </span>
             <span className="h-px flex-1 bg-border" />
           </div>
-          <ul className="divide-y divide-border rounded-xl border border-border bg-card">
+          <ul className="flex flex-col gap-3">
             {group.items.map((r) => {
               const state = rowState(r)
+              const lastRun = r.runs[0] ?? null
               return (
                 <li
                   key={r.id}
-                  className="flex cursor-pointer items-center gap-3 px-4 py-3.5 hover:bg-muted/40"
+                  className="group flex cursor-pointer items-start gap-2.5 rounded-xl border border-border bg-card px-3.5 py-3.5 hover:bg-muted/40"
                   onClick={() => {
                     setSelected(r)
                     setOpen(true)
                   }}
                 >
-                  <StatusDot r={r} />
+                  <span className="pt-2">
+                    <StatusDot r={r} />
+                  </span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium">{r.name}</p>
                     <p className="mt-0.5 truncate text-xs text-muted-foreground">
@@ -218,6 +235,17 @@ export function RoutinesList({
                       {', '}
                       {r.sentence.charAt(0).toLowerCase() + r.sentence.slice(1)}
                     </p>
+                    {/* No last-run snippet here (founder's call: rows stay
+                        minimal; in practice agents title reports after the
+                        routine, so the snippet read as a duplicate). The one
+                        exception is a FAILURE, which is the fact a list must
+                        never hide. The full run history lives in details. */}
+                    {lastRun?.status === 'failed' ? (
+                      <p className="mt-2 truncate text-sm text-destructive/90">
+                        Last run did not finish
+                        {lastRun.error ? `: ${lastRun.error}` : ''}
+                      </p>
+                    ) : null}
                   </div>
 
                   {state.label ? (
@@ -234,14 +262,87 @@ export function RoutinesList({
                     </span>
                   ) : mounted && r.nextRunAt ? (
                     <span className="text-xs text-muted-foreground tabular-nums">
-                      Next {formatWhen(r.nextRunAt)}
+                      {/* Plain English (founder's wording). "Next Wed 12 Aug"
+                          read as "next Wednesday"; the colon removes the
+                          ambiguity without shorthand. */}
+                      Next run: {formatWhen(r.nextRunAt)}
                     </span>
                   ) : null}
 
                   {busy === r.id ? (
                     <Loader2 className="size-4 animate-spin text-muted-foreground" />
                   ) : (
-                    <DropdownMenu>
+                    <>
+                      {/* The quick actions, revealed on hover the way every
+                          mature list does it: icons for the things you do
+                          weekly, the menu for everything. Hidden on touch
+                          screens, where the menu carries it all. */}
+                      <span
+                        className="hidden items-center gap-0.5 md:group-hover:flex"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <TooltipProvider delay={300}>
+                          <Tooltip>
+                            <TooltipTrigger
+                              render={
+                                <Button
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  aria-label={`Run ${r.name} now`}
+                                  className="text-muted-foreground"
+                                  onClick={() => void runNow(r)}
+                                />
+                              }
+                            >
+                              <Play className="size-4" />
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom" sideOffset={8}>
+                              Run now
+                            </TooltipContent>
+                          </Tooltip>
+                          {r.status === 'active' ? (
+                            <Tooltip>
+                              <TooltipTrigger
+                                render={
+                                  <Button
+                                    variant="ghost"
+                                    size="icon-sm"
+                                    aria-label={`Pause ${r.name}`}
+                                    className="text-muted-foreground"
+                                    onClick={() =>
+                                      void patch(r.id, { action: 'pause' }, 'pause it')
+                                    }
+                                  />
+                                }
+                              >
+                                <Pause className="size-4" />
+                              </TooltipTrigger>
+                              <TooltipContent side="bottom" sideOffset={8}>
+                                Pause
+                              </TooltipContent>
+                            </Tooltip>
+                          ) : null}
+                          <Tooltip>
+                            <TooltipTrigger
+                              render={
+                                <Button
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  aria-label={`Open ${r.agentName}'s chat`}
+                                  className="text-muted-foreground"
+                                  onClick={() => router.push(`/chat/${r.agentId}`)}
+                                />
+                              }
+                            >
+                              <MessageSquare className="size-4" />
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom" sideOffset={8}>
+                              Open chat
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </span>
+                      <DropdownMenu>
                       <DropdownMenuTrigger
                         render={
                           <Button
@@ -268,33 +369,45 @@ export function RoutinesList({
                             setOpen(true)
                           }}
                         >
+                          <Eye className="size-4" />
                           View details
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => void runNow(r)}>
+                          <Play className="size-4" />
                           Run now
                         </DropdownMenuItem>
                         {r.status === 'active' ? (
                           <DropdownMenuItem
                             onClick={() => void patch(r.id, { action: 'pause' }, 'pause it')}
                           >
+                            <Pause className="size-4" />
                             Pause
                           </DropdownMenuItem>
                         ) : (
                           <DropdownMenuItem
                             onClick={() => void patch(r.id, { action: 'resume' }, 'resume it')}
                           >
+                            <Play className="size-4" />
                             Resume
                           </DropdownMenuItem>
                         )}
+                        <DropdownMenuItem
+                          onClick={() => router.push(`/chat/${r.agentId}`)}
+                        >
+                          <MessageSquare className="size-4" />
+                          Open chat
+                        </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           variant="destructive"
                           onClick={() => void remove(r.id)}
                         >
+                          <Trash2 className="size-4" />
                           Delete
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
+                    </>
                   )}
                 </li>
               )

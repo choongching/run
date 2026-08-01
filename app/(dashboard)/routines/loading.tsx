@@ -3,7 +3,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 export default function Loading() {
   return (
-    <PageShell>
+    <PageShell wide>
       <Skeleton className="h-8 w-40" />
       <Skeleton className="mt-1.5 h-5 max-w-md" />
       <div className="mt-6 flex flex-col gap-3">
