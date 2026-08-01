@@ -343,6 +343,15 @@ export function describeRule(rule: RoutineRule): string {
 
   if (rule.freq === 'week') {
     const days = (rule.byday ?? []).map((d) => WEEKDAY_NAMES[d])
+    // A weekly rule that names no day still runs: it keeps the weekday it
+    // started on. Saying "Every week on , at 9:00am" instead of "Every week"
+    // was the visible half of that, and the run dates below it already say
+    // which day.
+    if (days.length === 0) {
+      return rule.interval === 1
+        ? `Every week ${at}`
+        : `Every ${rule.interval} weeks ${at}`
+    }
     if (rule.interval === 1 && days.length === 1) return `Every ${days[0]} ${at}`
     if (rule.interval === 1) return `Every week on ${listWords(days)}, ${at}`
     const on = days.length > 0 ? ` on ${listWords(days)}` : ''

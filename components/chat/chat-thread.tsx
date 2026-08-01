@@ -262,6 +262,7 @@ export function ChatThread({
           name: frame.name,
           instructions: frame.instructions,
           connectors: frame.connectors,
+          cadence: frame.cadence,
         })
         return
       case 'routine':

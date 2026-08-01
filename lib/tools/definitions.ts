@@ -81,7 +81,13 @@ export function isProposeTool(name: string): boolean {
   return name === PROPOSE_SETUP_TOOL
 }
 
-export type SetupProposal = { name: string; instructions: string }
+export type SetupProposal = {
+  name: string
+  instructions: string
+  // Their answer to "what starts me off", in their words ("Once a week").
+  // Absent when the job is a one-off or they would rather just ask.
+  cadence?: string
+}
 
 // Normalize a propose_setup call into what the review card renders. Tolerant
 // of loose model output; the caller supplies fallbacks for anything missing so
@@ -92,9 +98,11 @@ export function summarizeProposal(
 ): SetupProposal {
   const name = String(input.name ?? '').trim()
   const instructions = String(input.instructions ?? '').trim()
+  const cadence = String(input.how_often ?? '').trim()
   return {
     name: name.slice(0, 60) || fallback.name,
     instructions: instructions || fallback.instructions,
+    cadence: cadence ? cadence.slice(0, 60) : fallback.cadence,
   }
 }
 
@@ -547,6 +555,11 @@ export const CHAT_TOOL_DEFINITIONS = [
           type: 'string',
           description:
             "One short paragraph, written to the user, saying what this agent will do for them and how. Plain sentences, no headings or lists.",
+        },
+        how_often: {
+          type: 'string',
+          description:
+            "If they said they want this on a regular schedule, their own short words for it, like 'Once a week' or 'Every weekday morning'. Leave this out if they said they would rather just ask you, or if the job is a one-off.",
         },
       },
       required: ['name', 'instructions'],
