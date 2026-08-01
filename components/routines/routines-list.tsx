@@ -229,7 +229,9 @@ export function RoutinesList({
                     <StatusDot r={r} />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-medium">{r.name}</p>
+                    {/* Card-title level per the styleguide: the name is the
+                        one loud thing on the row. */}
+                    <p className="truncate text-base font-medium">{r.name}</p>
                     <p className="mt-0.5 truncate text-xs text-muted-foreground">
                       {r.agentName}
                       {', '}
