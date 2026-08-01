@@ -199,6 +199,19 @@ or change still waits for you. It says so in its reply and you act in the
 chat. Routines in the sidebar shows everything scheduled, what it found,
 and what needs you.
 
+**Does a routine remember its earlier runs?**
+
+Each run starts with a blank memory, like a worker who forgets everything
+at the end of a shift. One thing carries over: its last report. The next
+run reads that note first, so "what changed since last time" means
+something and it does not tell you the same news twice. This is how
+scheduled work runs almost everywhere, and it is a deliberate choice. The
+alternative, one memory that grows forever, makes every run slower and
+more expensive than the last, and one confused run can spoil all the ones
+after it. Here a bad run costs you one bad report and nothing more. You
+can read the note in the routine's details, and Forget clears it so the
+next run starts from zero.
+
 **What about the prompt-level rule?**
 
 Every agent carries a fixed instruction that anything it reads from an

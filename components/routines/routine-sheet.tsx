@@ -225,8 +225,9 @@ function DialogBody({
                 <h3 className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                   What it remembers from last time
                   <HelpTip>
-                    What it reported last time. The next run reads this so it
-                    can say what changed. Forget clears it.
+                    Each run starts fresh; this note is the only thing it
+                    keeps from last time, so it can say what changed. Forget
+                    clears it.
                   </HelpTip>
                 </h3>
                 <button
