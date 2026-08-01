@@ -150,7 +150,7 @@ function DialogBody({
         </DialogDescription>
       </DialogHeader>
 
-      <div className="grid flex-1 gap-8 px-6 py-6 md:grid-cols-[1fr_13rem]">
+      <div className="grid flex-1 gap-8 px-6 py-6 md:grid-cols-[1fr_16rem]">
         <div className="flex min-w-0 flex-col gap-6">
           <section>
             <h3 className="mb-1.5 text-xs font-medium text-muted-foreground">
