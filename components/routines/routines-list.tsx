@@ -219,23 +219,32 @@ export function RoutinesList({
               return (
                 <li
                   key={r.id}
-                  className="group flex cursor-pointer items-start gap-2.5 rounded-xl border border-border bg-card px-3.5 py-3.5 hover:bg-muted/40"
+                  className="group flex cursor-pointer items-start gap-2.5 rounded-xl border border-border bg-card px-3.5 py-4 hover:bg-muted/40"
                   onClick={() => {
                     setSelected(r)
                     setOpen(true)
                   }}
                 >
-                  <span className="pt-2">
-                    <StatusDot r={r} />
+                  {/* The icon tile from the knowledge-list recipe, with the
+                      status dot riding its corner: the tile says what kind
+                      of thing this is, the dot says how it is doing. */}
+                  <span className="relative shrink-0">
+                    <span className="flex size-9 items-center justify-center rounded-lg border border-border bg-background">
+                      <RoutinesIcon className="size-4 text-muted-foreground" />
+                    </span>
+                    <span className="absolute -top-0.5 -right-0.5">
+                      <StatusDot r={r} />
+                    </span>
                   </span>
                   <div className="min-w-0 flex-1">
                     {/* Card-title level per the styleguide: the name is the
                         one loud thing on the row. */}
                     <p className="truncate text-base font-medium">{r.name}</p>
+                    {/* Agent only: the schedule lives on the right under
+                        "Repeats", the SureThing shape, so the row never says
+                        the same thing twice. */}
                     <p className="mt-0.5 truncate text-xs text-muted-foreground">
                       {r.agentName}
-                      {', '}
-                      {r.sentence.charAt(0).toLowerCase() + r.sentence.slice(1)}
                     </p>
                     {/* No last-run snippet here (founder's call: rows stay
                         minimal; in practice agents title reports after the
@@ -250,6 +259,10 @@ export function RoutinesList({
                     ) : null}
                   </div>
 
+                  {/* One trailing cluster, vertically centered against the
+                      two-line row, so the date, the icons and the menu read
+                      as a single group rather than three floats. */}
+                  <span className="flex items-center gap-1.5 self-center">
                   {state.label ? (
                     <span
                       className={
@@ -262,14 +275,22 @@ export function RoutinesList({
                     >
                       {state.label}
                     </span>
-                  ) : mounted && r.nextRunAt ? (
-                    <span className="text-xs text-muted-foreground tabular-nums">
-                      {/* Plain English (founder's wording). "Next Wed 12 Aug"
-                          read as "next Wednesday"; the colon removes the
-                          ambiguity without shorthand. */}
-                      Next run: {formatWhen(r.nextRunAt)}
+                  ) : (
+                    <span className="text-right text-xs text-muted-foreground tabular-nums">
+                      {/* "Repeats" states the pattern (founder's wording);
+                          the date underneath is the next concrete firing.
+                          Kept separate because "Repeats Wed 12 Aug" would
+                          be a false sentence: the 12th does not repeat. */}
+                      <span className="block">
+                        Repeats {r.sentence.charAt(0).toLowerCase() + r.sentence.slice(1)}
+                      </span>
+                      {mounted && r.nextRunAt ? (
+                        <span className="block text-muted-foreground/70">
+                          Next: {formatWhen(r.nextRunAt)}
+                        </span>
+                      ) : null}
                     </span>
-                  ) : null}
+                  )}
 
                   {busy === r.id ? (
                     <Loader2 className="size-4 animate-spin text-muted-foreground" />
@@ -411,6 +432,7 @@ export function RoutinesList({
                     </DropdownMenu>
                     </>
                   )}
+                  </span>
                 </li>
               )
             })}
