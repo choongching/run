@@ -30,6 +30,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { TruncatedLabel } from '@/components/ui/truncated-label'
 import { needsAttention, type RoutineListItem } from '@/lib/routines/list'
 
 // The quiet list. The name is the only loud thing on a row; status lives on
@@ -429,11 +430,14 @@ export function RoutinesList({
                           onClick={() => router.push(`/chat/${r.agentId}`)}
                         >
                           <MessageSquare className="size-4 shrink-0" />
-                          {/* One line always; a long agent name truncates
-                              rather than folding the menu into a paragraph. */}
-                          <span className="max-w-48 truncate whitespace-nowrap">
-                            Chat with {r.agentName}
-                          </span>
+                          {/* One line always; a long agent name truncates,
+                              and TruncatedLabel reveals the full name on
+                              hover only when something is actually hidden. */}
+                          <TruncatedLabel
+                            text={`Chat with ${r.agentName}`}
+                            className="max-w-48"
+                            side="left"
+                          />
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
