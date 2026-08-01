@@ -1,4 +1,5 @@
 import type { ConnectableApp } from '@/lib/pipedream/client'
+import type { RoutineRule } from '@/lib/routines/rule'
 
 // Custom tools the agent can call in chat. Each call surfaces as an
 // agent.custom_tool_use event; the run loop auto-executes read tools via the
@@ -94,6 +95,101 @@ export function summarizeProposal(
   return {
     name: name.slice(0, 60) || fallback.name,
     instructions: instructions || fallback.instructions,
+  }
+}
+
+// set_routine puts the agent on a schedule. It is deliberately NOT on the
+// auto-run list: a routine spends runs from the monthly allowance while
+// nobody is watching, so it pauses the turn like a write and the user
+// confirms from a card that shows the real run dates before anything exists.
+export const SET_ROUTINE_TOOL = 'set_routine'
+
+export function isSetRoutineTool(name: string): boolean {
+  return name === SET_ROUTINE_TOOL
+}
+
+// What the routine card renders and the approve route creates: the rule
+// without its anchor or timezone, which the server stamps at confirm time
+// (the model knows neither).
+export type RoutineDraft = {
+  name: string
+  instruction: string
+  rule: Omit<RoutineRule, 'anchor' | 'tz'>
+}
+
+const WEEKDAY_NUMBERS: Record<string, number> = {
+  sunday: 0,
+  sun: 0,
+  monday: 1,
+  mon: 1,
+  tuesday: 2,
+  tue: 2,
+  wednesday: 3,
+  wed: 3,
+  thursday: 4,
+  thu: 4,
+  friday: 5,
+  fri: 5,
+  saturday: 6,
+  sat: 6,
+}
+
+const FREQ_ALIASES: Record<string, 'hour' | 'day' | 'week' | 'month'> = {
+  hour: 'hour',
+  hourly: 'hour',
+  day: 'day',
+  daily: 'day',
+  week: 'week',
+  weekly: 'week',
+  month: 'month',
+  monthly: 'month',
+}
+
+// Normalize a set_routine call into a draft, tolerant of loose model output
+// (day names instead of numbers, "daily" instead of "day", a stringly month
+// day). Returns null only when the schedule is unusable, in which case the
+// caller bounces the call back to the model instead of showing a broken card.
+export function summarizeRoutine(
+  input: Record<string, unknown>
+): RoutineDraft | null {
+  const freq = FREQ_ALIASES[String(input.freq ?? '').toLowerCase().trim()]
+  if (!freq) return null
+
+  const interval = Math.trunc(Number(input.interval ?? 1))
+  const hour = Math.trunc(Number(input.hour ?? 9))
+  const minute = Math.trunc(Number(input.minute ?? 0))
+  if (!Number.isFinite(interval) || interval < 1 || interval > 99) return null
+  if (!Number.isFinite(hour) || hour < 0 || hour > 23) return null
+  if (!Number.isFinite(minute) || minute < 0 || minute > 59) return null
+
+  let byday: number[] | undefined
+  if (Array.isArray(input.byday)) {
+    const days = input.byday
+      .map((d) =>
+        typeof d === 'number' ? d : WEEKDAY_NUMBERS[String(d).toLowerCase().trim()]
+      )
+      .filter((d): d is number => Number.isInteger(d) && d >= 0 && d <= 6)
+    byday = days.length > 0 ? [...new Set(days)].sort() : undefined
+  }
+
+  let monthDay: number | 'last' | undefined
+  const rawMonthDay = input.month_day ?? input.monthDay
+  if (rawMonthDay !== undefined && rawMonthDay !== null) {
+    if (String(rawMonthDay).toLowerCase().trim() === 'last') monthDay = 'last'
+    else {
+      const d = Math.trunc(Number(rawMonthDay))
+      if (Number.isFinite(d) && d >= 1 && d <= 31) monthDay = d
+    }
+  }
+
+  const name = String(input.name ?? '').trim().slice(0, 80)
+  const instruction = String(input.instruction ?? '').trim()
+  if (!name || !instruction) return null
+
+  return {
+    name,
+    instruction,
+    rule: { freq, interval, byday, monthDay, hour, minute },
   }
 }
 
@@ -454,6 +550,67 @@ export const CHAT_TOOL_DEFINITIONS = [
         },
       },
       required: ['name', 'instructions'],
+    },
+  },
+  {
+    type: 'custom' as const,
+    name: SET_ROUTINE_TOOL,
+    description:
+      "Set up a routine: standing work you will do for the user on a schedule, like 'check my inbox every weekday at 8am'. Call this whenever the user asks for anything recurring or scheduled. The user sees a card with the schedule and the real run dates and must confirm before the routine exists; nothing is created or run until they do. All times are in the user's own timezone and the server supplies it, so never ask about timezones. Write `instruction` as a complete brief to your future self for each run: what to read, what to produce, and what not to do. If the user asks to change or cancel an existing routine, tell them to open Routines in the sidebar instead.",
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        name: {
+          type: 'string',
+          description: 'Short human name, e.g. "Morning inbox triage".',
+        },
+        instruction: {
+          type: 'string',
+          description:
+            'The standing brief you will receive on every run. Complete and self-contained; the chat history will not be there.',
+        },
+        freq: {
+          type: 'string',
+          enum: ['hour', 'day', 'week', 'month'],
+          description: 'The schedule unit. Hourly is the floor.',
+        },
+        interval: {
+          type: 'integer',
+          description:
+            'Every N units: 1 for every day, 2 with freq week for every 2 weeks, 10 with freq day for every 10 days.',
+        },
+        byday: {
+          type: 'array',
+          items: {
+            type: 'string',
+            enum: [
+              'monday',
+              'tuesday',
+              'wednesday',
+              'thursday',
+              'friday',
+              'saturday',
+              'sunday',
+            ],
+          },
+          description:
+            'For freq week: which days it runs. For freq day: limit to these weekdays (monday to friday means "every weekday").',
+        },
+        month_day: {
+          type: 'string',
+          description:
+            'For freq month: the day of the month, 1 to 31, or "last" for the last day. Days 29 to 31 skip months that lack them.',
+        },
+        hour: {
+          type: 'integer',
+          description: "Hour of the day, 0 to 23, in the user's local time.",
+        },
+        minute: {
+          type: 'integer',
+          description: 'Minute, 0 to 59. Default 0.',
+        },
+      },
+      required: ['name', 'instruction', 'freq', 'interval', 'hour'],
     },
   },
 ]

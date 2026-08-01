@@ -30,6 +30,7 @@ import { Markdown } from '@/components/chat/markdown'
 import { RunDonut } from '@/components/usage/run-donut'
 import { OptionsCard } from '@/components/chat/options-card'
 import { ReviewCard, type ReviewSpec } from '@/components/chat/review-card'
+import { RoutineCard } from '@/components/chat/routine-card'
 import { ErrorNote } from '@/components/chat/error-note'
 import type { ChatError } from '@/lib/chat/errors'
 import {
@@ -42,7 +43,7 @@ import {
 } from '@/lib/files/accepted'
 import { MAX_MESSAGE_CHARS } from '@/lib/chat/limits'
 import { useAutoGrow } from '@/lib/use-auto-grow'
-import type { AskSpec } from '@/lib/tools/definitions'
+import type { AskSpec, RoutineDraft } from '@/lib/tools/definitions'
 import {
   Tooltip,
   TooltipContent,
@@ -100,6 +101,7 @@ type Frame =
   | { type: 'approval'; calls: ApprovalCall[] }
   | ({ type: 'ask' } & AskState)
   | ({ type: 'review'; id: string } & ReviewSpec)
+  | ({ type: 'routine'; id: string } & RoutineDraft)
   | { type: 'onboarded' }
   | { type: 'done'; text: string }
   | ({ type: 'error' } & ChatError)
@@ -112,6 +114,7 @@ export function ChatThread({
   onboarding,
   initialAsk,
   initialReview,
+  initialRoutine,
   initialAttachment,
 }: {
   agentId: string
@@ -121,6 +124,7 @@ export function ChatThread({
   onboarding: boolean
   initialAsk: AskState | null
   initialReview: ReviewSpec | null
+  initialRoutine: RoutineDraft | null
   initialAttachment: AttachmentMeta | null
 }) {
   const router = useRouter()
@@ -135,6 +139,9 @@ export function ChatThread({
   // happens in the thread, including the person typing a correction, because
   // the agent will propose again with the new wording.
   const [review, setReview] = useState<ReviewSpec | null>(initialReview)
+  // A proposed routine awaiting a yes. Cleared like the review card: typing a
+  // correction makes the agent propose again with new values.
+  const [routine, setRoutine] = useState<RoutineDraft | null>(initialRoutine)
   // The last turn's failure, and the way to run that same turn again. Retrying
   // is only offered where repeating the request is safe, which is why it lives
   // in a ref set by whoever started the turn rather than being assumed.
@@ -243,6 +250,13 @@ export function ChatThread({
           connectors: frame.connectors,
         })
         return
+      case 'routine':
+        setRoutine({
+          name: frame.name,
+          instruction: frame.instruction,
+          rule: frame.rule,
+        })
+        return
       case 'onboarded':
         // Setup finished: refresh so the server no longer treats this as a new
         // agent (the first task keeps streaming in this same response).
@@ -306,6 +320,7 @@ export function ChatThread({
     setApproval(null)
     setAsk(null)
     setReview(null)
+    setRoutine(null)
     setFailure(null)
     setDraft({ text: '', phase: 'thinking' })
     try {
@@ -441,6 +456,22 @@ export function ChatThread({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ decision }),
+        signal,
+      })
+    )
+  }
+
+  // Confirm or decline a proposed routine. Same route as write approvals (the
+  // routine is a pending tool call like any other); the browser's timezone
+  // rides along because the schedule means nothing without one, and only the
+  // browser knows it.
+  async function respondToRoutine(decision: 'approve' | 'deny', tz: string) {
+    if (running) return
+    await runStream((signal) =>
+      fetch(`/api/chat/${agentId}/approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ decision, tz }),
         signal,
       })
     )
@@ -659,6 +690,8 @@ export function ChatThread({
           {ask && <OptionsCard spec={ask} onAnswer={respondToAsk} />}
 
           {review && <ReviewCard spec={review} onConfirm={confirmSetup} />}
+
+          {routine && <RoutineCard draft={routine} onDecision={respondToRoutine} />}
 
           {failure && (
             <ErrorNote

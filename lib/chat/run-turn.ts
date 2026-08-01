@@ -7,12 +7,15 @@ import {
   isAutoRunTool,
   isCreateDocumentTool,
   isProposeTool,
+  isSetRoutineTool,
   stripCiteTags,
   summarizeAsk,
   summarizeDocument,
   summarizeProposal,
+  summarizeRoutine,
   summarizeWrite,
   type AskOption,
+  type RoutineDraft,
 } from '@/lib/tools/definitions'
 import { neededConnectors, type NeededConnector } from '@/lib/chat/onboarding'
 import { toChatError, type ChatError } from '@/lib/chat/errors'
@@ -48,6 +51,11 @@ export type Frame =
       instructions: string
       connectors: NeededConnector[]
     }
+  // A proposed routine awaiting the user's confirmation. Carries the draft
+  // only: the card computes the run dates itself in the browser's timezone,
+  // because the server does not know it and wrong dates would defeat the
+  // card's whole point.
+  | ({ type: 'routine'; id: string } & RoutineDraft)
   | { type: 'onboarded' }
   | { type: 'done'; text: string }
   | ({ type: 'error' } & ChatError)
@@ -122,6 +130,12 @@ export function toolActivity(
     }
     case 'drive_read_file':
       return { present: 'Reading a file', past: 'Read a file' }
+    case 'set_routine': {
+      const n = String(input.name ?? '').trim()
+      return n
+        ? { present: `Drawing up "${n}"`, past: `Drew up "${n}"` }
+        : { present: 'Drawing up a routine', past: 'Drew up a routine' }
+    }
     case 'create_document': {
       const t = String(input.title ?? '').trim()
       return t
@@ -417,6 +431,43 @@ async function drainSessionInner(
           connectors: neededConnectors([], proposal.instructions),
         })
         status = 'review'
+        break
+      }
+
+      // The agent proposed a routine. Pause like a write: persist the call
+      // and show the card. A schedule spends runs while nobody is watching,
+      // so it is confirmed from a card with real dates, never auto-created.
+      // An unusable draft bounces straight back to the model instead of
+      // rendering a broken card.
+      const routineCall = pending.find((c) => isSetRoutineTool(c.name))
+      if (routineCall) {
+        const draft = summarizeRoutine(routineCall.input)
+        if (!draft) {
+          pending = []
+          await anthropic.beta.sessions.events.send(sessionId, {
+            events: [
+              {
+                type: 'user.custom_tool_result',
+                custom_tool_use_id: routineCall.id,
+                content: [
+                  {
+                    type: 'text',
+                    text: 'Those schedule fields were not valid (check freq, interval, hour, and byday). Call set_routine again with corrected values.',
+                  },
+                ],
+                is_error: true,
+              },
+            ],
+            betas: [MANAGED_AGENTS_BETA],
+          })
+          continue
+        }
+        await supabase
+          .from('threads')
+          .update({ pending_tools: pending as unknown as Json })
+          .eq('id', threadId)
+        send({ type: 'routine', id: routineCall.id, ...draft })
+        status = 'approval'
         break
       }
 
