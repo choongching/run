@@ -20,6 +20,10 @@ export type UsageSource = 'chat' | 'schedule' | 'system'
 // to the person or shown to them as work delivered.
 export type UsageStatus = 'completed' | 'failed'
 export type MessageRole = 'user' | 'agent' | 'activity'
+// 'paused' is the user's switch; 'paused_system' is ours (out of runs, or
+// three failures in a row). Distinct so the UI can never conflate them.
+export type RoutineStatus = 'active' | 'paused' | 'paused_system'
+export type RoutineRunStatus = 'running' | 'completed' | 'failed' | 'skipped'
 // How a knowledge source's text got here: typed in, or extracted from an
 // upload. Connector-backed sources will add their own kind.
 export type KnowledgeKind = 'note' | 'file'
@@ -64,7 +68,6 @@ export type Database = {
           status: AgentStatus
           owner_id: string | null
           enabled_tools: AgentEnabledTools
-          schedule: string | null
           archived_at: string | null
           claude_version: number | null
           synced_at: string | null
@@ -84,7 +87,6 @@ export type Database = {
           status?: AgentStatus
           owner_id?: string | null
           enabled_tools?: AgentEnabledTools
-          schedule?: string | null
           archived_at?: string | null
           claude_version?: number | null
           synced_at?: string | null
@@ -104,7 +106,6 @@ export type Database = {
           status?: AgentStatus
           owner_id?: string | null
           enabled_tools?: AgentEnabledTools
-          schedule?: string | null
           archived_at?: string | null
           claude_version?: number | null
           synced_at?: string | null
@@ -378,6 +379,122 @@ export type Database = {
           },
         ]
       }
+      routines: {
+        Row: {
+          id: string
+          agent_id: string
+          user_id: string
+          name: string
+          instruction: string
+          rule: Json
+          status: RoutineStatus
+          next_run_at: string | null
+          last_run_at: string | null
+          consecutive_failures: number
+          carry: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          agent_id: string
+          user_id: string
+          name: string
+          instruction: string
+          rule: Json
+          status?: RoutineStatus
+          next_run_at?: string | null
+          last_run_at?: string | null
+          consecutive_failures?: number
+          carry?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          agent_id?: string
+          user_id?: string
+          name?: string
+          instruction?: string
+          rule?: Json
+          status?: RoutineStatus
+          next_run_at?: string | null
+          last_run_at?: string | null
+          consecutive_failures?: number
+          carry?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'routines_agent_id_fkey'
+            columns: ['agent_id']
+            isOneToOne: false
+            referencedRelation: 'agents'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      routine_runs: {
+        Row: {
+          id: string
+          routine_id: string
+          agent_id: string | null
+          user_id: string
+          status: RoutineRunStatus
+          started_at: string
+          finished_at: string | null
+          headline: string | null
+          error: string | null
+          session_id: string | null
+          pending_tools: Json | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          routine_id: string
+          agent_id?: string | null
+          user_id: string
+          status?: RoutineRunStatus
+          started_at?: string
+          finished_at?: string | null
+          headline?: string | null
+          error?: string | null
+          session_id?: string | null
+          pending_tools?: Json | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          routine_id?: string
+          agent_id?: string | null
+          user_id?: string
+          status?: RoutineRunStatus
+          started_at?: string
+          finished_at?: string | null
+          headline?: string | null
+          error?: string | null
+          session_id?: string | null
+          pending_tools?: Json | null
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'routine_runs_routine_id_fkey'
+            columns: ['routine_id']
+            isOneToOne: false
+            referencedRelation: 'routines'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'routine_runs_agent_id_fkey'
+            columns: ['agent_id']
+            isOneToOne: false
+            referencedRelation: 'agents'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       user_connections: {
         Row: {
           id: string
@@ -457,4 +574,6 @@ export type Thread = Database['public']['Tables']['threads']['Row']
 export type Message = Database['public']['Tables']['messages']['Row']
 export type UserConnection = Database['public']['Tables']['user_connections']['Row']
 export type UsageEvent = Database['public']['Tables']['usage_events']['Row']
+export type Routine = Database['public']['Tables']['routines']['Row']
+export type RoutineRun = Database['public']['Tables']['routine_runs']['Row']
 export type UsageMonth = Database['public']['Views']['usage_monthly']['Row']
