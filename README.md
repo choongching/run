@@ -39,10 +39,10 @@ flowchart TD
     E -->|Not connected yet| F["Connect card appears in chat<br/>you sign in once"]
     F --> G
     E -->|Already connected| G["Agent reads your<br/>inbox and files"]
-    G --> H{"Wants to write<br/>or send something?"}
+    G --> H{"Wants to change<br/>something?"}
     H -->|Just reading / answering| J["Streams the answer, or a<br/>downloadable document"]
     H -->|Has a side effect| I["Approval card:<br/>full preview, you decide"]
-    I -->|Approve| K["The action happens<br/>e.g. a real Gmail draft"]
+    I -->|Approve| K["The action happens<br/>e.g. a draft in your Gmail,<br/>which only you can send"]
     I -->|Cancel| D
     J --> D
     K --> D
@@ -58,11 +58,13 @@ The loop, in five beats:
    before your yes.
 4. **It does the work.** Reading your inbox and files needs no permission, and
    it narrates each step as it goes: *"Searching your inbox from the last 2
-   days"*, then *"Read an email"*.
+   days"*, then *"Read an email"*, or *"Searched the web for ..."* with the
+   actual query it ran. A run of steps folds into one quiet line you can open
+   if you want the detail.
 5. **It delivers, and asks first when it matters.** Answers and downloadable
-   documents come straight back. Anything that sends or changes something
-   stops, shows you the whole thing, and waits. Approve it, and a real draft
-   lands in your Gmail.
+   documents come straight back. Anything that changes something stops, shows
+   you the whole thing, and waits. Approve it, and a real draft lands in your
+   Gmail, where you are still the only one who can send it.
 
 You provide the intent, it provides the labor, and everything with
 consequences passes through your hands.
