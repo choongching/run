@@ -278,7 +278,7 @@ function DialogBody({
           className={buttonVariants({ variant: 'outline', size: 'sm' })}
         >
           <MessageSquare className="size-3.5" />
-          Open chat
+          Chat with {routine.agentName}
         </Link>
         <span className="flex-1" />
         <Button

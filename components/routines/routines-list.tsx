@@ -367,7 +367,10 @@ export function RoutinesList({
                               <MessageSquare className="size-4" />
                             </TooltipTrigger>
                             <TooltipContent side="bottom" sideOffset={8}>
-                              Open chat
+                              {/* Names the destination, not just the act:
+                                  the row just taught that the routine and
+                                  the agent are different things. */}
+                              Chat with {r.agentName}
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
@@ -425,7 +428,7 @@ export function RoutinesList({
                           onClick={() => router.push(`/chat/${r.agentId}`)}
                         >
                           <MessageSquare className="size-4" />
-                          Open chat
+                          Chat with {r.agentName}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
