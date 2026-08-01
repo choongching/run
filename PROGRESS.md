@@ -8,7 +8,18 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** The core is validated and the interface has been
+**Where we left off:** Routines shipped on 2026-08-01: agents now work on
+their own, on a schedule. You ask for one in the chat ("check my inbox every
+weekday at 8am"), a card proves the schedule with the next three real run
+dates before anything exists, and results land in the agent's own
+conversation. Scheduled runs read and report on their own; anything they
+want to send still waits for you. One founder step remains before schedules
+fire on their own in production: adding the runner secret to Vercel and
+approving the timer job (the Run now button already works everywhere).
+Next step after that: the before-more-users trio (sign-up email provider,
+Google app verification, database plan upgrade).
+
+The core is validated and the interface has been
 rebuilt around it. On 2026-07-26 the founder ran the whole loop on their own
 real Gmail and Drive and it held up: it summarized and critiqued a real Drive
 document, drafted email replies that read well, turned emails into a
@@ -79,6 +90,78 @@ Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
 
 ---
+
+## 2026-08-01: Routines, agents that work while you sleep
+
+The biggest feature since the revamp: an agent can now do standing work on a
+schedule, and the whole thing was designed in the open first (a lo-fi
+prototype iterated eight times against SureThing, Town and Jinba before any
+code) and then built in six phases, each merged on its own.
+
+- **What shipped, in one story.** You ask an agent for anything recurring:
+  "create a routine that checks tech news every other Wednesday at 8am."
+  The agent proposes a routine on a card that shows the schedule in plain
+  words, what it will do each time, the cost ("about 2 runs a month"), and
+  the next three real run dates computed in your own timezone. You press Set
+  it up and it exists. It fires on schedule, reads and reports on its own,
+  and its report lands in the agent's own conversation behind a quiet
+  divider, exactly where you would look. Anything it wants to send or change
+  still waits for you: it says so in its reply and you act in the chat.
+- **The schedule is a rule, not a cron string.** Cron cannot say "every 2
+  weeks" or "every 10 days", which are exactly the schedules people ask
+  for. Run stores a small rule (every N hours, days, weeks or months, on
+  which days, at what time, counting from a start date, in a named
+  timezone) and one library interprets it everywhere. The timezone math was
+  verified against daylight-saving transitions in both directions, months
+  without a 31st, and fortnight phase, before anything was built on it.
+- **Why the dates are on the card.** During research the same request typed
+  into a competitor produced a routine armed for the wrong day, visible in
+  two places, discoverable only a week later when nothing arrived. Three
+  real dates before you agree is the whole fix, and Run shows them in the
+  chat card, the tool's confirmation, and the detail sheet.
+- **A Routines page and a sidebar badge.** Routines sits directly under New
+  agent, the only row in the rail that can report a state: an amber count
+  of what needs you, shown only when it is not zero. The page groups by
+  whether it needs you (Needs you, Active, Paused), colour appears only
+  where there is something to do, and a row opens a sheet with the next
+  three runs, the editable instruction, what it remembers from last time,
+  and its recent runs.
+- **Runs never collide with your chat.** Every run gets a fresh session and
+  never touches the conversation's own live session or its pending
+  approvals, so a routine firing while you type cannot race you, and two
+  routines on one agent cannot race each other. Each run is recorded (what
+  it found, how it ended) and the last report is handed to the next run, so
+  "since last time" means something.
+- **Failure is designed, not silent.** A failed run says so in the thread in
+  plain words and names the next attempt. Three failures in a row pause the
+  routine. Running out of your monthly allowance pauses it too, with one
+  notice, instead of failing quietly every morning. "Paused by you" and
+  "paused by Run" are kept visibly distinct.
+- **Run now.** Every routine can be fired by hand from the Routines page,
+  which is how one earns trust before its first scheduled morning. Verified
+  live: a real web-research briefing landed in the chat nineteen seconds
+  after the button.
+- **The heartbeat.** A database timer posts to the app every five minutes;
+  due routines are claimed one at a time in a way that makes double-firing
+  impossible (a crashed run is a skipped run, never a doubled one). Verified
+  locally end to end: wrong secret refused, due routine ran once and
+  advanced correctly, immediate second tick did nothing.
+- **Configure knows.** The agent's panel gained a Routines section listing
+  its schedules, and a New routine button that drops "Create a routine
+  that " into the composer, ready to finish. The Routines page's empty
+  state does the same from its example sentences.
+- Merged to `main` via pull requests #212, #213, #214, #215, #216, and #217.
+- **Fixed along the way:** a real hydration crash (the card's dates rendered
+  in the server's locale first), a routine headline arriving wrapped in
+  markdown, and the usage history now labels schedule-fired runs "Routine".
+- **Left for the founder:** two five-minute steps to arm the production
+  timer (an environment variable on Vercel and a one-statement approval),
+  written up in the session handoff. Until then routines run on demand
+  everywhere and on schedule locally.
+- **Deferred by choice:** waiting approval cards from scheduled runs (the
+  schema already carries the columns), a Results feed, unread dots on
+  agents, composer connector chips, event triggers ("when an email
+  arrives"), and multiple times per routine.
 
 ## 2026-07-31 (night): Run becomes a phone app
 

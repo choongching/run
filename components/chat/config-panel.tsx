@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ChevronDown, Loader2, Sparkles, Trash2, X } from 'lucide-react'
 import { toast } from 'sonner'
@@ -39,6 +40,8 @@ import {
 } from '@/components/connectors/connector-list'
 import { PERSONALITIES } from '@/lib/agents/personalities'
 import type { SetupAnswer } from '@/lib/chat/onboarding'
+import type { PanelRoutine } from '@/lib/chat/panel-data'
+import { dispatchPrefill } from '@/lib/chat/prefill'
 
 // Plain-language model tiers. The ids mirror AGENT_MODELS in lib/anthropic;
 // the server action validates against that canonical list on save. Defined
@@ -68,6 +71,7 @@ export function ConfigPanel({
   connections,
   knowledge,
   knowledgeLibrary,
+  routines,
   isOwner,
   onClose,
 }: {
@@ -80,6 +84,7 @@ export function ConfigPanel({
   connections: ConnectorState
   knowledge: KnowledgeItem[]
   knowledgeLibrary: KnowledgeItem[]
+  routines: PanelRoutine[]
   isOwner: boolean
   onClose: () => void
 }) {
@@ -120,7 +125,9 @@ export function ConfigPanel({
         connections={connections}
         knowledge={knowledge}
         knowledgeLibrary={knowledgeLibrary}
+        routines={routines}
         isOwner={isOwner}
+        onClose={onClose}
       />
     </div>
   )
@@ -136,7 +143,9 @@ function ConfigPanelBody({
   connections,
   knowledge,
   knowledgeLibrary,
+  routines,
   isOwner,
+  onClose,
 }: {
   agentId: string
   agentName: string
@@ -147,7 +156,9 @@ function ConfigPanelBody({
   connections: ConnectorState
   knowledge: KnowledgeItem[]
   knowledgeLibrary: KnowledgeItem[]
+  routines: PanelRoutine[]
   isOwner: boolean
+  onClose: () => void
 }) {
   const router = useRouter()
   const [name, setName] = useState(agentName)
@@ -323,6 +334,63 @@ function ConfigPanelBody({
             library={knowledgeLibrary}
             canEdit={isOwner}
           />
+        </AccordionSection>
+
+        <AccordionSection
+          title="Routines"
+          hint="What this agent does on its own, on a schedule."
+        >
+          <div className="flex flex-col gap-2">
+            {routines.length === 0 ? (
+              <p className="px-0.5 text-xs text-muted-foreground">
+                Nothing scheduled yet. Ask in the chat: say when, and say what.
+              </p>
+            ) : (
+              <ul className="divide-y divide-border rounded-xl border border-border bg-card">
+                {routines.map((r) => (
+                  <li key={r.id}>
+                    <Link
+                      href="/routines"
+                      className="flex items-center gap-2.5 px-3 py-2.5 hover:bg-muted/40"
+                    >
+                      <span
+                        aria-hidden
+                        className={`size-1.5 shrink-0 rounded-full ${
+                          r.status === 'active'
+                            ? 'bg-chart-1'
+                            : r.status === 'paused_system'
+                              ? 'bg-chart-4'
+                              : 'border border-muted-foreground/50 bg-transparent'
+                        }`}
+                      />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-sm">{r.name}</span>
+                        <span className="block truncate text-xs text-muted-foreground">
+                          {r.sentence}
+                        </span>
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {isOwner && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="self-start"
+                onClick={() => {
+                  // Drop the opening words into the composer and get out of
+                  // the way. The person finishes the sentence; nothing is
+                  // sent for them.
+                  dispatchPrefill('Create a routine that ')
+                  onClose()
+                }}
+              >
+                New routine
+              </Button>
+            )}
+          </div>
         </AccordionSection>
 
         <AccordionSection

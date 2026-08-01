@@ -191,9 +191,13 @@ tool returned.
 
 **Is there any way to have an agent act on its own, unattended?**
 
-Not today. Every run starts from a message you send. Scheduled runs are
-planned, and the same gate design applies: a scheduled run may read on its
-own, but a write still waits for you.
+Yes: routines. Ask an agent in the chat for anything recurring, like "check
+my inbox every weekday at 8am", and it shows you the schedule with the real
+run dates before anything exists. The gate design holds unattended: a
+scheduled run reads and reports on its own, but anything it wants to send
+or change still waits for you. It says so in its reply and you act in the
+chat. Routines in the sidebar shows everything scheduled, what it found,
+and what needs you.
 
 **What about the prompt-level rule?**
 
@@ -288,9 +292,10 @@ Around that loop, the product has filled out:
   line what will live there.
 
 Next: opening the doors to more users (real sign-up emails and Google's app
-verification), exporting documents to Google Docs and PDF, multiple
-conversations per agent, and scheduled runs so an agent can work on its own
-(a daily inbox summary that arrives without you asking).
+verification), exporting documents to Google Docs and PDF, and multiple
+conversations per agent. Scheduled runs shipped as routines: an agent can
+now work on its own, like a daily inbox summary that arrives without you
+asking.
 
 The full, plain-English history, session by session, lives in
 **[PROGRESS.md](./PROGRESS.md)**.
