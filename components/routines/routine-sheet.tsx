@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { Loader2, MessageSquare, Pause, Play, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { AgentsIcon } from '@/components/nav-icons'
 import { Button, buttonVariants } from '@/components/ui/button'
 import {
   Dialog,
@@ -140,7 +141,7 @@ function DialogBody({
   return (
     <>
       <DialogHeader className="border-b border-border px-6 pt-6 pb-5">
-        <DialogTitle>Routine</DialogTitle>
+        <DialogTitle>Edit routine</DialogTitle>
         <DialogDescription>
           {routine.sentence}
           {routine.rule ? ` (${routine.rule.tz.replace(/_/g, ' ')} time)` : ''}
@@ -153,7 +154,7 @@ function DialogBody({
         <div className="flex min-w-0 flex-col gap-6">
           <section>
             <h3 className="mb-1.5 text-xs font-medium text-muted-foreground">
-              Name
+              Routine name
             </h3>
             <input
               value={name}
@@ -233,38 +234,56 @@ function DialogBody({
           ) : null}
         </div>
 
-        {/* The facts rail: read, not operated. Everything here answers "is
-            this thing alive and what does it cost me" at a glance. */}
-        <aside className="flex flex-col gap-4 text-sm md:border-l md:border-border md:pl-6">
-          <div>
-            <p className="text-xs text-muted-foreground">Status</p>
-            <p className="mt-0.5">{statusWord}</p>
+        {/* The facts rail: read, not operated. Label on the left, value on
+            the right, one fact per row (the founder pointed at SureThing's
+            rail: a definition table reads faster than stacked blocks
+            because the eye keeps one column for questions and one for
+            answers). */}
+        <aside className="flex flex-col gap-3.5 text-sm md:border-l md:border-border md:pl-6">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-xs text-muted-foreground">Status</span>
+            <span
+              className={
+                routine.status === 'active'
+                  ? 'rounded-md bg-chart-1/15 px-2 py-0.5 text-xs font-medium text-chart-1'
+                  : routine.status === 'paused_system'
+                    ? 'rounded-md bg-chart-4/15 px-2 py-0.5 text-xs font-medium text-chart-4'
+                    : 'rounded-md bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground'
+              }
+            >
+              {statusWord}
+            </span>
           </div>
-          {mounted && upcoming.length > 0 ? (
-            <div>
-              <p className="text-xs text-muted-foreground">Next runs</p>
-              <ul className="mt-0.5 tabular-nums">
-                {upcoming.map((d) => (
-                  <li key={d.toISOString()}>{formatWhen(d.toISOString())}</li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
-          <div>
-            <p className="text-xs text-muted-foreground">Cost</p>
-            <p className="mt-0.5">
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-xs text-muted-foreground">Agent</span>
+            <span className="flex min-w-0 items-center gap-1.5">
+              <AgentsIcon className="size-3.5 shrink-0 text-muted-foreground" />
+              <span className="truncate">{routine.agentName}</span>
+            </span>
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-xs text-muted-foreground">Cost</span>
+            <span>
               About {routine.perMonth} {routine.perMonth === 1 ? 'run' : 'runs'} a
               month
-            </p>
-          </div>
-          <div>
-            <p className="text-xs text-muted-foreground">Agent</p>
-            <p className="mt-0.5 truncate">{routine.agentName}</p>
+            </span>
           </div>
           {mounted ? (
-            <div>
-              <p className="text-xs text-muted-foreground">Created</p>
-              <p className="mt-0.5 tabular-nums">{formatWhen(routine.createdAt)}</p>
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-xs text-muted-foreground">Created</span>
+              <span className="tabular-nums">{formatWhen(routine.createdAt)}</span>
+            </div>
+          ) : null}
+          {mounted && upcoming.length > 0 ? (
+            <div className="flex flex-col gap-1.5 border-t border-border pt-3.5">
+              <span className="text-xs text-muted-foreground">Next runs</span>
+              <ul className="text-right tabular-nums">
+                {upcoming.map((d) => (
+                  <li key={d.toISOString()} className="py-0.5">
+                    {formatWhen(d.toISOString())}
+                  </li>
+                ))}
+              </ul>
             </div>
           ) : null}
         </aside>

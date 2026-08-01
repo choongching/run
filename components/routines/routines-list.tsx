@@ -71,7 +71,7 @@ function rowState(r: RoutineListItem): {
 } {
   if (r.status === 'paused_system') {
     return r.consecutiveFailures >= 3
-      ? { label: 'Paused after failed runs', tone: 'red' }
+      ? { label: 'Paused after 3 failed runs', tone: 'red' }
       : { label: 'Paused, out of runs', tone: 'amber' }
   }
   if (r.consecutiveFailures >= 3) return { label: 'Failing', tone: 'red' }
