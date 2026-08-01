@@ -37,7 +37,7 @@ export function Greeting({ name }: { name: string }) {
   // reserved height is trimmed to the text so the leading does not add a gap
   // of its own.
   return (
-    <p className="run-hero-dim mb-0.5 h-6 text-[17px]/6 text-muted-foreground">
+    <p className="run-hero-dim mb-1 h-8 text-[21px]/8 text-muted-foreground">
       {hello && <span className="run-rise inline-block">{hello}</span>}
     </p>
   )
