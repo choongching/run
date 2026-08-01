@@ -30,10 +30,17 @@ import { createClient } from '@/lib/supabase/server'
 // the client thread, which streams new turns through the run loop.
 export default async function ChatPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ agentId: string }>
+  searchParams: Promise<{ prefill?: string }>
 }) {
   const { agentId } = await params
+  // Words to drop into the composer, from a Routines-page suggestion link.
+  // Capped so a crafted URL cannot stuff the box with a novel.
+  const { prefill } = await searchParams
+  const initialInput =
+    typeof prefill === 'string' ? prefill.slice(0, 500) : undefined
   const { userId } = await getUserIdentity()
   const supabase = await createClient()
 
@@ -206,6 +213,7 @@ export default async function ChatPage({
         initialReview={initialReview}
         initialRoutine={initialRoutine}
         initialAttachment={initialAttachment}
+        initialInput={initialInput}
       />
     </ConfigDock>
   )

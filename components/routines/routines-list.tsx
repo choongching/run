@@ -147,30 +147,33 @@ export function RoutinesList({
         <p className="mt-1.5 max-w-lg text-sm text-muted-foreground">
           Open any of your agents and ask for one. Say when, and say what.
         </p>
-        {/* Worked examples, because the blank box is the hard part. These are
-            sentences to say, not settings to find. */}
-        <div className="mt-5 flex max-w-md flex-col gap-1.5 text-left">
+        {/* Worked examples, because the blank box is the hard part. Each one
+            opens the chat with the sentence already typed, ready to edit and
+            send; nothing is sent for the person. */}
+        <div className="mt-5 flex w-full max-w-md flex-col gap-1.5 text-left">
           {[
             'Create a routine that checks my inbox every weekday at 8am and tells me what needs a reply.',
             'Create a routine that reads my calendar every Monday at 8am and tells me what the week holds.',
             'Create a routine that finds my unanswered emails every Friday at 5pm.',
-          ].map((s) => (
-            <p
-              key={s}
-              className="rounded-lg border border-border bg-card px-3.5 py-2 text-sm text-muted-foreground"
-            >
-              {s}
-            </p>
-          ))}
+          ].map((s) =>
+            firstAgent ? (
+              <Link
+                key={s}
+                href={`/chat/${firstAgent.id}?prefill=${encodeURIComponent(s)}`}
+                className="rounded-lg border border-border bg-card px-3.5 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+              >
+                {s}
+              </Link>
+            ) : (
+              <p
+                key={s}
+                className="rounded-lg border border-border bg-card px-3.5 py-2 text-sm text-muted-foreground"
+              >
+                {s}
+              </p>
+            )
+          )}
         </div>
-        {firstAgent ? (
-          <Link
-            href={`/chat/${firstAgent.id}`}
-            className="mt-5 text-sm font-medium text-primary hover:underline"
-          >
-            Ask {firstAgent.name}
-          </Link>
-        ) : null}
       </div>
     )
   }

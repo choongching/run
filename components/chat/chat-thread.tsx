@@ -43,6 +43,7 @@ import {
 } from '@/lib/files/accepted'
 import { MAX_MESSAGE_CHARS } from '@/lib/chat/limits'
 import { useAutoGrow } from '@/lib/use-auto-grow'
+import { PREFILL_EVENT } from '@/lib/chat/prefill'
 import type { AskSpec, RoutineDraft } from '@/lib/tools/definitions'
 import {
   Tooltip,
@@ -116,6 +117,7 @@ export function ChatThread({
   initialReview,
   initialRoutine,
   initialAttachment,
+  initialInput,
 }: {
   agentId: string
   agentName: string
@@ -126,12 +128,24 @@ export function ChatThread({
   initialReview: ReviewSpec | null
   initialRoutine: RoutineDraft | null
   initialAttachment: AttachmentMeta | null
+  initialInput?: string
 }) {
   const router = useRouter()
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages)
   const [draft, setDraft] = useState<Draft>(null)
   const [running, setRunning] = useState(false)
-  const [input, setInput] = useState('')
+  // Seeded from ?prefill= links (the Routines page's suggestions), and
+  // updated by the panel's New routine button via a window event. Words in
+  // the box only; the person always presses send themselves.
+  const [input, setInput] = useState(initialInput ?? '')
+  useEffect(() => {
+    const onPrefill = (e: Event) => {
+      const text = (e as CustomEvent<string>).detail
+      if (typeof text === 'string') setInput(text)
+    }
+    window.addEventListener(PREFILL_EVENT, onPrefill)
+    return () => window.removeEventListener(PREFILL_EVENT, onPrefill)
+  }, [])
   const [connectApp, setConnectApp] = useState<string | null>(null)
   const [approval, setApproval] = useState<ApprovalCall[] | null>(initialApproval)
   const [ask, setAsk] = useState<AskState | null>(initialAsk)

@@ -3,12 +3,23 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import type { KnowledgeItem } from '@/components/chat/knowledge-section'
 import type { ConnectorState } from '@/components/connectors/connector-list'
 import { getUserConnection } from '@/lib/pipedream/connections'
-import type { Database } from '@/lib/types/database'
+import { describeRule, parseRule } from '@/lib/routines/rule'
+import type { Database, RoutineStatus } from '@/lib/types/database'
+
+// The one-line summary the panel shows per routine; the full story lives on
+// the Routines page.
+export type PanelRoutine = {
+  id: string
+  name: string
+  sentence: string
+  status: RoutineStatus
+}
 
 export type PanelExtras = {
   connections: ConnectorState
   knowledge: KnowledgeItem[]
   knowledgeLibrary: KnowledgeItem[]
+  routines: PanelRoutine[]
 }
 
 type SourceRow = {
@@ -45,7 +56,13 @@ export async function loadPanelExtras(
   agentId: string,
   userId: string
 ): Promise<PanelExtras> {
-  const [gmailConn, driveConn, { data: attachedRows }, { data: libraryRows }] =
+  const [
+    gmailConn,
+    driveConn,
+    { data: attachedRows },
+    { data: libraryRows },
+    { data: routineRows },
+  ] =
     await Promise.all([
       getUserConnection(supabase, userId, 'gmail'),
       getUserConnection(supabase, userId, 'google_drive'),
@@ -60,6 +77,12 @@ export async function loadPanelExtras(
         .from('knowledge_sources')
         .select('id, title, kind, char_count, origin, applies_to_all')
         .eq('owner_id', userId)
+        .order('created_at', { ascending: false }),
+      supabase
+        .from('routines')
+        .select('id, name, rule, status')
+        .eq('agent_id', agentId)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false }),
     ])
 
@@ -82,9 +105,20 @@ export async function loadPanelExtras(
     .filter((s) => !carriedIds.has(s.id))
     .map(toItem)
 
+  const routines: PanelRoutine[] = (routineRows ?? []).map((r) => {
+    const rule = parseRule(r.rule)
+    return {
+      id: r.id,
+      name: r.name,
+      sentence: rule ? describeRule(rule) : 'Broken schedule',
+      status: r.status,
+    }
+  })
+
   return {
     connections: { gmail: !!gmailConn, google_drive: !!driveConn },
     knowledge,
     knowledgeLibrary,
+    routines,
   }
 }
