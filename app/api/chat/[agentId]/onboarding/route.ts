@@ -1,14 +1,10 @@
 import { requireUser } from '@/lib/api-helpers'
 import { toChatError } from '@/lib/chat/errors'
 import { ensureEnvironment } from '@/lib/anthropic/environment'
-import {
-  buildAgentToolset,
-  getAnthropicClient,
-  MANAGED_AGENTS_BETA,
-} from '@/lib/anthropic/client'
+import { getAnthropicClient } from '@/lib/anthropic/client'
 import { onboardingKickoff } from '@/lib/chat/onboarding'
+import { ensureSession } from '@/lib/chat/session'
 import { drainSession, type Frame } from '@/lib/chat/run-turn'
-import { CHAT_TOOL_DEFINITIONS } from '@/lib/tools/definitions'
 import { firstName } from '@/lib/user-name'
 
 // Start the first-run setup interview: the agent introduces itself and asks a
@@ -85,28 +81,18 @@ export async function POST(
       try {
         // First turn of a new agent: create the session with our tools (the
         // ask_user tool lives in CHAT_TOOL_DEFINITIONS, so it is available for
-        // the interview).
-        let sessionId = thread.session_id
-        if (!sessionId) {
-          const session = await anthropic.beta.sessions.create({
-            agent: {
-              id: agent.claude_agent_id!,
-              type: 'agent_with_overrides',
-              tools: [
-                ...buildAgentToolset({ web_search: true }),
-                ...CHAT_TOOL_DEFINITIONS,
-              ],
-            },
-            environment_id: environmentId,
-            title: agent.name,
-            betas: [MANAGED_AGENTS_BETA],
-          })
-          sessionId = session.id
-          await supabase
-            .from('threads')
-            .update({ session_id: sessionId })
-            .eq('id', thread.id)
-        }
+        // the interview). No recap here: this route only runs on an agent that
+        // has never spoken, so there is nothing to remember.
+        const { sessionId } = await ensureSession({
+          anthropic,
+          supabase,
+          threadId: thread.id,
+          sessionId: thread.session_id,
+          claudeAgentId: agent.claude_agent_id!,
+          environmentId,
+          title: agent.name,
+          recap: false,
+        })
 
         await drainSession({
           anthropic,

@@ -12,6 +12,8 @@ import {
   type InitialEvents,
   type PendingCall,
 } from '@/lib/chat/run-turn'
+import { ensureSession } from '@/lib/chat/session'
+import { ensureEnvironment } from '@/lib/anthropic/environment'
 import { isProposeTool } from '@/lib/tools/definitions'
 
 // Confirm the setup an agent proposed, then let it start.
@@ -55,7 +57,7 @@ export async function POST(
     .eq('agent_id', agentId)
     .eq('user_id', userId)
     .maybeSingle()
-  if (!thread?.session_id) {
+  if (!thread) {
     return Response.json({ error: 'There is nothing waiting to be confirmed.' }, { status: 409 })
   }
 
@@ -77,6 +79,14 @@ export async function POST(
     .update({ name })
     .eq('id', agentId)
     .eq('owner_id', userId)
+
+  // Only needed when the session has to be rebuilt, but reading it here keeps
+  // the failure a plain JSON error instead of one mid-stream.
+  const environment = await ensureEnvironment()
+  if (!environment.ok) {
+    return Response.json({ error: environment.reason }, { status: 503 })
+  }
+  const environmentId = environment.environmentId
 
   const anthropic = getAnthropicClient()
   const encoder = new TextEncoder()
@@ -111,35 +121,53 @@ export async function POST(
         //
         // With no proposal to answer (the agent talked its way through setup
         // instead of calling the tool), the kickoff is an ordinary message.
-        const kickoff: InitialEvents = proposeCall
-          ? [
-              {
-                type: 'user.custom_tool_result',
-                custom_tool_use_id: proposeCall.id,
-                content: [
-                  {
-                    type: 'text',
-                    text: `The user confirmed this setup. It is saved.\n\n${FIRST_TASK_KICKOFF}`,
-                  },
-                ],
-              },
-            ]
-          : [
-              {
-                type: 'user.message',
-                content: [{ type: 'text', text: FIRST_TASK_KICKOFF }],
-              },
-            ]
+        const kickoff = (recap: string | null): InitialEvents => {
+          const blocks = recap
+            ? [
+                { type: 'text' as const, text: recap },
+                { type: 'text' as const, text: FIRST_TASK_KICKOFF },
+              ]
+            : [{ type: 'text' as const, text: FIRST_TASK_KICKOFF }]
+          return proposeCall
+            ? [
+                {
+                  type: 'user.custom_tool_result',
+                  custom_tool_use_id: proposeCall.id,
+                  content: [
+                    {
+                      type: 'text',
+                      text: `The user confirmed this setup. It is saved.\n\n${FIRST_TASK_KICKOFF}`,
+                    },
+                  ],
+                },
+              ]
+            : [{ type: 'user.message', content: blocks }]
+        }
+
+        // Normally the session is the one that made the proposal. It can be
+        // gone if the owner saved a config change while the card was on
+        // screen, which also clears the pending call: rather than strand
+        // someone on a card that no longer works, build a session, hand it the
+        // conversation, and let the kickoff arrive as a plain message.
+        const { sessionId, recapText } = await ensureSession({
+          anthropic,
+          supabase,
+          threadId: thread.id,
+          sessionId: thread.session_id,
+          claudeAgentId: agent.claude_agent_id!,
+          environmentId,
+          title: name,
+        })
 
         await drainSession({
           anthropic,
-          sessionId: thread.session_id!,
+          sessionId,
           supabase,
           userId,
           agentId: agent.id,
           agentModel: agent.model,
           threadId: thread.id,
-          initialEvents: kickoff,
+          initialEvents: kickoff(recapText),
           send,
         })
       } catch (err) {

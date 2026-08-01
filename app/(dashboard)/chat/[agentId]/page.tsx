@@ -106,14 +106,17 @@ export default async function ChatPage({
   const rows = thread?.messages ?? []
 
   const initialMessages: ChatMessage[] = (rows ?? []).map((r) => {
-    const artifact = (r.payload as { artifact?: ArtifactMeta } | null)?.artifact
+    const payload = r.payload as
+      | { artifact?: ArtifactMeta; notice?: string }
+      | null
     return {
       id: r.id,
       role: r.role,
       content: r.content,
       createdAt: r.created_at ?? undefined,
       attachments: (r.attachments as AttachmentMeta[] | null) ?? undefined,
-      artifact: artifact ?? undefined,
+      artifact: payload?.artifact ?? undefined,
+      notice: payload?.notice ?? undefined,
     }
   })
 

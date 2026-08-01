@@ -2,16 +2,12 @@ import { requireUser } from '@/lib/api-helpers'
 import { getRunAllowance } from '@/lib/entitlements/assert'
 import { toChatError } from '@/lib/chat/errors'
 import { ensureEnvironment } from '@/lib/anthropic/environment'
-import {
-  buildAgentToolset,
-  getAnthropicClient,
-  MANAGED_AGENTS_BETA,
-} from '@/lib/anthropic/client'
+import { getAnthropicClient } from '@/lib/anthropic/client'
 import { MAX_MESSAGE_CHARS, MAX_TURNS_PER_MINUTE } from '@/lib/chat/limits'
 import { drainSession, type Frame, type PendingCall } from '@/lib/chat/run-turn'
+import { ensureSession } from '@/lib/chat/session'
 import { isProposeTool } from '@/lib/tools/definitions'
 import { neededConnectors, stripBrief } from '@/lib/chat/onboarding'
-import { CHAT_TOOL_DEFINITIONS } from '@/lib/tools/definitions'
 import type { Json } from '@/lib/types/database'
 
 type PendingDocument = {
@@ -75,6 +71,12 @@ function buildContent(text: string, attachment: PendingAttachment | null): Block
     return [{ type: 'text', text: composeDocumentText(text, attachment) }]
   }
   return [{ type: 'text', text }]
+}
+
+// Carry the recap inside the person's own message rather than ahead of it.
+// A separate event reads as a separate turn, and the model answers it.
+function withRecap(content: Block[], recap: string | null): Block[] {
+  return recap ? [{ type: 'text', text: recap }, ...content] : content
 }
 
 // A chat turn: persist the user message, run it through the thread's Managed
@@ -189,7 +191,7 @@ export async function POST(
 
   // Persist the user's message (with any attachment's metadata for reload)
   // before streaming, so it is never lost even if the agent turn fails midway.
-  if (!isRetry) await supabase.from('messages').insert({
+  const { data: sentMessage } = !isRetry ? await supabase.from('messages').insert({
     thread_id: thread.id,
     role: 'user',
     content: text,
@@ -205,7 +207,7 @@ export async function POST(
           },
         ] as unknown as Json)
       : null,
-  })
+  }).select('id').single() : { data: null }
   // The attachment is consumed by this message; clear it and bump the thread.
   await supabase
     .from('threads')
@@ -241,30 +243,20 @@ export async function POST(
         controller.enqueue(encoder.encode(`${JSON.stringify(frame)}\n`))
 
       try {
-        // Reuse the thread's session so the agent keeps context; create it on
-        // the first turn with our custom tools attached (agent_with_overrides
-        // replaces the tool set, so include the base toolset too).
-        let sessionId = thread.session_id
-        if (!sessionId) {
-          const session = await anthropic.beta.sessions.create({
-            agent: {
-              id: agent.claude_agent_id!,
-              type: 'agent_with_overrides',
-              tools: [
-                ...buildAgentToolset({ web_search: true }),
-                ...CHAT_TOOL_DEFINITIONS,
-              ],
-            },
-            environment_id: environmentId,
-            title: agent.name,
-            betas: [MANAGED_AGENTS_BETA],
-          })
-          sessionId = session.id
-          await supabase
-            .from('threads')
-            .update({ session_id: sessionId })
-            .eq('id', thread.id)
-        }
+        // Reuse the thread's session so the agent keeps context. When there is
+        // none (first turn, or a config change cleared it), a new one is
+        // created and handed the conversation so far, so a saved edit does not
+        // cost the agent its memory of a chat the person can still see.
+        const { sessionId, recapText } = await ensureSession({
+          anthropic,
+          supabase,
+          threadId: thread.id,
+          sessionId: thread.session_id,
+          claudeAgentId: agent.claude_agent_id!,
+          environmentId,
+          title: agent.name,
+          excludeMessageId: sentMessage?.id ?? null,
+        })
 
         // Show (and persist) that the agent was handed the attachment, before
         // it starts reasoning, so the transcript makes the attachment legible.
@@ -308,9 +300,9 @@ export async function POST(
                     },
                   ],
                 },
-                { type: 'user.message', content },
+                { type: 'user.message', content: withRecap(content, recapText) },
               ]
-            : [{ type: 'user.message', content }],
+            : [{ type: 'user.message', content: withRecap(content, recapText) }],
           send,
         })
 

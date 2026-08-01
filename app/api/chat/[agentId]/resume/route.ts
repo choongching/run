@@ -1,14 +1,10 @@
 import { requireUser } from '@/lib/api-helpers'
 import { toChatError } from '@/lib/chat/errors'
 import { ensureEnvironment } from '@/lib/anthropic/environment'
-import {
-  buildAgentToolset,
-  getAnthropicClient,
-  MANAGED_AGENTS_BETA,
-} from '@/lib/anthropic/client'
+import { getAnthropicClient } from '@/lib/anthropic/client'
 import { CONNECTED_KICKOFF } from '@/lib/chat/onboarding'
+import { ensureSession } from '@/lib/chat/session'
 import { drainSession, type Frame } from '@/lib/chat/run-turn'
-import { CHAT_TOOL_DEFINITIONS } from '@/lib/tools/definitions'
 
 // Resume the task the agent paused on after the user connects an account it
 // needed. Triggered automatically when the in-thread connect card detects a
@@ -69,28 +65,18 @@ export async function POST(
 
       try {
         // The session normally already exists (the agent ran far enough to hit
-        // the missing connection). Create it defensively if somehow absent.
-        let sessionId = thread.session_id
-        if (!sessionId) {
-          const session = await anthropic.beta.sessions.create({
-            agent: {
-              id: agent.claude_agent_id!,
-              type: 'agent_with_overrides',
-              tools: [
-                ...buildAgentToolset({ web_search: true }),
-                ...CHAT_TOOL_DEFINITIONS,
-              ],
-            },
-            environment_id: environmentId,
-            title: agent.name,
-            betas: [MANAGED_AGENTS_BETA],
-          })
-          sessionId = session.id
-          await supabase
-            .from('threads')
-            .update({ session_id: sessionId })
-            .eq('id', thread.id)
-        }
+        // the missing connection). If it does not, the recap matters more here
+        // than anywhere: this route tells the agent to carry on where it left
+        // off, and a blank session has no "where".
+        const { sessionId, recapText } = await ensureSession({
+          anthropic,
+          supabase,
+          threadId: thread.id,
+          sessionId: thread.session_id,
+          claudeAgentId: agent.claude_agent_id!,
+          environmentId,
+          title: agent.name,
+        })
 
         await drainSession({
           anthropic,
@@ -103,7 +89,12 @@ export async function POST(
           initialEvents: [
             {
               type: 'user.message',
-              content: [{ type: 'text', text: CONNECTED_KICKOFF }],
+              content: recapText
+                ? [
+                    { type: 'text', text: recapText },
+                    { type: 'text', text: CONNECTED_KICKOFF },
+                  ]
+                : [{ type: 'text', text: CONNECTED_KICKOFF }],
             },
           ],
           send,
