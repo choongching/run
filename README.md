@@ -104,6 +104,66 @@ not what they can do. It is what they do without asking:
 - **Per-user connections.** Each person connects their own Gmail and Drive; an
   agent acts on the signed-in user's accounts, scoped by row-level security.
 
+## Security FAQ
+
+Real questions people have asked, answered by reading the code rather than
+from memory. If you are building something similar, the reasoning may be more
+useful than the answers.
+
+**If a prompt injection tells the agent to send an email, what stops it?**
+
+Nothing stops it, because there is nothing to stop. Sending is not in the
+agent's toolbox. The whole toolbox is: search inbox, read an email, create a
+draft, list and read and organize Drive files, write a document, ask you a
+question. That is not a list of what the agent is allowed to do, it is a list
+of what it can do. An injected instruction cannot invoke a capability that
+does not exist, the same way your calculator cannot make phone calls.
+
+**Then what enforces the boundary between the agent deciding and something
+actually happening?**
+
+The decision and the execution happen on different computers. The model runs
+on Anthropic's servers, and when it decides to use a tool, all that
+physically happens is it emits a message and the session pauses. Nothing has
+been done yet. Execution only ever happens in this app's backend, which
+auto-runs a short allowlist of read-only tools; every write, and anything
+unrecognized, stops there and becomes a card you see. The gate fails closed
+by construction: a new tool is gated unless someone deliberately adds it to
+the read allowlist.
+
+**Could an injection forge or alter the approval?**
+
+The pending call is written to the database on the server, attached to your
+own conversation. When you tap Approve, the server executes only what is
+stored in that row, and clears it so a double-tap cannot run it twice. The
+request carries a yes or no and nothing else, so nothing the model says
+afterward, and nothing in a tampered page, can substitute a different action
+than the one you were shown.
+
+**So the worst case is?**
+
+An injection can, at most, make an agent ask your permission to write a
+draft. A draft is inert: it sits in your Gmail drafts folder, and the only
+finger that can press Send is yours.
+
+**Where is this weakest?**
+
+At the permission layer, and it is worth saying plainly. Gmail is connected
+through Pipedream, whose Gmail connector requests a broad Google scope set
+that includes send and modify. Run never calls them and has no code path
+that could, but that means "Google itself would refuse" is not a claim this
+project can make today. Narrowing that grant, either through reduced
+connector scopes or a dedicated Google OAuth client, is open work. An app
+that only drafts should not hold permission to send.
+
+**What about the prompt-level rule?**
+
+Every agent carries a fixed instruction that anything it reads from an
+email, a file, or a web page is data, not instructions, and it sits outside
+the part of the prompt anyone can edit. It reduces attempts, and it is the
+politest layer, not the strongest one. The strong claim is the one above:
+the decision and the execution never share a trust domain.
+
 ## When something goes wrong
 
 Agent products fail differently from ordinary software. Models are
