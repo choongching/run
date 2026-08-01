@@ -184,12 +184,7 @@ function DialogBody({
     <>
       <DialogHeader className="shrink-0 border-b border-border px-6 pt-6 pb-5">
         <DialogTitle>Edit routine</DialogTitle>
-        <DialogDescription>
-          {routine.sentence}
-          {routine.rule ? ` (${routine.rule.tz.replace(/_/g, ' ')} time)` : ''}
-          {'. '}To change the schedule itself, ask {routine.agentName} in the
-          chat.
-        </DialogDescription>
+        <DialogDescription>Changes apply from the next run.</DialogDescription>
       </DialogHeader>
 
       <div className="grid min-h-0 flex-1 gap-8 overflow-y-auto px-6 py-6 md:grid-cols-[1fr_16rem]">
@@ -316,6 +311,20 @@ function DialogBody({
             because the eye keeps one column for questions and one for
             answers). */}
         <aside className="flex flex-col gap-3.5 text-sm md:border-l md:border-border md:pl-6">
+          {/* The schedule leads the rail (founder's call): it is the one
+              fact that defines a routine, so it reads before the vitals. */}
+          <div className="flex flex-col gap-1 border-b border-border pb-3.5">
+            <span className="text-xs text-muted-foreground">Schedule</span>
+            <p className="font-medium">
+              {routine.sentence}
+              {routine.rule
+                ? ` (${routine.rule.tz.replace(/_/g, ' ')} time)`
+                : ''}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              To change it, ask {routine.agentName} in the chat.
+            </p>
+          </div>
           <div className="flex items-center justify-between gap-3">
             <span className="text-xs text-muted-foreground">Status</span>
             <span
