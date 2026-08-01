@@ -47,10 +47,34 @@ export async function resetAgentSessions(
     auth: { persistSession: false },
   })
 
-  await admin
+  const { data: threads } = await admin
     .from('threads')
     .update({ session_id: null, pending_tools: null })
     .eq('agent_id', agentId)
+    .select('id')
+
+  // Say so in the conversation. The session is replaced and handed a recap of
+  // what was said (see ensureSession), so nothing is actually lost, but the
+  // agent IS different from this point: new instructions, maybe a new model.
+  // A quiet line marking where that happened is the difference between "it
+  // changed when I asked it to" and an agent that inexplicably answers in a
+  // new voice halfway down a page.
+  //
+  // Only in threads that have already been used: a brand new agent has no
+  // "from here" to mark.
+  for (const t of threads ?? []) {
+    const { count } = await admin
+      .from('messages')
+      .select('id', { count: 'exact', head: true })
+      .eq('thread_id', t.id)
+    if ((count ?? 0) === 0) continue
+    await admin.from('messages').insert({
+      thread_id: t.id,
+      role: 'activity',
+      content: '',
+      payload: { notice: 'Updated. Your agent uses the new setup from here.' },
+    })
+  }
 }
 
 // Rebuild an agent's system prompt from its current parts and save it.

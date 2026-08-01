@@ -75,6 +75,9 @@ export type ChatMessage = {
   // For activity rows: the present-tense label to show while the step runs
   // (content holds the past-tense label shown once it is done).
   activityPresent?: string
+  // A change to the agent itself, marked in the conversation as a rule rather
+  // than a message: nobody said this, the setup did.
+  notice?: string
 }
 
 // The composer's in-progress attachment: validated and confirmed on attach, so
@@ -544,7 +547,19 @@ export function ChatThread({
     }
   }
 
-  const isEmpty = messages.length === 0 && !draft
+  // Saving a config change writes a notice row server-side, and the panel
+  // calls router.refresh(). That re-runs the server component, but this
+  // component's own message state was seeded once, so a plain refresh would
+  // not show the new line until a full reload. Merging in any notice we do
+  // not hold yet keeps that honest without a state sync fighting the
+  // optimistic rows we add while a turn is running.
+  const shown = useMemo(() => {
+    const held = new Set(messages.map((m) => m.id))
+    const fresh = initialMessages.filter((m) => m.notice && !held.has(m.id))
+    return fresh.length ? [...messages, ...fresh] : messages
+  }, [messages, initialMessages])
+
+  const isEmpty = shown.length === 0 && !draft
 
   // Two or more step lines in a row collapse into one compact block, so the
   // work is there for whoever wants it without filling the conversation.
@@ -556,11 +571,17 @@ export function ChatThread({
       items: ChatMessage[]
       startIndex: number
     }[] = []
-    for (let i = 0; i < messages.length; i++) {
-      const m = messages[i]
-      if (m.role === 'activity') {
+    for (let i = 0; i < shown.length; i++) {
+      const m = shown[i]
+      if (m.notice) {
+        // A setup change is a rule across the thread, never part of a run of
+        // steps: clustering it into "3 steps" would hide the one line that
+        // explains why the agent changed.
+        out.push({ kind: 'msg', items: [m], startIndex: i })
+      } else if (m.role === 'activity') {
         const run: ChatMessage[] = [m]
-        while (messages[i + 1]?.role === 'activity') run.push(messages[++i])
+        while (shown[i + 1]?.role === 'activity' && !shown[i + 1].notice)
+          run.push(shown[++i])
         out.push({
           kind: run.length > 1 ? 'steps' : 'msg',
           items: run.length > 1 ? run : [m],
@@ -573,7 +594,7 @@ export function ChatThread({
       }
     }
     return out
-  }, [messages])
+  }, [shown])
 
   return (
     <div
@@ -597,20 +618,22 @@ export function ChatThread({
 
           {blocks.map((block) => {
             const first = block.items[0]
-            const prev = messages[block.startIndex - 1]
+            const prev = shown[block.startIndex - 1]
             const showDay =
               first.createdAt &&
               (!prev?.createdAt ||
                 dayKey(prev.createdAt) !== dayKey(first.createdAt))
             const blockIsLive =
               running &&
-              block.startIndex + block.items.length === messages.length
+              block.startIndex + block.items.length === shown.length
             return (
               <Fragment key={first.id}>
                 {showDay && mounted && (
                   <DayDivider label={formatDay(first.createdAt!, now)} />
                 )}
-                {block.kind === 'steps' ? (
+                {first.notice ? (
+                  <DayDivider label={first.notice} />
+                ) : block.kind === 'steps' ? (
                   <StepsBlock steps={block.items} running={blockIsLive} />
                 ) : (
                   <MessageRow
