@@ -52,8 +52,10 @@ function HelpTip({ children }: { children: React.ReactNode }) {
         >
           <CircleQuestionMark className="size-3.5" />
         </TooltipTrigger>
-        <TooltipContent side="right" sideOffset={8} className="max-w-72">
-          {children}
+        <TooltipContent side="right" sideOffset={8}>
+          {/* A plain block, one sentence or two. Anything longer belongs in
+              the interface, not behind a question mark. */}
+          <span className="block max-w-56">{children}</span>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>
@@ -205,18 +207,8 @@ function DialogBody({
             <h3 className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
               What it does each time
               <HelpTip>
-                <p className="font-medium">The standing brief</p>
-                <p className="mt-1">
-                  What the agent is told on every run, written like a note to
-                  a colleague: what to read, what to produce, what to leave
-                  alone. The chat history is not there, so it has to stand on
-                  its own.
-                </p>
-                <p className="mt-2 text-primary-foreground/70">For example</p>
-                <p className="mt-0.5">
-                  Read the last day of email and say what needs a reply. Do
-                  not reply to anyone.
-                </p>
+                The instruction the agent gets on every run. It stands alone;
+                the chat history is not included.
               </HelpTip>
             </h3>
             <textarea
@@ -233,13 +225,8 @@ function DialogBody({
                 <h3 className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                   What it remembers from last time
                   <HelpTip>
-                    <p className="font-medium">Its own last report</p>
-                    <p className="mt-1">
-                      Handed to the next run so &quot;since last time&quot;
-                      means something, and it can build on what it said
-                      instead of repeating it. Forget clears it and the next
-                      run starts fresh.
-                    </p>
+                    What it reported last time. The next run reads this so it
+                    can say what changed. Forget clears it.
                   </HelpTip>
                 </h3>
                 <button
@@ -259,50 +246,12 @@ function DialogBody({
             </section>
           ) : null}
 
-          {routine.runs.length > 0 ? (
-            <section>
-              <h3 className="mb-1.5 text-xs font-medium text-muted-foreground">
-                Recent runs
-              </h3>
-              {/* The reliability ledger, one line per run: how it went and
-                  when. Headlines came out (the founder asked what they were
-                  for, and the honest answer was nothing: agents title every
-                  report after the routine, so they repeated the name).
-                  What only this list can tell you is whether the thing has
-                  been working, and the error when it has not. */}
-              <ul className="divide-y divide-border rounded-lg border border-border">
-                {routine.runs.map((run) => (
-                  <li
-                    key={run.startedAt}
-                    className="flex items-center gap-2.5 px-3 py-2"
-                  >
-                    <span
-                      aria-hidden
-                      className={`size-1.5 shrink-0 rounded-full ${
-                        run.status === 'failed'
-                          ? 'bg-destructive'
-                          : run.status === 'completed'
-                            ? 'bg-chart-1'
-                            : 'bg-chart-4'
-                      }`}
-                    />
-                    <span className="min-w-0 flex-1 truncate text-sm">
-                      {run.status === 'failed'
-                        ? `Did not finish${run.error ? `: ${run.error}` : ''}`
-                        : run.status === 'skipped'
-                          ? 'Skipped'
-                          : 'Ran fine'}
-                    </span>
-                    {mounted ? (
-                      <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
-                        {formatWhen(run.startedAt)}
-                      </span>
-                    ) : null}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
+          {/* No Recent runs section. It went through two shapes (headlines,
+              then a status ledger) and the founder cut it with the right
+              question: "I can't act on it." Everything it said already
+              lives where acting is possible: the list row carries the last
+              failure and its error, the failure message lands in the chat,
+              and three failures pause the routine visibly. */}
         </div>
 
         {/* The facts rail: read, not operated. Label on the left, value on
@@ -350,12 +299,8 @@ function DialogBody({
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
               Cost
               <HelpTip>
-                <p className="font-medium">What a routine spends</p>
-                <p className="mt-1">
-                  Every run comes out of the same monthly runs as your chats,
-                  the number on the meter in the sidebar. If you run out, the
-                  routine pauses itself and says so.
-                </p>
+                Runs come out of the same monthly allowance as your chats. If
+                you run out, the routine pauses itself.
               </HelpTip>
             </span>
             <span>
@@ -398,34 +343,65 @@ function DialogBody({
           Jump to the chat
         </Link>
         <span className="flex-1" />
-        <Button
-          variant="ghost"
-          size="icon-sm"
-          aria-label="Delete this routine"
-          className="text-destructive"
-          onClick={() => onDelete(routine.id)}
-        >
-          <Trash2 className="size-4" />
-        </Button>
-        {routine.status === 'active' ? (
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Pause this routine"
-            onClick={() => onPause(routine.id)}
-          >
-            <Pause className="size-4" />
-          </Button>
-        ) : (
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            aria-label="Resume this routine"
-            onClick={() => onResume(routine.id)}
-          >
-            <Play className="size-4" />
-          </Button>
-        )}
+        {/* Tooltips on the icon-only pair; the labeled buttons already say
+            what they do. */}
+        <TooltipProvider delay={300}>
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  aria-label="Delete this routine"
+                  className="text-destructive"
+                  onClick={() => onDelete(routine.id)}
+                />
+              }
+            >
+              <Trash2 className="size-4" />
+            </TooltipTrigger>
+            <TooltipContent side="top" sideOffset={8}>
+              Delete this routine
+            </TooltipContent>
+          </Tooltip>
+          {routine.status === 'active' ? (
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label="Pause this routine"
+                    onClick={() => onPause(routine.id)}
+                  />
+                }
+              >
+                <Pause className="size-4" />
+              </TooltipTrigger>
+              <TooltipContent side="top" sideOffset={8}>
+                Pause
+              </TooltipContent>
+            </Tooltip>
+          ) : (
+            <Tooltip>
+              <TooltipTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label="Resume this routine"
+                    onClick={() => onResume(routine.id)}
+                  />
+                }
+              >
+                <Play className="size-4" />
+              </TooltipTrigger>
+              <TooltipContent side="top" sideOffset={8}>
+                Resume
+              </TooltipContent>
+            </Tooltip>
+          )}
+        </TooltipProvider>
         <Button
           size="sm"
           disabled={!canSave || saving}
