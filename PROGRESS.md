@@ -8,16 +8,16 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** Routines shipped on 2026-08-01: agents now work on
-their own, on a schedule. You ask for one in the chat ("check my inbox every
-weekday at 8am"), a card proves the schedule with the next three real run
-dates before anything exists, and results land in the agent's own
-conversation. Scheduled runs read and report on their own; anything they
-want to send still waits for you. One founder step remains before schedules
-fire on their own in production: adding the runner secret to Vercel and
-approving the timer job (the Run now button already works everywhere).
-Next step after that: the before-more-users trio (sign-up email provider,
-Google app verification, database plan upgrade).
+**Where we left off:** Routines are live and now fire on their own in
+production. Agents do standing work on a schedule: setting one up ends by
+asking what starts the agent off, you or the clock, and after the first piece
+of work the agent offers to make that real on a card showing the next three
+real run dates. Scheduled runs read and report on their own; anything they
+want to send still waits for you. The timer was armed on the night of
+2026-08-01 and verified end to end, so nothing is outstanding to make
+schedules work. Next: the before-more-users trio (sign-up email provider,
+Google app verification, database plan upgrade). Worth watching now that
+agents can spend while nobody is looking: the monthly meter.
 
 The core is validated and the interface has been
 rebuilt around it. On 2026-07-26 the founder ran the whole loop on their own
@@ -90,6 +90,75 @@ Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
 
 ---
+
+## 2026-08-01 (night): Setup asks what starts the agent off, and the timer goes live
+
+An evening that produced more cut work than shipped work, which turned out to
+be the point. Two pieces of interface were designed, prototyped, and thrown
+away, and what replaced them was one more question in a conversation that
+already existed.
+
+- **What was cut, and why it is worth recording.** The plan was a row of chips
+  under the composer saying what the agent can reach (Gmail, Web, Drive) and a
+  pinned "routine" token in the message box. Both were prototyped as a
+  clickable wireframe first. Looking at it, the founder cut the chips row as
+  too much for this version, then the token as extra effort, then asked the
+  better question: could we just use plain language? The answer was already in
+  our own code. A note written weeks ago explains that every agent is handed
+  the same tools, so a permanent "what I can reach" display would tell someone
+  whose agent reads documents that it also wants their email. Ambient labels
+  state things whether or not they matter. A conversation states them when they
+  do.
+- **The seam we were actually reaching for.** Every workflow tool opens with a
+  trigger step, and Run had no equivalent: setup worked out what an agent was
+  for and then stopped, so a routine was always a second conversation you had
+  to know how to start. Now the interview's last question is what starts you
+  off, asked in the agent's own words, using the same question card everything
+  else uses.
+- **It only offers what exists.** The two answers are that you ask, or the
+  clock does. Watching for a new email or a changed file is not built, so it is
+  never offered, and the tool description says so in as many words. During
+  testing an agent volunteered the limit itself: "I can't watch for things
+  happening in real time, but I can check in on a set schedule."
+- **The setup card gained a third section.** "and my routine is", in the same
+  voice as "I will be called" and "and my job is", with a dashed edge because
+  unlike the other two it is not saved when you confirm. Underneath it says
+  plainly that nothing is scheduled yet.
+- **The offer waits until after the first run.** You see one real briefing
+  first, then the agent offers to make it a routine with the real dates. You
+  are agreeing to something you have read rather than to a description of it.
+  There is also a mechanical reason: a conversation holds one pending card at a
+  time, so the setup card and the routine card cannot share a turn.
+- **Two bugs that only live testing would have found.** A weekly rule that
+  named no day described itself as "Every week on , at 9:00am", an empty gap
+  where the weekday should be. And the new field reached the browser correctly
+  but was dropped on arrival, because the chat rebuilds those cards field by
+  field. Both fixed.
+- **The README now says what an agent can actually do.** Not what it is allowed
+  to do: the whole list, as three small tables with a column for whether it
+  asks first. Writing it out makes the safety case by itself, because the Gmail
+  table has three rows and none of them is send, and the Drive table has five
+  and none of them is delete. The journey diagram and the cover image were
+  updated too; the cover is now our own screen, in the repo, instead of an
+  image hotlinked from someone else's CDN.
+- **A speed pass, and one real finding.** Measured on a production build:
+  the Routines page paints its first chunk in 18ms and a chat in 21ms against
+  a 100ms budget, the timer's due-routines query runs in a tenth of a
+  millisecond, and the schedule engine draws a card in under a millisecond for
+  every shape. The finding was in the query plan rather than the clock: listing
+  a person's routines had no index behind it, which costs nothing today at
+  three rows and would have meant every routine anyone creates slowing down
+  everyone else's page. Fixed with one index.
+- **The timer is live.** The production runner secret is set and the database
+  now calls the app every five minutes. Verified end to end: a wrong secret or
+  no secret is refused, the correct one returns a clean "nothing was due", and
+  the database's own scheduled call reaches the app across the network. From
+  here, a routine you set up actually fires on its day without anyone present.
+- **Four skills learned something.** Ask whether the agent can say it in the
+  conversation before adding any new control, and show a clickable prototype
+  before building. A conversation holds one pending card. Option lists are
+  promises, so never offer a start the product cannot do. And test agents cost
+  runs and hit a per-account cap, so delete them through the app.
 
 ## 2026-08-01: Routines, agents that work while you sleep
 

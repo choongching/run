@@ -379,10 +379,12 @@ Around that loop, the product has filled out:
   buttons explain themselves when you hover, and empty pages say in one quiet
   line what will live there.
 
-- **Agents can keep a schedule.** Setup ends by asking what starts the agent
-  off, you or the clock, and after the first piece of work it offers to make
-  that real as a routine. Routines in the sidebar shows everything scheduled,
-  when each one runs next, and anything that needs you.
+- **Agents can keep a schedule, and it runs for real.** Setup ends by asking
+  what starts the agent off, you or the clock, and after the first piece of
+  work it offers to make that real as a routine. Routines in the sidebar shows
+  everything scheduled, when each one runs next, and anything that needs you.
+  The timer is live in production, so a routine fires on its day with nobody
+  present.
 
 Next: opening the doors to more users (real sign-up emails and Google's app
 verification), exporting documents to Google Docs and PDF, and multiple
