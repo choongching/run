@@ -29,8 +29,13 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { formatWhen } from '@/components/routines/routines-list'
+import { sameRule, ScheduleField } from '@/components/routines/schedule-field'
 import type { RoutineListItem } from '@/lib/routines/list'
-import { nextOccurrences } from '@/lib/routines/rule'
+import {
+  nextOccurrences,
+  runsPerMonth,
+  type RoutineRule,
+} from '@/lib/routines/rule'
 
 const noop = () => () => {}
 
@@ -63,12 +68,16 @@ function HelpTip({ children }: { children: React.ReactNode }) {
 }
 
 // One routine, opened: a centered dialog, not a side drawer (founder's call
-// after seeing both). Modeled on the same anatomy as the best routine
-// editors: the work on the left (name, schedule, the standing brief, memory,
-// recent runs), the facts on the right (status, next run, cost, created),
-// and the actions along the bottom with icons. The schedule itself is
-// changed by telling the agent in the chat, so the dialog says so instead of
-// growing a builder.
+// after seeing both). The anatomy holds one rule: the left column is what you
+// change (name, schedule, the standing brief, memory) and the right rail is
+// what results (next runs, status, cost, created).
+//
+// The schedule used to sit in the rail with a line saying to go and ask the
+// agent in the chat. That reversed the rule, because the schedule is the one
+// cause every other fact in the rail depends on. It moved left and became a
+// field; the rail now leads with the dates it produces, which is the same
+// founder decision (the defining fact leads) pointed at the consequence
+// instead of the cause. Telling the agent in the chat still works.
 export function RoutineSheet({
   routine,
   open,
@@ -76,6 +85,8 @@ export function RoutineSheet({
   onPause,
   onResume,
   onDelete,
+  runLimit,
+  otherRoutinesPerMonth,
 }: {
   routine: RoutineListItem | null
   open: boolean
@@ -83,9 +94,30 @@ export function RoutineSheet({
   onPause: (id: string) => void
   onResume: (id: string) => void
   onDelete: (id: string) => void
+  // The plan's monthly runs, and what the person's OTHER routines already
+  // claim of it, so an edit can say what it costs against what is left.
+  runLimit: number
+  otherRoutinesPerMonth: number
 }) {
+  // Closing with unsaved work asks first. The dirty flag is reported up from
+  // the body's own change handlers rather than read out of it, because the
+  // body is keyed and remounts, and because syncing props into state through
+  // an effect is the lint this codebase already learned about.
+  const [dirty, setDirty] = useState(false)
+  const [confirming, setConfirming] = useState(false)
+
+  function requestClose(next: boolean) {
+    if (!next && dirty) {
+      setConfirming(true)
+      return
+    }
+    setConfirming(false)
+    setDirty(false)
+    onOpenChange(next)
+  }
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={requestClose}>
       {/* Full screen below md (the styleguide's mobile rule for big
           surfaces, same as the Configure panel); a centered card above it. */}
       {/* Header and footer pinned, only the middle scrolls (founder's call,
@@ -99,7 +131,16 @@ export function RoutineSheet({
             onPause={onPause}
             onResume={onResume}
             onDelete={onDelete}
-            close={() => onOpenChange(false)}
+            runLimit={runLimit}
+            otherRoutinesPerMonth={otherRoutinesPerMonth}
+            confirming={confirming}
+            onKeepEditing={() => setConfirming(false)}
+            onDirtyChange={setDirty}
+            close={() => {
+              setDirty(false)
+              setConfirming(false)
+              onOpenChange(false)
+            }}
           />
         ) : null}
       </DialogContent>
@@ -114,12 +155,22 @@ function DialogBody({
   onPause,
   onResume,
   onDelete,
+  runLimit,
+  otherRoutinesPerMonth,
+  confirming,
+  onKeepEditing,
+  onDirtyChange,
   close,
 }: {
   routine: RoutineListItem
   onPause: (id: string) => void
   onResume: (id: string) => void
   onDelete: (id: string) => void
+  runLimit: number
+  otherRoutinesPerMonth: number
+  confirming: boolean
+  onKeepEditing: () => void
+  onDirtyChange: (dirty: boolean) => void
   close: () => void
 }) {
   const router = useRouter()
@@ -130,17 +181,50 @@ function DialogBody({
   )
   const [name, setName] = useState(routine.name)
   const [instruction, setInstruction] = useState(routine.instruction)
+  const [rule, setRule] = useState<RoutineRule | null>(routine.rule)
   const [saving, setSaving] = useState(false)
   const [forgetting, setForgetting] = useState(false)
 
+  const scheduleDirty = !sameRule(rule, routine.rule)
   const dirty =
-    name.trim() !== routine.name || instruction.trim() !== routine.instruction
+    name.trim() !== routine.name ||
+    instruction.trim() !== routine.instruction ||
+    scheduleDirty
   const canSave = dirty && name.trim().length > 0 && instruction.trim().length > 0
 
+  // Reported from the handlers, never from render: the parent needs to know
+  // before it lets Escape or the backdrop close the dialog.
+  function report(next: {
+    name?: string
+    instruction?: string
+    rule?: RoutineRule | null
+  }) {
+    const n = next.name ?? name
+    const i = next.instruction ?? instruction
+    const r = next.rule !== undefined ? next.rule : rule
+    onDirtyChange(
+      n.trim() !== routine.name ||
+        i.trim() !== routine.instruction ||
+        !sameRule(r, routine.rule)
+    )
+  }
+
+  // Every date and every number in the rail comes from the rule being
+  // edited, so the consequence of a change is visible before it is saved.
+  // A paused routine normally shows no dates (they are not going to happen);
+  // while its schedule is being changed it shows them anyway, because that
+  // is the only way to see what the change did.
   const upcoming =
-    routine.rule && routine.status === 'active'
-      ? nextOccurrences(routine.rule, new Date(), 3)
+    rule && (routine.status === 'active' || scheduleDirty)
+      ? nextOccurrences(rule, new Date(), 3)
       : []
+  const wasNext = scheduleDirty && routine.rule
+    ? nextOccurrences(routine.rule, new Date(), 1)[0]
+    : null
+  const perMonth = rule ? runsPerMonth(rule) : 0
+  // The warning fires on what all of this person's routines would want,
+  // because that is the number the runner will actually check them against.
+  const overAllowance = otherRoutinesPerMonth + perMonth > runLimit
 
   const statusWord =
     routine.status === 'active'
@@ -155,14 +239,29 @@ function DialogBody({
       const res = await fetch(`/api/routines/${routine.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim(), instruction: instruction.trim() }),
+        body: JSON.stringify({
+          name: name.trim(),
+          instruction: instruction.trim(),
+          // Sent only when it changed, so an ordinary rename never touches
+          // the schedule or moves the next run.
+          ...(scheduleDirty && rule ? { rule } : {}),
+        }),
       })
       if (!res.ok) {
-        toast.error('The change could not be saved.')
+        // The server writes these sentences (validateRule's messages are
+        // already written for a person), so show what it said.
+        const body = await res.json().catch(() => null)
+        toast.error(body?.error ?? 'The change could not be saved.')
         return
       }
-      toast.success('Saved. It applies from the next run.')
+      toast.success(
+        scheduleDirty
+          ? 'Saved. The new schedule starts from the next run.'
+          : 'Saved. It applies from the next run.'
+      )
+      onDirtyChange(false)
       router.refresh()
+      return true
     } finally {
       setSaving(false)
     }
@@ -197,11 +296,37 @@ function DialogBody({
             </h3>
             <input
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={(e) => {
+                setName(e.target.value)
+                report({ name: e.target.value })
+              }}
               maxLength={80}
               className="w-full rounded-lg border border-input bg-card px-3 py-2 text-base run-focus-fade outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/10 md:text-sm"
             />
           </section>
+
+          {/* The schedule, second: a routine is a time and a task, in that
+              order, and the task below reads as what happens at that time. */}
+          {rule ? (
+            <ScheduleField
+              value={rule}
+              saved={routine.rule ?? rule}
+              onChange={(next) => {
+                setRule(next)
+                report({ rule: next })
+              }}
+            />
+          ) : (
+            <section>
+              <h3 className="mb-1.5 text-xs font-medium text-muted-foreground">
+                When it runs
+              </h3>
+              <p className="rounded-lg border border-dashed border-border px-3 py-2 text-sm text-muted-foreground">
+                This routine&rsquo;s schedule cannot be read, so it will not
+                run. Delete it and ask {routine.agentName} for a new one.
+              </p>
+            </section>
+          )}
 
           <section>
             <h3 className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
@@ -213,7 +338,10 @@ function DialogBody({
             </h3>
             <textarea
               value={instruction}
-              onChange={(e) => setInstruction(e.target.value)}
+              onChange={(e) => {
+                setInstruction(e.target.value)
+                report({ instruction: e.target.value })
+              }}
               rows={6}
               className="w-full resize-none rounded-lg border border-input bg-card px-3 py-2 text-base leading-relaxed run-focus-fade outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/10 md:text-sm"
             />
@@ -261,20 +389,33 @@ function DialogBody({
             because the eye keeps one column for questions and one for
             answers). */}
         <aside className="flex flex-col gap-3.5 text-sm md:border-l md:border-border md:pl-6">
-          {/* The schedule leads the rail (founder's call): it is the one
-              fact that defines a routine, so it reads before the vitals. */}
-          <div className="flex flex-col gap-1 border-b border-border pb-3.5">
-            <span className="text-xs text-muted-foreground">Schedule</span>
-            <p className="font-medium">
-              {routine.sentence}
-              {routine.rule
-                ? ` (${routine.rule.tz.replace(/_/g, ' ')} time)`
-                : ''}
-            </p>
-            <p className="text-xs text-muted-foreground">
-              To change it, ask {routine.agentName} in the chat.
-            </p>
-          </div>
+          {/* The dates lead the rail (the founder's rule that the defining
+              fact reads first, now pointed at the consequence: the schedule
+              itself is a control on the left, and these are what it does).
+              They recompute as the field is edited, so nobody agrees to a
+              schedule they have not seen land on real days. */}
+          {mounted && upcoming.length > 0 ? (
+            <div className="flex flex-col gap-1.5 border-b border-border pb-3.5">
+              <span className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+                {routine.status === 'active' ? 'Next runs' : 'Next runs when resumed'}
+                {scheduleDirty ? (
+                  <span className="text-xs text-chart-4">after saving</span>
+                ) : null}
+              </span>
+              <ul className="text-right tabular-nums">
+                {upcoming.map((d) => (
+                  <li key={d.toISOString()} className="py-0.5">
+                    {formatWhen(d.toISOString())}
+                  </li>
+                ))}
+              </ul>
+              {wasNext ? (
+                <span className="text-right text-xs text-muted-foreground">
+                  was {formatWhen(wasNext.toISOString())}
+                </span>
+              ) : null}
+            </div>
+          ) : null}
           <div className="flex items-center justify-between gap-3">
             <span className="text-xs text-muted-foreground">Status</span>
             <span
@@ -304,31 +445,46 @@ function DialogBody({
                 you run out, the routine pauses itself.
               </HelpTip>
             </span>
-            <span>
-              About {routine.perMonth} {routine.perMonth === 1 ? 'run' : 'runs'} a
-              month
+            <span className="text-right">
+              About {perMonth} {perMonth === 1 ? 'run' : 'runs'} a month
+              {scheduleDirty && perMonth !== routine.perMonth ? (
+                <span className="block text-xs text-muted-foreground">
+                  was {routine.perMonth}
+                </span>
+              ) : null}
             </span>
           </div>
+          {overAllowance ? (
+            <p className="text-xs text-chart-4">
+              Your routines want {otherRoutinesPerMonth + perMonth} runs a
+              month. You get {runLimit}. They pause themselves when the month
+              runs out.
+            </p>
+          ) : null}
           {mounted ? (
             <div className="flex items-center justify-between gap-3">
               <span className="text-xs text-muted-foreground">Created</span>
               <span className="tabular-nums">{formatWhen(routine.createdAt)}</span>
             </div>
           ) : null}
-          {mounted && upcoming.length > 0 ? (
-            <div className="flex flex-col gap-1.5 border-t border-border pt-3.5">
-              <span className="text-xs text-muted-foreground">Next runs</span>
-              <ul className="text-right tabular-nums">
-                {upcoming.map((d) => (
-                  <li key={d.toISOString()} className="py-0.5">
-                    {formatWhen(d.toISOString())}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
         </aside>
       </div>
+
+      {/* Trying to leave with unsaved work asks here, in the footer, rather
+          than in a second dialog stacked on this one. */}
+      {confirming ? (
+        <div className="mt-auto flex shrink-0 flex-wrap items-center gap-2 border-t border-border bg-muted p-4">
+          <span className="flex-1 text-sm">
+            Your changes are not saved yet.
+          </span>
+          <Button variant="ghost" size="sm" onClick={close}>
+            Discard them
+          </Button>
+          <Button size="sm" onClick={onKeepEditing}>
+            Keep editing
+          </Button>
+        </div>
+      ) : null}
 
       <div className="mt-auto flex shrink-0 items-center gap-2 border-t border-border p-4">
         {/* Button asChild/render is not supported here; a link wearing the
@@ -407,7 +563,11 @@ function DialogBody({
           size="sm"
           disabled={!canSave || saving}
           onClick={() => {
-            void save().then(() => close())
+            // Stay open when the save failed, so the words are still there
+            // to fix rather than lost behind a toast.
+            void save().then((ok) => {
+              if (ok) close()
+            })
           }}
         >
           {saving ? <Loader2 className="size-3.5 animate-spin" /> : null}
