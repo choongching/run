@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 
+import { Input } from '@/components/ui/input'
 import {
   Select,
   SelectContent,
@@ -9,6 +10,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { DatePicker, TimePicker } from '@/components/routines/pickers'
 import { describeRule, ordinal, type RoutineRule } from '@/lib/routines/rule'
 
 // The schedule, as a field you can change.
@@ -45,9 +47,6 @@ const DAYS = [
   { value: 0, short: 'S', name: 'Sunday' },
 ]
 
-const inputClass =
-  'rounded-lg border border-input bg-card px-3 py-2 text-base run-focus-fade outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/10 md:text-sm'
-
 // Two rules are the same schedule if they say the same thing about every
 // field the runner reads. Used for the dirty check and the "Undo" affordance.
 export function sameRule(a: RoutineRule | null, b: RoutineRule | null): boolean {
@@ -62,10 +61,6 @@ export function sameRule(a: RoutineRule | null, b: RoutineRule | null): boolean 
     (a.monthDay ?? null) === (b.monthDay ?? null) &&
     [...(a.byday ?? [])].sort().join() === [...(b.byday ?? [])].sort().join()
   )
-}
-
-function timeText(rule: RoutineRule): string {
-  return `${String(rule.hour).padStart(2, '0')}:${String(rule.minute).padStart(2, '0')}`
 }
 
 function zoneWords(tz: string): string {
@@ -184,11 +179,10 @@ function Editor({
   value: RoutineRule
   onChange: (rule: RoutineRule) => void
 }) {
-  // Text mirrors for the three free-typed controls. They exist so a field can
-  // be empty mid-keystroke without the rule underneath it going invalid.
+  // A text mirror for the one control that is still typed. It exists so the
+  // box can be empty mid-keystroke without the rule underneath it going
+  // invalid; it heals on blur, so no error message is needed.
   const [interval, setInterval] = useState(String(value.interval))
-  const [time, setTime] = useState(timeText(value))
-  const [anchor, setAnchor] = useState(value.anchor)
 
   const unit = UNITS.find((u) => u.value === value.freq) ?? UNITS[1]
   const plural = value.interval === 1 ? unit.one : unit.many
@@ -203,18 +197,21 @@ function Editor({
     onChange({ ...value, ...patch })
   }
 
-
   const monthDayNote =
     value.freq === 'month' &&
     typeof value.monthDay === 'number' &&
     value.monthDay > 28
 
+  // One label column, one control column. Every control starts on the same
+  // x and every control is the app's one height, so the rows read as a form
+  // rather than as four things that happen to be stacked. Below md the label
+  // sits above its control, which is the same shape a phone gets everywhere
+  // else in the app.
   return (
-    <div className="flex flex-col gap-3 rounded-lg border border-input bg-card p-3">
-      {/* Every N units. */}
-      <div className="flex flex-wrap items-center gap-2 text-sm">
-        <span className="text-muted-foreground">Every</span>
-        <input
+    <div className="rounded-lg border border-input bg-card p-3 md:grid md:grid-cols-[6.5rem_1fr] md:items-center md:gap-x-3 md:gap-y-3 max-md:flex max-md:flex-col max-md:gap-3">
+      <Label>Every</Label>
+      <Row>
+        <Input
           value={interval}
           inputMode="numeric"
           aria-label="How many"
@@ -225,7 +222,7 @@ function Editor({
             if (Number.isInteger(n) && n >= 1 && n <= 99) set({ interval: n })
           }}
           onBlur={() => setInterval(String(value.interval))}
-          className={`${inputClass} w-16 text-center md:w-14`}
+          className="w-14 text-center"
         />
         <Select
           value={value.freq}
@@ -233,7 +230,10 @@ function Editor({
             if (v) onChange(withUnit(value, v as RoutineRule['freq']))
           }}
         >
-          <SelectTrigger className="w-32" aria-label="Hours, days, weeks or months">
+          <SelectTrigger
+            className="h-11 w-28 md:h-8"
+            aria-label="Hours, days, weeks or months"
+          >
             <SelectValue>{() => plural}</SelectValue>
           </SelectTrigger>
           <SelectContent>
@@ -244,15 +244,13 @@ function Editor({
             ))}
           </SelectContent>
         </Select>
-      </div>
+      </Row>
 
       {/* Which days. Weekly picks them; daily filters them. */}
       {value.freq === 'day' || value.freq === 'week' ? (
-        <div className="flex flex-col gap-1.5">
-          <span className="text-xs text-muted-foreground">
-            {value.freq === 'week' ? 'On' : 'Only on'}
-          </span>
-          <div className="flex flex-wrap gap-1.5">
+        <>
+          <Label>{value.freq === 'week' ? 'On' : 'Only on'}</Label>
+          <Row>
             {DAYS.map((d) => {
               const on = days.includes(d.value)
               return (
@@ -262,84 +260,75 @@ function Editor({
                   aria-pressed={on}
                   aria-label={d.name}
                   onClick={() => onChange(toggleDayIn(value, d.value))}
-                  className={`size-11 rounded-md border text-sm run-focus-fade md:size-8 ${
+                  className={`size-11 rounded-lg border text-base run-focus-fade md:size-8 md:text-sm ${
                     on
                       ? 'border-primary bg-primary text-primary-foreground'
-                      : 'border-input bg-card text-muted-foreground hover:text-foreground'
+                      : 'border-input text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   {d.short}
                 </button>
               )
             })}
-          </div>
+          </Row>
           {value.freq === 'day' && days.length === 0 ? (
-            <span className="text-xs text-muted-foreground">
-              Nothing chosen means every day.
-            </span>
+            <Note>Nothing chosen means every day.</Note>
           ) : null}
-        </div>
+        </>
       ) : null}
 
       {/* Which date of the month. */}
       {value.freq === 'month' ? (
-        <div className="flex flex-wrap items-center gap-2 text-sm">
-          <span className="text-muted-foreground">On the</span>
-          <Select
-            value={String(value.monthDay ?? 1)}
-            onValueChange={(v) => {
-              if (!v) return
-              set({ monthDay: v === 'last' ? 'last' : Number(v) })
-            }}
-          >
-            <SelectTrigger className="w-36" aria-label="Day of the month">
-              <SelectValue>
-                {(v) => (v === 'last' ? 'last day' : ordinal(Number(v)))}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
-                <SelectItem key={d} value={String(d)}>
-                  {ordinal(d)}
-                </SelectItem>
-              ))}
-              <SelectItem value="last">last day</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      ) : null}
-
-      {monthDayNote ? (
-        <p className="text-xs text-muted-foreground">
-          A month without that date is skipped. Pick the last day to never skip
-          one.
-        </p>
+        <>
+          <Label>On the</Label>
+          <Row>
+            <Select
+              value={String(value.monthDay ?? 1)}
+              onValueChange={(v) => {
+                if (!v) return
+                set({ monthDay: v === 'last' ? 'last' : Number(v) })
+              }}
+            >
+              <SelectTrigger className="h-11 w-32 md:h-8" aria-label="Day of the month">
+                <SelectValue>
+                  {(v) => (v === 'last' ? 'last day' : ordinal(Number(v)))}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+                  <SelectItem key={d} value={String(d)}>
+                    {ordinal(d)}
+                  </SelectItem>
+                ))}
+                <SelectItem value="last">last day</SelectItem>
+              </SelectContent>
+            </Select>
+          </Row>
+          {monthDayNote ? (
+            <Note>
+              A month without that date is skipped. Pick the last day to never
+              skip one.
+            </Note>
+          ) : null}
+        </>
       ) : null}
 
       {/* What time, in whose day. */}
-      <div className="flex flex-wrap items-center gap-2 text-sm">
-        <span className="text-muted-foreground">
-          {value.freq === 'hour' ? 'Starting at' : 'At'}
-        </span>
-        <input
-          type="time"
-          value={time}
-          aria-label="Time of day"
-          onChange={(e) => {
-            setTime(e.target.value)
-            const m = /^(\d{2}):(\d{2})$/.exec(e.target.value)
-            if (m) set({ hour: Number(m[1]), minute: Number(m[2]) })
-          }}
-          onBlur={() => setTime(timeText(value))}
-          className={`${inputClass} w-32`}
+      <Label>{value.freq === 'hour' ? 'Starting at' : 'At'}</Label>
+      <Row>
+        <TimePicker
+          hour={value.hour}
+          minute={value.minute}
+          onChange={(hour, minute) => set({ hour, minute })}
         />
-        <span className="text-muted-foreground">{zoneWords(value.tz)} time</span>
-      </div>
-
+        <span className="text-sm text-muted-foreground">
+          {zoneWords(value.tz)} time
+        </span>
+      </Row>
       {viewerTz && viewerTz !== value.tz ? (
-        <p className="text-xs text-muted-foreground">
-          You are in {zoneWords(viewerTz)} right now. This routine keeps
-          running on {zoneWords(value.tz)} time.{' '}
+        <Note>
+          You are in {zoneWords(viewerTz)} right now. This routine keeps running
+          on {zoneWords(value.tz)} time.{' '}
           <button
             type="button"
             onClick={() => set({ tz: viewerTz })}
@@ -347,49 +336,60 @@ function Editor({
           >
             Move it to {zoneWords(viewerTz)}
           </button>
-        </p>
+        </Note>
       ) : null}
 
       {/* The anchor. Only shown when it can change an outcome: at an interval
           of one, every day (or week, or month) fires, so what it counts from
           makes no difference. Hourly always counts from an instant. */}
       {value.interval > 1 || value.freq === 'hour' ? (
-        <div className="flex flex-col gap-1.5">
-          <div className="flex flex-wrap items-center gap-2 text-sm">
-            <span className="text-muted-foreground">Counting from</span>
-            <input
-              type="date"
-              value={anchor}
-              aria-label="The date the schedule counts from"
-              onChange={(e) => {
-                setAnchor(e.target.value)
-                if (/^\d{4}-\d{2}-\d{2}$/.test(e.target.value)) {
-                  set({ anchor: e.target.value })
-                }
-              }}
-              onBlur={() => setAnchor(value.anchor)}
-              className={`${inputClass} w-44`}
-            />
-          </div>
-          <span className="text-xs text-muted-foreground">
+        <>
+          <Label>Counting from</Label>
+          <Row>
+            <DatePicker value={value.anchor} onChange={(iso) => set({ anchor: iso })} />
+          </Row>
+          <Note>
             {value.freq === 'week'
               ? 'This is what decides which week it lands on.'
               : 'This is what decides which days it lands on.'}
-          </span>
-        </div>
+          </Note>
+        </>
       ) : null}
 
       {value.freq === 'hour' ? (
-        <p className="text-xs text-muted-foreground">
+        <Note>
           It runs around the clock, through the night, and spends a run each
           time.
-        </p>
+        </Note>
       ) : null}
 
       {/* The contract: whatever this line says is what gets saved. */}
-      <p className="border-t border-border pt-3 text-sm font-medium">
+      <p className="border-t border-border pt-3 text-sm font-medium md:col-span-2">
         {describeRule(value)}
       </p>
     </div>
+  )
+}
+
+// The three shapes every row is built from. A label in its own column, the
+// controls in theirs, and a note under the controls rather than under the
+// whole row (it explains the control, so it lines up with the control).
+function Label({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="text-xs text-muted-foreground max-md:mb-1.5 max-md:block">
+      {children}
+    </span>
+  )
+}
+
+function Row({ children }: { children: React.ReactNode }) {
+  return <div className="flex flex-wrap items-center gap-1.5">{children}</div>
+}
+
+function Note({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-xs text-muted-foreground md:col-start-2 max-md:-mt-1.5">
+      {children}
+    </p>
   )
 }
