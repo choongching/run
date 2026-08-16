@@ -184,6 +184,9 @@ function DialogBody({
   const [rule, setRule] = useState<RoutineRule | null>(routine.rule)
   const [saving, setSaving] = useState(false)
   const [forgetting, setForgetting] = useState(false)
+  // Forget has no undo and the next run's quality depends on what it clears,
+  // so the word is asked for twice.
+  const [confirmForget, setConfirmForget] = useState(false)
 
   const scheduleDirty = !sameRule(rule, routine.rule)
   const dirty =
@@ -278,6 +281,7 @@ function DialogBody({
       router.refresh()
     } finally {
       setForgetting(false)
+      setConfirmForget(false)
     }
   }
 
@@ -358,14 +362,33 @@ function DialogBody({
                     clears it.
                   </HelpTip>
                 </h3>
-                <button
-                  type="button"
-                  onClick={() => void forget()}
-                  disabled={forgetting}
-                  className="text-xs text-muted-foreground hover:text-foreground"
-                >
-                  Forget
-                </button>
+                {confirmForget ? (
+                  <span className="flex items-center gap-3 text-xs">
+                    <button
+                      type="button"
+                      onClick={() => setConfirmForget(false)}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      Keep it
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => void forget()}
+                      disabled={forgetting}
+                      className="text-destructive hover:underline"
+                    >
+                      Forget it, yes
+                    </button>
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setConfirmForget(true)}
+                    className="text-xs text-muted-foreground hover:text-foreground"
+                  >
+                    Forget
+                  </button>
+                )}
               </div>
               <p className="rounded-lg border border-border bg-background px-3 py-2 text-xs text-muted-foreground whitespace-pre-wrap">
                 {routine.carry.length > 600
@@ -499,66 +522,32 @@ function DialogBody({
               question inside this dialog. */}
           Jump to the chat
         </Link>
+        {/* Labelled, not icon-only. One of these deletes a routine and it
+            was a red icon with no word on it, sitting a thumb's width from
+            Save changes. The pair sits with Jump to the chat because they
+            are things you do to this routine, and Save is the only action
+            on the trailing edge. */}
+        {routine.status === 'active' ? (
+          <Button variant="ghost" size="sm" onClick={() => onPause(routine.id)}>
+            <Pause className="size-3.5" />
+            Pause
+          </Button>
+        ) : (
+          <Button variant="ghost" size="sm" onClick={() => onResume(routine.id)}>
+            <Play className="size-3.5" />
+            Resume
+          </Button>
+        )}
+        <Button
+          variant="ghost"
+          size="sm"
+          className="text-destructive hover:text-destructive"
+          onClick={() => onDelete(routine.id)}
+        >
+          <Trash2 className="size-3.5" />
+          Delete
+        </Button>
         <span className="flex-1" />
-        {/* Tooltips on the icon-only pair; the labeled buttons already say
-            what they do. */}
-        <TooltipProvider delay={300}>
-          <Tooltip>
-            <TooltipTrigger
-              render={
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
-                  aria-label="Delete this routine"
-                  className="text-destructive"
-                  onClick={() => onDelete(routine.id)}
-                />
-              }
-            >
-              <Trash2 className="size-4" />
-            </TooltipTrigger>
-            <TooltipContent side="top" sideOffset={8}>
-              Delete this routine
-            </TooltipContent>
-          </Tooltip>
-          {routine.status === 'active' ? (
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label="Pause this routine"
-                    onClick={() => onPause(routine.id)}
-                  />
-                }
-              >
-                <Pause className="size-4" />
-              </TooltipTrigger>
-              <TooltipContent side="top" sideOffset={8}>
-                Pause
-              </TooltipContent>
-            </Tooltip>
-          ) : (
-            <Tooltip>
-              <TooltipTrigger
-                render={
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    aria-label="Resume this routine"
-                    onClick={() => onResume(routine.id)}
-                  />
-                }
-              >
-                <Play className="size-4" />
-              </TooltipTrigger>
-              <TooltipContent side="top" sideOffset={8}>
-                Resume
-              </TooltipContent>
-            </Tooltip>
-          )}
-        </TooltipProvider>
         <Button
           size="sm"
           disabled={!canSave || saving}
