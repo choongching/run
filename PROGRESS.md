@@ -8,11 +8,13 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** Routines are live and now fire on their own in
-production. Agents do standing work on a schedule: setting one up ends by
-asking what starts the agent off, you or the clock, and after the first piece
-of work the agent offers to make that real on a card showing the next three
-real run dates. Scheduled runs read and report on their own; anything they
+**Where we left off:** Routines are live, fire on their own in production, and
+can now be changed after the fact. Agents do standing work on a schedule:
+setting one up ends by asking what starts the agent off, you or the clock, and
+after the first piece of work the agent offers to make that real on a card
+showing the next three real run dates. Opening a routine now lets you edit
+that schedule in place, with the next runs and the monthly cost answering
+before you save. Scheduled runs read and report on their own; anything they
 want to send still waits for you. The timer was armed on the night of
 2026-08-01 and verified end to end, so nothing is outstanding to make
 schedules work. Next: the before-more-users trio (sign-up email provider,
@@ -88,6 +90,58 @@ Next step: the before-more-users trio: an email provider for sign-up and
 reset emails, Google's app verification so new people can connect Gmail and
 Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
+
+---
+
+## 2026-08-17: Change a routine's schedule where you read it
+
+A routine's schedule could be set once, in conversation, and never touched
+again. To move a Monday report to Tuesday you deleted the routine and asked
+for a new one. Now you change it where you already read it, in the routine's
+own window.
+
+- **The schedule became a field.** Open a routine and the schedule sits under
+  its name as a sentence you can read, with Change beside it. Change opens an
+  interval, a unit, the days of the week as seven toggles, a time, and, when
+  the interval is more than one, the date it counts from. Underneath, the
+  sentence it all adds up to, in the same words the routine has always used
+  to describe itself.
+- **The consequence is visible before you commit.** The panel beside the form
+  answers with the next three real run dates, what the next run used to be,
+  and what the change does to the monthly cost. Undo puts it back. Closing
+  with unsaved changes asks first.
+- **No cron field, deliberately.** Cron cannot say "every 2 weeks on
+  Wednesday" or "every 10 days", which are the things people actually ask
+  for, and a second way to write a schedule would mean a second thing to
+  interpret it. One interpreter, one set of words.
+- **Real pickers, one control height.** The first version wore the browser's
+  own time and date inputs, which brought their own type, their own height
+  and their own blue to a row of our controls. They were replaced with a
+  clock that opens on the hour it is set to and a proper calendar, both built
+  to the app's own control height. Along the way the app-wide selects turned
+  out to be missing the 44px tap floor on a phone, so they got it.
+- **Pause and Delete say their names.** They had been two unlabelled icons in
+  the footer. They are now words, sitting beside Jump to the chat, with Save
+  alone at the other end. Forget, which throws away what the routine
+  remembers, now asks a second time before it does.
+- **Four bugs found by looking rather than guessing.** A schedule starting in
+  the future used to fire before its own start date. A start date of the 30th
+  of February passed validation. A daily rule with a weekday filter described
+  itself as "every day", which was a lie already live in production. And the
+  status dot on every routine row had never rendered: it was a plain span,
+  and a span ignores width and height, so all anyone ever saw was 2px of its
+  own border stretched down a line.
+- **"About 0 runs a month."** A routine set to every two months rounded its
+  own cost down to nothing, which reads as free. The sentence now changes its
+  unit instead of its number: "About 6 runs a year", and below it, what it
+  was.
+- **Verified against the real thing.** Two harnesses (79 checks) cover the
+  date arithmetic and the field's own logic, and the whole modal was driven
+  in a browser: toggles, unit changes, the calendar, Undo, the close guard.
+  The save path was proven end to end on a real routine, watching the
+  database: the schedule written matched what the window promised, the next
+  run time was recomputed from it, and the routine was put back exactly as it
+  was found.
 
 ---
 

@@ -272,7 +272,9 @@ before anything exists. The gate design holds unattended: a
 scheduled run reads and reports on its own, but anything it wants to send
 or change still waits for you. It says so in its reply and you act in the
 chat. Routines in the sidebar shows everything scheduled, what it found,
-and what needs you.
+and what needs you. Open one and you can change its schedule there: how
+often, which days, what time, and the date it counts from. It shows you the
+next three real run dates before you save.
 
 **Does a routine remember its earlier runs?**
 
@@ -384,7 +386,9 @@ Around that loop, the product has filled out:
   work it offers to make that real as a routine. Routines in the sidebar shows
   everything scheduled, when each one runs next, and anything that needs you.
   The timer is live in production, so a routine fires on its day with nobody
-  present.
+  present. A schedule is not set in stone either: open a routine and change
+  how often, which days and what time, and it answers with the next three
+  real run dates before you save.
 
 Next: opening the doors to more users (real sign-up emails and Google's app
 verification), exporting documents to Google Docs and PDF, and multiple
