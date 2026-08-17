@@ -324,6 +324,21 @@ export function runsPerMonth(rule: RoutineRule, from = new Date()): number {
   return runs.filter((r) => r.getTime() <= horizon).length
 }
 
+// The same cost, said out loud. A schedule slower than once a month has no
+// honest answer in months: "about 0 runs a month" is what "every 2 months"
+// rounds down to, and it reads as free. So the sentence changes its unit
+// rather than its number.
+export function describeCost(rule: RoutineRule, from = new Date()): string {
+  const perMonth = runsPerMonth(rule, from)
+  if (perMonth > 0) return `About ${perMonth} ${perMonth === 1 ? 'run' : 'runs'} a month`
+  const horizon = from.getTime() + 365 * DAY_MS
+  const perYear = nextOccurrences(rule, from, 24).filter(
+    (r) => r.getTime() <= horizon
+  ).length
+  if (perYear > 0) return `About ${perYear} ${perYear === 1 ? 'run' : 'runs'} a year`
+  return 'Less than one run a year'
+}
+
 // ---------------------------------------------------------------------------
 // Words. One sentence, stated the way a person would say it back.
 

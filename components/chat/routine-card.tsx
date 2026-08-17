@@ -5,9 +5,9 @@ import { CalendarClock, Check, Loader2 } from 'lucide-react'
 
 import type { RoutineDraft } from '@/lib/tools/definitions'
 import {
+  describeCost,
   describeRule,
   nextOccurrences,
-  runsPerMonth,
   validateRule,
   type RoutineRule,
 } from '@/lib/routines/rule'
@@ -54,7 +54,6 @@ export function RoutineCard({
 
   const invalid = validateRule(rule)
   const dates = invalid ? [] : nextOccurrences(rule, new Date(), 3)
-  const perMonth = invalid ? 0 : runsPerMonth(rule)
 
   function decide(decision: 'approve' | 'deny') {
     if (pending) return
@@ -73,9 +72,7 @@ export function RoutineCard({
         <p className="text-sm font-medium">{draft.name}</p>
         <p className="mt-0.5 text-sm text-muted-foreground">
           {invalid ? 'The schedule did not come through.' : describeRule(rule)}
-          {perMonth > 0
-            ? `, about ${perMonth} ${perMonth === 1 ? 'run' : 'runs'} a month`
-            : ''}
+          {invalid ? '' : `, ${describeCost(rule).replace(/^About /, 'about ')}`}
         </p>
         <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
           {draft.instruction}

@@ -36,8 +36,28 @@ function optionTone(selected: boolean): string {
 
 // Keep the chosen row in view when the popover opens, without a ref read
 // during render: the callback runs on mount and positions its own column.
+//
+// One frame late, deliberately. The popover mounts its content before it is
+// laid out, and a column with no height yet clamps every scrollTop to zero,
+// which is how this opened at 1am no matter what time it was set to.
 function scrollToIndex(el: HTMLDivElement | null, index: number) {
-  if (el) el.scrollTop = Math.max(0, index * 32 - 64)
+  if (!el) return
+  const place = () => {
+    el.scrollTop = Math.max(0, index * 32 - 64)
+  }
+  place()
+  // A column that has not been laid out yet has nothing to scroll, and
+  // clamps every scrollTop to zero. That is how this opened at 1am no
+  // matter what time it was set to: the popover mounts its content before
+  // it is shown. So watch for the height arriving, place the list, and stop
+  // watching. Anything frame-counted is a guess about how long that takes.
+  if (typeof ResizeObserver === 'undefined') return
+  const seen = new ResizeObserver(() => {
+    if (el.scrollHeight <= el.clientHeight) return
+    place()
+    seen.disconnect()
+  })
+  seen.observe(el)
 }
 
 export function timeLabel(hour: number, minute: number): string {

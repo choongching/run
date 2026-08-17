@@ -32,12 +32,21 @@ import { formatWhen } from '@/components/routines/routines-list'
 import { sameRule, ScheduleField } from '@/components/routines/schedule-field'
 import type { RoutineListItem } from '@/lib/routines/list'
 import {
+  describeCost,
   nextOccurrences,
   runsPerMonth,
   type RoutineRule,
 } from '@/lib/routines/rule'
 
 const noop = () => () => {}
+
+// The cost line twice over: once as a statement, once as the tail of "was".
+function costTail(rule: RoutineRule): string {
+  const said = describeCost(rule)
+  return said.startsWith('About ')
+    ? said.slice(6)
+    : said.charAt(0).toLowerCase() + said.slice(1)
+}
 
 // The ? beside a label, for the labels that genuinely need a second
 // sentence: a heading, a plain explanation, and worked examples where they
@@ -225,6 +234,7 @@ function DialogBody({
     ? nextOccurrences(routine.rule, new Date(), 1)[0]
     : null
   const perMonth = rule ? runsPerMonth(rule) : 0
+  const cost = rule ? describeCost(rule) : 'No schedule'
   // The warning fires on what all of this person's routines would want,
   // because that is the number the runner will actually check them against.
   const overAllowance = otherRoutinesPerMonth + perMonth > runLimit
@@ -469,10 +479,10 @@ function DialogBody({
               </HelpTip>
             </span>
             <span className="text-right">
-              About {perMonth} {perMonth === 1 ? 'run' : 'runs'} a month
-              {scheduleDirty && perMonth !== routine.perMonth ? (
+              {cost}
+              {scheduleDirty && routine.rule && cost !== describeCost(routine.rule) ? (
                 <span className="block text-xs text-muted-foreground">
-                  was {routine.perMonth}
+                  was {costTail(routine.rule)}
                 </span>
               ) : null}
             </span>
