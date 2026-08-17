@@ -85,7 +85,10 @@ function StatusDot({ r }: { r: RoutineListItem }) {
     : r.status === 'active'
       ? 'bg-chart-1'
       : 'border border-muted-foreground/50 bg-transparent'
-  return <span aria-hidden className={`size-1.5 shrink-0 rounded-full ${cls}`} />
+  // `block` is load-bearing: a span is inline, and an inline box ignores
+  // width and height, so without it the dot is nothing but its own border
+  // smeared down a line box.
+  return <span aria-hidden className={`block size-1.5 shrink-0 rounded-full ${cls}`} />
 }
 
 export function RoutinesList({
