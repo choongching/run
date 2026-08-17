@@ -2,6 +2,7 @@ import { PageHeader } from '@/components/page-header'
 import { PageShell } from '@/components/page-shell'
 import { RoutinesList } from '@/components/routines/routines-list'
 import { getUserIdentity } from '@/lib/auth'
+import { getRunAllowance } from '@/lib/entitlements/assert'
 import { listRoutines } from '@/lib/routines/list'
 import { createClient } from '@/lib/supabase/server'
 
@@ -14,8 +15,12 @@ export default async function RoutinesPage() {
 
   // The list, plus the person's agents for the empty state: a suggestion is
   // only useful if there is an agent to say it to.
-  const [routines, { data: agents }] = await Promise.all([
+  // The allowance rides along in the same round trip (an indexed count, and
+  // the profile read is already memoised for this request), so the page pays
+  // nothing extra for it.
+  const [routines, allowance, { data: agents }] = await Promise.all([
     listRoutines(supabase, userId),
+    getRunAllowance(supabase, userId),
     supabase
       .from('agents')
       .select('id, name')
@@ -31,7 +36,11 @@ export default async function RoutinesPage() {
         title="Routines"
         description="Work your agents do on their own, on a schedule you set."
       />
-      <RoutinesList routines={routines} firstAgent={agents?.[0] ?? null} />
+      <RoutinesList
+        routines={routines}
+        firstAgent={agents?.[0] ?? null}
+        runLimit={allowance.limit}
+      />
     </PageShell>
   )
 }

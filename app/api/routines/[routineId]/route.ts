@@ -1,11 +1,11 @@
 import { requireUser } from '@/lib/api-helpers'
 import { nextOccurrences, parseRule } from '@/lib/routines/rule'
-import type { Database } from '@/lib/types/database'
+import type { Database, Json } from '@/lib/types/database'
 
 type RoutinePatch = Database['public']['Tables']['routines']['Update']
 
-// Change one routine: pause, resume, rename, rewrite the instruction, or
-// clear what it remembers. RLS scopes every statement to the owner, so a
+// Change one routine: pause, resume, rename, rewrite the instruction, change
+// the schedule, or clear what it remembers. RLS scopes every statement to the owner, so a
 // wrong id is a silent zero-row update and a 404 here.
 export async function PATCH(
   request: Request,
@@ -39,6 +39,31 @@ export async function PATCH(
     patch.status = 'active'
     patch.consecutive_failures = 0
     patch.next_run_at = nextOccurrences(rule, new Date(), 1)[0]?.toISOString() ?? null
+  }
+
+  // A new schedule. parseRule is the gate (it validates and returns null on
+  // anything malformed), and next_run_at MUST move with it: leaving the old
+  // instant behind would fire the routine once more on the schedule the
+  // person just replaced.
+  //
+  // A run claimed by the tick between this read and this write is not at
+  // risk. The tick's compare-and-swap requires next_run_at to be unchanged,
+  // so an edit landing mid-claim makes that claim fail: a skipped run, never
+  // a doubled one.
+  if (body.rule !== undefined) {
+    const rule = parseRule(body.rule)
+    if (!rule) {
+      return Response.json(
+        { error: 'That schedule is not one Run can follow.' },
+        { status: 400 }
+      )
+    }
+    const next = nextOccurrences(rule, new Date(), 1)[0]
+    if (!next) {
+      return Response.json({ error: 'That schedule never fires.' }, { status: 400 })
+    }
+    patch.rule = rule as unknown as Json
+    patch.next_run_at = next.toISOString()
   }
 
   if (typeof body.name === 'string' && body.name.trim()) {

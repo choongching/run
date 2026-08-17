@@ -85,15 +85,22 @@ function StatusDot({ r }: { r: RoutineListItem }) {
     : r.status === 'active'
       ? 'bg-chart-1'
       : 'border border-muted-foreground/50 bg-transparent'
-  return <span aria-hidden className={`size-1.5 shrink-0 rounded-full ${cls}`} />
+  // `block` is load-bearing: a span is inline, and an inline box ignores
+  // width and height, so without it the dot is nothing but its own border
+  // smeared down a line box.
+  return <span aria-hidden className={`block size-1.5 shrink-0 rounded-full ${cls}`} />
 }
 
 export function RoutinesList({
   routines,
   firstAgent,
+  runLimit,
 }: {
   routines: RoutineListItem[]
   firstAgent: { id: string; name: string } | null
+  // The plan's monthly runs. Only the open routine uses it, to say whether
+  // an edited schedule wants more than the month holds.
+  runLimit: number
 }) {
   const router = useRouter()
   const mounted = useMounted()
@@ -466,6 +473,12 @@ export function RoutinesList({
         onPause={(id) => void patch(id, { action: 'pause' }, 'pause it')}
         onResume={(id) => void patch(id, { action: 'resume' }, 'resume it')}
         onDelete={(id) => void remove(id)}
+        runLimit={runLimit}
+        // What the person's OTHER active routines already claim of the
+        // month. Paused ones are not spending, so they are not counted.
+        otherRoutinesPerMonth={routines
+          .filter((r) => r.id !== selected?.id && r.status === 'active')
+          .reduce((sum, r) => sum + r.perMonth, 0)}
       />
     </>
   )

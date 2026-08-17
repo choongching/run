@@ -184,7 +184,17 @@ export function validateRule(rule: RoutineRule): string | null {
     if (!Number.isInteger(rule.monthDay) || rule.monthDay < 1 || rule.monthDay > 31)
       return 'The day of the month must be 1 to 31, or "last".'
   }
-  if (!parseAnchor(rule.anchor)) return 'The start date is not a real date.'
+  // Shape and existence, not just shape: 2026-02-30 matches the pattern and
+  // rolls forward into March if you let a Date near it.
+  const anchor = parseAnchor(rule.anchor)
+  if (
+    !anchor ||
+    anchor.m < 1 ||
+    anchor.m > 12 ||
+    anchor.d < 1 ||
+    anchor.d > daysInMonth(anchor.y, anchor.m)
+  )
+    return 'The start date is not a real date.'
   try {
     formatterFor(rule.tz).format(0)
   } catch {
@@ -252,6 +262,22 @@ export function nextOccurrences(
     const weekday = new Date(Date.UTC(y, m - 1, d)).getUTCDay()
     let fires = false
 
+    // Nothing fires before the day it counts from. The interval arithmetic
+    // below is a modulo, which is just as happy counting backwards, so an
+    // anchor in the future used to fire on its phase BEFORE it: "every 3
+    // days counting from 10 September" would have run today. That was
+    // unreachable while the only anchor was the day the routine was born;
+    // the start date became a control the moment schedules could be edited,
+    // and "counting from" has to mean starting from.
+    if (dayIndex(y, m, d) < anchorIdx) {
+      // Jump straight to the start date rather than walking to it, so a
+      // schedule that begins next year still answers within the step budget.
+      y = anchor.y
+      m = anchor.m
+      d = anchor.d
+      continue
+    }
+
     if (rule.freq === 'day') {
       const okInterval = (dayIndex(y, m, d) - anchorIdx) % rule.interval === 0
       const okDay = !rule.byday || rule.byday.includes(weekday)
@@ -298,6 +324,21 @@ export function runsPerMonth(rule: RoutineRule, from = new Date()): number {
   return runs.filter((r) => r.getTime() <= horizon).length
 }
 
+// The same cost, said out loud. A schedule slower than once a month has no
+// honest answer in months: "about 0 runs a month" is what "every 2 months"
+// rounds down to, and it reads as free. So the sentence changes its unit
+// rather than its number.
+export function describeCost(rule: RoutineRule, from = new Date()): string {
+  const perMonth = runsPerMonth(rule, from)
+  if (perMonth > 0) return `About ${perMonth} ${perMonth === 1 ? 'run' : 'runs'} a month`
+  const horizon = from.getTime() + 365 * DAY_MS
+  const perYear = nextOccurrences(rule, from, 24).filter(
+    (r) => r.getTime() <= horizon
+  ).length
+  if (perYear > 0) return `About ${perYear} ${perYear === 1 ? 'run' : 'runs'} a year`
+  return 'Less than one run a year'
+}
+
 // ---------------------------------------------------------------------------
 // Words. One sentence, stated the way a person would say it back.
 
@@ -315,7 +356,9 @@ function listWords(items: string[]): string {
 
 const WEEKDAYS_ONLY = [1, 2, 3, 4, 5]
 
-function ordinal(d: number): string {
+// Exported so the schedule editor's day-of-month list says "21st" the same
+// way the sentence does. Ordinals are words, and the words live here.
+export function ordinal(d: number): string {
   const rem10 = d % 10
   const rem100 = d % 100
   if (rem10 === 1 && rem100 !== 11) return `${d}st`
@@ -336,8 +379,19 @@ export function describeRule(rule: RoutineRule): string {
       rule.byday &&
       rule.byday.length === 5 &&
       WEEKDAYS_ONLY.every((d) => rule.byday!.includes(d))
+    const days = (rule.byday ?? []).map((d) => WEEKDAY_NAMES[d])
     if (rule.interval === 1 && isWeekdays) return `Every weekday ${at}`
+    // A daily rule that names days is filtered to them, and saying "Every
+    // day" would be a lie. At an interval of one the filter IS the schedule
+    // ("every day that is a Monday" is every Monday), so it reads as the
+    // weekly sentence; above one the two conditions are both real and both
+    // have to be said.
+    if (rule.interval === 1 && days.length === 1) return `Every ${days[0]} ${at}`
+    if (rule.interval === 1 && days.length > 1)
+      return `Every ${listWords(days)}, ${at}`
     if (rule.interval === 1) return `Every day ${at}`
+    if (days.length > 0)
+      return `Every ${rule.interval} days, only on ${listWords(days)}, ${at}`
     return `Every ${rule.interval} days ${at}`
   }
 
