@@ -67,9 +67,16 @@ export function ConnectorsManager({
   // Connecting Jina takes the cap off, so the count stops being the thing that
   // matters and saying "3 of 100 used" would read as a limit that no longer
   // applies.
+  //
+  // Both versions name the provider, for the same reason the Claude row names
+  // Anthropic: this page's job is to say what an agent actually runs on. A
+  // search row that does not say where the results come from is the one row on
+  // the page keeping a secret. Naming it also makes the Jina row make sense,
+  // since "your own account" only means something once you know whose account
+  // you are on now.
   const searchDetail = connections.jina_ai
-    ? 'Your agents search the web on your own Jina account, with no monthly limit.'
-    : `Your agents can search the web. ${searches.used} of ${searches.limit} searches used this month.`
+    ? 'Runs on your own Jina account, with no monthly limit.'
+    : `Runs on Brave. ${searches.used} of ${searches.limit} searches used this month.`
 
   return (
     // Width comes from the PageShell column; a second cap here would put
