@@ -9,7 +9,9 @@ the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
 **Where we left off:** Routines are live, fire on their own in production, and
-can now be changed after the fact. Agents do standing work on a schedule:
+can now be changed after the fact. The monthly meter now counts what web
+searches cost, which it never did before, so the number you see is closer to
+the number you are billed. Agents do standing work on a schedule:
 setting one up ends by asking what starts the agent off, you or the clock, and
 after the first piece of work the agent offers to make that real on a card
 showing the next three real run dates. Opening a routine now lets you edit
@@ -19,7 +21,8 @@ want to send still waits for you. The timer was armed on the night of
 2026-08-01 and verified end to end, so nothing is outstanding to make
 schedules work. Next: the before-more-users trio (sign-up email provider,
 Google app verification, database plan upgrade). Worth watching now that
-agents can spend while nobody is looking: the monthly meter.
+agents can spend while nobody is looking: the monthly meter, which as of
+2026-08-18 finally includes the cost of searching the web.
 
 The core is validated and the interface has been
 rebuilt around it. On 2026-07-26 the founder ran the whole loop on their own
@@ -92,6 +95,57 @@ Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
 
 ---
+
+## 2026-08-18: The meter learns what a search costs
+
+**The bill had a line nobody could see.** Anthropic charges for web search
+separately from tokens: $10 per 1,000 searches, on top of everything else. The
+meter only ever priced tokens, so that line was missing from every cost figure
+in the product. Reading it out of our own database: 49 searches since 26 July,
+about 49 cents, none of it recorded. On a scheduled news run the fee works out
+at roughly 40% of what the run costs.
+
+**Now it is counted.** Nothing in the usage stream reports a search, so the
+count is taken where a search is actually visible: the same loop that writes
+"Searched the web for ..." into the chat. The fee lands in the run's cost, the
+count gets its own column so it can be checked, and old rows keep the cost they
+were written with. History is not rewritten.
+
+**Reading the schema out loud turned up four things worth fixing.** The session
+started as a walk through the database, table by table, in plain language. That
+walk is what found them.
+
+- **A routine never wrote down when it last ran.** The column was read in two
+  places and set in none, so after fourteen successful runs it still said
+  nothing. The agent was handed last week's report with no date on it, and had
+  no way to know whether "since last time" meant a day or a month. Now written
+  on success, beside the report it dates.
+- **Web search was on for every agent no matter what its settings said.** Each
+  agent recorded "search: off" while every session was opened with search on,
+  and the session wins. The setting is now real. Turning it on by default and
+  correcting the four existing agents was deliberate: there is no switch in the
+  interface yet, so enforcing the old recorded value would have silently
+  switched search off for everyone, and the weekly news routine would have come
+  back empty looking like a broken agent rather than a setting.
+- **Sonnet 5 was priced 50% too high** in the meter, at old rates. Corrected,
+  with the date it was checked written next to it, because that table is a copy
+  of a page that moves.
+- **A status dot that never rendered** was fixed the day before, same habit of
+  looking closely.
+
+**A spike on replacing the search provider, and an honest correction.** Brave,
+Serper, Tavily, Exa, Firecrawl and Jina were all priced against what we
+actually spend. The finding that shaped it: page reading is free and only
+searching carries a fee, so the two should be split rather than replaced
+together. The provider is not settled, and deliberately so. Two cheap tests
+decide it, and both use our own real queries rather than anyone's benchmark.
+
+**How research gets done here changed too.** The first version of that spike
+stated a recommendation in the same confident voice as the measured facts. It
+now labels every claim by how far it can be trusted: measured from our own
+data, quoted from a vendor, unverified, or opinion. That rule is written down
+as a skill so it holds next time. A price quoted by resellers but published by
+nobody is exactly the kind of number that should not decide anything.
 
 ## 2026-08-17: Change a routine's schedule where you read it
 

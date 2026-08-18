@@ -368,7 +368,9 @@ Around that loop, the product has filled out:
   ring in every chat show how much of the month is left. The meter opens into
   a breakdown of where the month went, agent by agent, and a log of every
   run, including runs by agents you have since deleted. When the month is
-  spent, agents stop and say so, and the meter refills on the first.
+  spent, agents stop and say so, and the meter refills on the first. Searching
+  the web is charged on top of the thinking, so that is counted too rather than
+  quietly left out.
 - **Failure is designed, not handled.** Every error reaches you as a plain
   sentence with one thing to press, never a raw exception.
 - **It is fast.** Every page paints instantly and fills in as its data
