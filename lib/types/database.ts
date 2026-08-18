@@ -235,6 +235,7 @@ export type Database = {
           cache_creation_input_tokens: number
           cache_read_input_tokens: number
           output_tokens: number
+          web_searches: number
           cost_usd: number
           event_type: UsageEventType
           created_at: string
@@ -252,6 +253,7 @@ export type Database = {
           cache_creation_input_tokens?: number
           cache_read_input_tokens?: number
           output_tokens?: number
+          web_searches?: number
           cost_usd?: number
           event_type: UsageEventType
           created_at?: string
@@ -269,6 +271,7 @@ export type Database = {
           cache_creation_input_tokens?: number
           cache_read_input_tokens?: number
           output_tokens?: number
+          web_searches?: number
           cost_usd?: number
           event_type?: UsageEventType
           created_at?: string
@@ -537,6 +540,7 @@ export type Database = {
           cache_creation_input_tokens: number
           cache_read_input_tokens: number
           output_tokens: number
+          web_searches: number
           cost_usd: number
         }
         Relationships: [
