@@ -33,15 +33,24 @@ const KNOWN_TOOLS = new Set<ToolName>([
   'drive_rename_file',
 ])
 
-// Execute one agent tool call against the signed-in user's connected account.
-// Reads only (phase 3a); returns a needs_connection outcome when the user has
-// not linked the app the tool requires.
-export async function executeTool(
-  supabase: SupabaseClient<Database>,
-  userId: string,
-  name: string,
+// Everything one tool call needs to run. A named-args object rather than a
+// growing positional list, matching the convention in lib/tools/drive.ts, and
+// because the next tool needs the agent as well as the user: a setting can be
+// switched off after a session was created, and the session will keep offering
+// the tool until it is rebuilt. The executor is the last place that can say no.
+export type ToolContext = {
+  supabase: SupabaseClient<Database>
+  userId: string
+  agentId: string
+  name: string
   input: Record<string, unknown>
-): Promise<ToolOutcome> {
+}
+
+// Execute one agent tool call against the signed-in user's connected account.
+// Returns a needs_connection outcome when the user has not linked the app the
+// tool requires.
+export async function executeTool(ctx: ToolContext): Promise<ToolOutcome> {
+  const { supabase, userId, name, input } = ctx
   if (!KNOWN_TOOLS.has(name as ToolName)) {
     return { kind: 'error', text: `Unknown tool: ${name}` }
   }

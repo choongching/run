@@ -571,7 +571,13 @@ async function drainSessionInner(
           })
           continue
         }
-        const outcome = await executeTool(supabase, userId, call.name, call.input)
+        const outcome = await executeTool({
+          supabase,
+          userId,
+          agentId: opts.agentId,
+          name: call.name,
+          input: call.input,
+        })
         if (outcome.kind === 'needs_connection') {
           send({ type: 'connect', app: outcome.app })
           sentConnect = true
