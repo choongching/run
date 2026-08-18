@@ -287,6 +287,25 @@ async function runSearchWeb(
         text: 'Web search is not available right now. Tell the user you could not search, in your own words, and answer from what you already know if you can.',
       }
     }
-    throw err
+    // Anything else is the provider having a bad day: a 500 from Brave, a
+    // Pipedream hiccup, a socket dropped mid-flight. This used to rethrow,
+    // which took the whole turn down, because search_web returns before the
+    // shared catch every other tool falls into. A search that fails should cost
+    // the agent one sentence, not the reply.
+    //
+    // Same sanitising as that shared path, for the same reason: this text goes
+    // to the model, which may quote it back at a person, so nothing machine
+    // shaped may survive.
+    const raw = err instanceof Error ? err.message : String(err)
+    const message = raw
+      .replace(/\{[\s\S]*\}/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 200)
+    console.error('search failed', err)
+    return {
+      kind: 'error',
+      text: `The search did not go through${message ? `: ${message}` : ''}. Tell the user in your own words, and answer from what you already know if you can.`,
+    }
   }
 }

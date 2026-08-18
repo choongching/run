@@ -732,12 +732,18 @@ async function drainSessionInner(
         if (outcome.kind === 'result' && outcome.billed) {
           tally.providerSearches += 1
         }
-        if (outcome.kind === 'error') {
+        if (outcome.kind !== 'result') {
           // Take the line back. Found live: with the monthly search allowance
           // spent, the agent correctly said it could not search, and the
           // transcript above it still read "Searched the web for ...". A
           // history that records work nobody did is worse than one that
           // records nothing.
+          //
+          // Every outcome except `result` means the tool did not run, and the
+          // set is checked rather than listed for a reason: this was written as
+          // `=== 'error'`, and then the spent-allowance case changed to return
+          // needs_connection, which silently brought the line back for the one
+          // case that prompted the fix.
           const slot = activitySlot.get(call.id)
           if (slot !== undefined) activityLabels[slot] = null
         }
@@ -781,7 +787,6 @@ async function drainSessionInner(
       })
     }
   }
-
 
   for (const step of activityLabels) {
     if (step === null) continue
