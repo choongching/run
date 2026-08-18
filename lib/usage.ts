@@ -30,6 +30,21 @@ const DEFAULT_PRICING = { input: 3.0, output: 15.0 }
 const CACHE_READ_RATE = 0.1
 const CACHE_WRITE_RATE = 1.25
 
+// Web search is a SERVER-SIDE tool: Anthropic charges $10 per 1,000 searches on
+// top of tokens, inside Managed Agents sessions too. One use per search
+// whatever the result count, and errors are not billed.
+//
+// Nothing in the usage stream reports it. The session `model_usage` event
+// carries the four token fields and no `server_tool_use`, unlike the Messages
+// API, so the count is tallied from `agent.tool_use` events in the drain loop
+// and passed in here. That makes it an ESTIMATE of the same kind as the token
+// prices: it counts what we watched the agent do, at the published rate.
+//
+// `web_fetch` is deliberately absent. It carries no fee, only the tokens of
+// what it read, which the token counters already cover.
+// https://platform.claude.com/docs/en/about-claude/pricing
+const WEB_SEARCH_USD = 0.01
+
 // Some call sites pass a dated snapshot id (the naming model is pinned to
 // claude-haiku-4-5-20251001). Match the family so a pinned model is not priced
 // at the fallback rate, which for Haiku would be triple.
@@ -44,6 +59,9 @@ export type TokenCounts = {
   outputTokens: number
   cacheCreationInputTokens?: number
   cacheReadInputTokens?: number
+  // Server-side tool calls, priced per call rather than per token. Optional so
+  // every existing caller keeps working and simply records no fee.
+  webSearches?: number
 }
 
 export function computeCost(model: string, tokens: TokenCounts): number {
@@ -55,7 +73,12 @@ export function computeCost(model: string, tokens: TokenCounts): number {
       cacheWrite * CACHE_WRITE_RATE +
       cacheRead * CACHE_READ_RATE) *
     price.input
-  return (inputCost + tokens.outputTokens * price.output) / 1_000_000
+  const tokenCost =
+    (inputCost + tokens.outputTokens * price.output) / 1_000_000
+  // Added to cost_usd rather than kept beside it, because cost_usd answers
+  // "what did this turn cost" and a fee left out of it makes the answer wrong.
+  // The count is stored in its own column so the fee stays auditable.
+  return tokenCost + (tokens.webSearches ?? 0) * WEB_SEARCH_USD
 }
 
 // One page of a person's run history, newest first.
@@ -206,6 +229,7 @@ export async function recordUsage(
       cache_creation_input_tokens: params.cacheCreationInputTokens ?? 0,
       cache_read_input_tokens: params.cacheReadInputTokens ?? 0,
       output_tokens: params.outputTokens,
+      web_searches: params.webSearches ?? 0,
       cost_usd: computeCost(params.model, params),
       event_type: params.eventType,
     })

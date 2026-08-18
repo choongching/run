@@ -214,6 +214,11 @@ type TokenTally = {
   cacheCreationInputTokens: number
   cacheReadInputTokens: number
   outputTokens: number
+  // Not a token count, a call count. Web search is billed per search on top of
+  // tokens and nothing in the usage stream reports it, so the only place it can
+  // be observed is the tool_use event below. Kept in the same tally so a turn
+  // that throws still reports the searches it already paid for.
+  webSearches: number
 }
 
 // A turn always writes a usage row, whether it finished or fell over: the
@@ -236,6 +241,7 @@ export async function drainSession(opts: DrainOpts): Promise<DrainResult> {
     cacheCreationInputTokens: 0,
     cacheReadInputTokens: 0,
     outputTokens: 0,
+    webSearches: 0,
   }
   let failed = false
   try {
@@ -383,6 +389,11 @@ async function drainSessionInner(
     } else if (event.type === 'agent.tool_use') {
       // Built-in tools (web search, page reads) run on the platform and never
       // pause the session; they only become visible steps.
+      //
+      // Except for the ledger: a web search costs $10 per 1,000 and is invisible
+      // everywhere else, so it is counted here, at the only point it is ever
+      // observable. `web_fetch` is not counted because it carries no fee.
+      if (event.name === 'web_search') tally.webSearches += 1
       const act = builtinActivity(event.name, event.input ?? {})
       if (act) {
         activityLabels.push(act.past)
