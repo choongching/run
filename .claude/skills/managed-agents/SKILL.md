@@ -26,6 +26,32 @@ protocol and pause/resume built on top of it.
 - `buildAgentToolset({ web_search })` builds the `agent_toolset_20260401`
   config. Sessions replace the tool set via `agent_with_overrides` (below).
 
+## Tool config: what the API will and will not do for you
+
+The `agent_toolset_20260401` config accepts **only `enabled` and
+`permission_policy`** per tool. There is no `max_uses`, no `allowed_domains`,
+no `max_content_tokens` (those exist on the Messages API web search tool, not
+here). So the platform gives us **no way to cap how many searches a single run
+performs**. If a spend cap is needed, it has to live in a custom tool we own.
+
+`default_config: { enabled: false }` is the way to start everything off and
+opt tools back in.
+
+Tool output over 100,000 characters is written to a file in the sandbox and
+the model gets a truncated preview plus the path.
+
+**Cost, because it is invisible in our meter:** `web_search` is $10 per 1,000
+searches on top of tokens; `web_fetch` is free beyond tokens; sessions also
+bill $0.08 per session-hour while `running`. See the `usage-accounting` skill.
+Source: https://platform.claude.com/docs/en/managed-agents/tools
+
+**Live bug as of 2026-08-18, check before trusting `enabled_tools`:**
+`app/actions/agents.ts` creates agents with `web_search: false`, but
+`lib/chat/session.ts` and `lib/routines/execute.ts` both hardcode
+`buildAgentToolset({ web_search: true })` when they open a session. Because
+`agent_with_overrides` REPLACES the tool set, the per-agent ceiling never
+applies at runtime. Pass the agent's real `enabled_tools` at both sites.
+
 ## Environments
 
 One shared cloud environment, created once, stored in

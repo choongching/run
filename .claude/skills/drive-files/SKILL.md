@@ -14,6 +14,29 @@ reads `user_connections`). `external_user_id` for every proxy call is the
 signed-in user's own uuid. Gmail is a SEPARATE Pipedream app (slug `gmail`) from
 `google_drive`: separate account, scopes, and allowed domains.
 
+## When Connect is the right layer, and when it is not
+
+Connect exists to hold **the end user's** credential: their Google account,
+their consent screen, revocable by them, never in our database. That is why
+Drive and Gmail belong behind it.
+
+**An API key that is OURS does not belong behind it.** There is no account to
+connect and no token to keep out of our logs, and the proxy adds three costs:
+Connect proxy requests consume credits (1 credit per 30 seconds of compute, so a
+300ms call still costs one), an extra network hop on a path the user watches,
+and a second dependency on a call that has to work. Call those providers
+directly from `lib/tools/`, beside these tools but not through `pd.proxy`.
+Decided 2026-08-18 while spiking a web-search provider; see
+`docs/web-search-spike-2026-08-18.md`.
+
+The flip side is a real pricing lever: if a user ever connects their OWN account
+for a paid service so the usage bills to them, that IS the Gmail situation and
+Connect is right again.
+
+Also worth carrying in any cost conversation: Connect bills **per unique end
+user** who connects an account, which grows with signups rather than usage, and
+it is not in `usage_events`. See the `usage-accounting` skill.
+
 Two constraints shape ALL Drive code here; do not rediscover them:
 
 1. **Domain allowlist.** The Pipedream `google_drive` app only proxies

@@ -37,6 +37,40 @@ cost into the cache-write bucket rather than removing it.
 silently charged at the Sonnet fallback rate. Add new models to `PRICING` by
 their prefix.
 
+## What the ledger CANNOT see (audited 2026-08-18)
+
+`computeCost` prices tokens. Anthropic bills three things, and we record one.
+Anything quoted as "what a run costs" is understating it until these are added.
+
+- **Web search: $10 per 1,000 searches**, charged on top of tokens, inside
+  Managed Agents sessions too. Counted once per search whatever the result
+  count; errors are not billed. Measured on 2026-08-18: 49 searches performed,
+  $0.49 incurred, **$0 recorded**. On a search-heavy scheduled run the fee is
+  about 40% of the run.
+- **Session runtime: $0.08 per session-hour**, metered only while a session is
+  `running`, not while idle. One session per routine run.
+- **`web_fetch` is free.** Tokens only, no per-call fee. Worth knowing before
+  anyone "optimises" it away.
+
+There is no counter to read for this. The Managed Agents session
+`model_usage` event carries the four token fields and nothing else: no
+`server_tool_use`, unlike the Messages API. **The only way to count searches is
+to tally `agent.tool_use` events named `web_search`**, in the same loop in
+`lib/chat/run-turn.ts` that already turns them into activity rows.
+
+Source: https://platform.claude.com/docs/en/about-claude/pricing
+
+## PRICING drifts, so check it before quoting a cost
+
+`PRICING` in `lib/usage.ts` is a hand-copied snapshot of a page that changes.
+Verify against the pricing doc above whenever touching cost, and never quote a
+dollar figure to the founder without checking first.
+
+Known drift found 2026-08-18: **Sonnet 5 is $2 / $10 per MTok**, not the
+$3 / $15 in the file, and the September increase was cancelled. Every Sonnet row
+recorded before that fix overstates by 50%. Haiku 4.5, Opus 4.8 and the cache
+multipliers were correct.
+
 ## Record on every turn, including the failed ones
 
 `drainSession` in `lib/chat/run-turn.ts` is a thin wrapper that owns the
