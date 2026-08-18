@@ -303,10 +303,20 @@ async function drainSessionInner(
   // through together. A loop-breaker, not the cost control; the monthly
   // allowance is that.
   let searchesThisDrain = 0
+  // Custom tool calls we have already returned a result for, so a repeated
+  // requires_action naming the same ids is recognised as an echo rather than a
+  // new request. See the idle branch below.
+  const answered = new Set<string>()
+  let settleWaits = 0
+  let lastWaitingCount = Number.POSITIVE_INFINITY
   const agentParts: string[] = []
   let sessionError: string | null = null
   let started = false
   let status: TurnStatus = null
+  // How many times a drain will tolerate the session repeating an already
+  // answered requires_action WITHOUT making progress. Progress resets it, so
+  // this bounds a stall rather than the number of tool calls a turn may make.
+  const MAX_SETTLE_WAITS = 3
   let sentConnect = false
   let pending: PendingCall[] = []
 
@@ -446,6 +456,35 @@ async function drainSessionInner(
     if (event.type === 'session.status_terminated') break
     if (event.type === 'session.status_idle') {
       if (event.stop_reason.type !== 'requires_action') break
+
+      // A requires_action naming only calls we have ALREADY answered is the
+      // session catching its breath, not a new request. It happens whenever a
+      // turn makes more than one custom tool call: the results go back with
+      // matching ids and the session still re-announces those ids before it
+      // picks them up.
+      //
+      // The drain had no memory of what it had answered, so `pending` was
+      // empty, there was nothing to send, and it broke out while the session
+      // was still working. The visible symptom was an agent that searched three
+      // times and then said nothing at all, and it would do the same for two
+      // Drive reads or two Gmail searches in one turn.
+      //
+      // Bounded, because waiting for something that may never arrive is the
+      // other way to hang a turn.
+      const waitingOn = event.stop_reason.event_ids ?? []
+      if (waitingOn.length > 0 && waitingOn.every((id) => answered.has(id))) {
+        // Shrinking means the session is working through them, so keep waiting.
+        // Only a set that stops shrinking is a stall, which is what the counter
+        // is for. Counting rounds instead would cap how many tool calls a turn
+        // may make, which is not a limit this belongs in.
+        if (waitingOn.length < lastWaitingCount) settleWaits = 0
+        else settleWaits += 1
+        lastWaitingCount = waitingOn.length
+        if (settleWaits > MAX_SETTLE_WAITS) break
+        continue
+      }
+      settleWaits = 0
+      lastWaitingCount = Number.POSITIVE_INFINITY
 
       // Under denyWrites the three pause branches below are skipped: their
       // calls fall through to the gate, which answers them in words instead
@@ -638,6 +677,10 @@ async function drainSessionInner(
           })
         }
       }
+      for (const ev of resultEvents) {
+        const id = (ev as { custom_tool_use_id?: string }).custom_tool_use_id
+        if (id) answered.add(id)
+      }
       pending = []
       // Nothing to feed back (a requires_action we can't fulfil, e.g. the agent
       // gave up after a missing connection): stop draining rather than send an
@@ -649,6 +692,7 @@ async function drainSessionInner(
       })
     }
   }
+
 
   for (const label of activityLabels) {
     await supabase
