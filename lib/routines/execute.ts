@@ -2,6 +2,7 @@ import {
   buildAgentToolset,
   getAnthropicClient,
   MANAGED_AGENTS_BETA,
+  readToolCeiling,
 } from '@/lib/anthropic/client'
 import { ensureEnvironment } from '@/lib/anthropic/environment'
 import { drainSession } from '@/lib/chat/run-turn'
@@ -53,7 +54,7 @@ export async function runRoutine(
 
   const { data: agent } = await supabase
     .from('agents')
-    .select('id, name, status, model, claude_agent_id')
+    .select('id, name, status, model, claude_agent_id, enabled_tools')
     .eq('id', routine.agent_id)
     .maybeSingle()
   if (!agent || agent.status !== 'active' || !agent.claude_agent_id) {
@@ -118,8 +119,10 @@ export async function runRoutine(
     agent: {
       id: agent.claude_agent_id,
       type: 'agent_with_overrides',
+      // The agent's own ceiling, restated: agent_with_overrides replaces the
+      // tool set, so anything not repeated here is not enforced.
       tools: [
-        ...buildAgentToolset({ web_search: true }),
+        ...buildAgentToolset(readToolCeiling(agent.enabled_tools)),
         ...CHAT_TOOL_DEFINITIONS,
       ],
     },
