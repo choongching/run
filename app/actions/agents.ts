@@ -218,7 +218,16 @@ export async function renameAgent(agentId: string, rawName: string) {
 // best-effort so a version conflict or API hiccup never blocks the save.
 export async function updateAgentConfig(
   agentId: string,
-  input: { name: string; instructions: string; model: string; personality: string }
+  input: {
+    name: string
+    instructions: string
+    model: string
+    personality: string
+    // Whether this agent may search the web. Optional so a caller that does not
+    // manage the switch leaves it exactly as it was, rather than silently
+    // turning it off by omission.
+    webSearch?: boolean
+  }
 ): Promise<void> {
   const name = input.name.trim().replace(/\s+/g, ' ').slice(0, 60)
   const baseInstructions = input.instructions.trim()
@@ -237,7 +246,7 @@ export async function updateAgentConfig(
 
   const { data: current } = await supabase
     .from('agents')
-    .select('preferences')
+    .select('preferences, enabled_tools')
     .eq('id', agentId)
     .eq('owner_id', userId)
     .single()
@@ -261,6 +270,17 @@ export async function updateAgentConfig(
       system_prompt: system,
       personality,
       ...(model ? { model } : {}),
+      // Merged onto what the column already holds rather than replacing it, so
+      // flipping search cannot quietly reset the other tools. `drive` has no
+      // switch yet and defaults to on, matching what createAgent writes.
+      ...(input.webSearch === undefined
+        ? {}
+        : {
+            enabled_tools: {
+              drive: current.enabled_tools?.drive ?? true,
+              web_search: input.webSearch,
+            },
+          }),
     })
     .eq('id', agentId)
     .eq('owner_id', userId)
@@ -270,8 +290,10 @@ export async function updateAgentConfig(
   if (error || !agent) return
 
   // A session binds its agent's configuration at creation, so without this the
-  // new instructions, model, or personality would not reach the open chat and
-  // the save would look like it did nothing. See resetAgentSessions.
+  // new instructions, model, personality or tool set would not reach the open
+  // chat and the save would look like it did nothing. It matters most for the
+  // search switch: tools are fixed when a session is made, so an open thread
+  // would keep offering search until it was rebuilt. See resetAgentSessions.
   await resetAgentSessions(supabase, agentId)
 
   if (agent.claude_agent_id && agent.claude_version != null) {

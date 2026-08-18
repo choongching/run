@@ -59,7 +59,12 @@ export function toolsetFor(opts: {
 }) {
   return buildAgentToolset({
     search: opts.ceiling.web_search && !opts.ourSearch,
-    fetch: opts.ceiling.web_search,
+    // Reading a page is NOT searching, and the switch says "web search". Tying
+    // fetch to the same flag meant turning search off also stopped the agent
+    // opening a URL the person pasted into the chat, which is not a thing they
+    // asked for and would read as the agent breaking. It also costs nothing:
+    // web_fetch carries no per-call fee, only the tokens of what it read.
+    fetch: true,
   })
 }
 

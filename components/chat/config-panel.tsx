@@ -27,6 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
 import {
   Tooltip,
@@ -67,6 +68,7 @@ export function ConfigPanel({
   instructions,
   model,
   personality,
+  webSearch,
   preferences,
   connections,
   knowledge,
@@ -80,6 +82,7 @@ export function ConfigPanel({
   instructions: string
   model: string
   personality: string
+  webSearch: boolean
   preferences: SetupAnswer[]
   connections: ConnectorState
   knowledge: KnowledgeItem[]
@@ -121,6 +124,7 @@ export function ConfigPanel({
         instructions={instructions}
         model={model}
         personality={personality}
+        webSearch={webSearch}
         preferences={preferences}
         connections={connections}
         knowledge={knowledge}
@@ -139,6 +143,7 @@ function ConfigPanelBody({
   instructions,
   model,
   personality,
+  webSearch,
   preferences,
   connections,
   knowledge,
@@ -152,6 +157,7 @@ function ConfigPanelBody({
   instructions: string
   model: string
   personality: string
+  webSearch: boolean
   preferences: SetupAnswer[]
   connections: ConnectorState
   knowledge: KnowledgeItem[]
@@ -165,6 +171,7 @@ function ConfigPanelBody({
   const [draft, setDraft] = useState(instructions)
   const [chosenModel, setChosenModel] = useState(model)
   const [chosenPersonality, setChosenPersonality] = useState(personality)
+  const [searchOn, setSearchOn] = useState(webSearch)
   const [saving, setSaving] = useState(false)
   const [confirmOpen, setConfirmOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -174,7 +181,8 @@ function ConfigPanelBody({
     trimmedName !== agentName.trim() ||
     draft.trim() !== instructions.trim() ||
     chosenModel !== model ||
-    chosenPersonality !== personality
+    chosenPersonality !== personality ||
+    searchOn !== webSearch
   const canSave = dirty && trimmedName.length > 0 && !saving
 
   async function save() {
@@ -186,6 +194,7 @@ function ConfigPanelBody({
         instructions: draft,
         model: chosenModel,
         personality: chosenPersonality,
+        webSearch: searchOn,
       })
       router.refresh()
     } finally {
@@ -279,6 +288,27 @@ function ConfigPanelBody({
               className="min-h-32 resize-y text-sm disabled:cursor-not-allowed disabled:opacity-60"
             />
           </Field>
+          {/* A ceiling on the agent, not a preference: off means the tool is
+              never attached to its session, so there is nothing for the model
+              to decide. Reading a URL the person pastes is deliberately NOT
+              covered by this, because pasting a link is asking for that one
+              page, not asking the agent to go looking. */}
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 flex-col gap-0.5">
+              <span className="text-xs font-medium">Web search</span>
+              <span className="text-xs text-muted-foreground">
+                Let it look things up on the web. It can still open a link you
+                paste.
+              </span>
+            </div>
+            <Switch
+              checked={searchOn}
+              onCheckedChange={setSearchOn}
+              disabled={!isOwner}
+              aria-label="Web search"
+              className="mt-0.5 shrink-0"
+            />
+          </div>
           <Field label="Model">
             <div className="flex flex-col gap-2">
             {MODEL_CHOICES.map((choice) => {
