@@ -1,7 +1,11 @@
 import type Anthropic from '@anthropic-ai/sdk'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
-import { buildAgentToolset, MANAGED_AGENTS_BETA } from '@/lib/anthropic/client'
+import {
+  buildAgentToolset,
+  MANAGED_AGENTS_BETA,
+  readToolCeiling,
+} from '@/lib/anthropic/client'
 import { CHAT_TOOL_DEFINITIONS } from '@/lib/tools/definitions'
 import type { Database } from '@/lib/types/database'
 
@@ -79,6 +83,11 @@ export async function ensureSession(opts: {
   supabase: SupabaseClient<Database>
   threadId: string
   sessionId: string | null
+  // Our own agent id, not the Claude one. Required so this helper can read the
+  // agent's tool ceiling itself: four routes create sessions, and a ceiling
+  // each of them has to remember to pass is a ceiling three of them will
+  // eventually forget. Same reasoning as the recap above.
+  agentId: string
   claudeAgentId: string
   environmentId: string
   title: string
@@ -95,6 +104,7 @@ export async function ensureSession(opts: {
     supabase,
     threadId,
     sessionId,
+    agentId,
     claudeAgentId,
     environmentId,
     title,
@@ -104,14 +114,24 @@ export async function ensureSession(opts: {
 
   if (sessionId) return { sessionId, recapText: null }
 
+  const { data: agentRow } = await supabase
+    .from('agents')
+    .select('enabled_tools')
+    .eq('id', agentId)
+    .maybeSingle()
+
   const session = await anthropic.beta.sessions.create({
     agent: {
       id: claudeAgentId,
       type: 'agent_with_overrides',
       // agent_with_overrides REPLACES the tool set, so the base toolset has to
       // be listed alongside ours or the agent loses Gmail and Drive.
+      //
+      // It also replaces the ceiling set on the agent itself, which is how
+      // web_search stayed on for every agent no matter what enabled_tools said.
+      // The ceiling has to be restated here or it does not exist.
       tools: [
-        ...buildAgentToolset({ web_search: true }),
+        ...buildAgentToolset(readToolCeiling(agentRow?.enabled_tools)),
         ...CHAT_TOOL_DEFINITIONS,
       ],
     },

@@ -42,4 +42,14 @@ export function buildAgentToolset(tools: { web_search: boolean }) {
   ]
 }
 
+// agents.enabled_tools is jsonb, so it arrives as unknown and may be null on a
+// row written before the column existed. A missing or unreadable value means
+// SEARCH IS ON: this is a ceiling, and the safe default for a ceiling is the
+// behaviour the product already had. Turning it off by accident would silently
+// break a news routine and look like the agent going quiet.
+export function readToolCeiling(raw: unknown): { web_search: boolean } {
+  const o = (raw ?? {}) as Record<string, unknown>
+  return { web_search: o.web_search !== false }
+}
+
 export const AGENT_TOOLSET = buildAgentToolset({ web_search: true })

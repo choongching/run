@@ -154,6 +154,7 @@ export async function POST(
           supabase,
           threadId: thread.id,
           sessionId: thread.session_id,
+          agentId: agent.id,
           claudeAgentId: agent.claude_agent_id!,
           environmentId,
           title: name,

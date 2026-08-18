@@ -101,7 +101,12 @@ export async function startAgentFromPrompt(formData: FormData) {
   // buildSystemPrompt folds in the always-on role boundary from creation so a
   // brand-new agent stays in its lane even before onboarding runs.
   const systemPrompt = buildSystemPrompt(prompt, [])
-  const enabledTools = { web_search: false, drive: true }
+  // Web search on by default. Until 2026-08-18 this said false while every
+  // session hardcoded true, so the column recorded a policy that was never
+  // applied. Now that the ceiling is enforced at session creation, false here
+  // would silently switch search off for every new agent, and there is no UI
+  // to switch it back on. It says what the product actually does.
+  const enabledTools = { web_search: true, drive: true }
 
   let claudeAgentId: string
   let claudeVersion: number
