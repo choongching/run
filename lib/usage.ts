@@ -16,8 +16,14 @@ import type {
 // number a customer is charged.
 //
 // Unknown models fall back to the default so recording never fails.
+//
+// Checked against the pricing page on 2026-08-18. Sonnet 5 was wrong here at
+// $3/$15: it is $2/$10, and the increase announced for September was cancelled.
+// Rows written before that date overstate every Sonnet turn by 50%; they are
+// left alone rather than recomputed, because a ledger that rewrites itself is
+// worse than one that was briefly wrong.
 const PRICING: Record<string, { input: number; output: number }> = {
-  'claude-sonnet-5': { input: 3.0, output: 15.0 },
+  'claude-sonnet-5': { input: 2.0, output: 10.0 },
   'claude-opus-4-8': { input: 5.0, output: 25.0 },
   'claude-haiku-4-5': { input: 1.0, output: 5.0 },
 }
