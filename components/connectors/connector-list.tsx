@@ -6,6 +6,7 @@ import { toast } from 'sonner'
 
 import { GmailIcon } from '@/components/icons/gmail'
 import { GoogleDriveIcon } from '@/components/icons/google-drive'
+import { JinaIcon } from '@/components/icons/jina'
 import { Button } from '@/components/ui/button'
 import {
   Tooltip,
@@ -23,7 +24,7 @@ import {
 // and they all drive the same /api/connections/[app] endpoints, so the state
 // cannot drift between them.
 
-export type ConnectorApp = 'gmail' | 'google_drive'
+export type ConnectorApp = 'gmail' | 'google_drive' | 'jina_ai'
 
 export type ConnectorState = Record<ConnectorApp, boolean>
 
@@ -40,6 +41,15 @@ export const CONNECTORS = [
     Icon: GoogleDriveIcon,
     blurb: 'Find and read your documents, and turn them into new ones.',
   },
+  {
+    app: 'jina_ai',
+    // The blurb says what connecting BUYS, because unlike the rows above,
+    // search already works without it. A blurb describing what Jina is would
+    // leave someone wondering why they should care.
+    label: 'Jina',
+    Icon: JinaIcon,
+    blurb: 'Search on your own account, and stop counting against the monthly limit.',
+  },
 ] as const satisfies ReadonlyArray<{
   app: ConnectorApp
   label: string
@@ -51,14 +61,22 @@ export function ConnectorList({
   connections,
   onChanged,
   showBlurb = false,
+  only,
 }: {
   connections: ConnectorState
   onChanged: () => void
   showBlurb?: boolean
+  // Which of the catalogue to render, in catalogue order. The Connectors page
+  // splits them into groups; the Configure panel and the connect card want the
+  // whole list, so leaving this out keeps the old behaviour.
+  only?: ReadonlyArray<ConnectorApp>
 }) {
+  const rows = only
+    ? CONNECTORS.filter((c) => only.includes(c.app))
+    : CONNECTORS
   return (
     <div className="flex flex-col gap-2">
-      {CONNECTORS.map(({ app, label, Icon, blurb }) => (
+      {rows.map(({ app, label, Icon, blurb }) => (
         <ConnectorRow
           key={app}
           app={app}

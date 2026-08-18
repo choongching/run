@@ -6,10 +6,17 @@ import { toast } from 'sonner'
 
 import { GmailIcon } from '@/components/icons/gmail'
 import { GoogleDriveIcon } from '@/components/icons/google-drive'
+import { JinaIcon } from '@/components/icons/jina'
 
+// Every connectable app needs an entry here or the card renders NOTHING and
+// the agent's request becomes a dead end. Jina cannot reach this today, since
+// search falls back to the platform key rather than asking for a connection,
+// but an app missing from this map fails silently and that is not a thing to
+// leave lying around.
 const APPS = {
   gmail: { label: 'Gmail', Icon: GmailIcon },
   google_drive: { label: 'Google Drive', Icon: GoogleDriveIcon },
+  jina_ai: { label: 'Jina', Icon: JinaIcon },
 } as const
 
 type ConnectApp = keyof typeof APPS

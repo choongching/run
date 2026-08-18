@@ -233,7 +233,7 @@ async function runSearchWeb(
   }
 
   try {
-    const { provider, billedToUs } = resolveProvider()
+    const { provider, billedToUs } = await resolveProvider({ supabase, userId })
 
     // Checked before the call, not after. A search that has already happened
     // has already cost us the money, so refusing afterwards protects nothing.

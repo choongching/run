@@ -1,25 +1,30 @@
+import type { SupabaseClient } from '@supabase/supabase-js'
+
+import { getUserConnection } from '@/lib/pipedream/connections'
+import type { Database } from '@/lib/types/database'
 import { braveProvider, bravePlatformTransport } from './brave'
+import { jinaProvider, jinaProxyTransport } from './jina'
 import type { SearchProvider } from './types'
 
 // Which provider answers a search, and who pays for it. One place to read the
 // ladder, one place to change it.
 //
-// Today there is one rung:
+//   1. The user connected their own Jina account -> their key, their bill,
+//      no cap.
+//   2. Nobody connected anything -> our Brave key, counted against their
+//      monthly allowance.
 //
-//   Nobody has connected anything -> our Brave key, counted against their
-//   monthly allowance.
+// There is no third rung for a user's own Brave account, and that is a finding
+// rather than an omission. Pipedream's app metadata, read on 2026-08-18,
+// reports `brave_search_api` with `proxy_enabled: false`: the proxy will not
+// carry it, so their key could only reach Brave by passing through us, and
+// holding someone's API key is the one thing this design exists to avoid.
+// `jina_ai` reports `proxy_enabled: true` with `s.jina.ai` allowed, which is
+// exactly the endpoint our adapter calls.
 //
-// Two more rungs arrive with the connectors, above this one:
-//
-//   The user connected their own Jina account  -> their key, their bill
-//   The user connected their own Brave account -> their key, their bill
-//
-// They are not stubbed here on purpose. `jina_ai` and `brave_search_api` are
-// not registered as connectable apps yet, and the Pipedream proxy has not been
-// verified against a key-authenticated app. A branch written against an API
-// shape nobody has run would sit here looking finished. When those land, they
-// go in above the platform rung, and Jina goes first: it is roughly 25 times
-// cheaper, so a user who connected both meant the cheap one.
+// It also lands the right way round economically. Jina is roughly 25 times
+// cheaper, so "bring your own account" is the cheap one, and the one we pay for
+// is the one that can answer "this week".
 //
 // Server-only. Reads the platform key.
 
@@ -44,9 +49,23 @@ function platformKey(): string {
   return key
 }
 
-export function resolveProvider(signal?: AbortSignal): Resolved {
+export async function resolveProvider(args: {
+  supabase: SupabaseClient<Database>
+  userId: string
+  signal?: AbortSignal
+}): Promise<Resolved> {
+  const accountId = await getUserConnection(args.supabase, args.userId, 'jina_ai')
+  if (accountId) {
+    return {
+      provider: jinaProvider(
+        jinaProxyTransport({ userId: args.userId, accountId })
+      ),
+      billedToUs: false,
+    }
+  }
+
   return {
-    provider: braveProvider(bravePlatformTransport(platformKey(), signal)),
+    provider: braveProvider(bravePlatformTransport(platformKey(), args.signal)),
     billedToUs: true,
   }
 }

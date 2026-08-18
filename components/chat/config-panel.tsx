@@ -404,7 +404,8 @@ function ConfigPanelBody({
             />
             <p className="px-0.5 text-xs text-muted-foreground">
               These are yours rather than this agent&apos;s, so every agent you own shares
-              them. Manage them all under Connectors. Web search is always on.
+              them. Manage them all under Connectors. Web search is included, up
+              to a monthly limit.
             </p>
           </div>
         </AccordionSection>

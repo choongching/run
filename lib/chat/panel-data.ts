@@ -59,6 +59,7 @@ export async function loadPanelExtras(
   const [
     gmailConn,
     driveConn,
+    jinaConn,
     { data: attachedRows },
     { data: libraryRows },
     { data: routineRows },
@@ -66,6 +67,7 @@ export async function loadPanelExtras(
     await Promise.all([
       getUserConnection(supabase, userId, 'gmail'),
       getUserConnection(supabase, userId, 'google_drive'),
+      getUserConnection(supabase, userId, 'jina_ai'),
       supabase
         .from('agent_knowledge')
         .select(
@@ -116,7 +118,11 @@ export async function loadPanelExtras(
   })
 
   return {
-    connections: { gmail: !!gmailConn, google_drive: !!driveConn },
+    connections: {
+      gmail: !!gmailConn,
+      google_drive: !!driveConn,
+      jina_ai: !!jinaConn,
+    },
     knowledge,
     knowledgeLibrary,
     routines,

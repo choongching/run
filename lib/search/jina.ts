@@ -1,3 +1,4 @@
+import { getPipedreamClient } from '@/lib/pipedream/client'
 import { MAX_RESULTS } from './limits'
 import { sanitizeSnippet, sanitizeTitle, safeUrl } from './sanitize'
 import type { SearchOptions, SearchProvider, SearchResult } from './types'
@@ -90,5 +91,36 @@ export function jinaDirectTransport(apiKey: string, signal?: AbortSignal): JinaT
       throw new Error(`Jina search failed with status ${res.status}`)
     }
     return res.json()
+  }
+}
+
+// The transport a user's own connected account uses. Their key never reaches
+// us: Pipedream holds it and injects it, exactly as Gmail and Drive work.
+//
+// Verified against Pipedream's app metadata on 2026-08-18 rather than assumed.
+// `jina_ai` reports `proxy_enabled: true` with `s.jina.ai` on its allowed
+// domains, which is the endpoint this adapter calls. `brave_search_api`
+// reports `proxy_enabled: false`, which is why Brave is the platform default
+// and not something anyone can bring.
+//
+// The three headers still come from us. Pipedream adds the authorization and
+// forwards the rest, so no-content and the token ceiling apply the same way
+// they do on the direct path.
+export function jinaProxyTransport(args: {
+  userId: string
+  accountId: string
+}): JinaTransport {
+  return async (url) => {
+    const pd = getPipedreamClient()
+    return await pd.proxy.get({
+      url: url.toString(),
+      externalUserId: args.userId,
+      accountId: args.accountId,
+      headers: {
+        Accept: 'application/json',
+        'X-Respond-With': 'no-content',
+        'X-Max-Tokens': MAX_TOKENS,
+      },
+    })
   }
 }
