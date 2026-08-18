@@ -11,7 +11,10 @@ keys, or internal-only plans in here.
 **Where we left off:** Routines are live, fire on their own in production, and
 can now be changed after the fact. The monthly meter now counts what web
 searches cost, which it never did before, so the number you see is closer to
-the number you are billed. Agents do standing work on a schedule:
+the number you are billed. Work is underway on searching the web through Brave
+instead of the built-in search, which costs about half as much and can ask for
+recent results; it is written but switched off, and the next step is turning it
+on for one account and watching a real run before anyone else sees it. Agents do standing work on a schedule:
 setting one up ends by asking what starts the agent off, you or the clock, and
 after the first piece of work the agent offers to make that real on a card
 showing the next three real run dates. Opening a routine now lets you edit
@@ -95,6 +98,72 @@ Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
 
 ---
+
+## 2026-08-18 (evening): Choosing a search provider, by measuring instead of reading
+
+**Why we are doing this at all.** Searching the web is charged separately from
+thinking, at $10 for every thousand searches. On a scheduled news run that fee
+is about 40% of what the run costs. Today it is pennies because there is one
+person using it; at a thousand people with a daily routine it is about a
+thousand dollars a month.
+
+**We tested two search companies against two real questions.** Not a benchmark.
+Two questions that fail in different ways: "Iran Israel strikes casualties",
+which fails when a search returns something trustworthy but old, and "JBL Charge
+6 vs Flip 7", which fails when it returns pages written to rank rather than to
+inform. A provider that survives both survives the work our agents actually do.
+
+**Brave won, and not on price.** It can restrict results to a time window and
+Jina cannot. Asked for the past week, Brave returned this week's wire copy from
+AP, CNN and Al Jazeera. Jina returned real outlets but pages from months ago,
+with no setting that could fix it. For a weekly news agent that is not a lower
+score, it is the wrong answer delivered confidently.
+
+**One finding changed the design.** The same freshness setting that fixed the
+news question destroyed the shopping one, which came back as foreign-language
+blogs and a review of a different product. So recency cannot be something we
+configure. It is now something the agent chooses per question, because only
+whoever can see the question knows whether last week matters.
+
+**Jina stays, as a choice rather than the default.** It is roughly twenty five
+times cheaper, which is the right trade for someone who searches a lot and cares
+less about recency. That is what the connectors are for: bring your own account
+and your searches stop counting against the monthly limit.
+
+**Four things the documentation said about Jina turned out to be wrong**, and we
+only found them by calling the API: search needs a key, billing is a flat rate
+rather than one that grows with the pages read, it returns ten results and not
+five, and one of its parameters is rejected below a minimum nobody documents.
+Two of the four were in Jina's favour.
+
+**Built so far, reaching nobody.** The provider module, and the search tool
+itself, are written and switched off. Every agent still uses the built-in
+search exactly as before, and one setting turns the new one on for one account
+when we are ready to watch it work.
+
+**Guardrails, since this is the first tool that brings outside text into an
+agent through us.** Search results are written by strangers. Every snippet is
+stripped of hidden characters, links to anywhere other than the result itself,
+and anything imitating the markers we use to fence quoted material, before it
+reaches the agent behind a notice saying to treat it as reference and never as
+instructions. Two bugs in that stripping were caught by its own tests: newlines
+were welding words together, and script contents were surviving as text.
+
+**Also new:** a limit of six searches per reply as a runaway guard, and results
+that carry their source and link so the agent can say where an answer came from.
+That last one is not decoration. Anthropic's own search marks its sources
+automatically and ours cannot, so attribution had to be asked for or it would
+have quietly disappeared.
+
+**Verified:** 75 checks across the sanitiser, the two provider adapters, the
+tool's registration, the fence and the rollout switch, plus one live search that
+returned five results in about a second with every rule holding on real data.
+
+**Deliberately not built:** caching similar searches. It saves half a cent per
+hit while the same results sitting in a reply cost about a hundred times more,
+the questions our agents ask are dated and would be wrong to reuse, and matching
+questions by meaning quietly confuses opposites like "safe for children" and
+"unsafe for children". Parked with a note on what would change the answer.
 
 ## 2026-08-18: The meter learns what a search costs
 
