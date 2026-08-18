@@ -304,7 +304,13 @@ async function drainSessionInner(
     denyWrites = false,
   } = opts
 
-  const activityLabels: string[] = []
+  // The transcript's record of what the agent did. A slot is claimed when the
+  // tool is announced and cleared to null if that tool came back an error, so a
+  // step that did not happen does not settle into the history claiming it did.
+  // Nulls are skipped when the rows are written.
+  const activityLabels: Array<string | null> = []
+  // Which slot belongs to which custom tool call, so an error can find it.
+  const activitySlot = new Map<string, number>()
   const artifacts: { title: string; content: string }[] = []
   // Searches performed in this drain. Counted here rather than in the executor
   // because the executor sees one call at a time and the model can ask for
@@ -444,7 +450,11 @@ async function drainSessionInner(
       // work it did: they get a card, not an activity line.
       if (!isAskTool(event.name) && !isProposeTool(event.name)) {
         const act = toolActivity(event.name, event.input)
-        // Persist the past form: a stored activity is always a completed step.
+        // The past form is what gets persisted, because a stored activity is a
+        // step that finished. Which is exactly why the slot is remembered: the
+        // announcement arrives before the tool runs, so at this point we do not
+        // yet know whether it finished at all.
+        activitySlot.set(event.id, activityLabels.length)
         activityLabels.push(act.past)
         send({ type: 'activity', present: act.present, past: act.past })
       }
@@ -652,6 +662,10 @@ async function drainSessionInner(
               ],
               is_error: true,
             })
+            // Same reasoning as an errored tool below: the line was written
+            // when the call was announced, and this call never ran.
+            const slot = activitySlot.get(call.id)
+            if (slot !== undefined) activityLabels[slot] = null
             continue
           }
           searchesThisDrain += 1
@@ -665,6 +679,15 @@ async function drainSessionInner(
         })
         if (outcome.kind === 'result' && outcome.billed) {
           tally.providerSearches += 1
+        }
+        if (outcome.kind === 'error') {
+          // Take the line back. Found live: with the monthly search allowance
+          // spent, the agent correctly said it could not search, and the
+          // transcript above it still read "Searched the web for ...". A
+          // history that records work nobody did is worse than one that
+          // records nothing.
+          const slot = activitySlot.get(call.id)
+          if (slot !== undefined) activityLabels[slot] = null
         }
         if (outcome.kind === 'needs_connection') {
           send({ type: 'connect', app: outcome.app })
@@ -707,6 +730,7 @@ async function drainSessionInner(
 
 
   for (const label of activityLabels) {
+    if (label === null) continue
     await supabase
       .from('messages')
       .insert({ thread_id: threadId, role: 'activity', content: label })
