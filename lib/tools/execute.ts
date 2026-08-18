@@ -17,12 +17,19 @@ import { TOOL_APP, type ToolName } from '@/lib/tools/definitions'
 import { MAX_RESULTS, isRecency } from '@/lib/search/limits'
 import { resolveProvider, SearchUnavailableError } from '@/lib/search/resolve'
 import { formatSearchResults } from '@/lib/search/format'
+import { recordSearch } from '@/lib/search/usage'
+import { canSearch } from '@/lib/entitlements/assert'
 import type { ConnectableApp } from '@/lib/pipedream/client'
 import type { Database } from '@/lib/types/database'
 
 export type ToolOutcome =
   | { kind: 'needs_connection'; app: ConnectableApp }
-  | { kind: 'result'; text: string }
+  // `billed` marks work that went on OUR bill and belongs in the cost column.
+  // Carried back from the executor rather than inferred by the caller, because
+  // the caller cannot see which provider answered: the same search_web call is
+  // our spend or the user's depending on what they have connected, and only
+  // the ladder in resolve.ts knows which.
+  | { kind: 'result'; text: string; billed?: boolean }
   | { kind: 'error'; text: string }
 
 const KNOWN_TOOLS = new Set<ToolName>([
@@ -66,7 +73,7 @@ export async function executeTool(ctx: ToolContext): Promise<ToolOutcome> {
   // below stays exhaustive, which is what makes a new tool a compile error
   // instead of a silent fall-through.
   if (tool === 'search_web') {
-    return runSearchWeb(input)
+    return runSearchWeb(supabase, userId, input)
   }
 
   const app = TOOL_APP[tool]
@@ -190,6 +197,8 @@ export async function executeTool(ctx: ToolContext): Promise<ToolOutcome> {
 // it sits outside the switch above: the connection-required path stays one
 // straight line with no exceptions threaded through it.
 async function runSearchWeb(
+  supabase: SupabaseClient<Database>,
+  userId: string,
   input: Record<string, unknown>
 ): Promise<ToolOutcome> {
   const query = String(input.query ?? '').trim()
@@ -198,10 +207,37 @@ async function runSearchWeb(
   }
 
   try {
-    const { provider } = resolveProvider()
+    const { provider, billedToUs } = resolveProvider()
+
+    // Checked before the call, not after. A search that has already happened
+    // has already cost us the money, so refusing afterwards protects nothing.
+    //
+    // Only when we are the ones paying. A search on the person's own connected
+    // account is not our bill and is not ours to cap, which is exactly what
+    // connecting an account buys.
+    if (billedToUs) {
+      const allowance = await canSearch(supabase, userId)
+      if (!allowance.ok) {
+        // An error result rather than a thrown one, so the model reads it and
+        // tells the user in its own words instead of the turn falling over.
+        return { kind: 'error', text: allowance.reason }
+      }
+    }
+
     const recency = isRecency(input.recency) ? input.recency : undefined
     const result = await provider.search(query, { count: MAX_RESULTS, recency })
-    return { kind: 'result', text: formatSearchResults(query, result, recency) }
+
+    // Counted after the provider answered, and awaited. A call that threw cost
+    // us nothing, so a failed search does not spend anyone's allowance. Awaited
+    // because the alternative is a write dropped when the stream closes, which
+    // is a search we paid for and gave away.
+    if (billedToUs) await recordSearch(userId)
+
+    return {
+      kind: 'result',
+      text: formatSearchResults(query, result, recency),
+      billed: billedToUs,
+    }
   } catch (err) {
     if (err instanceof SearchUnavailableError) {
       // A deployment problem, not the user's. Say so plainly and do not invite

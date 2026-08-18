@@ -6,7 +6,7 @@ import {
 } from '@/lib/anthropic/client'
 import { ensureEnvironment } from '@/lib/anthropic/environment'
 import { drainSession } from '@/lib/chat/run-turn'
-import { getRunAllowance } from '@/lib/entitlements/assert'
+import { getRunAllowance, getSearchAllowance } from '@/lib/entitlements/assert'
 import { FAILING_AFTER } from '@/lib/routines/list'
 import { nextOccurrences, parseRule } from '@/lib/routines/rule'
 import { createServiceClient } from '@/lib/supabase/service'
@@ -80,11 +80,10 @@ export async function runRoutine(
     .single()
   if (!thread) return { ok: false, reason: 'The conversation could not be opened.' }
 
-  // The meter's number, enforced here exactly as the message route enforces
-  // it for chat. When it trips, the routine pauses itself and says so once,
-  // rather than failing silently every morning for three weeks.
-  const allowance = await getRunAllowance(supabase, routine.user_id)
-  if (allowance.used >= allowance.limit) {
+  // A routine that cannot afford what it is about to do pauses itself and says
+  // so once, rather than failing silently every morning for three weeks. Two
+  // limits can stop it, and the shape of stopping is the same for both.
+  const pauseRoutine = async (error: string, notice: string) => {
     await supabase
       .from('routines')
       .update({ status: 'paused_system' })
@@ -95,17 +94,50 @@ export async function runRoutine(
       user_id: routine.user_id,
       status: 'skipped',
       finished_at: new Date().toISOString(),
-      error: 'Out of runs this month',
+      error,
     })
     await supabase.from('messages').insert({
       thread_id: thread.id,
       role: 'activity',
       content: '',
-      payload: {
-        notice: `"${routine.name}" paused itself: you have used all ${allowance.limit} runs this month. It starts again when your runs refill, or resume it sooner from Routines.`,
-      } as unknown as Json,
+      payload: { notice } as unknown as Json,
     })
+  }
+
+  // The meter's number, enforced here exactly as the message route enforces
+  // it for chat.
+  const allowance = await getRunAllowance(supabase, routine.user_id)
+  if (allowance.used >= allowance.limit) {
+    await pauseRoutine(
+      'Out of runs this month',
+      `"${routine.name}" paused itself: you have used all ${allowance.limit} runs this month. It starts again when your runs refill, or resume it sooner from Routines.`
+    )
     return { ok: false, reason: 'Out of runs this month; the routine paused itself.' }
+  }
+
+  // The same for searches, and only for a routine that would actually search.
+  // Pausing a drafting routine because a research one used up the month's
+  // searches would be a limit applied to the wrong thing. So this asks the two
+  // questions that decide whether search is even on the table: is our provider
+  // reaching this user at all, and does this agent have search switched on.
+  //
+  // Checked here as well as in the executor because nobody is watching. In chat
+  // a person reads "I could not search" and decides what to do; a routine would
+  // just keep firing and filing empty reports.
+  const ceiling = readToolCeiling(agent.enabled_tools)
+  const wouldSearch = searchToolEnabledFor(routine.user_id) && ceiling.web_search
+  if (wouldSearch) {
+    const searches = await getSearchAllowance(supabase, routine.user_id)
+    if (searches.used >= searches.limit) {
+      await pauseRoutine(
+        'Out of web searches this month',
+        `"${routine.name}" paused itself: you have used all ${searches.limit} web searches this month. It starts again when they refill, or connect your own search account under Connectors to stop being capped.`
+      )
+      return {
+        ok: false,
+        reason: 'Out of web searches this month; the routine paused itself.',
+      }
+    }
   }
 
   const environment = await ensureEnvironment()
@@ -124,7 +156,7 @@ export async function runRoutine(
       // tool set, so anything not repeated here is not enforced.
       tools: [
         ...toolsetFor({
-          ceiling: readToolCeiling(agent.enabled_tools),
+          ceiling,
           ourSearch: searchToolEnabledFor(routine.user_id),
         }),
         ...withSearchTool(CHAT_TOOL_DEFINITIONS, routine.user_id),

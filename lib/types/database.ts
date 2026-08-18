@@ -221,6 +221,36 @@ export type Database = {
           },
         ]
       }
+      // How many searches a person has used this month, on OUR provider key.
+      // Owner-read only; there is no insert or update policy, because the
+      // number that limits someone must not be editable by them. Writes go
+      // through increment_search_usage with the service-role key.
+      search_usage: {
+        Row: {
+          user_id: string
+          month: string
+          searches: number
+        }
+        Insert: {
+          user_id: string
+          month: string
+          searches?: number
+        }
+        Update: {
+          user_id?: string
+          month?: string
+          searches?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'search_usage_user_id_fkey'
+            columns: ['user_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       usage_events: {
         Row: {
           id: string
@@ -236,6 +266,7 @@ export type Database = {
           cache_read_input_tokens: number
           output_tokens: number
           web_searches: number
+          provider_searches: number
           cost_usd: number
           event_type: UsageEventType
           created_at: string
@@ -254,6 +285,7 @@ export type Database = {
           cache_read_input_tokens?: number
           output_tokens?: number
           web_searches?: number
+          provider_searches?: number
           cost_usd?: number
           event_type: UsageEventType
           created_at?: string
@@ -272,6 +304,7 @@ export type Database = {
           cache_read_input_tokens?: number
           output_tokens?: number
           web_searches?: number
+          provider_searches?: number
           cost_usd?: number
           event_type?: UsageEventType
           created_at?: string
@@ -541,6 +574,7 @@ export type Database = {
           cache_read_input_tokens: number
           output_tokens: number
           web_searches: number
+          provider_searches: number
           cost_usd: number
         }
         Relationships: [
@@ -558,6 +592,12 @@ export type Database = {
       get_my_role: {
         Args: Record<string, never>
         Returns: UserRole
+      }
+      // Service-role only: EXECUTE is revoked from anon and authenticated, and
+      // search_usage has no insert policy, so a signed-in caller fails twice.
+      increment_search_usage: {
+        Args: { uid: string; at_month: string }
+        Returns: number
       }
     }
     Enums: {
@@ -578,6 +618,7 @@ export type Thread = Database['public']['Tables']['threads']['Row']
 export type Message = Database['public']['Tables']['messages']['Row']
 export type UserConnection = Database['public']['Tables']['user_connections']['Row']
 export type UsageEvent = Database['public']['Tables']['usage_events']['Row']
+export type SearchUsage = Database['public']['Tables']['search_usage']['Row']
 export type Routine = Database['public']['Tables']['routines']['Row']
 export type RoutineRun = Database['public']['Tables']['routine_runs']['Row']
 export type UsageMonth = Database['public']['Views']['usage_monthly']['Row']

@@ -4,6 +4,7 @@ import {
   agentLimitReason,
   planFor,
   runLimitReason,
+  searchLimitReason,
 } from '@/lib/entitlements/plans'
 import type { Database } from '@/lib/types/database'
 
@@ -101,6 +102,66 @@ export async function canRunAgent(
   const { used, limit } = await getRunAllowance(supabase, userId, planId)
   if (used >= limit) {
     return { ok: false, reason: runLimitReason(limit) }
+  }
+  return { ok: true }
+}
+
+
+// Web searches used this month, on our provider key only.
+//
+// Read from the search_usage rollup rather than counted off usage_events, and
+// the difference is not an optimisation. usage_events is written once per turn,
+// fire-and-forget, with a status; search_usage is written once per search, in
+// the moment, awaited. Three ways the first is wrong for this: a dropped write
+// after the stream closes, a turn spanning several drains, and a `completed`
+// filter anyone could dodge by aborting. Migration 039 states the reasoning.
+//
+// The read is one primary-key lookup. A missing row means nobody has searched
+// yet this month, which is zero rather than an error.
+export type SearchAllowance = {
+  used: number
+  limit: number
+  resetsAt: string
+}
+
+export async function getSearchAllowance(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  planId?: string | null
+): Promise<SearchAllowance> {
+  const { limits } = planFor(planId)
+  const start = monthStart()
+  const month = start.toISOString().slice(0, 10)
+
+  const { data } = await supabase
+    .from('search_usage')
+    .select('searches')
+    .eq('user_id', userId)
+    .eq('month', month)
+    .maybeSingle()
+
+  const resetsAt = new Date(
+    Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 1)
+  ).toISOString()
+
+  return {
+    used: data?.searches ?? 0,
+    limit: limits.searchesPerMonth,
+    resetsAt,
+  }
+}
+
+// Checked before every search that would run on our key. A search on someone's
+// own connected account never reaches this: it is not our bill, so it is not
+// ours to cap.
+export async function canSearch(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  planId?: string | null
+): Promise<Allowance> {
+  const { used, limit } = await getSearchAllowance(supabase, userId, planId)
+  if (used >= limit) {
+    return { ok: false, reason: searchLimitReason(limit) }
   }
   return { ok: true }
 }

@@ -51,6 +51,18 @@ const CACHE_WRITE_RATE = 1.25
 // https://platform.claude.com/docs/en/about-claude/pricing
 const WEB_SEARCH_USD = 0.01
 
+// A search run on OUR provider key, which is Brave today at $5 per 1,000.
+//
+// Its own constant rather than a second use of WEB_SEARCH_USD, because the two
+// are different purchases at different prices and one column cannot carry both.
+// Reusing Anthropic's rate would have doubled every provider search in the
+// ledger and made the stated meaning of migration 037 false.
+//
+// Searches on a user's own connected account are priced at nothing here,
+// because they are not our bill. They are not recorded as zero either; they are
+// not recorded at all.
+const PROVIDER_SEARCH_USD = 0.005
+
 // Some call sites pass a dated snapshot id (the naming model is pinned to
 // claude-haiku-4-5-20251001). Match the family so a pinned model is not priced
 // at the fallback rate, which for Haiku would be triple.
@@ -68,6 +80,9 @@ export type TokenCounts = {
   // Server-side tool calls, priced per call rather than per token. Optional so
   // every existing caller keeps working and simply records no fee.
   webSearches?: number
+  // Searches we ran ourselves, on our provider key. Both counters can be
+  // non-zero on the same row while old sessions still carry the built-in tool.
+  providerSearches?: number
 }
 
 export function computeCost(model: string, tokens: TokenCounts): number {
@@ -84,7 +99,11 @@ export function computeCost(model: string, tokens: TokenCounts): number {
   // Added to cost_usd rather than kept beside it, because cost_usd answers
   // "what did this turn cost" and a fee left out of it makes the answer wrong.
   // The count is stored in its own column so the fee stays auditable.
-  return tokenCost + (tokens.webSearches ?? 0) * WEB_SEARCH_USD
+  return (
+    tokenCost +
+    (tokens.webSearches ?? 0) * WEB_SEARCH_USD +
+    (tokens.providerSearches ?? 0) * PROVIDER_SEARCH_USD
+  )
 }
 
 // One page of a person's run history, newest first.
@@ -236,6 +255,7 @@ export async function recordUsage(
       cache_read_input_tokens: params.cacheReadInputTokens ?? 0,
       output_tokens: params.outputTokens,
       web_searches: params.webSearches ?? 0,
+      provider_searches: params.providerSearches ?? 0,
       cost_usd: computeCost(params.model, params),
       event_type: params.eventType,
     })

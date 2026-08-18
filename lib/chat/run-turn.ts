@@ -233,6 +233,14 @@ type TokenTally = {
   // be observed is the tool_use event below. Kept in the same tally so a turn
   // that throws still reports the searches it already paid for.
   webSearches: number
+  // The same idea for searches we ran ourselves, at our provider's price rather
+  // than Anthropic's. Counted only when the executor says the search was on our
+  // bill; a search on the user's own connected account is nobody's cost to us.
+  //
+  // This is the COST side only. The monthly allowance is counted separately, in
+  // the executor, awaited, one row per search, because this tally can be lost
+  // when a stream closes and an allowance that can be lost is not an allowance.
+  providerSearches: number
 }
 
 // A turn always writes a usage row, whether it finished or fell over: the
@@ -256,6 +264,7 @@ export async function drainSession(opts: DrainOpts): Promise<DrainResult> {
     cacheReadInputTokens: 0,
     outputTokens: 0,
     webSearches: 0,
+    providerSearches: 0,
   }
   let failed = false
   try {
@@ -654,6 +663,9 @@ async function drainSessionInner(
           name: call.name,
           input: call.input,
         })
+        if (outcome.kind === 'result' && outcome.billed) {
+          tally.providerSearches += 1
+        }
         if (outcome.kind === 'needs_connection') {
           send({ type: 'connect', app: outcome.app })
           sentConnect = true
