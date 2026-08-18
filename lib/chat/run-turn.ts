@@ -20,6 +20,7 @@ import {
 import { neededConnectors, type NeededConnector } from '@/lib/chat/onboarding'
 import { toChatError, type ChatError } from '@/lib/chat/errors'
 import { executeTool } from '@/lib/tools/execute'
+import { MAX_SEARCHES_PER_DRAIN } from '@/lib/search/limits'
 import { recordUsage } from '@/lib/usage'
 import type { Database, Json, UsageSource } from '@/lib/types/database'
 
@@ -110,6 +111,19 @@ export function toolActivity(
   input: Record<string, unknown> = {}
 ): ToolActivity {
   switch (name) {
+    case 'search_web': {
+      const q = String(input.query ?? '').trim()
+      // Deliberately the same words builtinActivity uses for Anthropic's own
+      // web search. The provider changed; what the person watching sees should
+      // not, and a transcript from before the switch should read the same as
+      // one from after.
+      return q
+        ? {
+            present: `Searching the web for "${q}"`,
+            past: `Searched the web for "${q}"`,
+          }
+        : { present: 'Searching the web', past: 'Searched the web' }
+    }
     case 'gmail_search': {
       const s = gmailSearchSuffix(String(input.query ?? ''))
       return { present: `Searching your inbox${s}`, past: `Searched your inbox${s}` }
@@ -283,6 +297,12 @@ async function drainSessionInner(
 
   const activityLabels: string[] = []
   const artifacts: { title: string; content: string }[] = []
+  // Searches performed in this drain. Counted here rather than in the executor
+  // because the executor sees one call at a time and the model can ask for
+  // several at once: a check made before the loop would let a batch of six
+  // through together. A loop-breaker, not the cost control; the monthly
+  // allowance is that.
+  let searchesThisDrain = 0
   const agentParts: string[] = []
   let sessionError: string | null = null
   let started = false
@@ -570,6 +590,23 @@ async function drainSessionInner(
             ],
           })
           continue
+        }
+        if (call.name === 'search_web') {
+          if (searchesThisDrain >= MAX_SEARCHES_PER_DRAIN) {
+            resultEvents.push({
+              type: 'user.custom_tool_result',
+              custom_tool_use_id: call.id,
+              content: [
+                {
+                  type: 'text',
+                  text: `That is ${MAX_SEARCHES_PER_DRAIN} searches for this reply, which is the limit. Work with what you already found, and tell the user plainly if it was not enough rather than searching again.`,
+                },
+              ],
+              is_error: true,
+            })
+            continue
+          }
+          searchesThisDrain += 1
         }
         const outcome = await executeTool({
           supabase,

@@ -7,6 +7,7 @@ import type { RoutineRule } from '@/lib/routines/rule'
 // tool (writes and anything unclassified) for user approval before it runs.
 
 export type ToolName =
+  | 'search_web'
   | 'gmail_search'
   | 'gmail_get_message'
   | 'gmail_create_draft'
@@ -18,7 +19,15 @@ export type ToolName =
 
 // Which connection each tool needs, so the run loop can surface a connect card
 // when the user has not linked that app yet.
-export const TOOL_APP: Record<ToolName, ConnectableApp> = {
+//
+// null means the tool works without any connected account. Kept as a TOTAL
+// record rather than a partial one: a new ToolName with no entry is a compile
+// error, which is the property that stops a future tool from reaching
+// executeTool without anyone deciding whether it needs an account.
+export const TOOL_APP: Record<ToolName, ConnectableApp | null> = {
+  // Web search runs on our own key, or later on the user's connected search
+  // account. Neither is a per-tool requirement, so there is nothing to gate on.
+  search_web: null,
   gmail_search: 'gmail',
   gmail_get_message: 'gmail',
   gmail_create_draft: 'gmail',
@@ -49,6 +58,11 @@ export function isWriteTool(name: string): boolean {
 // mutate the user's data or reach outside. This is the enforcement point for
 // "reads free, writes ask first".
 export const READ_TOOLS = new Set<ToolName>([
+  // A GET against a search API. It reads the public web, touches nothing of the
+  // user's, and has no side effect to approve. Its own caps (results, snippet
+  // length, searches per drain, monthly allowance) are what bound it, not the
+  // approval gate.
+  'search_web',
   'gmail_search',
   'gmail_get_message',
   'drive_list_files',
@@ -327,6 +341,29 @@ export function summarizeWrite(
 // CustomToolParams for the session's agent-with-overrides tools array. Typed
 // loosely here; cast to the SDK type at the call site.
 export const CHAT_TOOL_DEFINITIONS = [
+  {
+    type: 'custom' as const,
+    name: 'search_web',
+    description:
+      "Search the public web and get back a short list of pages: title, link and a snippet of each. Use it whenever the answer depends on something current, specific, or outside what you already know. It returns snippets only, never full pages, so read the ones that look useful with your web fetch tool before answering from them. Cite the pages you used by name and link. Set `recency` when the question is about something recent, such as news or a release: without it you get the whole web including pages from years ago, which is what you want for a review or a comparison and wrong for anything happening now.",
+    input_schema: {
+      type: 'object' as const,
+      properties: {
+        query: {
+          type: 'string',
+          description:
+            'What to search for, phrased as you would type it into a search engine.',
+        },
+        recency: {
+          type: 'string',
+          enum: ['week', 'month', 'year'],
+          description:
+            'Restrict results to pages from the last week, month or year. Leave it out for anything not time-sensitive.',
+        },
+      },
+      required: ['query'],
+    },
+  },
   {
     type: 'custom' as const,
     name: 'gmail_search',

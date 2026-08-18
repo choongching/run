@@ -11,6 +11,7 @@ import { FAILING_AFTER } from '@/lib/routines/list'
 import { nextOccurrences, parseRule } from '@/lib/routines/rule'
 import { createServiceClient } from '@/lib/supabase/service'
 import { CHAT_TOOL_DEFINITIONS } from '@/lib/tools/definitions'
+import { withSearchTool } from '@/lib/search/flag'
 import type { Json } from '@/lib/types/database'
 
 // How much of the last run's report the next run is handed. Enough for
@@ -123,7 +124,7 @@ export async function runRoutine(
       // tool set, so anything not repeated here is not enforced.
       tools: [
         ...buildAgentToolset(readToolCeiling(agent.enabled_tools)),
-        ...CHAT_TOOL_DEFINITIONS,
+        ...withSearchTool(CHAT_TOOL_DEFINITIONS, routine.user_id),
       ],
     },
     environment_id: environment.environmentId,

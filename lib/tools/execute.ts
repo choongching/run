@@ -14,6 +14,9 @@ import {
   gmailSearch,
 } from '@/lib/tools/gmail'
 import { TOOL_APP, type ToolName } from '@/lib/tools/definitions'
+import { MAX_RESULTS, isRecency } from '@/lib/search/limits'
+import { resolveProvider, SearchUnavailableError } from '@/lib/search/resolve'
+import { formatSearchResults } from '@/lib/search/format'
 import type { ConnectableApp } from '@/lib/pipedream/client'
 import type { Database } from '@/lib/types/database'
 
@@ -23,6 +26,7 @@ export type ToolOutcome =
   | { kind: 'error'; text: string }
 
 const KNOWN_TOOLS = new Set<ToolName>([
+  'search_web',
   'gmail_search',
   'gmail_get_message',
   'gmail_create_draft',
@@ -55,7 +59,22 @@ export async function executeTool(ctx: ToolContext): Promise<ToolOutcome> {
     return { kind: 'error', text: `Unknown tool: ${name}` }
   }
   const tool = name as ToolName
+
+  // Tools that run on our own credentials are handled before the connection
+  // lookup: there is nothing to look up, and a connect card would be a dead
+  // end. Named explicitly rather than inferred from TOOL_APP so the switch
+  // below stays exhaustive, which is what makes a new tool a compile error
+  // instead of a silent fall-through.
+  if (tool === 'search_web') {
+    return runSearchWeb(input)
+  }
+
   const app = TOOL_APP[tool]
+  if (app === null) {
+    // Declared as needing no account, but nothing above handles it. Fail
+    // closed rather than continuing into a lookup that cannot succeed.
+    return { kind: 'error', text: `Unknown tool: ${tool}` }
+  }
 
   const accountId = await getUserConnection(supabase, userId, app)
   if (!accountId) {
@@ -164,5 +183,35 @@ export async function executeTool(ctx: ToolContext): Promise<ToolOutcome> {
       kind: 'error',
       text: `The ${tool} step did not work${message ? `: ${message}` : ''}. Tell the user plainly what you could not do, in your own words. Never show them this message, an error code, or anything that looks like machine output.`,
     }
+  }
+}
+
+// Web search. Runs on our own key rather than a connected account, which is why
+// it sits outside the switch above: the connection-required path stays one
+// straight line with no exceptions threaded through it.
+async function runSearchWeb(
+  input: Record<string, unknown>
+): Promise<ToolOutcome> {
+  const query = String(input.query ?? '').trim()
+  if (!query) {
+    return { kind: 'error', text: 'Say what to search for and try again.' }
+  }
+
+  try {
+    const { provider } = resolveProvider()
+    const recency = isRecency(input.recency) ? input.recency : undefined
+    const result = await provider.search(query, { count: MAX_RESULTS, recency })
+    return { kind: 'result', text: formatSearchResults(query, result, recency) }
+  } catch (err) {
+    if (err instanceof SearchUnavailableError) {
+      // A deployment problem, not the user's. Say so plainly and do not invite
+      // a retry that will fail the same way.
+      console.error('search unavailable:', err.message)
+      return {
+        kind: 'error',
+        text: 'Web search is not available right now. Tell the user you could not search, in your own words, and answer from what you already know if you can.',
+      }
+    }
+    throw err
   }
 }

@@ -7,6 +7,7 @@ import {
   readToolCeiling,
 } from '@/lib/anthropic/client'
 import { CHAT_TOOL_DEFINITIONS } from '@/lib/tools/definitions'
+import { withSearchTool } from '@/lib/search/flag'
 import type { Database } from '@/lib/types/database'
 
 // How much of the past to hand a replacement session. Enough that the agent
@@ -88,6 +89,10 @@ export async function ensureSession(opts: {
   // each of them has to remember to pass is a ceiling three of them will
   // eventually forget. Same reasoning as the recap above.
   agentId: string
+  // Whose session this is. Needed to decide which tools it is created with,
+  // and a session's tools are fixed at creation, so getting this wrong is not
+  // fixable later without rebuilding the session.
+  userId: string
   claudeAgentId: string
   environmentId: string
   title: string
@@ -105,6 +110,7 @@ export async function ensureSession(opts: {
     threadId,
     sessionId,
     agentId,
+    userId,
     claudeAgentId,
     environmentId,
     title,
@@ -132,7 +138,7 @@ export async function ensureSession(opts: {
       // The ceiling has to be restated here or it does not exist.
       tools: [
         ...buildAgentToolset(readToolCeiling(agentRow?.enabled_tools)),
-        ...CHAT_TOOL_DEFINITIONS,
+        ...withSearchTool(CHAT_TOOL_DEFINITIONS, userId),
       ],
     },
     environment_id: environmentId,
