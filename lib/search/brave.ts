@@ -12,7 +12,24 @@ import type { SearchOptions, SearchProvider, SearchResult } from './types'
 //
 // https://api.search.brave.com/res/v1/web/search
 
-const ENDPOINT = 'https://api.search.brave.com/res/v1/web/search'
+// Two indexes, and choosing between them is the difference between a news
+// digest that works and one that comes back empty.
+//
+// The web index answers "what pages exist about this". For a generic news query
+// it returns the front doors: AI Weekly, ScienceDaily's AI section, a release
+// tracker. Their snippets describe the site rather than a story, so an agent
+// asked for a weekly digest finds nothing to say (observed live, 2026-08-18:
+// three searches, a report with no content in it).
+//
+// The news index answers "what was published about this, and when". Same key,
+// same plan, and it returns articles with datelines: NYT, WIRED, NPR, "20 hours
+// ago".
+//
+// The switch is the model's own `recency` argument, because that IS the
+// question being asked. Wanting recent results and wanting news are the same
+// intent expressed twice, so there is no second setting to get wrong.
+const WEB_ENDPOINT = 'https://api.search.brave.com/res/v1/web/search'
+const NEWS_ENDPOINT = 'https://api.search.brave.com/res/v1/news/search'
 
 // Brave's own vocabulary for a time window. `pd` (past day) exists too and is
 // deliberately not offered: a day is narrow enough that an agent asking for
@@ -27,16 +44,23 @@ const FRESHNESS: Record<Recency, string> = {
 // What Brave actually returns, reduced to the fields we read. Everything is
 // optional because a search API is a third party and a missing field must
 // degrade a result rather than throw a turn away.
+type BraveRow = {
+  title?: string
+  url?: string
+  description?: string
+  page_age?: string
+  // The news index reports a relative age ("20 hours ago") where the web index
+  // gives an ISO timestamp. Both are useful to the model, which is judging
+  // whether something is current, so whichever exists is passed through as-is
+  // rather than parsed into a shape neither provider promised.
+  age?: string
+}
+
+// The two indexes nest their rows differently, which is the only difference
+// between them that reaches this file.
 type BraveResponse = {
-  web?: {
-    results?: Array<{
-      title?: string
-      url?: string
-      description?: string
-      page_age?: string
-      age?: string
-    }>
-  }
+  web?: { results?: BraveRow[] }
+  results?: BraveRow[]
 }
 
 export type BraveTransport = (url: URL) => Promise<unknown>
@@ -49,7 +73,7 @@ export function braveProvider(transport: BraveTransport): SearchProvider {
   return {
     id: 'brave',
     async search(query: string, opts: SearchOptions): Promise<SearchResult> {
-      const url = new URL(ENDPOINT)
+      const url = new URL(opts.recency ? NEWS_ENDPOINT : WEB_ENDPOINT)
       url.searchParams.set('q', query)
       // Ask for a few more than we keep. Results are dropped locally when a url
       // will not parse, and asking for exactly five would then return four.
@@ -57,7 +81,7 @@ export function braveProvider(transport: BraveTransport): SearchProvider {
       if (opts.recency) url.searchParams.set('freshness', FRESHNESS[opts.recency])
 
       const raw = (await transport(url)) as BraveResponse
-      const rows = raw?.web?.results ?? []
+      const rows = raw?.web?.results ?? raw?.results ?? []
 
       const hits = []
       for (const row of rows) {
@@ -65,11 +89,12 @@ export function braveProvider(transport: BraveTransport): SearchProvider {
         if (!clean) continue
         const title = sanitizeTitle(row.title ?? '')
         if (!title) continue
+        const published = row.page_age ?? row.age
         hits.push({
           title,
           url: clean,
           snippet: sanitizeSnippet(row.description ?? ''),
-          ...(row.page_age ? { publishedAt: row.page_age } : {}),
+          ...(published ? { publishedAt: published } : {}),
         })
         if (hits.length >= Math.min(opts.count, MAX_RESULTS)) break
       }

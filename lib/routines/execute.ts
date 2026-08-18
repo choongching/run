@@ -160,9 +160,17 @@ export async function runRoutine(
   const lastRan = routine.last_run_at
     ? new Date(routine.last_run_at).toISOString().slice(0, 10)
     : null
+  // Today's date, in the schedule's own timezone. A model has no clock and its
+  // training has an horizon, so without this a news routine searches for the
+  // wrong year: observed live on 2026-08-18, an agent with no carry to date it
+  // searched for "AI model release new 2024". The carry used to supply this by
+  // accident, which meant the very first run of any routine was the one most
+  // likely to be wrong.
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: rule.tz })
+
   const kickoff = `[SCHEDULED RUN, NOT A MESSAGE] This is a routine named "${routine.name}" firing${
     opts.trigger === 'manual' ? ' because the user pressed Run now' : ' on its schedule'
-  }. The user is not present and cannot answer questions.
+  }. Today's date is ${today}. The user is not present and cannot answer questions.
 
 Your standing instruction for each run:
 ${routine.instruction}
