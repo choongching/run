@@ -117,7 +117,10 @@ export async function startAgentFromPrompt(formData: FormData) {
       model: DEFAULT_AGENT_MODEL,
       description: prompt.slice(0, 280),
       system: systemPrompt,
-      tools: buildAgentToolset(enabledTools),
+      tools: buildAgentToolset({
+        search: enabledTools.web_search,
+        fetch: enabledTools.web_search,
+      }),
       betas: [MANAGED_AGENTS_BETA],
     })
     claudeAgentId = claudeAgent.id

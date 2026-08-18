@@ -1,8 +1,8 @@
 import {
-  buildAgentToolset,
   getAnthropicClient,
   MANAGED_AGENTS_BETA,
   readToolCeiling,
+  toolsetFor,
 } from '@/lib/anthropic/client'
 import { ensureEnvironment } from '@/lib/anthropic/environment'
 import { drainSession } from '@/lib/chat/run-turn'
@@ -11,7 +11,7 @@ import { FAILING_AFTER } from '@/lib/routines/list'
 import { nextOccurrences, parseRule } from '@/lib/routines/rule'
 import { createServiceClient } from '@/lib/supabase/service'
 import { CHAT_TOOL_DEFINITIONS } from '@/lib/tools/definitions'
-import { withSearchTool } from '@/lib/search/flag'
+import { searchToolEnabledFor, withSearchTool } from '@/lib/search/flag'
 import type { Json } from '@/lib/types/database'
 
 // How much of the last run's report the next run is handed. Enough for
@@ -123,7 +123,10 @@ export async function runRoutine(
       // The agent's own ceiling, restated: agent_with_overrides replaces the
       // tool set, so anything not repeated here is not enforced.
       tools: [
-        ...buildAgentToolset(readToolCeiling(agent.enabled_tools)),
+        ...toolsetFor({
+          ceiling: readToolCeiling(agent.enabled_tools),
+          ourSearch: searchToolEnabledFor(routine.user_id),
+        }),
         ...withSearchTool(CHAT_TOOL_DEFINITIONS, routine.user_id),
       ],
     },

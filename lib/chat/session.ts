@@ -2,12 +2,12 @@ import type Anthropic from '@anthropic-ai/sdk'
 import type { SupabaseClient } from '@supabase/supabase-js'
 
 import {
-  buildAgentToolset,
   MANAGED_AGENTS_BETA,
   readToolCeiling,
+  toolsetFor,
 } from '@/lib/anthropic/client'
 import { CHAT_TOOL_DEFINITIONS } from '@/lib/tools/definitions'
-import { withSearchTool } from '@/lib/search/flag'
+import { searchToolEnabledFor, withSearchTool } from '@/lib/search/flag'
 import type { Database } from '@/lib/types/database'
 
 // How much of the past to hand a replacement session. Enough that the agent
@@ -136,8 +136,14 @@ export async function ensureSession(opts: {
       // It also replaces the ceiling set on the agent itself, which is how
       // web_search stayed on for every agent no matter what enabled_tools said.
       // The ceiling has to be restated here or it does not exist.
+      // The built-in search is turned OFF for anyone whose searches go through
+      // our own provider. Attaching both would leave the model to pick, and it
+      // picks the one it was trained on.
       tools: [
-        ...buildAgentToolset(readToolCeiling(agentRow?.enabled_tools)),
+        ...toolsetFor({
+          ceiling: readToolCeiling(agentRow?.enabled_tools),
+          ourSearch: searchToolEnabledFor(userId),
+        }),
         ...withSearchTool(CHAT_TOOL_DEFINITIONS, userId),
       ],
     },
