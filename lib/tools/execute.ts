@@ -19,6 +19,8 @@ import { resolveProvider, SearchUnavailableError } from '@/lib/search/resolve'
 import { formatSearchResults } from '@/lib/search/format'
 import { recordSearch } from '@/lib/search/usage'
 import { canSearch } from '@/lib/entitlements/assert'
+import { ourSearchEnabled } from '@/lib/search/flag'
+import { readToolCeiling } from '@/lib/anthropic/client'
 import type { ConnectableApp } from '@/lib/pipedream/client'
 import type { Database } from '@/lib/types/database'
 
@@ -73,7 +75,7 @@ export async function executeTool(ctx: ToolContext): Promise<ToolOutcome> {
   // below stays exhaustive, which is what makes a new tool a compile error
   // instead of a silent fall-through.
   if (tool === 'search_web') {
-    return runSearchWeb(supabase, userId, input)
+    return runSearchWeb(supabase, userId, ctx.agentId, input)
   }
 
   const app = TOOL_APP[tool]
@@ -199,11 +201,35 @@ export async function executeTool(ctx: ToolContext): Promise<ToolOutcome> {
 async function runSearchWeb(
   supabase: SupabaseClient<Database>,
   userId: string,
+  agentId: string,
   input: Record<string, unknown>
 ): Promise<ToolOutcome> {
   const query = String(input.query ?? '').trim()
   if (!query) {
     return { kind: 'error', text: 'Say what to search for and try again.' }
+  }
+
+  // Asked again here, not just when the session was built. Tools bind at
+  // session creation and a session outlives the settings it was created from,
+  // so an agent whose search was switched off an hour ago can still emit the
+  // call until its session is rebuilt. The executor is the last place that can
+  // say no, and it is the only one that reads the setting as it is now.
+  if (!ourSearchEnabled()) {
+    return {
+      kind: 'error',
+      text: 'Web search is not available right now. Tell the user you could not search, in your own words, and answer from what you already know if you can.',
+    }
+  }
+  const { data: agentRow } = await supabase
+    .from('agents')
+    .select('enabled_tools')
+    .eq('id', agentId)
+    .maybeSingle()
+  if (!readToolCeiling(agentRow?.enabled_tools).web_search) {
+    return {
+      kind: 'error',
+      text: 'Web search is switched off for this agent. Tell the user you cannot search the web, in your own words, and answer from what you already know if you can.',
+    }
   }
 
   try {

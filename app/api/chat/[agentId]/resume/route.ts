@@ -74,7 +74,6 @@ export async function POST(
           threadId: thread.id,
           sessionId: thread.session_id,
           agentId: agent.id,
-          userId,
           claudeAgentId: agent.claude_agent_id!,
           environmentId,
           title: agent.name,

@@ -11,7 +11,7 @@ import { FAILING_AFTER } from '@/lib/routines/list'
 import { nextOccurrences, parseRule } from '@/lib/routines/rule'
 import { createServiceClient } from '@/lib/supabase/service'
 import { CHAT_TOOL_DEFINITIONS } from '@/lib/tools/definitions'
-import { searchToolEnabledFor, withSearchTool } from '@/lib/search/flag'
+import { ourSearchEnabled, withSearchTool } from '@/lib/search/flag'
 import type { Json } from '@/lib/types/database'
 
 // How much of the last run's report the next run is handed. Enough for
@@ -125,7 +125,7 @@ export async function runRoutine(
   // a person reads "I could not search" and decides what to do; a routine would
   // just keep firing and filing empty reports.
   const ceiling = readToolCeiling(agent.enabled_tools)
-  const wouldSearch = searchToolEnabledFor(routine.user_id) && ceiling.web_search
+  const wouldSearch = ourSearchEnabled() && ceiling.web_search
   if (wouldSearch) {
     const searches = await getSearchAllowance(supabase, routine.user_id)
     if (searches.used >= searches.limit) {
@@ -155,11 +155,8 @@ export async function runRoutine(
       // The agent's own ceiling, restated: agent_with_overrides replaces the
       // tool set, so anything not repeated here is not enforced.
       tools: [
-        ...toolsetFor({
-          ceiling,
-          ourSearch: searchToolEnabledFor(routine.user_id),
-        }),
-        ...withSearchTool(CHAT_TOOL_DEFINITIONS, routine.user_id),
+        ...toolsetFor({ ceiling, ourSearch: ourSearchEnabled() }),
+        ...withSearchTool(CHAT_TOOL_DEFINITIONS, wouldSearch),
       ],
     },
     environment_id: environment.environmentId,

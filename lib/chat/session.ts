@@ -7,7 +7,7 @@ import {
   toolsetFor,
 } from '@/lib/anthropic/client'
 import { CHAT_TOOL_DEFINITIONS } from '@/lib/tools/definitions'
-import { searchToolEnabledFor, withSearchTool } from '@/lib/search/flag'
+import { ourSearchEnabled, withSearchTool } from '@/lib/search/flag'
 import type { Database } from '@/lib/types/database'
 
 // How much of the past to hand a replacement session. Enough that the agent
@@ -89,10 +89,6 @@ export async function ensureSession(opts: {
   // each of them has to remember to pass is a ceiling three of them will
   // eventually forget. Same reasoning as the recap above.
   agentId: string
-  // Whose session this is. Needed to decide which tools it is created with,
-  // and a session's tools are fixed at creation, so getting this wrong is not
-  // fixable later without rebuilding the session.
-  userId: string
   claudeAgentId: string
   environmentId: string
   title: string
@@ -110,7 +106,6 @@ export async function ensureSession(opts: {
     threadId,
     sessionId,
     agentId,
-    userId,
     claudeAgentId,
     environmentId,
     title,
@@ -118,6 +113,11 @@ export async function ensureSession(opts: {
     excludeMessageId = null,
   } = opts
 
+  // A session that exists keeps the tools it was created with, forever. That
+  // is fine day to day and is exactly why migration 041 had to null session_id
+  // by hand when the tool set changed underneath everyone. A
+  // `threads.toolset_version` stamp compared here would let this function
+  // rebuild on its own and make 041 the last hand-written backfill of its kind.
   if (sessionId) return { sessionId, recapText: null }
 
   const { data: agentRow } = await supabase
@@ -125,6 +125,12 @@ export async function ensureSession(opts: {
     .select('enabled_tools')
     .eq('id', agentId)
     .maybeSingle()
+
+  // Both halves of the answer, read once: is our provider available here, and
+  // does this agent allow searching at all. A tool is attached only when both
+  // say yes.
+  const ceiling = readToolCeiling(agentRow?.enabled_tools)
+  const ourSearch = ourSearchEnabled()
 
   const session = await anthropic.beta.sessions.create({
     agent: {
@@ -140,11 +146,8 @@ export async function ensureSession(opts: {
       // our own provider. Attaching both would leave the model to pick, and it
       // picks the one it was trained on.
       tools: [
-        ...toolsetFor({
-          ceiling: readToolCeiling(agentRow?.enabled_tools),
-          ourSearch: searchToolEnabledFor(userId),
-        }),
-        ...withSearchTool(CHAT_TOOL_DEFINITIONS, userId),
+        ...toolsetFor({ ceiling, ourSearch }),
+        ...withSearchTool(CHAT_TOOL_DEFINITIONS, ourSearch && ceiling.web_search),
       ],
     },
     environment_id: environmentId,
