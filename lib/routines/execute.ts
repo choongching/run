@@ -203,11 +203,17 @@ Rules for this run:
         headline,
       })
       .eq('id', run?.id ?? '')
+    // last_run_at moves with the carry, not with the attempt. It exists to date
+    // stamp the last report the next run is handed ("what you reported last
+    // time (2026-08-10)"), so a failed run must not advance it: that would put
+    // a fresh date on a stale report. next_run_at is claimed separately by the
+    // tick, which is what stops a run happening twice.
     await supabase
       .from('routines')
       .update({
         consecutive_failures: 0,
         carry: finalText ? finalText.slice(0, CARRY_CHARS) : routine.carry,
+        last_run_at: new Date().toISOString(),
       })
       .eq('id', routine.id)
     return { ok: true, runId: run?.id ?? '', headline }
