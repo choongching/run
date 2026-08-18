@@ -49,6 +49,18 @@ function platformKey(): string {
   return key
 }
 
+// Which provider WOULD answer, without building one or needing the platform
+// key. The transcript uses this to put the right mark on a search step, and a
+// step showing Brave's lion to someone whose searches run on their own Jina
+// account would be a small lie told many times.
+export async function resolveProviderId(
+  supabase: SupabaseClient<Database>,
+  userId: string
+): Promise<'brave' | 'jina'> {
+  const accountId = await getUserConnection(supabase, userId, 'jina_ai')
+  return accountId ? 'jina' : 'brave'
+}
+
 export async function resolveProvider(args: {
   supabase: SupabaseClient<Database>
   userId: string

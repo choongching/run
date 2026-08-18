@@ -25,7 +25,12 @@ import type { ConnectableApp } from '@/lib/pipedream/client'
 import type { Database } from '@/lib/types/database'
 
 export type ToolOutcome =
-  | { kind: 'needs_connection'; app: ConnectableApp }
+  // `text` overrides what the model is told. The default sentence assumes the
+  // account was simply never connected, which is true for Gmail and Drive and
+  // false for search: search is not blocked because Jina is missing, it is
+  // blocked because the month ran out. Feeding the model the wrong reason gets
+  // the wrong reason repeated to the user in its own words.
+  | { kind: 'needs_connection'; app: ConnectableApp; text?: string }
   // `billed` marks work that went on OUR bill and belongs in the cost column.
   // Carried back from the executor rather than inferred by the caller, because
   // the caller cannot see which provider answered: the same search_web call is
@@ -244,9 +249,17 @@ async function runSearchWeb(
     if (billedToUs) {
       const allowance = await canSearch(supabase, userId)
       if (!allowance.ok) {
-        // An error result rather than a thrown one, so the model reads it and
-        // tells the user in its own words instead of the turn falling over.
-        return { kind: 'error', text: allowance.reason }
+        // Not a plain error, because a plain error leaves the way out inside a
+        // sentence the model may or may not repeat. This puts a real card in
+        // the thread offering the thing that actually fixes it, and it can only
+        // appear when it is actionable: anyone already on their own Jina
+        // account never reaches this branch, since their searches are not ours
+        // to cap.
+        return {
+          kind: 'needs_connection',
+          app: 'jina_ai',
+          text: `${allowance.reason} A card offering to connect their Jina account is already on screen, so do not describe how to do it. Say plainly that you are out of searches this month, answer from what you already know if you can, and do not try searching again.`,
+        }
       }
     }
 

@@ -21,6 +21,7 @@ import { neededConnectors, type NeededConnector } from '@/lib/chat/onboarding'
 import { toChatError, type ChatError } from '@/lib/chat/errors'
 import { executeTool } from '@/lib/tools/execute'
 import { MAX_SEARCHES_PER_DRAIN } from '@/lib/search/limits'
+import { resolveProviderId } from '@/lib/search/resolve'
 import { recordUsage } from '@/lib/usage'
 import type { Database, Json, UsageSource } from '@/lib/types/database'
 
@@ -28,7 +29,7 @@ export type Frame =
   | { type: 'start' }
   | { type: 'thinking' }
   | { type: 'delta'; text: string }
-  | { type: 'activity'; present: string; past: string }
+  | { type: 'activity'; present: string; past: string; icon?: ActivityIcon }
   | { type: 'artifact'; title: string; format: 'markdown'; content: string }
   | { type: 'connect'; app: string }
   | {
@@ -104,7 +105,16 @@ function gmailSearchSuffix(query: string): string {
 // present form shows while the step runs, the past form once it settles to a
 // checkmark. Input makes each line name the specific thing it did; falls back to
 // a plain label when the input has nothing human-meaningful (an opaque id).
-export type ToolActivity = { present: string; past: string }
+// `icon` names the mark the transcript shows beside the step. A key rather
+// than a component, because this file is server-side and the components are
+// not. Absent means the generic tick, which is what every step showed before.
+export type ActivityIcon = 'brave' | 'jina' | 'gmail' | 'drive' | 'web'
+
+export type ToolActivity = {
+  present: string
+  past: string
+  icon?: ActivityIcon
+}
 
 export function toolActivity(
   name: string,
@@ -117,6 +127,8 @@ export function toolActivity(
       // web search. The provider changed; what the person watching sees should
       // not, and a transcript from before the switch should read the same as
       // one from after.
+      // The mark is the provider's, decided by the caller: this function has no
+      // database and the answer depends on what the user has connected.
       return q
         ? {
             present: `Searching the web for "${q}"`,
@@ -126,24 +138,40 @@ export function toolActivity(
     }
     case 'gmail_search': {
       const s = gmailSearchSuffix(String(input.query ?? ''))
-      return { present: `Searching your inbox${s}`, past: `Searched your inbox${s}` }
+      return {
+        present: `Searching your inbox${s}`,
+        past: `Searched your inbox${s}`,
+        icon: 'gmail',
+      }
     }
     case 'gmail_get_message':
-      return { present: 'Reading an email', past: 'Read an email' }
+      return { present: 'Reading an email', past: 'Read an email', icon: 'gmail' }
     case 'gmail_create_draft': {
       const to = String(input.to ?? '').trim()
       return to
-        ? { present: `Drafting a reply to ${to}`, past: `Drafted a reply to ${to}` }
-        : { present: 'Drafting an email', past: 'Drafted an email' }
+        ? {
+            present: `Drafting a reply to ${to}`,
+            past: `Drafted a reply to ${to}`,
+            icon: 'gmail',
+          }
+        : { present: 'Drafting an email', past: 'Drafted an email', icon: 'gmail' }
     }
     case 'drive_list_files': {
       const q = String(input.query ?? '').trim()
       return q
-        ? { present: `Searching your Drive for "${q}"`, past: `Searched your Drive for "${q}"` }
-        : { present: 'Looking through your Drive', past: 'Looked through your Drive' }
+        ? {
+            present: `Searching your Drive for "${q}"`,
+            past: `Searched your Drive for "${q}"`,
+            icon: 'drive',
+          }
+        : {
+            present: 'Looking through your Drive',
+            past: 'Looked through your Drive',
+            icon: 'drive',
+          }
     }
     case 'drive_read_file':
-      return { present: 'Reading a file', past: 'Read a file' }
+      return { present: 'Reading a file', past: 'Read a file', icon: 'drive' }
     case 'set_routine': {
       const n = String(input.name ?? '').trim()
       return n
@@ -173,9 +201,15 @@ export function builtinActivity(
 ): ToolActivity | null {
   if (name === 'web_search') {
     const q = String(input.query ?? '').trim()
+    // Anthropic's own search, which only old sessions still carry. The generic
+    // web mark, not Brave's: this one did not run on Brave.
     return q
-      ? { present: `Searching the web for "${q}"`, past: `Searched the web for "${q}"` }
-      : { present: 'Searching the web', past: 'Searched the web' }
+      ? {
+          present: `Searching the web for "${q}"`,
+          past: `Searched the web for "${q}"`,
+          icon: 'web',
+        }
+      : { present: 'Searching the web', past: 'Searched the web', icon: 'web' }
   }
   if (name === 'web_fetch') {
     let host = ''
@@ -185,8 +219,8 @@ export function builtinActivity(
       // Not a parseable URL; the plain fallback below covers it.
     }
     return host
-      ? { present: `Reading ${host}`, past: `Read ${host}` }
-      : { present: 'Reading a page', past: 'Read a page' }
+      ? { present: `Reading ${host}`, past: `Read ${host}`, icon: 'web' }
+      : { present: 'Reading a page', past: 'Read a page', icon: 'web' }
   }
   return null
 }
@@ -308,7 +342,15 @@ async function drainSessionInner(
   // tool is announced and cleared to null if that tool came back an error, so a
   // step that did not happen does not settle into the history claiming it did.
   // Nulls are skipped when the rows are written.
-  const activityLabels: Array<string | null> = []
+  const activityLabels: Array<{ label: string; icon?: ActivityIcon } | null> = []
+  // Which provider a search step wears, looked up once per drain and reused.
+  // One indexed read, and only when the turn actually searches: a thread that
+  // never touches search never pays for the question.
+  let providerMark: ActivityIcon | null = null
+  const searchMark = async (): Promise<ActivityIcon> => {
+    providerMark ??= await resolveProviderId(supabase, userId)
+    return providerMark
+  }
   // Which slot belongs to which custom tool call, so an error can find it.
   const activitySlot = new Map<string, number>()
   const artifacts: { title: string; content: string }[] = []
@@ -441,8 +483,13 @@ async function drainSessionInner(
       if (event.name === 'web_search') tally.webSearches += 1
       const act = builtinActivity(event.name, event.input ?? {})
       if (act) {
-        activityLabels.push(act.past)
-        send({ type: 'activity', present: act.present, past: act.past })
+        activityLabels.push({ label: act.past, icon: act.icon })
+        send({
+          type: 'activity',
+          present: act.present,
+          past: act.past,
+          icon: act.icon,
+        })
       }
     } else if (event.type === 'agent.custom_tool_use') {
       pending.push({ id: event.id, name: event.name, input: event.input })
@@ -450,13 +497,18 @@ async function drainSessionInner(
       // work it did: they get a card, not an activity line.
       if (!isAskTool(event.name) && !isProposeTool(event.name)) {
         const act = toolActivity(event.name, event.input)
+        // A search wears the mark of whoever will answer it, which toolActivity
+        // cannot know: it has no database, and the answer depends on what this
+        // person has connected.
+        const icon =
+          event.name === 'search_web' ? await searchMark() : act.icon
         // The past form is what gets persisted, because a stored activity is a
         // step that finished. Which is exactly why the slot is remembered: the
         // announcement arrives before the tool runs, so at this point we do not
         // yet know whether it finished at all.
         activitySlot.set(event.id, activityLabels.length)
-        activityLabels.push(act.past)
-        send({ type: 'activity', present: act.present, past: act.past })
+        activityLabels.push({ label: act.past, icon })
+        send({ type: 'activity', present: act.present, past: act.past, icon })
       }
     } else if (event.type === 'span.model_request_end') {
       // A session caches its prompt, so input_tokens alone is the small
@@ -698,7 +750,9 @@ async function drainSessionInner(
             content: [
               {
                 type: 'text',
-                text: `The user has not connected ${outcome.app} yet. Ask them to connect it using the button shown, then they can retry.`,
+                text:
+                  outcome.text ??
+                  `The user has not connected ${outcome.app} yet. Ask them to connect it using the button shown, then they can retry.`,
               },
             ],
             is_error: true,
@@ -729,11 +783,17 @@ async function drainSessionInner(
   }
 
 
-  for (const label of activityLabels) {
-    if (label === null) continue
-    await supabase
-      .from('messages')
-      .insert({ thread_id: threadId, role: 'activity', content: label })
+  for (const step of activityLabels) {
+    if (step === null) continue
+    await supabase.from('messages').insert({
+      thread_id: threadId,
+      role: 'activity',
+      content: step.label,
+      // The mark is stored so a reloaded transcript looks like the live one.
+      // Without it, history would quietly fall back to generic ticks and the
+      // page would appear to change its mind about what happened.
+      payload: (step.icon ? { icon: step.icon } : null) as unknown as Json,
+    })
   }
   for (const doc of artifacts) {
     await supabase.from('messages').insert({

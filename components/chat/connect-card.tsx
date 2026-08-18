@@ -16,7 +16,15 @@ import { JinaIcon } from '@/components/icons/jina'
 const APPS = {
   gmail: { label: 'Gmail', Icon: GmailIcon },
   google_drive: { label: 'Google Drive', Icon: GoogleDriveIcon },
-  jina_ai: { label: 'Jina', Icon: JinaIcon },
+  // `why` overrides the default line, which assumes connecting is what
+  // UNBLOCKS the agent. For Gmail and Drive that is true. Search already
+  // works; this card appears because the month's searches ran out, so the
+  // default would answer a question nobody asked.
+  jina_ai: {
+    label: 'Jina',
+    Icon: JinaIcon,
+    why: 'You are out of searches this month. Your own account has no limit.',
+  },
 } as const
 
 type ConnectApp = keyof typeof APPS
@@ -88,7 +96,7 @@ export function ConnectCard({
       ? `Finish connecting in the popup. I'll pick it up automatically.`
       : status === 'error'
         ? `That didn't finish. Want to try again?`
-        : `So your agent can work with your ${label}.`
+        : ('why' in meta ? meta.why : `So your agent can work with your ${label}.`)
 
   return (
     <div className="rounded-xl border border-border bg-card p-4">
