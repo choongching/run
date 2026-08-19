@@ -158,6 +158,23 @@ and backups.
   what happens when you say no. Every diagram was rendered through the real
   parser rather than eyeballed.
 
+- **Routine runs are listed by what they found again.** The Routines page
+  headlines each run with its first line, and a run that uses tools writes
+  twice: a line before it goes to work, then the report. So the page had been
+  listing runs as "Let me get more details on the most relevant stories:" for
+  six of the last eight. The headline now comes from the closing block rather
+  than the whole reply. Fixed structurally rather than by skipping phrases,
+  because the lead-in is not a wording problem, it is a different block. Old
+  rows are left as they were: they are what the page really showed at the time.
+
+- **One earlier worry turned out to be wrong, on the evidence.** The free plan
+  allows 100 searches a month, and the concern was that a daily routine could
+  spend six a run and run dry by the middle of the month. The actual numbers
+  say otherwise: of 236 runs, seven searched at all, averaging 1.71 searches
+  when they did, never more than three. The worry was arithmetic from a ceiling
+  rather than a reading of behaviour. Worth revisiting when somebody other than
+  the founder is using it.
+
 - **The lessons went into the skills**, not just this log, so the next session
   inherits them: await anything that must survive a response, build a second
   independent count when the number is money, treat `is_error` as a permission
