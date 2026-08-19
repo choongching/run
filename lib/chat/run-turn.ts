@@ -307,7 +307,12 @@ export async function drainSession(opts: DrainOpts): Promise<DrainResult> {
     failed = true
     throw err
   } finally {
-    void recordUsage({
+    // Awaited, not fired and forgotten. This runs inside the stream's start
+    // callback and the route closes the stream only once this function
+    // resolves, so awaiting here keeps the response open until the row is
+    // written. Without it the platform can stop the function first, which is
+    // exactly what happened the first time a chat turn ran on real hosting.
+    await recordUsage({
       userId: opts.userId,
       agentId: opts.agentId,
       threadId: opts.threadId,

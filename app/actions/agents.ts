@@ -53,7 +53,10 @@ async function generateAgentName(
         'You name AI agents. Given what an agent should do, reply with a short, human name of 2 to 4 words in Title Case that captures its job. Reply with only the name: no quotes, no punctuation, no preamble.',
       messages: [{ role: 'user', content: prompt.slice(0, 500) }],
     })
-    void recordUsage({
+    // Awaited for the same reason as the drain: a server action's function can
+    // be stopped as soon as it answers. This one does not touch anyone's
+    // allowance (it is not a mission_run) but it is still money we spent.
+    await recordUsage({
       userId,
       model: NAMING_MODEL,
       inputTokens: res.usage.input_tokens,

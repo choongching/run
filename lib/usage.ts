@@ -7,8 +7,21 @@ import type {
 } from '@/lib/types/database'
 
 // Server-side only. Usage rows are written with the service-role key
-// (usage_events has no insert policy on purpose), fire-and-forget: call as
-// `void recordUsage(...)`, never await it on the request path.
+// (usage_events has no insert policy on purpose).
+//
+// AWAIT IT. This used to say the opposite, and the opposite was wrong in a way
+// that could not be seen locally. A serverless function is stopped once its
+// response finishes, so a promise nobody is waiting on is a promise that may
+// never run. Observed on 2026-08-19: the first chat turn ever streamed from
+// hosting wrote its search count (awaited) and lost its usage row (not), and
+// the log showed no error at all, because there was no error. The work simply
+// did not happen.
+//
+// It is not only the ledger that depends on this. getRunAllowance counts these
+// rows, so a dropped row is a free run: the cap silently stops holding.
+//
+// recordUsage never throws, so awaiting it cannot break a turn. The cost is
+// one insert at the end of a request whose text the person has already read.
 
 // Public per-MTok list rates. Costs recorded here are ESTIMATES, not a bill:
 // they price what the model reported at published rates and ignore anything

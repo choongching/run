@@ -563,6 +563,18 @@ export type Database = {
       // One row per person per month. Read-only rollup of usage_events; RLS
       // is the table's own (security_invoker), so a reader sees only months
       // they are allowed to see.
+      // Two counters for the same events, side by side. They must agree;
+      // drift means usage writes are being lost. See migration 042.
+      usage_integrity: {
+        Row: {
+          user_id: string
+          month: string
+          counted_at_execution: number
+          counted_in_the_ledger: number
+          drift: number
+        }
+        Relationships: []
+      }
       usage_monthly: {
         Row: {
           user_id: string
@@ -622,3 +634,4 @@ export type SearchUsage = Database['public']['Tables']['search_usage']['Row']
 export type Routine = Database['public']['Tables']['routines']['Row']
 export type RoutineRun = Database['public']['Tables']['routine_runs']['Row']
 export type UsageMonth = Database['public']['Views']['usage_monthly']['Row']
+export type UsageIntegrity = Database['public']['Views']['usage_integrity']['Row']
