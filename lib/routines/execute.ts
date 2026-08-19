@@ -220,7 +220,7 @@ Rules for this run:
 - End by briefly noting anything worth their attention next time, if there is anything.`
 
   try {
-    const { finalText, errorText } = await drainSession({
+    const { finalText, closingBlock, errorText } = await drainSession({
       anthropic,
       sessionId: session.id,
       supabase,
@@ -238,7 +238,13 @@ Rules for this run:
 
     if (!finalText && errorText) throw new Error(errorText)
 
-    const headline = firstLine(finalText) ?? 'Ran, nothing to report'
+    // From the CLOSING block, not the whole reply. A run that searched writes
+    // twice: "Let me get more details on the most relevant stories:" before it
+    // goes to work, then the report. The first line of the joined text is that
+    // lead-in, which is how the Routines page ended up listing runs as "Let me
+    // get more details..." instead of what they found.
+    const headline =
+      firstLine(closingBlock) ?? firstLine(finalText) ?? 'Ran, nothing to report'
     await supabase
       .from('routine_runs')
       .update({

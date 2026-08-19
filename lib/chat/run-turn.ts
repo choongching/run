@@ -296,6 +296,12 @@ type TokenTally = {
 export type DrainResult = {
   status: TurnStatus
   finalText: string
+  // The LAST block of agent text, on its own. A turn that used tools writes
+  // more than once: a line or two before it goes off to work, then the actual
+  // answer once it comes back. finalText joins all of that, so anything reading
+  // "the first line of the reply" gets the lead-in rather than the reply. The
+  // closing block is the deliverable.
+  closingBlock: string
   errorText: string | null
 }
 
@@ -824,6 +830,7 @@ async function drainSessionInner(
     })
   }
   const finalText = agentParts.join('\n\n').trim()
+  const closingBlock = (agentParts[agentParts.length - 1] ?? '').trim()
 
   // The agent did its work (a search, a read) but wrote no closing message, and
   // nothing errored: stand in a short friendly note so the turn reads as
@@ -849,7 +856,12 @@ async function drainSessionInner(
     .update({ updated_at: new Date().toISOString() })
     .eq('id', threadId)
 
-  const result: DrainResult = { status, finalText, errorText: sessionError }
+  const result: DrainResult = {
+    status,
+    finalText,
+    closingBlock,
+    errorText: sessionError,
+  }
 
   if (status) {
     // A card (approval or question) is already sent; finalize any preamble
