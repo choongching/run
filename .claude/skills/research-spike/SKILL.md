@@ -68,6 +68,25 @@ Real numbers reframe the question almost every time. In the web-search spike
 they showed the fee was 40% of a search-heavy run but only 49 cents in total,
 and they turned up two live bugs that mattered more than the vendor choice.
 
+## Ask the API before you read the docs
+
+On 2026-08-19 two questions had been open for a day because the vendor's
+documentation did not answer them: can the proxy carry a key-authenticated
+app, and which of our two candidates can a user actually connect. One call to
+`pd.apps.retrieve(slug)` answered both in seconds, and the answer overturned a
+decision already written into the plan: one candidate reports
+`proxy_enabled: false`, so "both connectable" was never possible.
+
+Documentation describes the intended shape. The API reports the actual one.
+When a spike stalls on "the docs do not say", ask the system itself: metadata
+endpoints, a `retrieve`, a HEAD request, a deliberately malformed call to read
+the error. That is L1 evidence for the cost of one call, and it beats an
+afternoon of L2 reading.
+
+The same call also returned the official product logos, which is where the
+connector icons came from. Look at the whole response, not just the field you
+went for.
+
 ## Where it goes
 
 - Spike docs live in `docs/<topic>-spike-<YYYY-MM-DD>.md`. **`docs/*` is
