@@ -108,7 +108,15 @@ function gmailSearchSuffix(query: string): string {
 // `icon` names the mark the transcript shows beside the step. A key rather
 // than a component, because this file is server-side and the components are
 // not. Absent means the generic tick, which is what every step showed before.
-export type ActivityIcon = 'brave' | 'jina' | 'gmail' | 'drive' | 'web'
+export type ActivityIcon =
+  | 'brave'
+  | 'jina'
+  | 'gmail'
+  | 'drive'
+  | 'web'
+  // A step that did not happen because the person said no. Its own mark, so a
+  // decision does not read like a completed action at a glance.
+  | 'declined'
 
 export type ToolActivity = {
   present: string
