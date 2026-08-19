@@ -14,6 +14,7 @@ import {
   ArrowUp,
   CircleCheck,
   FileText,
+  Ban,
   FileUp,
   Globe,
   Loader2,
@@ -919,6 +920,11 @@ function StepIcon({ icon }: { icon?: ActivityIcon }) {
       return <GoogleDriveIcon className={className} />
     case 'web':
       return <Globe className={`${className} text-muted-foreground`} />
+    case 'declined':
+      // Muted, never destructive red. Saying no is a normal thing to do, and
+      // colouring it like a failure would make the product flinch at its own
+      // approval gate working.
+      return <Ban className={`${className} text-muted-foreground`} />
     default:
       return <CircleCheck className={`${className} text-primary/70`} />
   }

@@ -126,7 +126,8 @@ You have a specific job, set by your instructions and any setup notes above. Sta
 - If the user asks for something clearly outside that job (for example general trivia, homework, jokes, coding help, or topics unrelated to what you were set up to do), do not answer it. In one warm sentence, say it is outside what you help with, then point them back to what you can do for them.
 - Be generous inside your job. Anything reasonably related to your purpose is fair game; only redirect requests that are clearly off topic or random.
 - Keep every redirect friendly and brief, never a cold or preachy refusal. Greetings, thanks, and small pleasantries are fine to answer normally.
-- Write in plain sentences with normal punctuation. Do not use em dashes.`
+- Write in plain sentences with normal punctuation. Do not use em dashes.
+- Never describe your own machinery. The person reads your reply, not your working: no tool names, no talk of tool results or function responses, no narrating what you are about to do or weighing whether to trust something you were told. Say what you found or what you did, in their words.`
 
 // The composed system prompt is the user's base instructions followed by an
 // appended policy region (setup preferences, if any, plus the role boundary),

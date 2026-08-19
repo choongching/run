@@ -4,13 +4,19 @@ import { getAnthropicClient } from '@/lib/anthropic/client'
 import {
   drainSession,
   toolActivity,
+  type ActivityIcon,
   type Frame,
   type PendingCall,
 } from '@/lib/chat/run-turn'
 import { createRoutine } from '@/lib/routines/create'
 import { formatOccurrence, parseRule } from '@/lib/routines/rule'
-import { isSetRoutineTool, summarizeRoutine } from '@/lib/tools/definitions'
+import {
+  isSetRoutineTool,
+  summarizeRoutine,
+  summarizeWrite,
+} from '@/lib/tools/definitions'
 import { executeTool } from '@/lib/tools/execute'
+import type { Json } from '@/lib/types/database'
 
 // Resolve a write-approval request: the user approved or denied the pending
 // tool call(s) shown in the chat. On approve we execute them; either way we
@@ -70,6 +76,20 @@ export async function POST(
       const send = (frame: Frame) =>
         controller.enqueue(encoder.encode(`${JSON.stringify(frame)}\n`))
 
+      // Send an activity line and KEEP it. The route used to only send, so
+      // every line it drew vanished on reload: an approved write left no trace
+      // in the history, and a decline left none either. The transcript is the
+      // only record of what was decided once the card is gone.
+      const step = async (label: string, icon?: ActivityIcon) => {
+        send({ type: 'activity', present: label, past: label, icon })
+        await supabase.from('messages').insert({
+          thread_id: thread.id,
+          role: 'activity',
+          content: label,
+          payload: (icon ? { icon } : null) as unknown as Json,
+        })
+      }
+
       try {
         const resultEvents = []
         for (const call of pending) {
@@ -79,16 +99,27 @@ export async function POST(
           // dates to confirm with.
           if (isSetRoutineTool(call.name)) {
             if (!approved) {
+              const turned = summarizeRoutine(call.input)
+              await step(
+                turned ? `Declined: set up "${turned.name}"` : 'Declined: set up a routine',
+                'declined'
+              )
               resultEvents.push({
                 type: 'user.custom_tool_result' as const,
                 custom_tool_use_id: call.id,
                 content: [
                   {
                     type: 'text' as const,
-                    text: 'The user said not to set up this routine. Do not create it; acknowledge briefly and ask what they would like instead.',
+                    text: 'The user chose not to set up this routine. That is their decision and it is final: do not create it, do not propose it again in this reply, and do not question it. Acknowledge briefly and ask what they would like instead.',
                   },
                 ],
-                is_error: true,
+                // NOT an error. A person saying no is an outcome, and marking
+                // it as an error is what invited the agent to reason its way
+                // around one: seen live on 2026-08-19, it read the decline,
+                // decided "this error contradicts what the user just asked me
+                // to do, so I should disregard it", and proposed the routine
+                // again. A model works around errors. It obeys outcomes.
+                is_error: false,
               })
               continue
             }
@@ -137,23 +168,28 @@ export async function POST(
             continue
           }
           if (!approved) {
+            await step(
+              `Declined: ${summarizeWrite(call.name, call.input).title.toLowerCase()}`,
+              'declined'
+            )
             resultEvents.push({
               type: 'user.custom_tool_result' as const,
               custom_tool_use_id: call.id,
               content: [
                 {
                   type: 'text' as const,
-                  text: 'The user declined this action. Do not perform it; acknowledge and ask what they would like instead.',
+                  text: 'The user chose not to do this. That is their decision and it is final: do not perform it, do not ask again in this reply, and do not question it. Acknowledge briefly and ask what they would like instead.',
                 },
               ],
-              is_error: true,
+              // See the routine decline above: a decision is not an error.
+              is_error: false,
             })
             continue
           }
           // Approved: run it, showing an activity line and handling a missing
           // connection.
           const act = toolActivity(call.name, call.input)
-          send({ type: 'activity', present: act.present, past: act.past })
+          await step(act.past, act.icon)
           const outcome = await executeTool({
             supabase,
             userId,
