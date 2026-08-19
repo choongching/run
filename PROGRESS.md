@@ -8,10 +8,14 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** Agents now search the web through our own provider
-rather than Anthropic's, which costs about a twentieth as much, and the app
-says plainly what search runs on, how much of the month is left, and how to
-put it on your own account instead. Each agent has its own search switch.
+**Where we left off:** Agents search the web through our own provider rather
+than Anthropic's, which costs about a twentieth as much, and it is live: the
+app says plainly what search runs on, how much of the month is left, and how
+to put it on your own account instead. Each agent has its own search switch.
+Turning it on in production uncovered two older bugs, both now fixed: the
+record of what a reply cost was being lost on hosting, which also meant the
+monthly run limit was not fully holding, and a person saying no was being
+reported to the agent as an error, which it reasoned its way around.
 Routines are live, fire on their own in production, and can be changed after
 the fact. The monthly meter counts what searching costs, which it never did
 before, so the number you see is closer to the number you are billed. Agents do standing work on a schedule:
@@ -22,11 +26,11 @@ that schedule in place, with the next runs and the monthly cost answering
 before you save. Scheduled runs read and report on their own; anything they
 want to send still waits for you. The timer was armed on the night of
 2026-08-01 and verified end to end, so nothing is outstanding to make
-schedules work. The search work is on a branch and not in production yet:
-it needs its key set in the hosting environment first, and until that happens
-production keeps the old, dearer search. Next: set that key, then the
-before-more-users trio (sign-up email provider, Google app verification,
-database plan upgrade). Worth watching now that
+schedules work. Next: the before-more-users trio (sign-up email provider,
+Google app verification, database plan upgrade), and four smaller things left
+open by the search work: connecting a real Jina account end to end, its dollar
+rate, whether the free monthly search number is right for a daily routine, and
+a narrow-width check on a real phone. Worth watching now that
 agents can spend while nobody is looking: the monthly meter, which as of
 2026-08-18 finally includes the cost of searching the web.
 
@@ -101,6 +105,65 @@ Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
 
 ---
+
+## 2026-08-19 (evening): Shipped, and two bugs the ship uncovered
+
+- **The search work went live.** Pull request #234 merged after the key was set
+  in hosting, and production now searches through our own provider. Verified on
+  the real site straight after: the search ran on Brave, Anthropic's built-in
+  stayed off, and the month's count moved. The saving is real from today.
+
+- **Turning it on found a bug that had nothing to do with search, and it was
+  the more serious one.** The record of what a reply cost was being written in
+  a way that does not survive on hosting. A serverless function is switched off
+  the moment its answer finishes, and that record was posted on the way out the
+  door rather than handed over, so it was thrown away. Nothing errored. The
+  logs were clean. It had been true since the meter was built and could not be
+  seen locally, because a laptop never switches off mid-thought.
+
+- **That was not just an accounting problem.** The monthly run limit counts
+  those records, so a lost record was a free run and the cap quietly stopped
+  holding. The very turn that revealed it was itself a free run.
+
+- **It was only noticed because two numbers disagreed.** Searches are counted
+  twice by different routes: once the moment a search happens, and once at the
+  end of the reply. The first was built to be reliable on purpose. When they
+  read 8 and 7, the gap was the missing record announcing itself. That
+  comparison is now a permanent check, so the next time writes go missing, for
+  whatever reason, something says so instead of nothing.
+
+- **A person saying no was being reported to the agent as an error.** A routine
+  card was declined and the agent read the decline, decided the error must be
+  mistaken, and proposed the same routine again, explaining its reasoning on
+  screen. A model works around errors and obeys outcomes, and we had labelled a
+  decision as a fault. Declines are now reported as ordinary results with the
+  decision stated as final.
+
+- **A decline also left no trace.** The card vanished and nothing recorded that
+  you had said no, which is exactly how the same thing gets proposed again
+  without anything looking wrong. The conversation now keeps a line, with its
+  own mark, muted rather than red, because refusing something is normal and the
+  approval gate working is not a failure. The same change fixed approvals,
+  which were drawing their lines without keeping them, so an approved action
+  lost its record on reload.
+
+- **Agents no longer show their working.** No tool names, no talk of function
+  results, no narrating what they are about to do. Worth recording that this
+  fix alone would have hidden the decline bug rather than solved it; the leak
+  is what made it visible.
+
+- **Written up properly.** The README gained two diagrams, one for what happens
+  when an agent wants to change something and one for where a web search comes
+  from, three new questions in the security FAQ, and the trust list now says
+  what happens when you say no. Every diagram was rendered through the real
+  parser rather than eyeballed.
+
+- **The lessons went into the skills**, not just this log, so the next session
+  inherits them: await anything that must survive a response, build a second
+  independent count when the number is money, treat `is_error` as a permission
+  flag rather than a mood, re-verify a fix when you change the shape of what it
+  keys off, read the whole branch before opening it, and ask an API before
+  reading its documentation.
 
 ## 2026-08-19: Search moves onto our own provider, and says so
 

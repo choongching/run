@@ -71,6 +71,47 @@ $3 / $15 in the file, and the September increase was cancelled. Every Sonnet row
 recorded before that fix overstates by 50%. Haiku 4.5, Opus 4.8 and the cache
 multipliers were correct.
 
+## AWAIT the write. Learned on hosting, 2026-08-19
+
+This skill used to say the opposite, and the opposite is wrong in a way that
+cannot be reproduced locally.
+
+A serverless function is stopped once its response finishes, so
+`void recordUsage(...)` is a promise that may never run. The first chat turn
+ever streamed from Vercel proved it: the awaited search count landed, the
+fire-and-forget usage row did not, and **the log showed no error, because there
+was no error**. The work simply did not happen.
+
+It is not only the ledger that depends on this. `getRunAllowance` counts these
+rows, so a dropped row is a free run and the monthly cap silently stops
+holding.
+
+- `recordUsage` never throws, so awaiting it cannot break a turn.
+- In the chat route the await sits inside the stream's `start` callback, and the
+  route closes the stream only once that resolves, so the response stays open
+  until the row is written.
+- Scheduled runs never showed this because they do not stream: the route waits
+  for the whole job before answering.
+
+**The general rule:** on serverless, anything that must survive is awaited
+before the response finishes. "Fire and forget" means "forget" more often than
+it sounds.
+
+## Two counters that must agree
+
+`search_usage.searches` is written per search, awaited, at execution.
+`usage_events.provider_searches` is written once per turn, at the end. They
+count the same events, so `usage_integrity` (migration 042) subtracts them:
+
+```sql
+select * from usage_integrity where drift <> 0;
+```
+
+Drift means writes are being lost again, whatever the new reason. It is the
+only reason the bug above was noticed at all: one of the two numbers had been
+made reliable on purpose. Keep the pair, and prefer building a second
+independent count over trusting a single one, whenever the number is money.
+
 ## Record on every turn, including the failed ones
 
 `drainSession` in `lib/chat/run-turn.ts` is a thin wrapper that owns the

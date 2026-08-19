@@ -25,6 +25,9 @@ There is nothing to set up. Describing what you want is the setup.
 - **It does not have to wait for you.** Setup asks what starts it off: you, or
   the clock. Say weekday mornings and the briefing is waiting when you open
   the app.
+- **It can look things up, and tells you where from.** Web search is included
+  up to a monthly limit, the Connectors page names the search engine actually
+  answering, and each step in the chat carries that provider's own mark.
 
 ## The end-to-end journey
 
@@ -42,11 +45,15 @@ flowchart TD
     E -->|Not connected yet| F["Connect card appears in chat<br/>you sign in once"]
     F --> G
     E -->|Already connected| G["Agent reads your<br/>inbox and files"]
+    D --> W{"Needs something<br/>from the web?"}
+    W -->|Yes| WS["Searches, then opens the<br/>pages worth reading.<br/>Included, up to a monthly limit"]
+    WS --> H
     G --> H{"Wants to change<br/>something?"}
     H -->|Just reading / answering| J["Streams the answer, or a<br/>downloadable document"]
     H -->|Has a side effect| I["Approval card:<br/>full preview, you decide"]
     I -->|Approve| K["The action happens<br/>e.g. a draft in your Gmail,<br/>which only you can send"]
-    I -->|Cancel| D
+    I -->|Not now| N["Nothing happens, and the<br/>conversation records that you<br/>said no. It does not ask again"]
+    N --> D
     J --> S
     K --> S{"Did you ask for<br/>a schedule?"}
     S -->|No| D
@@ -176,10 +183,56 @@ not what they can do. It is what they do without asking:
   security policy on every agent defends against prompt injection hidden inside an
   email, file, or web page. The real guarantee is still the approval gate: an
   injected instruction can never reach a side effect without you tapping Approve.
+- **When you say no, it stays no.** A decline is reported to the agent as a
+  decision that is final, never as an error, and the conversation keeps a line
+  saying you said no. Both halves matter: a model reasons its way around
+  errors, and a decision nobody recorded is one that can quietly be proposed
+  again.
 - **Agents stay on task.** Each agent politely declines requests clearly outside
   its job and points you back to what it can help with.
+- **It does not show you its working.** No tool names, no talk of function
+  results, no narrating what it is about to do. You read what it found, not how
+  the machinery moved.
 - **Per-user connections.** Each person connects their own Gmail and Drive; an
   agent acts on the signed-in user's accounts, scoped by row-level security.
+
+### What happens when it wants to change something
+
+This is the part worth understanding, because it is the whole trust story in
+one picture. The decision and the doing happen in different places.
+
+```mermaid
+flowchart TD
+    M["The model decides to use a tool"] --> P["The session PAUSES.<br/>Nothing has happened yet"]
+    P --> C{"Is it on the<br/>read-only list?"}
+    C -->|"Yes: search an inbox,<br/>read a file, search the web"| R["Runs straight away.<br/>A step appears in the chat<br/>with what it actually did"]
+    C -->|"No, or not on the list at all"| G["Stops and asks you"]
+    G --> CARD["Approval card:<br/>the real subject, the real body,<br/>the real file name"]
+    CARD -->|You approve| DO["It runs, and the step is<br/>written into the conversation"]
+    CARD -->|You say no| NO["Nothing runs. The conversation<br/>records that you said no,<br/>and the agent is told the<br/>decision is final"]
+    R --> BACK["Result goes back to the model<br/>as DATA, never as instructions"]
+    DO --> BACK
+    NO --> BACK
+```
+
+Three things in that picture are deliberate and easy to miss.
+
+**A tool call is a message, not an action.** When the model chooses a tool, all
+that physically happens is that it emits a request and stops. The decision runs
+on Anthropic's computers; the doing only ever happens in our backend. Nothing
+crosses that gap without passing the check in the middle.
+
+**Anything unrecognised is treated as a write.** The list is of tools that may
+run freely, not tools that must be stopped. A tool nobody has classified yet
+falls into "ask first" on its own, so forgetting to categorise something fails
+safe rather than open.
+
+**Saying no is an outcome, not an error.** We learned this the hard way. When
+the app reported a decline to the agent it marked it as an error, and a model
+treats errors as things to work around: it read the decline, decided the error
+must be mistaken, and proposed the same thing again. A decline is now reported
+as a plain result with the decision stated as final, and the conversation keeps
+a line saying you said no, so it cannot quietly come back.
 
 ## Security FAQ
 
@@ -222,6 +275,50 @@ than the one you were shown.
 An injection can, at most, make an agent ask your permission to write a
 draft. A draft is inert: it sits in your Gmail drafts folder, and the only
 finger that can press Send is yours.
+
+**If a web page tells the agent to do something, what happens?**
+
+Search results are the most exposed thing an agent reads: anyone can publish
+a page, and a page that ranks for a question your agent is about to ask is a
+delivery mechanism aimed at it. Results arrive inside a marked region that
+says, in the model's own reading order, to treat everything inside as
+reference information and never as instructions, and to mention it to you if
+any of it tries to give orders.
+
+The fence only works if the content cannot climb out of it, so before a
+snippet is shown the app strips anything imitating the fence markers, every
+link inside the text, and invisible or control characters, and only the
+result's own address survives. That last one matters most: the agent can open
+a page without asking, so a link smuggled into a snippet is the shape an
+exfiltration attempt would take.
+
+None of that is the guarantee. The guarantee is still that nothing with a side
+effect happens without you approving it.
+
+**Who pays for the agent's web searches, and can I use my own account?**
+
+We do, by default, up to a monthly limit shown on the Connectors page next to
+the name of the search engine actually answering. Connect your own Jina
+account and the limit stops applying: your key stays with Pipedream and never
+reaches us, exactly like Gmail and Drive.
+
+You cannot bring your own Brave account, and the reason is the same principle
+in reverse. The proxy that holds everyone's credentials does not support that
+app, so your Brave key could only reach Brave by passing through our servers.
+Holding someone's API key is the one thing this design exists to avoid, so we
+would rather not offer it than offer it badly.
+
+**What happens if I say no to something?**
+
+Nothing runs, and the conversation keeps a line saying you said no. The agent
+is told the decision is yours and final.
+
+That sounds obvious, and it was not. The app used to report a decline to the
+agent as an *error*, and a model treats an error as something to work around.
+It read a declined routine, reasoned that the error must be mistaken, and
+proposed the same routine again, out loud. A person's decision is now reported
+as an ordinary outcome, and it is written into the history, so it cannot
+quietly come back later.
 
 **Where is this weakest?**
 
@@ -298,6 +395,46 @@ the part of the prompt anyone can edit. It reduces attempts, and it is the
 politest layer, not the strongest one. The strong claim is the one above:
 the decision and the execution never share a trust domain.
 
+## Where a web search comes from
+
+Agents can search the web, and someone pays for every search. Who that is
+depends on one question, and the answer is visible on the Connectors page
+rather than buried.
+
+```mermaid
+flowchart TD
+    Q["Agent needs something from the web"] --> SW{"Web search on<br/>for this agent?"}
+    SW -->|Switched off| NOPE["It cannot search.<br/>It says so, and can still open<br/>a link YOU paste"]
+    SW -->|On| OWN{"Connected your own<br/>search account?"}
+    OWN -->|"Yes: Jina"| MINE["Runs on your account.<br/>Your key never reaches us;<br/>it stays with Pipedream.<br/>No monthly limit"]
+    OWN -->|No| ALLOW{"Searches left<br/>this month?"}
+    ALLOW -->|Yes| OURS["Runs on Brave, on our account.<br/>Counted against your month"]
+    ALLOW -->|No| STOP["It says it is out of searches,<br/>and offers to connect your own"]
+    OURS --> SAFE
+    MINE --> SAFE["Five results, snippets only.<br/>Fenced as reference material,<br/>never as instructions"]
+    SAFE --> READ["It opens the ones worth reading,<br/>and names its sources"]
+```
+
+Why it is built this way:
+
+- **It is included, so nothing is blocked on a sign-up.** Search works out of
+  the box on our account. Connecting your own is an upgrade you find when you
+  want it, never a hurdle on the way in.
+- **We pay a twentieth of what we used to.** Anthropic's built-in search is $10
+  per thousand; Brave's is $5, and Jina is roughly a twenty-fifth of that. We
+  measured both against real questions before choosing, and Brave won on being
+  able to answer "this week", which is what a news agent needs.
+- **Only your own account can be brought.** Brave is not connectable, and that
+  is not an oversight: the proxy that holds everyone's credentials will not
+  carry it, so your key could only reach Brave by passing through us. Not
+  holding anyone's key is the entire reason connections work the way they do.
+- **Snippets, not pages.** A search returns five short results. The agent then
+  opens the ones worth reading, which costs nothing extra and keeps a search
+  from dragging whole websites into the conversation.
+- **Recency is the agent's choice, per question.** Asking for "this week" fixes
+  a news question and ruins a product comparison, so it is a decision the agent
+  makes each time rather than a setting you have to understand.
+
 ## When something goes wrong
 
 Agent products fail differently from ordinary software. Models are
@@ -333,6 +470,8 @@ flowchart LR
     MA -. custom tools .-> PD["Pipedream Connect"]
     PD --> GM["Your Gmail"]
     PD --> GD["Your Google Drive"]
+    PD --> JN["Your Jina account<br/><i>if you connected one</i>"]
+    W --> BR["Brave Search<br/><i>our key, the included default</i>"]
 ```
 
 - **Front end:** Next.js 16 (App Router), React 19, Tailwind CSS v4. The design
@@ -346,6 +485,10 @@ flowchart LR
 - **Connections:** Pipedream Connect proxies each user's own Gmail and Drive. The
   agent's Gmail and Drive abilities are custom tools executed through that proxy,
   which is what makes the read-freely / ask-before-writing split possible.
+- **Web search:** Brave on our own key by default, or a user's connected Jina
+  account through the same proxy. Anthropic's built-in search is switched off
+  whenever ours is available, because attaching both leaves the model to choose
+  and it chooses the one it was trained on.
 
 ## Project status
 

@@ -153,6 +153,45 @@ serving stale compiled code, with the new one quietly on `:3001`. On
 other". Kill both (`pkill -f "next dev"; pkill -f "next-server"`) and restart
 before concluding the code is wrong.
 
+## 4d. Verification decays. Re-check what you already proved
+
+Both of these cost real time on 2026-08-19 and neither is caught by types,
+lint, or a test suite.
+
+**A fix verified live is only verified against the code as it was then.** The
+transcript-retraction fix was written as `outcome.kind === 'error'` and proved
+live. A later change in the same session made the case that motivated it return
+`needs_connection` instead, which silently un-fixed it. The proof was still
+true; it had just stopped being about the current code.
+
+So: when you change the SHAPE of something a previous fix keys off, that fix is
+unverified again. Prefer the check that cannot drift (`kind !== 'result'` over
+`kind === 'error'`) and say in the comment why the set is checked rather than
+the member.
+
+**Read the whole branch before opening it for review.** A squash-read of the
+finished diff, top to bottom, found two real bugs that nineteen commits of
+careful work had not: the regression above, and a provider failure that took
+the whole turn down because that tool returned before the shared error handling
+every other tool falls into. Both were mine. Budget for the read; it is not a
+formality.
+
+## 4e. Some bugs only exist on hosting
+
+A serverless function is stopped once its response finishes. Anything not
+awaited by then may never run, and it fails with **no error at all**, so local
+testing and the logs both look clean.
+
+Found this way: the usage row that pays for the run allowance was dropped on
+every streamed chat turn in production, invisibly, because every chat turn ever
+tested had been on a laptop where nothing gets switched off.
+
+- If a code path writes something that must survive, prove it on a PREVIEW
+  DEPLOYMENT, not locally.
+- Suspect anything shaped `void somethingAsync()` near the end of a request.
+- Build a second, independent count where the number is money, so the two can
+  be compared. That is the only reason this was ever noticed.
+
 ## 5. Report
 
 Give the user a checklist: each gate item, pass/fail, with one line of

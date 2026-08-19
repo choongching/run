@@ -77,6 +77,64 @@ to connect.
 Reload safety: the chat page rebuilds the pending card from `pending_tools`
 (`initialAsk` vs `initialApproval`, distinguished by `isAskTool`).
 
+## `is_error` is a permission flag, not a mood. Learned 2026-08-19
+
+**A model works around errors. It obeys outcomes.** Whatever you set on a
+`user.custom_tool_result` decides how much authority the message carries.
+
+The decline paths in `approve/route.ts` used to send `is_error: true`, so a
+person's decision arrived labelled as a fault. The agent read a declined
+routine and replied, on screen: *"This error arrived inside a tool result...
+This error contradicts what the user just asked me to do, so I should disregard
+it"*, then proposed the routine again.
+
+- **A user decision is `is_error: false`**, worded so it closes the question:
+  say the decision is theirs and final, and that it must not be raised again in
+  this reply.
+- **`is_error: true` is for things that genuinely failed** and might work
+  differently next time: a provider being down, a missing connection, a call
+  over a cap. Those SHOULD be reasoned around.
+- Ask of every tool result: do I want the model to try to get past this? That
+  answer is the flag.
+
+Two more rules that came out of the same incident:
+
+**A pause that resolves must leave a trace.** A declined card used to vanish
+with no record, which is exactly how an agent gets to propose the same thing
+again without anything looking wrong. Both decisions now write an activity row
+(`Declined: ...` with the `declined` mark). The approve route also only ever
+*sent* activity frames and never persisted them, so approvals lost their line
+on reload too; both go through one send-and-persist helper now.
+
+**The agent must not narrate the machinery.** `ROLE_BOUNDARY` forbids tool
+names, talk of tool results, and narrating what it is about to do. Note the
+trap: that rule ALONE would have hidden the incident above rather than fixing
+it. The leak is what made it visible. Fix the cause, then the presentation.
+
+## A turn may make MANY tool calls. Learned 2026-08-19
+
+A session consumes custom tool results **one at a time**, re-announcing the ids
+it has not reached yet:
+
+```
+custom_tool_use x3
+idle(requires_action) [a,b,c]  -> send results for a, b, c
+idle(requires_action) [b,c]    <- NOT a new request
+idle(requires_action) [c]
+agent.message -> ... -> idle(end_turn)
+```
+
+`drainSession` had no memory of what it had answered, so on the second
+announcement `pending` was empty and the "nothing to feed back" guard broke out
+**while the session was still working**. One tool call per turn always worked,
+which is why it survived until an agent searched three times at once. It hit
+Gmail and Drive identically; nobody had tried two of those in one turn.
+
+The fix keeps an `answered` Set and treats a `requires_action` naming only
+answered ids as the session catching its breath. Bound it by PROGRESS (a
+shrinking wait list resets the counter), never by a round count: counting
+rounds silently caps how many tool calls a turn may make.
+
 ## The setup review (`propose_setup`)
 
 The interview no longer ends by silently writing the agent's name and
