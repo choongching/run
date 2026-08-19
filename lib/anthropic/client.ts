@@ -26,20 +26,46 @@ export const DEFAULT_AGENT_MODEL = AGENT_MODELS[0].id
 export const NAMING_MODEL = 'claude-haiku-4-5-20251001'
 
 // Every Claude agent gets the toolset so mission sessions can read mounted
-// knowledge files and run bash; web search/fetch follow the agent's
-// enabled_tools ceiling. Per-tool `enabled: false` is hard enforcement by
-// the API (verified live, docs/capability-matrix-2026-07-25.md).
-export function buildAgentToolset(tools: { web_search: boolean }) {
+// knowledge files and run bash. Per-tool `enabled: false` is hard enforcement
+// by the API (verified live, docs/capability-matrix-2026-07-25.md).
+//
+// Search and fetch are SEPARATE flags, and the split is load-bearing in two
+// directions. When our own search tool is attached, the built-in search must be
+// off or the model simply uses the one it already knows and the swap proves
+// nothing (observed live, 2026-08-18: three searches, all of them the built-in).
+// And reading a page must survive search being off, because a user pasting a
+// URL is asking for a read, not a search.
+export function buildAgentToolset(tools: { search: boolean; fetch: boolean }) {
   return [
     {
       type: 'agent_toolset_20260401' as const,
       default_config: { enabled: true },
       configs: [
-        { name: 'web_search' as const, enabled: tools.web_search },
-        { name: 'web_fetch' as const, enabled: tools.web_search },
+        { name: 'web_search' as const, enabled: tools.search },
+        { name: 'web_fetch' as const, enabled: tools.fetch },
       ],
     },
   ]
+}
+
+// The toolset for one session: the agent's own ceiling, minus the built-in
+// search when this user's searches go through our provider instead.
+//
+// One helper because both session sites need the same three-way answer and a
+// second copy of this reasoning is a second place to get it wrong.
+export function toolsetFor(opts: {
+  ceiling: { web_search: boolean }
+  ourSearch: boolean
+}) {
+  return buildAgentToolset({
+    search: opts.ceiling.web_search && !opts.ourSearch,
+    // Reading a page is NOT searching, and the switch says "web search". Tying
+    // fetch to the same flag meant turning search off also stopped the agent
+    // opening a URL the person pasted into the chat, which is not a thing they
+    // asked for and would read as the agent breaking. It also costs nothing:
+    // web_fetch carries no per-call fee, only the tokens of what it read.
+    fetch: true,
+  })
 }
 
 // agents.enabled_tools is jsonb, so it arrives as unknown and may be null on a
@@ -52,4 +78,4 @@ export function readToolCeiling(raw: unknown): { web_search: boolean } {
   return { web_search: o.web_search !== false }
 }
 
-export const AGENT_TOOLSET = buildAgentToolset({ web_search: true })
+export const AGENT_TOOLSET = buildAgentToolset({ search: true, fetch: true })

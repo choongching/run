@@ -20,6 +20,8 @@ import {
 import { neededConnectors, type NeededConnector } from '@/lib/chat/onboarding'
 import { toChatError, type ChatError } from '@/lib/chat/errors'
 import { executeTool } from '@/lib/tools/execute'
+import { MAX_SEARCHES_PER_DRAIN } from '@/lib/search/limits'
+import { resolveProviderId } from '@/lib/search/resolve'
 import { recordUsage } from '@/lib/usage'
 import type { Database, Json, UsageSource } from '@/lib/types/database'
 
@@ -27,7 +29,7 @@ export type Frame =
   | { type: 'start' }
   | { type: 'thinking' }
   | { type: 'delta'; text: string }
-  | { type: 'activity'; present: string; past: string }
+  | { type: 'activity'; present: string; past: string; icon?: ActivityIcon }
   | { type: 'artifact'; title: string; format: 'markdown'; content: string }
   | { type: 'connect'; app: string }
   | {
@@ -103,33 +105,73 @@ function gmailSearchSuffix(query: string): string {
 // present form shows while the step runs, the past form once it settles to a
 // checkmark. Input makes each line name the specific thing it did; falls back to
 // a plain label when the input has nothing human-meaningful (an opaque id).
-export type ToolActivity = { present: string; past: string }
+// `icon` names the mark the transcript shows beside the step. A key rather
+// than a component, because this file is server-side and the components are
+// not. Absent means the generic tick, which is what every step showed before.
+export type ActivityIcon = 'brave' | 'jina' | 'gmail' | 'drive' | 'web'
+
+export type ToolActivity = {
+  present: string
+  past: string
+  icon?: ActivityIcon
+}
 
 export function toolActivity(
   name: string,
   input: Record<string, unknown> = {}
 ): ToolActivity {
   switch (name) {
+    case 'search_web': {
+      const q = String(input.query ?? '').trim()
+      // Deliberately the same words builtinActivity uses for Anthropic's own
+      // web search. The provider changed; what the person watching sees should
+      // not, and a transcript from before the switch should read the same as
+      // one from after.
+      // The mark is the provider's, decided by the caller: this function has no
+      // database and the answer depends on what the user has connected.
+      return q
+        ? {
+            present: `Searching the web for "${q}"`,
+            past: `Searched the web for "${q}"`,
+          }
+        : { present: 'Searching the web', past: 'Searched the web' }
+    }
     case 'gmail_search': {
       const s = gmailSearchSuffix(String(input.query ?? ''))
-      return { present: `Searching your inbox${s}`, past: `Searched your inbox${s}` }
+      return {
+        present: `Searching your inbox${s}`,
+        past: `Searched your inbox${s}`,
+        icon: 'gmail',
+      }
     }
     case 'gmail_get_message':
-      return { present: 'Reading an email', past: 'Read an email' }
+      return { present: 'Reading an email', past: 'Read an email', icon: 'gmail' }
     case 'gmail_create_draft': {
       const to = String(input.to ?? '').trim()
       return to
-        ? { present: `Drafting a reply to ${to}`, past: `Drafted a reply to ${to}` }
-        : { present: 'Drafting an email', past: 'Drafted an email' }
+        ? {
+            present: `Drafting a reply to ${to}`,
+            past: `Drafted a reply to ${to}`,
+            icon: 'gmail',
+          }
+        : { present: 'Drafting an email', past: 'Drafted an email', icon: 'gmail' }
     }
     case 'drive_list_files': {
       const q = String(input.query ?? '').trim()
       return q
-        ? { present: `Searching your Drive for "${q}"`, past: `Searched your Drive for "${q}"` }
-        : { present: 'Looking through your Drive', past: 'Looked through your Drive' }
+        ? {
+            present: `Searching your Drive for "${q}"`,
+            past: `Searched your Drive for "${q}"`,
+            icon: 'drive',
+          }
+        : {
+            present: 'Looking through your Drive',
+            past: 'Looked through your Drive',
+            icon: 'drive',
+          }
     }
     case 'drive_read_file':
-      return { present: 'Reading a file', past: 'Read a file' }
+      return { present: 'Reading a file', past: 'Read a file', icon: 'drive' }
     case 'set_routine': {
       const n = String(input.name ?? '').trim()
       return n
@@ -159,9 +201,15 @@ export function builtinActivity(
 ): ToolActivity | null {
   if (name === 'web_search') {
     const q = String(input.query ?? '').trim()
+    // Anthropic's own search, which only old sessions still carry. The generic
+    // web mark, not Brave's: this one did not run on Brave.
     return q
-      ? { present: `Searching the web for "${q}"`, past: `Searched the web for "${q}"` }
-      : { present: 'Searching the web', past: 'Searched the web' }
+      ? {
+          present: `Searching the web for "${q}"`,
+          past: `Searched the web for "${q}"`,
+          icon: 'web',
+        }
+      : { present: 'Searching the web', past: 'Searched the web', icon: 'web' }
   }
   if (name === 'web_fetch') {
     let host = ''
@@ -171,8 +219,8 @@ export function builtinActivity(
       // Not a parseable URL; the plain fallback below covers it.
     }
     return host
-      ? { present: `Reading ${host}`, past: `Read ${host}` }
-      : { present: 'Reading a page', past: 'Read a page' }
+      ? { present: `Reading ${host}`, past: `Read ${host}`, icon: 'web' }
+      : { present: 'Reading a page', past: 'Read a page', icon: 'web' }
   }
   return null
 }
@@ -219,6 +267,14 @@ type TokenTally = {
   // be observed is the tool_use event below. Kept in the same tally so a turn
   // that throws still reports the searches it already paid for.
   webSearches: number
+  // The same idea for searches we ran ourselves, at our provider's price rather
+  // than Anthropic's. Counted only when the executor says the search was on our
+  // bill; a search on the user's own connected account is nobody's cost to us.
+  //
+  // This is the COST side only. The monthly allowance is counted separately, in
+  // the executor, awaited, one row per search, because this tally can be lost
+  // when a stream closes and an allowance that can be lost is not an allowance.
+  providerSearches: number
 }
 
 // A turn always writes a usage row, whether it finished or fell over: the
@@ -242,6 +298,7 @@ export async function drainSession(opts: DrainOpts): Promise<DrainResult> {
     cacheReadInputTokens: 0,
     outputTokens: 0,
     webSearches: 0,
+    providerSearches: 0,
   }
   let failed = false
   try {
@@ -250,7 +307,12 @@ export async function drainSession(opts: DrainOpts): Promise<DrainResult> {
     failed = true
     throw err
   } finally {
-    void recordUsage({
+    // Awaited, not fired and forgotten. This runs inside the stream's start
+    // callback and the route closes the stream only once this function
+    // resolves, so awaiting here keeps the response open until the row is
+    // written. Without it the platform can stop the function first, which is
+    // exactly what happened the first time a chat turn ran on real hosting.
+    await recordUsage({
       userId: opts.userId,
       agentId: opts.agentId,
       threadId: opts.threadId,
@@ -281,12 +343,42 @@ async function drainSessionInner(
     denyWrites = false,
   } = opts
 
-  const activityLabels: string[] = []
+  // The transcript's record of what the agent did. A slot is claimed when the
+  // tool is announced and cleared to null if that tool came back an error, so a
+  // step that did not happen does not settle into the history claiming it did.
+  // Nulls are skipped when the rows are written.
+  const activityLabels: Array<{ label: string; icon?: ActivityIcon } | null> = []
+  // Which provider a search step wears, looked up once per drain and reused.
+  // One indexed read, and only when the turn actually searches: a thread that
+  // never touches search never pays for the question.
+  let providerMark: ActivityIcon | null = null
+  const searchMark = async (): Promise<ActivityIcon> => {
+    providerMark ??= await resolveProviderId(supabase, userId)
+    return providerMark
+  }
+  // Which slot belongs to which custom tool call, so an error can find it.
+  const activitySlot = new Map<string, number>()
   const artifacts: { title: string; content: string }[] = []
+  // Searches performed in this drain. Counted here rather than in the executor
+  // because the executor sees one call at a time and the model can ask for
+  // several at once: a check made before the loop would let a batch of six
+  // through together. A loop-breaker, not the cost control; the monthly
+  // allowance is that.
+  let searchesThisDrain = 0
+  // Custom tool calls we have already returned a result for, so a repeated
+  // requires_action naming the same ids is recognised as an echo rather than a
+  // new request. See the idle branch below.
+  const answered = new Set<string>()
+  let settleWaits = 0
+  let lastWaitingCount = Number.POSITIVE_INFINITY
   const agentParts: string[] = []
   let sessionError: string | null = null
   let started = false
   let status: TurnStatus = null
+  // How many times a drain will tolerate the session repeating an already
+  // answered requires_action WITHOUT making progress. Progress resets it, so
+  // this bounds a stall rather than the number of tool calls a turn may make.
+  const MAX_SETTLE_WAITS = 3
   let sentConnect = false
   let pending: PendingCall[] = []
 
@@ -396,8 +488,13 @@ async function drainSessionInner(
       if (event.name === 'web_search') tally.webSearches += 1
       const act = builtinActivity(event.name, event.input ?? {})
       if (act) {
-        activityLabels.push(act.past)
-        send({ type: 'activity', present: act.present, past: act.past })
+        activityLabels.push({ label: act.past, icon: act.icon })
+        send({
+          type: 'activity',
+          present: act.present,
+          past: act.past,
+          icon: act.icon,
+        })
       }
     } else if (event.type === 'agent.custom_tool_use') {
       pending.push({ id: event.id, name: event.name, input: event.input })
@@ -405,9 +502,18 @@ async function drainSessionInner(
       // work it did: they get a card, not an activity line.
       if (!isAskTool(event.name) && !isProposeTool(event.name)) {
         const act = toolActivity(event.name, event.input)
-        // Persist the past form: a stored activity is always a completed step.
-        activityLabels.push(act.past)
-        send({ type: 'activity', present: act.present, past: act.past })
+        // A search wears the mark of whoever will answer it, which toolActivity
+        // cannot know: it has no database, and the answer depends on what this
+        // person has connected.
+        const icon =
+          event.name === 'search_web' ? await searchMark() : act.icon
+        // The past form is what gets persisted, because a stored activity is a
+        // step that finished. Which is exactly why the slot is remembered: the
+        // announcement arrives before the tool runs, so at this point we do not
+        // yet know whether it finished at all.
+        activitySlot.set(event.id, activityLabels.length)
+        activityLabels.push({ label: act.past, icon })
+        send({ type: 'activity', present: act.present, past: act.past, icon })
       }
     } else if (event.type === 'span.model_request_end') {
       // A session caches its prompt, so input_tokens alone is the small
@@ -426,6 +532,35 @@ async function drainSessionInner(
     if (event.type === 'session.status_terminated') break
     if (event.type === 'session.status_idle') {
       if (event.stop_reason.type !== 'requires_action') break
+
+      // A requires_action naming only calls we have ALREADY answered is the
+      // session catching its breath, not a new request. It happens whenever a
+      // turn makes more than one custom tool call: the results go back with
+      // matching ids and the session still re-announces those ids before it
+      // picks them up.
+      //
+      // The drain had no memory of what it had answered, so `pending` was
+      // empty, there was nothing to send, and it broke out while the session
+      // was still working. The visible symptom was an agent that searched three
+      // times and then said nothing at all, and it would do the same for two
+      // Drive reads or two Gmail searches in one turn.
+      //
+      // Bounded, because waiting for something that may never arrive is the
+      // other way to hang a turn.
+      const waitingOn = event.stop_reason.event_ids ?? []
+      if (waitingOn.length > 0 && waitingOn.every((id) => answered.has(id))) {
+        // Shrinking means the session is working through them, so keep waiting.
+        // Only a set that stops shrinking is a stall, which is what the counter
+        // is for. Counting rounds instead would cap how many tool calls a turn
+        // may make, which is not a limit this belongs in.
+        if (waitingOn.length < lastWaitingCount) settleWaits = 0
+        else settleWaits += 1
+        lastWaitingCount = waitingOn.length
+        if (settleWaits > MAX_SETTLE_WAITS) break
+        continue
+      }
+      settleWaits = 0
+      lastWaitingCount = Number.POSITIVE_INFINITY
 
       // Under denyWrites the three pause branches below are skipped: their
       // calls fall through to the gate, which answers them in words instead
@@ -571,7 +706,52 @@ async function drainSessionInner(
           })
           continue
         }
-        const outcome = await executeTool(supabase, userId, call.name, call.input)
+        if (call.name === 'search_web') {
+          if (searchesThisDrain >= MAX_SEARCHES_PER_DRAIN) {
+            resultEvents.push({
+              type: 'user.custom_tool_result',
+              custom_tool_use_id: call.id,
+              content: [
+                {
+                  type: 'text',
+                  text: `That is ${MAX_SEARCHES_PER_DRAIN} searches for this reply, which is the limit. Work with what you already found, and tell the user plainly if it was not enough rather than searching again.`,
+                },
+              ],
+              is_error: true,
+            })
+            // Same reasoning as an errored tool below: the line was written
+            // when the call was announced, and this call never ran.
+            const slot = activitySlot.get(call.id)
+            if (slot !== undefined) activityLabels[slot] = null
+            continue
+          }
+          searchesThisDrain += 1
+        }
+        const outcome = await executeTool({
+          supabase,
+          userId,
+          agentId: opts.agentId,
+          name: call.name,
+          input: call.input,
+        })
+        if (outcome.kind === 'result' && outcome.billed) {
+          tally.providerSearches += 1
+        }
+        if (outcome.kind !== 'result') {
+          // Take the line back. Found live: with the monthly search allowance
+          // spent, the agent correctly said it could not search, and the
+          // transcript above it still read "Searched the web for ...". A
+          // history that records work nobody did is worse than one that
+          // records nothing.
+          //
+          // Every outcome except `result` means the tool did not run, and the
+          // set is checked rather than listed for a reason: this was written as
+          // `=== 'error'`, and then the spent-allowance case changed to return
+          // needs_connection, which silently brought the line back for the one
+          // case that prompted the fix.
+          const slot = activitySlot.get(call.id)
+          if (slot !== undefined) activityLabels[slot] = null
+        }
         if (outcome.kind === 'needs_connection') {
           send({ type: 'connect', app: outcome.app })
           sentConnect = true
@@ -581,7 +761,9 @@ async function drainSessionInner(
             content: [
               {
                 type: 'text',
-                text: `The user has not connected ${outcome.app} yet. Ask them to connect it using the button shown, then they can retry.`,
+                text:
+                  outcome.text ??
+                  `The user has not connected ${outcome.app} yet. Ask them to connect it using the button shown, then they can retry.`,
               },
             ],
             is_error: true,
@@ -595,6 +777,10 @@ async function drainSessionInner(
           })
         }
       }
+      for (const ev of resultEvents) {
+        const id = (ev as { custom_tool_use_id?: string }).custom_tool_use_id
+        if (id) answered.add(id)
+      }
       pending = []
       // Nothing to feed back (a requires_action we can't fulfil, e.g. the agent
       // gave up after a missing connection): stop draining rather than send an
@@ -607,10 +793,17 @@ async function drainSessionInner(
     }
   }
 
-  for (const label of activityLabels) {
-    await supabase
-      .from('messages')
-      .insert({ thread_id: threadId, role: 'activity', content: label })
+  for (const step of activityLabels) {
+    if (step === null) continue
+    await supabase.from('messages').insert({
+      thread_id: threadId,
+      role: 'activity',
+      content: step.label,
+      // The mark is stored so a reloaded transcript looks like the live one.
+      // Without it, history would quietly fall back to generic ticks and the
+      // page would appear to change its mind about what happened.
+      payload: (step.icon ? { icon: step.icon } : null) as unknown as Json,
+    })
   }
   for (const doc of artifacts) {
     await supabase.from('messages').insert({

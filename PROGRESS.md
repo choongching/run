@@ -8,13 +8,13 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** Routines are live, fire on their own in production, and
-can now be changed after the fact. The monthly meter now counts what web
-searches cost, which it never did before, so the number you see is closer to
-the number you are billed. Work is underway on searching the web through Brave
-instead of the built-in search, which costs about half as much and can ask for
-recent results; it is written but switched off, and the next step is turning it
-on for one account and watching a real run before anyone else sees it. Agents do standing work on a schedule:
+**Where we left off:** Agents now search the web through our own provider
+rather than Anthropic's, which costs about a twentieth as much, and the app
+says plainly what search runs on, how much of the month is left, and how to
+put it on your own account instead. Each agent has its own search switch.
+Routines are live, fire on their own in production, and can be changed after
+the fact. The monthly meter counts what searching costs, which it never did
+before, so the number you see is closer to the number you are billed. Agents do standing work on a schedule:
 setting one up ends by asking what starts the agent off, you or the clock, and
 after the first piece of work the agent offers to make that real on a card
 showing the next three real run dates. Opening a routine now lets you edit
@@ -22,8 +22,11 @@ that schedule in place, with the next runs and the monthly cost answering
 before you save. Scheduled runs read and report on their own; anything they
 want to send still waits for you. The timer was armed on the night of
 2026-08-01 and verified end to end, so nothing is outstanding to make
-schedules work. Next: the before-more-users trio (sign-up email provider,
-Google app verification, database plan upgrade). Worth watching now that
+schedules work. The search work is on a branch and not in production yet:
+it needs its key set in the hosting environment first, and until that happens
+production keeps the old, dearer search. Next: set that key, then the
+before-more-users trio (sign-up email provider, Google app verification,
+database plan upgrade). Worth watching now that
 agents can spend while nobody is looking: the monthly meter, which as of
 2026-08-18 finally includes the cost of searching the web.
 
@@ -98,6 +101,111 @@ Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
 
 ---
+
+## 2026-08-19: Search moves onto our own provider, and says so
+
+- **Why.** Anthropic's built-in web search costs $10 per 1,000 searches on top
+  of tokens. Measured from our own database, that was about 40% of what a
+  search-heavy scheduled run costs. Brave sells the same thing at $5 per 1,000
+  with its own index and a recency filter; Jina sells it at roughly a
+  twenty-fifth of that but cannot ask for recent results. Agents now search
+  through Brave on our account, and anyone who wants to can connect their own
+  Jina account instead.
+
+- **A research spike settled the choice before any code was written.** Both
+  providers were run against the same real queries. Brave came back with this
+  week's wire copy where Jina returned real outlets carrying months-old pages,
+  with no parameter to fix it. Since the one agent in this product that
+  searches is a news agent, freshness won over price. Jina stays as the option
+  for anyone whose volume makes price matter more.
+
+- **Recency is something the agent decides per question**, not a setting. Asking
+  for "this week" fixed the news query and ruined a shopping comparison, so the
+  tool takes it as an argument and the description tells the agent when to
+  reach for it.
+
+- **Two bugs were found that had nothing to do with search.**
+  - A turn that made more than one tool call was abandoned halfway. The run
+    loop had no memory of which calls it had already answered, so when the
+    session repeated a request it had already been given results for, the loop
+    concluded there was nothing left to do and stopped while the agent was
+    still working. The visible symptom was an agent that searched three times
+    and then said nothing. This affected two Drive reads or two Gmail searches
+    in one turn just as much; it had simply never been tried.
+  - The transcript claimed work that never happened. A step is written when the
+    agent announces a tool, which is before the tool runs, so a call that
+    failed still settled into the history as a finished step. Steps that did
+    not run are now taken back.
+
+- **Searches are counted the moment they happen**, in their own record, not
+  folded into the per-turn tally. The tally is written once at the end and can
+  be lost when a stream closes, spans several calls per conversation turn, and
+  ignores turns that failed. Any of those would have meant giving searches
+  away. Aborting a stream mid-search was tested: the turn recorded as failed
+  and the search still counted.
+
+- **Cost keeps its own column at its own price.** Reusing the existing one
+  would have charged Brave's searches at Anthropic's rate and made what the
+  ledger says about that column untrue.
+
+- **Turning our search on is a deployment fact, not a list of names.** The
+  switch is whether the search key is configured. A staged-rollout list could
+  not protect against the one dangerous deploy, where the list says yes and the
+  key is missing, because that failure is invisible: the agent simply stops
+  finding things. With no key the built-in search stays on and nothing breaks.
+
+- **Only Jina is connectable, and that is a finding.** Pipedream reports Brave's
+  app as one its proxy will not carry, so a person's Brave key could only reach
+  Brave by passing through us, and not holding anyone's key is the entire point
+  of connecting through Pipedream. Jina's app is proxy-carried, on exactly the
+  address our code calls.
+
+- **The Connectors page says all of it out loud.** A Search group shows what
+  search runs on, wearing that provider's own mark, with a meter for the month
+  in the same visual language as the runs meter beside your account. Two
+  sentences elsewhere had quietly gone false and were rewritten: web search is
+  no longer "always on", and it no longer comes from Anthropic.
+
+- **The chat says the same things.** Steps carry the mark of whatever did the
+  work, stored with the step so a reloaded conversation looks like the live
+  one. Running out of searches now puts a card in the thread offering the fix,
+  rather than leaving the way out inside a sentence the agent might not repeat.
+
+- **Each agent has a web search switch.** Off means the tool is never given to
+  it, checked again at the moment of use because a conversation started before
+  the switch was flipped would otherwise still carry it. Reading a link you
+  paste deliberately survives the switch being off: pasting a link is asking
+  for that page, not asking the agent to go looking. That had been wired to the
+  same flag, so turning search off would have stopped it too.
+
+- **Verified live throughout**, against the real database: the allowance blocks
+  exactly at the limit and a refused search costs nothing; an aborted stream
+  still counts; the switch writes what it should and leaves the other tools
+  alone; a search runs on our provider with Anthropic's turned off; and reading
+  a pasted link still works with search switched off.
+
+- **Reading the finished branch back turned up two more.** The retracted
+  transcript step had stopped being retracted for the one case that prompted
+  it, because that case had since changed shape. And a provider having a bad
+  day took the whole turn down, since this tool returned before the shared
+  error handling every other tool falls into; a failed search should cost a
+  sentence, not the reply.
+
+- **Still to do before this is worth anything in production:** the search key
+  has to be set in the hosting environment, or production quietly keeps paying
+  the old price. Connecting a real Jina account has not been tried end to end,
+  only shown to be supported. And the phone-width check on the new switch and
+  meter needs a real device.
+
+- **Opened as pull request #234 and deliberately not merged**, at the founder's
+  call, so the key can go in first and the change lands working rather than
+  landing and waiting. The database changes are already applied, since this
+  project shares one database between development and production. That is safe
+  and was meant: the new table and columns are additions nothing reads yet. One
+  side effect worth knowing, because it already happened to real conversations:
+  the migration that makes open chats pick up the new tools cleared their
+  sessions, so they rebuilt on their next reply. In production they rebuilt
+  exactly as before, because the code that changes them has not shipped.
 
 ## 2026-08-18 (evening): Choosing a search provider, by measuring instead of reading
 

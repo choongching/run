@@ -154,12 +154,13 @@ export async function POST(
           // connection.
           const act = toolActivity(call.name, call.input)
           send({ type: 'activity', present: act.present, past: act.past })
-          const outcome = await executeTool(
+          const outcome = await executeTool({
             supabase,
             userId,
-            call.name,
-            call.input
-          )
+            agentId,
+            name: call.name,
+            input: call.input,
+          })
           if (outcome.kind === 'needs_connection') {
             send({ type: 'connect', app: outcome.app })
             resultEvents.push({

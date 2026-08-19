@@ -1,5 +1,8 @@
 import { notFound } from 'next/navigation'
 
+import type { ActivityIcon } from '@/lib/chat/run-turn'
+import { readToolCeiling } from '@/lib/anthropic/client'
+
 import type { ApprovalCall } from '@/components/chat/approval-card'
 import { ChatHeader } from '@/components/chat/chat-header'
 import { ConfigDock } from '@/components/chat/config-dock'
@@ -64,7 +67,7 @@ export default async function ChatPage({
     supabase
       .from('agents')
       .select(
-        'id, name, onboarded, system_prompt, preferences, model, personality, owner_id'
+        'id, name, onboarded, system_prompt, preferences, model, personality, owner_id, enabled_tools'
       )
       .eq('id', agentId)
       .single(),
@@ -116,7 +119,7 @@ export default async function ChatPage({
 
   const initialMessages: ChatMessage[] = (rows ?? []).map((r) => {
     const payload = r.payload as
-      | { artifact?: ArtifactMeta; notice?: string }
+      | { artifact?: ArtifactMeta; notice?: string; icon?: ActivityIcon }
       | null
     return {
       id: r.id,
@@ -126,6 +129,7 @@ export default async function ChatPage({
       attachments: (r.attachments as AttachmentMeta[] | null) ?? undefined,
       artifact: payload?.artifact ?? undefined,
       notice: payload?.notice ?? undefined,
+      icon: payload?.icon ?? undefined,
     }
   })
 
@@ -199,6 +203,7 @@ export default async function ChatPage({
         instructions,
         model: agent.model,
         personality: agent.personality,
+        webSearch: readToolCeiling(agent.enabled_tools).web_search,
         preferences,
         isOwner: agent.owner_id === userId,
       }}

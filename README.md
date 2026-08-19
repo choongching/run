@@ -130,6 +130,7 @@ you see the file name and where it is going before anything happens.
 | It can | Asks first? |
 | --- | --- |
 | Search the web, and read a page it found | No |
+| Read a link you paste, even with search switched off | No |
 | Write you a document you can download | No, it hands it to you |
 | Ask you a question, with options to tap | It is a question |
 | Propose its own name and job at setup | Yes, that is the setup card |
@@ -363,7 +364,9 @@ Around that loop, the product has filled out:
   several of them, or every agent you own.
 - **It shows its work.** While an agent researches, every web search it runs
   appears as a step with the actual query, folded into one quiet line you can
-  open or ignore. Nothing is invented; the steps are the real calls.
+  open or ignore. Each step carries the mark of whatever did it, so you can
+  tell a search from a page read from an inbox lookup at a glance. Nothing is
+  invented; the steps are the real calls, and a step that failed is not kept.
 - **You can see what you have used.** A meter beside your account and a small
   ring in every chat show how much of the month is left. The meter opens into
   a breakdown of where the month went, agent by agent, and a log of every
@@ -371,6 +374,12 @@ Around that loop, the product has filled out:
   spent, agents stop and say so, and the meter refills on the first. Searching
   the web is charged on top of the thinking, so that is counted too rather than
   quietly left out.
+- **Web search is included, and you can bring your own.** Every agent can
+  search the web up to a monthly limit, shown on the Connectors page along with
+  which search engine is actually answering. Connect your own search account
+  and the limit stops applying. Each agent has its own switch, so one that has
+  no business browsing can be told not to, and it can still open a link you
+  paste it.
 - **Failure is designed, not handled.** Every error reaches you as a plain
   sentence with one thing to press, never a raw exception.
 - **It is fast.** Every page paints instantly and fills in as its data

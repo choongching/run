@@ -1,16 +1,17 @@
 import {
-  buildAgentToolset,
   getAnthropicClient,
   MANAGED_AGENTS_BETA,
   readToolCeiling,
+  toolsetFor,
 } from '@/lib/anthropic/client'
 import { ensureEnvironment } from '@/lib/anthropic/environment'
 import { drainSession } from '@/lib/chat/run-turn'
-import { getRunAllowance } from '@/lib/entitlements/assert'
+import { getRunAllowance, getSearchAllowance } from '@/lib/entitlements/assert'
 import { FAILING_AFTER } from '@/lib/routines/list'
 import { nextOccurrences, parseRule } from '@/lib/routines/rule'
 import { createServiceClient } from '@/lib/supabase/service'
 import { CHAT_TOOL_DEFINITIONS } from '@/lib/tools/definitions'
+import { ourSearchEnabled, withSearchTool } from '@/lib/search/flag'
 import type { Json } from '@/lib/types/database'
 
 // How much of the last run's report the next run is handed. Enough for
@@ -79,11 +80,10 @@ export async function runRoutine(
     .single()
   if (!thread) return { ok: false, reason: 'The conversation could not be opened.' }
 
-  // The meter's number, enforced here exactly as the message route enforces
-  // it for chat. When it trips, the routine pauses itself and says so once,
-  // rather than failing silently every morning for three weeks.
-  const allowance = await getRunAllowance(supabase, routine.user_id)
-  if (allowance.used >= allowance.limit) {
+  // A routine that cannot afford what it is about to do pauses itself and says
+  // so once, rather than failing silently every morning for three weeks. Two
+  // limits can stop it, and the shape of stopping is the same for both.
+  const pauseRoutine = async (error: string, notice: string) => {
     await supabase
       .from('routines')
       .update({ status: 'paused_system' })
@@ -94,17 +94,50 @@ export async function runRoutine(
       user_id: routine.user_id,
       status: 'skipped',
       finished_at: new Date().toISOString(),
-      error: 'Out of runs this month',
+      error,
     })
     await supabase.from('messages').insert({
       thread_id: thread.id,
       role: 'activity',
       content: '',
-      payload: {
-        notice: `"${routine.name}" paused itself: you have used all ${allowance.limit} runs this month. It starts again when your runs refill, or resume it sooner from Routines.`,
-      } as unknown as Json,
+      payload: { notice } as unknown as Json,
     })
+  }
+
+  // The meter's number, enforced here exactly as the message route enforces
+  // it for chat.
+  const allowance = await getRunAllowance(supabase, routine.user_id)
+  if (allowance.used >= allowance.limit) {
+    await pauseRoutine(
+      'Out of runs this month',
+      `"${routine.name}" paused itself: you have used all ${allowance.limit} runs this month. It starts again when your runs refill, or resume it sooner from Routines.`
+    )
     return { ok: false, reason: 'Out of runs this month; the routine paused itself.' }
+  }
+
+  // The same for searches, and only for a routine that would actually search.
+  // Pausing a drafting routine because a research one used up the month's
+  // searches would be a limit applied to the wrong thing. So this asks the two
+  // questions that decide whether search is even on the table: is our provider
+  // reaching this user at all, and does this agent have search switched on.
+  //
+  // Checked here as well as in the executor because nobody is watching. In chat
+  // a person reads "I could not search" and decides what to do; a routine would
+  // just keep firing and filing empty reports.
+  const ceiling = readToolCeiling(agent.enabled_tools)
+  const wouldSearch = ourSearchEnabled() && ceiling.web_search
+  if (wouldSearch) {
+    const searches = await getSearchAllowance(supabase, routine.user_id)
+    if (searches.used >= searches.limit) {
+      await pauseRoutine(
+        'Out of web searches this month',
+        `"${routine.name}" paused itself: you have used all ${searches.limit} web searches this month. It starts again when they refill, or connect your own search account under Connectors to stop being capped.`
+      )
+      return {
+        ok: false,
+        reason: 'Out of web searches this month; the routine paused itself.',
+      }
+    }
   }
 
   const environment = await ensureEnvironment()
@@ -122,8 +155,8 @@ export async function runRoutine(
       // The agent's own ceiling, restated: agent_with_overrides replaces the
       // tool set, so anything not repeated here is not enforced.
       tools: [
-        ...buildAgentToolset(readToolCeiling(agent.enabled_tools)),
-        ...CHAT_TOOL_DEFINITIONS,
+        ...toolsetFor({ ceiling, ourSearch: ourSearchEnabled() }),
+        ...withSearchTool(CHAT_TOOL_DEFINITIONS, wouldSearch),
       ],
     },
     environment_id: environment.environmentId,
@@ -156,9 +189,17 @@ export async function runRoutine(
   const lastRan = routine.last_run_at
     ? new Date(routine.last_run_at).toISOString().slice(0, 10)
     : null
+  // Today's date, in the schedule's own timezone. A model has no clock and its
+  // training has an horizon, so without this a news routine searches for the
+  // wrong year: observed live on 2026-08-18, an agent with no carry to date it
+  // searched for "AI model release new 2024". The carry used to supply this by
+  // accident, which meant the very first run of any routine was the one most
+  // likely to be wrong.
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: rule.tz })
+
   const kickoff = `[SCHEDULED RUN, NOT A MESSAGE] This is a routine named "${routine.name}" firing${
     opts.trigger === 'manual' ? ' because the user pressed Run now' : ' on its schedule'
-  }. The user is not present and cannot answer questions.
+  }. Today's date is ${today}. The user is not present and cannot answer questions.
 
 Your standing instruction for each run:
 ${routine.instruction}

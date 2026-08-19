@@ -4,6 +4,7 @@ import { ConnectorsManager } from '@/components/connectors/connectors-manager'
 import { getUserIdentity } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import { getUserConnection } from '@/lib/pipedream/connections'
+import { getSearchAllowance } from '@/lib/entitlements/assert'
 
 // Every connector this person has, in one place.
 //
@@ -18,9 +19,11 @@ export default async function ConnectorsPage() {
   const { userId } = await getUserIdentity()
   const supabase = await createClient()
 
-  const [gmail, drive] = await Promise.all([
+  const [gmail, drive, jina, searches] = await Promise.all([
     getUserConnection(supabase, userId, 'gmail'),
     getUserConnection(supabase, userId, 'google_drive'),
+    getUserConnection(supabase, userId, 'jina_ai'),
+    getSearchAllowance(supabase, userId),
   ])
 
   return (
@@ -30,7 +33,12 @@ export default async function ConnectorsPage() {
         description="What your agents can use."
       />
       <ConnectorsManager
-        connections={{ gmail: Boolean(gmail), google_drive: Boolean(drive) }}
+        connections={{
+          gmail: Boolean(gmail),
+          google_drive: Boolean(drive),
+          jina_ai: Boolean(jina),
+        }}
+        searches={searches}
       />
     </PageShell>
   )

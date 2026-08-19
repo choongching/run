@@ -29,12 +29,29 @@ export type Plan = {
     // The unit is a run, not a token, because a token is our unit of cost and
     // means nothing to someone deciding whether they can finish their work.
     runsPerMonth: number
+    // How many web searches we will pay for in a calendar month. Counted only
+    // when the search runs on our provider key: connect your own account and
+    // the cap stops applying, which is the whole reason connecting exists.
+    //
+    // A separate dial from runs because one run can search several times, and
+    // because search is the one cost that is charged per call rather than per
+    // token. Bundling it into runs would price a research agent the same as a
+    // drafting agent.
+    searchesPerMonth: number
   }
 }
 
 export const PLANS: Record<PlanId, Plan> = {
-  free: { id: 'free', label: 'Free', limits: { agents: 2, runsPerMonth: 200 } },
-  pro: { id: 'pro', label: 'Pro', limits: { agents: 20, runsPerMonth: 5000 } },
+  free: {
+    id: 'free',
+    label: 'Free',
+    limits: { agents: 2, runsPerMonth: 200, searchesPerMonth: 100 },
+  },
+  pro: {
+    id: 'pro',
+    label: 'Pro',
+    limits: { agents: 20, runsPerMonth: 5000, searchesPerMonth: 2000 },
+  },
 }
 
 // Everyone is on Free until billing exists. One place to change when it does.
@@ -56,4 +73,11 @@ export function agentLimitReason(limit: number): string {
 
 export function runLimitReason(limit: number): string {
   return `You have used all ${limit} of your runs this month. You get a fresh ${limit} at the start of next month.`
+}
+
+// Read by the model as well as by a person, because when this fires mid-turn
+// the agent has to explain it in its own words. So it states the fact and the
+// two ways out, and does not pretend a retry will work.
+export function searchLimitReason(limit: number): string {
+  return `You have used all ${limit} of your web searches this month. You get a fresh ${limit} at the start of next month, or you can connect your own search account under Connectors and stop being capped.`
 }

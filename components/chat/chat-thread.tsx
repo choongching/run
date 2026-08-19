@@ -15,6 +15,7 @@ import {
   CircleCheck,
   FileText,
   FileUp,
+  Globe,
   Loader2,
   Paperclip,
   Square,
@@ -32,6 +33,11 @@ import { OptionsCard } from '@/components/chat/options-card'
 import { ReviewCard, type ReviewSpec } from '@/components/chat/review-card'
 import { RoutineCard } from '@/components/chat/routine-card'
 import { ErrorNote } from '@/components/chat/error-note'
+import { BraveIcon } from '@/components/icons/brave'
+import { JinaIcon } from '@/components/icons/jina'
+import { GmailIcon } from '@/components/icons/gmail'
+import { GoogleDriveIcon } from '@/components/icons/google-drive'
+import type { ActivityIcon } from '@/lib/chat/run-turn'
 import type { ChatError } from '@/lib/chat/errors'
 import {
   ACCEPT_ATTR,
@@ -77,6 +83,10 @@ export type ChatMessage = {
   // For activity rows: the present-tense label to show while the step runs
   // (content holds the past-tense label shown once it is done).
   activityPresent?: string
+  // Which tool did it, as a mark rather than a word. Five identical ticks say
+  // only "five things happened"; five marks say WHICH five, which is the
+  // question someone scanning a transcript is actually asking.
+  icon?: ActivityIcon
   // A change to the agent itself, marked in the conversation as a rule rather
   // than a message: nobody said this, the setup did.
   notice?: string
@@ -96,7 +106,7 @@ type Frame =
   | { type: 'start' }
   | { type: 'thinking' }
   | { type: 'delta'; text: string }
-  | { type: 'activity'; present: string; past: string }
+  | { type: 'activity'; present: string; past: string; icon?: ActivityIcon }
   | { type: 'artifact'; title: string; format: 'markdown'; content: string }
   | { type: 'connect'; app: string }
   | { type: 'approval'; calls: ApprovalCall[] }
@@ -228,6 +238,7 @@ export function ChatThread({
             role: 'activity',
             content: frame.past,
             activityPresent: frame.present,
+            icon: frame.icon,
             createdAt: nowIso(),
           },
         ])
@@ -887,6 +898,32 @@ function JumpToLatest() {
 // while the agent is still working it shows the step underway instead, so
 // the feedback never disappears. Open, it lists every step. Closed is the
 // default, including on reload: not everyone wants the little details.
+// The mark beside a finished step. Sized to the tick it replaces so a run of
+// steps keeps its rhythm whether or not a given step has a mark.
+//
+// A step that is still running keeps the spinner: what matters mid-flight is
+// that something is happening, and the tool is already named in the line.
+function StepIcon({ icon }: { icon?: ActivityIcon }) {
+  const className = 'size-3.5 shrink-0'
+  switch (icon) {
+    case 'brave':
+      return <BraveIcon className={className} />
+    case 'jina':
+      // Jina's mark is monochrome and takes currentColor, so it needs a colour
+      // of its own here or it would inherit the muted grey of the line and
+      // read as a smudge.
+      return <JinaIcon className={`${className} text-foreground`} />
+    case 'gmail':
+      return <GmailIcon className={className} />
+    case 'drive':
+      return <GoogleDriveIcon className={className} />
+    case 'web':
+      return <Globe className={`${className} text-muted-foreground`} />
+    default:
+      return <CircleCheck className={`${className} text-primary/70`} />
+  }
+}
+
 function StepsBlock({
   steps,
   running,
@@ -931,7 +968,7 @@ function StepsBlock({
                 {isLive ? (
                   <Loader2 className="size-3.5 shrink-0 animate-spin" />
                 ) : (
-                  <CircleCheck className="size-3.5 shrink-0 text-primary/70" />
+                  <StepIcon icon={s.icon} />
                 )}
                 <span className={cn(isLive && 'text-shimmer font-medium')}>
                   {isLive ? (s.activityPresent ?? s.content) : s.content}
@@ -996,7 +1033,7 @@ function MessageRow({
         {live ? (
           <Loader2 className="size-3.5 shrink-0 animate-spin" />
         ) : (
-          <CircleCheck className="size-3.5 shrink-0 text-primary/70" />
+          <StepIcon icon={message.icon} />
         )}
         <span className={cn(live && 'text-shimmer font-medium')}>
           {label}
