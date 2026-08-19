@@ -197,6 +197,16 @@ and backups.
   only shown to be supported. And the phone-width check on the new switch and
   meter needs a real device.
 
+- **Opened as pull request #234 and deliberately not merged**, at the founder's
+  call, so the key can go in first and the change lands working rather than
+  landing and waiting. The database changes are already applied, since this
+  project shares one database between development and production. That is safe
+  and was meant: the new table and columns are additions nothing reads yet. One
+  side effect worth knowing, because it already happened to real conversations:
+  the migration that makes open chats pick up the new tools cleared their
+  sessions, so they rebuilt on their next reply. In production they rebuilt
+  exactly as before, because the code that changes them has not shipped.
+
 ## 2026-08-18 (evening): Choosing a search provider, by measuring instead of reading
 
 **Why we are doing this at all.** Searching the web is charged separately from
