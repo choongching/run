@@ -12,6 +12,8 @@ import { nextOccurrences, parseRule } from '@/lib/routines/rule'
 import { createServiceClient } from '@/lib/supabase/service'
 import { CHAT_TOOL_DEFINITIONS } from '@/lib/tools/definitions'
 import { ourSearchEnabled, withSearchTool } from '@/lib/search/flag'
+import { deliverPausedNotice, deliverReport } from '@/lib/telegram/deliver'
+import { isNothingNew, NOTHING_NEW } from '@/lib/telegram/format'
 import type { Json } from '@/lib/types/database'
 
 // How much of the last run's report the next run is handed. Enough for
@@ -45,7 +47,7 @@ export async function runRoutine(
 
   const { data: routine } = await supabase
     .from('routines')
-    .select('id, agent_id, user_id, name, instruction, rule, status, carry, consecutive_failures, last_run_at')
+    .select('id, agent_id, user_id, name, instruction, rule, status, carry, consecutive_failures, last_run_at, deliver_telegram, quiet_runs')
     .eq('id', routineId)
     .maybeSingle()
   if (!routine) return { ok: false, reason: 'That routine is not here any more.' }
@@ -101,6 +103,17 @@ export async function runRoutine(
       role: 'activity',
       content: '',
       payload: { notice } as unknown as Json,
+    })
+    // Always sent, whatever the run found. This is the exception to quiet-on-
+    // empty: a routine that has stopped itself and told nobody is a routine
+    // its owner keeps waiting on.
+    await deliverPausedNotice({
+      supabase,
+      userId: routine.user_id,
+      agentId: agent.id,
+      deliverTelegram: routine.deliver_telegram,
+      routineName: routine.name,
+      notice,
     })
   }
 
@@ -217,7 +230,8 @@ Rules for this run:
 - Write your findings as one reply into the chat, in your usual voice. Lead with the single most important thing.
 - Reads are fine on your own. Do NOT send, create, move, or change anything anywhere: if the work calls for it, describe what you would do and tell the user they can ask you in the chat.
 - If you cannot do the work (nothing to read, no access), say so plainly in one or two sentences.
-- End by briefly noting anything worth their attention next time, if there is anything.`
+- End by briefly noting anything worth their attention next time, if there is anything.
+- If this run turned up nothing worth their attention, still write your short reply for the record, and make the very last line exactly ${NOTHING_NEW} on its own. Use it only when there is genuinely nothing new; when in doubt, leave it off.`
 
   try {
     const { finalText, closingBlock, errorText } = await drainSession({
@@ -258,12 +272,45 @@ Rules for this run:
     // time (2026-08-10)"), so a failed run must not advance it: that would put
     // a fresh date on a stale report. next_run_at is claimed separately by the
     // tick, which is what stops a run happening twice.
+
+    // Quiet on empty, decided 2026-08-20. The agent marks an empty run with a
+    // sentinel on its own last line; the check reads the CLOSING block for the
+    // same reason the headline does, because a run that used tools writes more
+    // than once and only the last block is the report.
+    //
+    // The miss direction is deliberate. A model that forgets the sentinel
+    // sends one message that was not needed, which is mildly annoying and
+    // self-correcting. The inverse design, requiring a marker to send, would
+    // silently swallow real reports, and nobody would ever know.
+    const foundNothing = isNothingNew(closingBlock ?? finalText)
+
+    // Awaited, never fire-and-forget. The usage-row bug fixed on 2026-08-19
+    // was exactly a serverless function ending before its background work
+    // finished, and a dropped notification is the same class of silence.
+    const delivered = foundNothing
+      ? 'off'
+      : await deliverReport({
+          supabase,
+          userId: routine.user_id,
+          agentId: agent.id,
+          deliverTelegram: routine.deliver_telegram,
+          headline,
+          report: finalText,
+          quietRuns: routine.quiet_runs,
+        })
+
     await supabase
       .from('routines')
       .update({
         consecutive_failures: 0,
         carry: finalText ? finalText.slice(0, CARRY_CHARS) : routine.carry,
         last_run_at: new Date().toISOString(),
+        // The counter tracks quiet runs SINCE THE LAST DELIVERED REPORT, so it
+        // resets on a send and not merely on a run that had something to say.
+        // A person with delivery off never sees the tally, and when they turn
+        // it on the first report should not open by counting weeks they were
+        // never waiting through.
+        quiet_runs: delivered === 'sent' ? 0 : foundNothing ? routine.quiet_runs + 1 : routine.quiet_runs,
       })
       .eq('id', routine.id)
     return { ok: true, runId: run?.id ?? '', headline }
