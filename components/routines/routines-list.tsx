@@ -95,8 +95,10 @@ export function RoutinesList({
   routines,
   firstAgent,
   runLimit,
+  telegramPaired,
 }: {
   routines: RoutineListItem[]
+  telegramPaired: boolean
   firstAgent: { id: string; name: string } | null
   // The plan's monthly runs. Only the open routine uses it, to say whether
   // an edited schedule wants more than the month holds.
@@ -474,6 +476,7 @@ export function RoutinesList({
         onResume={(id) => void patch(id, { action: 'resume' }, 'resume it')}
         onDelete={(id) => void remove(id)}
         runLimit={runLimit}
+        telegramPaired={telegramPaired}
         // What the person's OTHER active routines already claim of the
         // month. Paused ones are not spending, so they are not counted.
         otherRoutinesPerMonth={routines
