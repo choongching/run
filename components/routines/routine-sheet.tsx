@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/tooltip'
 import { formatWhen } from '@/components/routines/routines-list'
 import { sameRule, ScheduleField } from '@/components/routines/schedule-field'
+import { DeliveryField } from '@/components/routines/delivery-field'
 import type { RoutineListItem } from '@/lib/routines/list'
 import {
   describeCost,
@@ -96,8 +97,10 @@ export function RoutineSheet({
   onDelete,
   runLimit,
   otherRoutinesPerMonth,
+  telegramPaired,
 }: {
   routine: RoutineListItem | null
+  telegramPaired: boolean
   open: boolean
   onOpenChange: (open: boolean) => void
   onPause: (id: string) => void
@@ -142,6 +145,7 @@ export function RoutineSheet({
             onDelete={onDelete}
             runLimit={runLimit}
             otherRoutinesPerMonth={otherRoutinesPerMonth}
+            telegramPaired={telegramPaired}
             confirming={confirming}
             onKeepEditing={() => setConfirming(false)}
             onDirtyChange={setDirty}
@@ -166,6 +170,7 @@ function DialogBody({
   onDelete,
   runLimit,
   otherRoutinesPerMonth,
+  telegramPaired,
   confirming,
   onKeepEditing,
   onDirtyChange,
@@ -177,6 +182,7 @@ function DialogBody({
   onDelete: (id: string) => void
   runLimit: number
   otherRoutinesPerMonth: number
+  telegramPaired: boolean
   confirming: boolean
   onKeepEditing: () => void
   onDirtyChange: (dirty: boolean) => void
@@ -407,6 +413,12 @@ function DialogBody({
               </p>
             </section>
           ) : null}
+
+          <DeliveryField
+            routineId={routine.id}
+            initialOn={routine.deliverTelegram}
+            initialPaired={telegramPaired}
+          />
 
           {/* No Recent runs section. It went through two shapes (headlines,
               then a status ledger) and the founder cut it with the right

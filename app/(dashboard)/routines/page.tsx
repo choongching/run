@@ -18,7 +18,10 @@ export default async function RoutinesPage() {
   // The allowance rides along in the same round trip (an indexed count, and
   // the profile read is already memoised for this request), so the page pays
   // nothing extra for it.
-  const [routines, allowance, { data: agents }] = await Promise.all([
+  // Pairing rides along too: it is one primary-key lookup, and fetching it
+  // here rather than from the sheet means the delivery switch never flashes
+  // "not connected" at someone who is.
+  const [routines, allowance, { data: agents }, { data: telegram }] = await Promise.all([
     listRoutines(supabase, userId),
     getRunAllowance(supabase, userId),
     supabase
@@ -28,6 +31,7 @@ export default async function RoutinesPage() {
       .neq('status', 'archived')
       .order('updated_at', { ascending: false })
       .limit(1),
+    supabase.from('user_telegram').select('user_id').eq('user_id', userId).maybeSingle(),
   ])
 
   return (
@@ -40,6 +44,7 @@ export default async function RoutinesPage() {
         routines={routines}
         firstAgent={agents?.[0] ?? null}
         runLimit={allowance.limit}
+        telegramPaired={Boolean(telegram)}
       />
     </PageShell>
   )

@@ -74,6 +74,17 @@ export async function PATCH(
   }
   if (body.clearCarry === true) patch.carry = null
 
+  // Delivery is auto-saved: the switch commits the moment it is clicked, with
+  // no Save button and no dirty state. Deliberate, and not merely convenient.
+  // Pairing is an irreversible external act that happens instantly on the
+  // person's phone, so a switch that waited for Save would let half the
+  // interaction commit and the other half sit unsaved, which is how someone
+  // ends up paired to a routine that never delivers. Same shape as the squad
+  // rows in the styleguide: instant, safe to close anytime.
+  if (typeof body.deliverTelegram === 'boolean') {
+    patch.deliver_telegram = body.deliverTelegram
+  }
+
   if (Object.keys(patch).length === 0) {
     return Response.json({ error: 'Nothing to change.' }, { status: 400 })
   }
