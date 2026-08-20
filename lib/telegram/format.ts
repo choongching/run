@@ -9,9 +9,12 @@ import { MAX_MESSAGE_CHARS } from './client'
 // phone is read in a glance or not at all.
 
 // The app's public origin, for the one link back into the thread.
+// NEXT_PUBLIC_APP_URL is the name this project already uses; do not invent a
+// second one, or the link silently falls back to the hardcoded default on any
+// environment that sets only the real variable.
 function appOrigin(): string {
   return (
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '') ?? 'https://tryrun.today'
+    process.env.NEXT_PUBLIC_APP_URL?.replace(/\/$/, '') ?? 'https://tryrun.today'
   )
 }
 
