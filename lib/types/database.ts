@@ -40,6 +40,8 @@ export type Database = {
           display_name: string | null
           avatar_url: string | null
           created_at: string
+          telegram_chat_id: string | null
+          telegram_paired_at: string | null
         }
         Insert: {
           id: string
@@ -47,6 +49,8 @@ export type Database = {
           display_name?: string | null
           avatar_url?: string | null
           created_at?: string
+          telegram_chat_id?: string | null
+          telegram_paired_at?: string | null
         }
         Update: {
           id?: string
@@ -54,6 +58,8 @@ export type Database = {
           display_name?: string | null
           avatar_url?: string | null
           created_at?: string
+          telegram_chat_id?: string | null
+          telegram_paired_at?: string | null
         }
         Relationships: []
       }
@@ -428,6 +434,7 @@ export type Database = {
           last_run_at: string | null
           consecutive_failures: number
           carry: string | null
+          deliver_telegram: boolean
           created_at: string
           updated_at: string
         }
@@ -443,6 +450,7 @@ export type Database = {
           last_run_at?: string | null
           consecutive_failures?: number
           carry?: string | null
+          deliver_telegram?: boolean
           created_at?: string
           updated_at?: string
         }
@@ -458,6 +466,7 @@ export type Database = {
           last_run_at?: string | null
           consecutive_failures?: number
           carry?: string | null
+          deliver_telegram?: boolean
           created_at?: string
           updated_at?: string
         }
