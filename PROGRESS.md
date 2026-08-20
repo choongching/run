@@ -26,13 +26,19 @@ that schedule in place, with the next runs and the monthly cost answering
 before you save. Scheduled runs read and report on their own; anything they
 want to send still waits for you. The timer was armed on the night of
 2026-08-01 and verified end to end, so nothing is outstanding to make
-schedules work. Next: the before-more-users trio (sign-up email provider,
-Google app verification, database plan upgrade), and four smaller things left
-open by the search work: connecting a real Jina account end to end, its dollar
-rate, whether the free monthly search number is right for a daily routine, and
-a narrow-width check on a real phone. Worth watching now that
-agents can spend while nobody is looking: the monthly meter, which as of
-2026-08-18 finally includes the cost of searching the web.
+schedules work. The reasoning behind the search design is now written down,
+in the README for readers and in an internal design note for whoever changes
+the pipeline next, and the internal skills that describe security, answering
+security questions, and dev cleanup have caught up with search and routines.
+Two of the four search follow-ups closed: the free monthly search number
+stays at one hundred, because a routine that runs out pauses itself and says
+how to fix it, and the missing Jina dollar rate turns out to gate nothing a
+user reads. Next: the before-more-users trio (sign-up email provider, Google
+app verification, database plan upgrade), and three founder-only items:
+connecting a real Jina account end to end, a narrow-width check on a real
+phone, and rotating the platform search key. Worth watching now that agents
+can spend while nobody is looking: the monthly meter, which as of 2026-08-18
+finally includes the cost of searching the web.
 
 The core is validated and the interface has been
 rebuilt around it. On 2026-07-26 the founder ran the whole loop on their own
@@ -105,6 +111,45 @@ Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
 
 ---
+
+## 2026-08-20: The search design gets written down, and the skills catch up
+
+- Closed two of the four follow-ups the search work left open, both by
+  checking rather than assuming:
+  - The free search allowance stays at one hundred a month. The math: a
+    daily research routine makes sixty to one hundred twenty searches a
+    month, so it straddles the cap, but the failure is safe. A routine that
+    would search checks the allowance before it runs and pauses itself with
+    the reason and the fix. The full hundred costs about fifty cents a user
+    a month, so the cap is generous and the pause message does the selling
+    for connecting your own account. No code change needed.
+  - Jina still does not publish its dollar rate outside the dashboard
+    (rechecked on their own pages), but a sweep of the app found no line a
+    user reads that depends on the number. Verifying it stays a ten minute
+    founder task, for the record rather than for the product.
+- Audited all seventeen internal skills against what has shipped. Fourteen
+  held up; three had gone stale and were updated: the security sweep now
+  knows the web search tool and its strip layer, the one API route that
+  rightly has no user behind it, the three new tables, the two new server
+  keys, and carries the search key rotation as an open item; the
+  security-answers skill got a re-verified tool list and a straight answer
+  for unattended runs; dev cleanup learned that deleting a test agent takes
+  its schedules with it and that the billing ledgers are history, never
+  test data. Merged to `main` via pull request #239.
+- Wrote the intent behind the search pipeline down in two places, at the
+  founder's ask. The README's search section gained three claims in plain
+  language: the reading is the expensive part, not the search; the five
+  snippets are too short to answer from on purpose, so answers come from
+  pages the agent actually opened; and nobody is paid to sort the results
+  twice, because picking from five is judgment the agent already applies.
+  The full reasoning, with file pointers and the conditions for revisiting
+  each decision, lives in an internal design note. Merged to `main` via
+  pull request #240.
+- Answered the founder's reranker question with sources: Jina sells a model
+  that re-sorts results by meaning and bills per token; Brave offers rules
+  that boost or bury results by site, free. Run deliberately uses neither,
+  and now the README says why.
+- Also merged the previous session's day-close log, pull request #238.
 
 ## 2026-08-19 (evening): Shipped, and two bugs the ship uncovered
 
