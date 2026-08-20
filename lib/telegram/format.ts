@@ -32,9 +32,21 @@ function escapeHtml(text: string): string {
 // the run headline is: a run that searched writes a lead-in first.
 export const NOTHING_NEW = 'NOTHING NEW'
 
+// The sentinel must be its OWN LAST LINE, matched whole. An earlier version
+// asked whether the text ended with the words, and that silently suppressed a
+// real report whose closing sentence happened to be "on the chip front,
+// nothing new" (no full stop, so nothing separated the prose from the marker).
+//
+// That is the failure direction this design exists to avoid: an unneeded
+// message is a shrug, a swallowed report is invisible. Whole-line matching
+// makes a false positive require the model to write the marker alone on a
+// line, which is exactly what it was asked to do and not something prose does
+// by accident.
 export function isNothingNew(closingBlock: string | null | undefined): boolean {
   if (!closingBlock) return false
-  return closingBlock.trim().toUpperCase().endsWith(NOTHING_NEW)
+  const lines = closingBlock.trim().split('\n')
+  const last = lines[lines.length - 1]?.trim().toUpperCase() ?? ''
+  return last === NOTHING_NEW
 }
 
 // Strip the sentinel before a human sees it. It is a signal for us, not a line

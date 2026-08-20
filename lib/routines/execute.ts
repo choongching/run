@@ -347,6 +347,27 @@ Rules for this run:
                 : 'I will try again next time.'
             } If it keeps happening, tell me and I will look into it.`,
     })
+
+    // Three failures in a row is how a routine actually dies in practice, far
+    // more often than running out of allowance, and until now it was the one
+    // way to die WITHOUT telling the phone. A person who switched delivery on
+    // would simply stop hearing from a routine and have no way to know the
+    // difference between "quiet week" and "broken since Tuesday". Silence is
+    // the design when a run finds nothing; it must never be the design when a
+    // routine stops running.
+    //
+    // One failure stays quiet on purpose: the thread already says so, and a
+    // notification for something that retries itself in an hour is noise.
+    if (failures >= FAILING_AFTER) {
+      await deliverPausedNotice({
+        supabase,
+        userId: routine.user_id,
+        agentId: agent.id,
+        deliverTelegram: routine.deliver_telegram,
+        routineName: routine.name,
+        notice: `"${routine.name}" hit a problem three times in a row, so it has paused itself. Resume it from Routines when you want it to try again.`,
+      })
+    }
     return { ok: false, reason: 'The run failed.' }
   }
 }
