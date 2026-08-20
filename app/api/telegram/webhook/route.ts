@@ -72,10 +72,15 @@ export async function POST(request: Request) {
       return Response.json({ ok: true })
     }
 
+    // Upsert, because pressing Start twice is a normal thing a person does,
+    // and because someone re-pairing from a new phone must land on their
+    // existing row rather than colliding with it.
     await supabase
-      .from('profiles')
-      .update({ telegram_chat_id: chat, telegram_paired_at: new Date().toISOString() })
-      .eq('id', check.userId)
+      .from('user_telegram')
+      .upsert(
+        { user_id: check.userId, chat_id: chat, paired_at: new Date().toISOString() },
+        { onConflict: 'user_id' }
+      )
 
     await sendMessage(chat, CONNECTED)
     return Response.json({ ok: true })
@@ -85,10 +90,7 @@ export async function POST(request: Request) {
   // except the person stays able to talk to it. Scoped by chat id, so it can
   // only ever unpair the chat the message came from.
   if (text.startsWith('/stop')) {
-    await supabase
-      .from('profiles')
-      .update({ telegram_chat_id: null, telegram_paired_at: null })
-      .eq('telegram_chat_id', chat)
+    await supabase.from('user_telegram').delete().eq('chat_id', chat)
 
     await sendMessage(chat, STOPPED)
     return Response.json({ ok: true })

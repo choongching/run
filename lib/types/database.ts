@@ -40,8 +40,6 @@ export type Database = {
           display_name: string | null
           avatar_url: string | null
           created_at: string
-          telegram_chat_id: string | null
-          telegram_paired_at: string | null
         }
         Insert: {
           id: string
@@ -49,8 +47,6 @@ export type Database = {
           display_name?: string | null
           avatar_url?: string | null
           created_at?: string
-          telegram_chat_id?: string | null
-          telegram_paired_at?: string | null
         }
         Update: {
           id?: string
@@ -58,8 +54,6 @@ export type Database = {
           display_name?: string | null
           avatar_url?: string | null
           created_at?: string
-          telegram_chat_id?: string | null
-          telegram_paired_at?: string | null
         }
         Relationships: []
       }
@@ -420,6 +414,24 @@ export type Database = {
             referencedColumns: ['id']
           },
         ]
+      }
+      user_telegram: {
+        Row: {
+          user_id: string
+          chat_id: string
+          paired_at: string
+        }
+        Insert: {
+          user_id: string
+          chat_id: string
+          paired_at?: string
+        }
+        Update: {
+          user_id?: string
+          chat_id?: string
+          paired_at?: string
+        }
+        Relationships: []
       }
       routines: {
         Row: {
