@@ -26,9 +26,13 @@ or test, ASK rather than delete.
    agents order by created_at;` Identify the test agents (not in the demo set).
 2. **Capture remote ids:** collect each test agent's `claude_agent_id` before
    deleting the rows (you cannot look them up after).
-3. **Delete the DB rows:** `delete from agents where id in (...)`. `threads` and
-   `messages` cascade. Do NOT touch `user_connections` (those are the user's own
-   Gmail/Drive links, not per-agent) or `company_settings`.
+3. **Delete the DB rows:** `delete from agents where id in (...)`. `threads`,
+   `messages`, `routines`, and `routine_runs` all cascade (migration 035), so a
+   test agent's schedules disappear with it; verify the Routines page is clean
+   afterwards. Do NOT touch `user_connections` (those are the user's own
+   Gmail/Drive/Jina links, not per-agent), `company_settings`, or the billing
+   ledgers `usage_events` and `search_usage`: those record real spend and are
+   history, not test data.
 4. **Archive the remote agents** so the Anthropic console is not littered: a
    scratchpad `.mjs` (project dir, run `node --env-file=.env.local`, delete
    after) calling `anthropic.beta.agents.archive(claudeAgentId, { betas:

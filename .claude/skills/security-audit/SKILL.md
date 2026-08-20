@@ -25,13 +25,28 @@ report a layer green from reading a migration file alone.
   model-provided file/folder names, not server-resolved ones. An injected
   tool call could show an innocent name over a different file_id. Fix if
   approved: resolve id to real name at approval time.
+- **Web search** (`search_web`, added 2026-08-18): auto-runs as a read, so
+  its injection surface is real: snippets from the open web reach the model
+  every turn. `lib/search/sanitize.ts` is the strip layer (same one shape as
+  uploads) and `lib/search/limits.ts` bounds what reaches the prompt; the
+  SECURITY_PREAMBLE names web pages and search results as data. Verify all
+  three survive any change to the search pipeline.
+- **Unattended runs**: a routine runs with `denyWrites: true`, so writes and
+  unclassified tools are DECLINED in words (the agent describes instead) and
+  `pending_tools` is never written; nothing can sit pending from a run with
+  nobody watching. `lib/routines/execute.ts` also enforces the run and
+  search allowances BEFORE each run; a capped routine pauses itself.
 
 ## 2. API surface (behavior probes)
 
 Unauthenticated curl on EVERY route in `app/api` (all methods): expect 401
 (405 where the method does not exist). Then
 `grep -rL "requireUser\|getUserIdentity" app/api --include=route.ts` must
-return nothing, and every file in `app/actions` must check identity.
+return nothing EXCEPT `app/api/routines/tick/route.ts`, the one documented
+exception: it is called by the cron with no user behind it, so it
+authenticates with `ROUTINES_CRON_SECRET` via a timing-safe compare and
+fails closed when the env var is missing. Verify those two behaviors
+instead of user auth. Every file in `app/actions` must check identity.
 Rate backstop and run allowance both 429 on the message route; uploads
 validate kind and size server side and pass the credential-scan gate.
 
@@ -42,7 +57,8 @@ Then: pg_class join pg_policy for RLS-enabled + policy count on every public
 table; pg_policies for per-command coverage; and the behavior probe: as an
 unrelated authenticated sub and as anon,
 `select count(*)` on user_connections, usage_events, agent_knowledge,
-knowledge_sources, messages, threads must all be 0. Run
+knowledge_sources, messages, threads, routines, routine_runs, search_usage
+must all be 0. Run
 `get_advisors(security)` and triage every WARN.
 
 - TRAP: `authenticated` needs EXECUTE on the SECURITY DEFINER policy helpers
@@ -65,6 +81,10 @@ knowledge_sources, messages, threads must all be 0. Run
   `curl -sI` after any config change; config changes need a dev restart.
 - Secrets: `git config core.hooksPath` is `.githooks`, private-patterns file
   present (git-ignored; recreate from private memory on a fresh clone).
+  Server-only keys now include `BRAVE_API_KEY` (the platform search key;
+  a missing key throws SearchUnavailableError, it never falls back) and
+  `ROUTINES_CRON_SECRET` (lives in the Vercel env and the cron job body
+  ONLY, never the repo).
 - Full CSP is deliberately deploy-day work; do not bolt one on quickly.
 
 ## Open items ledger (update as they close)
@@ -75,6 +95,8 @@ knowledge_sources, messages, threads must all be 0. Run
   2026-07-31). Closes with the plan-tier upgrade, required before open
   signup.
 - Drive approval-card name resolution: founder undecided.
+- Brave platform key rotation: PENDING (flagged 2026-08-19, founder
+  action). Until rotated, treat the current key as possibly exposed.
 - Gmail OAuth scope too broad (found 2026-08-01 answering a user's
   injection question): the Pipedream Gmail connector's grant includes
   gmail.send, gmail.modify, gmail.settings.basic. No code path uses them,
