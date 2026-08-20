@@ -47,7 +47,7 @@ export async function runRoutine(
 
   const { data: routine } = await supabase
     .from('routines')
-    .select('id, agent_id, user_id, name, instruction, rule, status, carry, consecutive_failures, last_run_at, deliver_telegram, quiet_runs')
+    .select('id, agent_id, user_id, name, instruction, rule, status, carry, consecutive_failures, last_run_at, deliver_telegram, quiet_runs, unpaired_notice_at')
     .eq('id', routineId)
     .maybeSingle()
   if (!routine) return { ok: false, reason: 'That routine is not here any more.' }
@@ -299,12 +299,40 @@ Rules for this run:
           quietRuns: routine.quiet_runs,
         })
 
+    // The silent-forever case. Delivery is on, nobody ever finished pairing,
+    // and this run had a real report with nowhere to send it. Nothing errored,
+    // so without this the routine works perfectly and reaches no one, possibly
+    // for weeks, and the only place that says so is a sheet with no reason to
+    // be opened.
+    //
+    // Said ONCE. A daily routine sitting unpaired for a month must not write
+    // thirty identical complaints, which would be its own kind of broken.
+    if (delivered === 'unpaired' && !routine.unpaired_notice_at) {
+      await supabase.from('messages').insert({
+        thread_id: thread.id,
+        role: 'activity',
+        content: '',
+        payload: {
+          notice: `This report did not reach your Telegram: the connection was never finished. You can finish it under Routines, and reports will start arriving from the next run.`,
+        } as unknown as Json,
+      })
+    }
+
     await supabase
       .from('routines')
       .update({
         consecutive_failures: 0,
         carry: finalText ? finalText.slice(0, CARRY_CHARS) : routine.carry,
         last_run_at: new Date().toISOString(),
+        // Stamped when we say it, cleared when a report actually lands. So
+        // someone who unpairs months later gets told again, instead of meeting
+        // a silence we already spent.
+        unpaired_notice_at:
+          delivered === 'sent'
+            ? null
+            : delivered === 'unpaired'
+              ? (routine.unpaired_notice_at ?? new Date().toISOString())
+              : routine.unpaired_notice_at,
         // The counter tracks quiet runs SINCE THE LAST DELIVERED REPORT, so it
         // resets on a send and not merely on a run that had something to say.
         // A person with delivery off never sees the tally, and when they turn
