@@ -30,17 +30,32 @@ publish the layer where the answer is weakest.**
 5. **Then fix it.** A published weakness becomes an open item in the
    `security-audit` skill's ledger.
 
-## What is true today (verified 2026-08-01)
+## What is true today (verified 2026-08-20)
 
-- Agent tools are exactly: `gmail_search`, `gmail_get_message`,
+- Agent tools are exactly: `search_web`, `gmail_search`, `gmail_get_message`,
   `gmail_create_draft`, `drive_list_files`, `drive_read_file`,
   `drive_create_folder`, `drive_move_file`, `drive_rename_file`, plus
-  `create_document` and `ask_user`. **There is no send tool**, and
-  `lib/tools/gmail.ts` contains only search, create-draft, get-message.
-  The draft POSTs to Google's `/drafts` endpoint, which cannot send.
+  `create_document`, `set_routine`, and `ask_user`. **There is no send
+  tool**, and `lib/tools/gmail.ts` contains only search, create-draft,
+  get-message. The draft POSTs to Google's `/drafts` endpoint, which cannot
+  send. `set_routine` is not auto-run either: it renders a card and nothing
+  is scheduled until the person accepts it.
 - `executeTool` rejects any name outside its allowlist before touching an
   account; `isAutoRunTool` auto-runs reads only, so writes and anything
   unrecognized pause the session.
+- **Web search**: the only thing that leaves is the query text (plus a
+  result count and optional freshness window), sent to Brave on our key or
+  to the user's own Jina account through the Pipedream proxy; their key
+  never passes through us. What comes back is stripped by
+  `lib/search/sanitize.ts` and framed as data by the security preamble,
+  which names web pages and search results explicitly. Label this the
+  prompt layer where it is the prompt layer: the strip is code, the framing
+  is instructions.
+- **Unattended runs exist now** (routines), so answer the question head-on:
+  a scheduled run reads and reports only. It runs with `denyWrites: true`,
+  meaning writes and unclassified tools are declined in words and nothing
+  is ever left pending from a run nobody watched. Run and search allowances
+  are enforced before each run; a capped routine pauses itself and says why.
 - The approve route reads `pending_tools` off the caller's own thread row,
   clears it (no double-run), and executes ONLY that stored call. The request
   body carries a yes/no and nothing else.
