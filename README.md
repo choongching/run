@@ -428,9 +428,19 @@ Why it is built this way:
   is not an oversight: the proxy that holds everyone's credentials will not
   carry it, so your key could only reach Brave by passing through us. Not
   holding anyone's key is the entire reason connections work the way they do.
-- **Snippets, not pages.** A search returns five short results. The agent then
-  opens the ones worth reading, which costs nothing extra and keeps a search
-  from dragging whole websites into the conversation.
+- **The expensive part is not the search, it is the reading.** Putting text in
+  front of the model costs about a hundred times more than finding it did. So
+  every limit here caps what the agent reads, not what the search engine is
+  willing to send.
+- **Snippets, not pages.** A search returns five short results, and each one
+  is on purpose too short to answer from. The agent has to open the page and
+  read it before it relies on it, so answers come from pages it actually read,
+  never from a teaser. Five, because that is what a person scans before
+  clicking.
+- **Nobody is paid to sort the results twice.** The search engine ranks the
+  web; the agent picks which of the five to open. Some providers sell that
+  second sort as a paid add-on. The agent already makes that call while it
+  thinks, so buying it would be paying twice for one decision.
 - **Recency is the agent's choice, per question.** Asking for "this week" fixes
   a news question and ruins a product comparison, so it is a decision the agent
   makes each time rather than a setting you have to understand.
