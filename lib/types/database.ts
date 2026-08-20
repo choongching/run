@@ -448,6 +448,7 @@ export type Database = {
           carry: string | null
           deliver_telegram: boolean
           quiet_runs: number
+          unpaired_notice_at: string | null
           created_at: string
           updated_at: string
         }
@@ -465,6 +466,7 @@ export type Database = {
           carry?: string | null
           deliver_telegram?: boolean
           quiet_runs?: number
+          unpaired_notice_at?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -482,6 +484,7 @@ export type Database = {
           carry?: string | null
           deliver_telegram?: boolean
           quiet_runs?: number
+          unpaired_notice_at?: string | null
           created_at?: string
           updated_at?: string
         }
