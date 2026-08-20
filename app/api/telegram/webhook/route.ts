@@ -31,6 +31,12 @@ const STOPPED =
   'Stopped. Your reports stay in the app, and you can turn this back on there any time.'
 const EXPIRED =
   'That link has expired. Open Run and turn on Telegram delivery again to get a fresh one.'
+// A bare /start carries no token, which is what happens when someone finds the
+// bot by searching rather than by tapping a link. Telling them a link expired
+// is a lie about a link they never had, and it sent two people hunting a clock
+// problem on 2026-08-20. Say what is actually true instead.
+const NO_TOKEN =
+  'To get your routine reports here, open Run, turn on Telegram delivery for a routine, and tap the button. That sends me the link I need.'
 const UNKNOWN =
   'I only deliver routine reports. Everything else happens in the app.'
 const MOVED =
@@ -61,15 +67,22 @@ export async function POST(request: Request) {
   // /start carries the pairing token as its payload.
   if (text.startsWith('/start')) {
     const token = text.slice('/start'.length).trim()
-    const check = token
-      ? verifyPairingToken(token)
-      : ({ ok: false, reason: 'malformed' } as const)
+    if (!token) {
+      await sendMessage(chat, NO_TOKEN)
+      return Response.json({ ok: true })
+    }
 
+    const check = verifyPairingToken(token)
     if (!check.ok) {
-      // Every failure reads the same to the person on purpose. A forged token
-      // and an expired one are different to us and identical to them, because
-      // the only useful next step is the same either way: go and get a fresh
-      // link. Saying "bad signature" would only ever inform an attacker.
+      // The person sees one message for every failure, on purpose: a forged
+      // token and an expired one are different to us and identical to them,
+      // because the next step is the same either way. Saying "bad signature"
+      // would only ever inform an attacker.
+      //
+      // WE need the difference though. On 2026-08-20 a bad signature showed as
+      // "expired" and cost two rounds of debugging a clock that was fine, so
+      // the reason goes to the log where only we can read it.
+      console.warn('[telegram] pairing rejected', { reason: check.reason })
       await sendMessage(chat, EXPIRED)
       return Response.json({ ok: true })
     }

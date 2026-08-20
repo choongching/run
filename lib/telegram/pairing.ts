@@ -32,13 +32,17 @@ const EXP_LEN = 8
 const MAC_LEN = 16
 const TOKEN_LEN = ID_LEN + EXP_LEN + MAC_LEN
 
-// Long enough that an abandoned tab still works after a coffee, short enough
-// that a link pasted somewhere public is dead before it is found. That window
-// is the whole mitigation for the one real risk here: anyone holding a live
-// token can bind THEIR Telegram chat to the account it names, and would then
-// receive that account's reports. Same risk profile as a magic link, handled
-// the same way, which is why the window is minutes and not days.
-const TTL_MS = 15 * 60 * 1000
+// One hour, raised from fifteen minutes after the first real pairing on
+// 2026-08-20. Fifteen was arbitrary and it failed its first contact with a
+// person: pairing is a cross-device journey (press a button on a laptop, then
+// find your phone, unlock it, open Telegram), and a window that expires
+// mid-errand turns a working feature into a confusing one.
+//
+// The window is still the whole mitigation for the one real risk here: anyone
+// holding a live token can bind THEIR Telegram chat to the account it names,
+// and would then receive that account's reports. Same risk profile as a magic
+// link, handled the same way, which is why this is an hour and not a day.
+const TTL_MS = 60 * 60 * 1000
 
 function secret(): string {
   const value = process.env.TELEGRAM_WEBHOOK_SECRET

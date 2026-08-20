@@ -447,6 +447,7 @@ export type Database = {
           consecutive_failures: number
           carry: string | null
           deliver_telegram: boolean
+          quiet_runs: number
           created_at: string
           updated_at: string
         }
@@ -463,6 +464,7 @@ export type Database = {
           consecutive_failures?: number
           carry?: string | null
           deliver_telegram?: boolean
+          quiet_runs?: number
           created_at?: string
           updated_at?: string
         }
@@ -479,6 +481,7 @@ export type Database = {
           consecutive_failures?: number
           carry?: string | null
           deliver_telegram?: boolean
+          quiet_runs?: number
           created_at?: string
           updated_at?: string
         }
