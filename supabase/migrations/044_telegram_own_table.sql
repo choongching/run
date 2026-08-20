@@ -54,11 +54,27 @@ create policy "read own telegram pairing" on public.user_telegram
 -- prompted this migration showed no pairings existed. Written anyway, because
 -- a migration that assumes an empty table is a migration that corrupts a
 -- non-empty one.
-insert into public.user_telegram (user_id, chat_id, paired_at)
-select id, telegram_chat_id, coalesce(telegram_paired_at, now())
-from public.profiles
-where telegram_chat_id is not null
-on conflict (user_id) do nothing;
+--
+-- Guarded on the column still existing, because every migration in this repo
+-- is written to survive a second run and a bare SELECT of a dropped column is
+-- not a no-op, it is an error that aborts the transaction. The guard has to be
+-- a DO block: `if exists` clauses do not apply to the SELECT inside an INSERT,
+-- and Postgres parses the whole statement before any row is read.
+do $$
+begin
+  if exists (
+    select 1 from information_schema.columns
+    where table_schema = 'public'
+      and table_name = 'profiles'
+      and column_name = 'telegram_chat_id'
+  ) then
+    insert into public.user_telegram (user_id, chat_id, paired_at)
+    select id, telegram_chat_id, coalesce(telegram_paired_at, now())
+    from public.profiles
+    where telegram_chat_id is not null
+    on conflict (user_id) do nothing;
+  end if;
+end $$;
 
 alter table public.profiles drop column if exists telegram_chat_id;
 alter table public.profiles drop column if exists telegram_paired_at;

@@ -33,6 +33,8 @@ const EXPIRED =
   'That link has expired. Open Run and turn on Telegram delivery again to get a fresh one.'
 const UNKNOWN =
   'I only deliver routine reports. Everything else happens in the app.'
+const MOVED =
+  'Your routine reports have been connected to a different Telegram account, so they will stop arriving here. If that was not you, open Run and connect this account again.'
 
 export async function POST(request: Request) {
   if (!webhookAuthorized(request)) {
@@ -72,9 +74,22 @@ export async function POST(request: Request) {
       return Response.json({ ok: true })
     }
 
-    // Upsert, because pressing Start twice is a normal thing a person does,
-    // and because someone re-pairing from a new phone must land on their
-    // existing row rather than colliding with it.
+    // Read the existing pairing before overwriting it. Pressing Start twice
+    // from the same chat is ordinary and silent, but a pairing that MOVES to a
+    // different chat is worth a word to the chat losing it.
+    //
+    // The narrow case this closes: anyone holding a live pairing token can
+    // point an account's reports at their own Telegram, and the upsert below
+    // would do it silently, leaving the rightful owner wondering why the
+    // reports stopped. Telling the old chat turns a silent redirect into one
+    // the person can see and undo. It is also just good manners when someone
+    // legitimately switches phones.
+    const { data: existing } = await supabase
+      .from('user_telegram')
+      .select('chat_id')
+      .eq('user_id', check.userId)
+      .maybeSingle()
+
     await supabase
       .from('user_telegram')
       .upsert(
@@ -82,6 +97,9 @@ export async function POST(request: Request) {
         { onConflict: 'user_id' }
       )
 
+    if (existing?.chat_id && existing.chat_id !== chat) {
+      await sendMessage(existing.chat_id, MOVED)
+    }
     await sendMessage(chat, CONNECTED)
     return Response.json({ ok: true })
   }
