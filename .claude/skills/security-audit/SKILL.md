@@ -107,6 +107,17 @@ must all be 0. Run
   Same finding for Drive: that grant is full `auth/drive` while the tool
   surface is five calls (list, read, create folder, move, rename), with no
   delete or trash anywhere. Both grants are the same fix.
+  FIX FOUND 2026-08-20, and it is cheap: Pipedream exposes named scope
+  profiles per app (`read_only` / `read_write` for both Gmail and Drive) and
+  an `oauth_scope_profile` parameter on the connect flow.
+  `app/api/connections/[app]/route.ts` passes none, so we take the broad
+  default. Narrowing does NOT require our own Google OAuth client. See
+  docs/google-oauth-spike-2026-08-20.md.
+- Google app verification is NOT a blocker and never was: we ride Pipedream's
+  OAuth apps (verified 2026-08-20, every connected account carries Pipedream's
+  own client ids). Our own client would need Google's restricted-scope path,
+  which includes a PAID third-party security assessment repeated annually.
+  Do not put "get Google verified" on a roadmap without pricing it.
 
 ## Report
 
