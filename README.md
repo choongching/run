@@ -167,7 +167,9 @@ The report can come to you rather than wait in the app. Switch a routine on
 for Telegram and its reports arrive as a message when the run finishes. When a
 run finds nothing worth saying, nothing arrives, and the next real report tells
 you how many quiet runs there were. A routine that stops itself always says so,
-because a routine that dies quietly is one you keep waiting on.
+because a routine that dies quietly is one you keep waiting on. You connect
+once, from the Connectors page or from the routine itself, and every routine
+decides on its own whether to send.
 
 Everything above is per person. An agent acts on the accounts of whoever is
 signed in, and the database enforces that underneath the app.

@@ -5,6 +5,7 @@ import { getUserIdentity } from '@/lib/auth'
 import { createClient } from '@/lib/supabase/server'
 import { getUserConnection } from '@/lib/pipedream/connections'
 import { getSearchAllowance } from '@/lib/entitlements/assert'
+import { isTelegramConfigured } from '@/lib/telegram/client'
 
 // Every connector this person has, in one place.
 //
@@ -19,18 +20,31 @@ export default async function ConnectorsPage() {
   const { userId } = await getUserIdentity()
   const supabase = await createClient()
 
-  const [gmail, drive, jina, searches] = await Promise.all([
+  // Telegram rides along in the same round trip rather than being fetched by
+  // the row on mount: fetching it client side would flash "not connected" at
+  // someone who is, on the one page whose whole job is saying what is linked.
+  const [gmail, drive, jina, searches, telegram, sending] = await Promise.all([
     getUserConnection(supabase, userId, 'gmail'),
     getUserConnection(supabase, userId, 'google_drive'),
     getUserConnection(supabase, userId, 'jina_ai'),
     getSearchAllowance(supabase, userId),
+    supabase
+      .from('user_telegram')
+      .select('user_id')
+      .eq('user_id', userId)
+      .maybeSingle(),
+    supabase
+      .from('routines')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('deliver_telegram', true),
   ])
 
   return (
     <PageShell>
       <PageHeader
         title="Connectors"
-        description="What your agents can use."
+        description="What your agents can use, and where your reports reach you."
       />
       <ConnectorsManager
         connections={{
@@ -39,6 +53,14 @@ export default async function ConnectorsPage() {
           jina_ai: Boolean(jina),
         }}
         searches={searches}
+        telegram={
+          isTelegramConfigured()
+            ? {
+                paired: Boolean(telegram.data),
+                sendingCount: sending.count ?? 0,
+              }
+            : null
+        }
       />
     </PageShell>
   )

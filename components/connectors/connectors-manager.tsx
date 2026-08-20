@@ -8,6 +8,7 @@ import {
   ConnectorList,
   type ConnectorState,
 } from '@/components/connectors/connector-list'
+import { TelegramRow } from '@/components/connectors/telegram-row'
 import { BraveIcon } from '@/components/icons/brave'
 import { JinaIcon } from '@/components/icons/jina'
 import type { SearchAllowance } from '@/lib/entitlements/assert'
@@ -93,9 +94,14 @@ function SearchMeter({ used, limit }: { used: number; limit: number }) {
 export function ConnectorsManager({
   connections,
   searches,
+  telegram,
 }: {
   connections: ConnectorState
   searches: SearchAllowance
+  // Null on a deployment with no bot configured. The group disappears whole
+  // rather than offering a connect button that leads to a bot nobody is
+  // listening on.
+  telegram: { paired: boolean; sendingCount: number } | null
 }) {
   const router = useRouter()
   const refresh = () => router.refresh()
@@ -180,12 +186,36 @@ export function ConnectorsManager({
         />
       </section>
 
+      {/* Last, and its own group, because it runs the other way from
+          everything above it. Those are accounts an agent reaches into; this
+          is an address Run sends to. The heading is word for word the one on
+          a routine's own switch, so the two places read as one setting. */}
+      {telegram ? (
+        <section className="flex flex-col gap-2">
+          <h3 className="text-xs font-medium text-muted-foreground">
+            Where reports go
+          </h3>
+          <TelegramRow
+            initialPaired={telegram.paired}
+            sendingCount={telegram.sendingCount}
+          />
+          {/* The honest line, next to the thing it is about. Someone looking
+              at a chat app on this page will assume their agent got a new
+              place to talk, and it did not. */}
+          <p className="px-0.5 text-xs text-muted-foreground">
+            Your agents cannot use this. Run sends the reports, and the bot
+            only listens for start and stop.
+          </p>
+        </section>
+      ) : null}
+
       {/* The trust promise stays: this is the page where people hand over
-          their inbox. What is coming was dropped, because the page now has
-          something concrete to say instead. */}
+          their inbox. Named to your accounts now that something on this page
+          does send: without that word, the promise and the row above it read
+          as a contradiction. */}
       <p className="px-0.5 text-xs text-muted-foreground">
-        Agents read on their own, but nothing is sent or changed without your
-        okay.
+        Agents read your accounts on their own, but nothing is sent or changed
+        there without your okay.
       </p>
     </div>
   )

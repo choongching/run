@@ -14,6 +14,7 @@ import {
 } from 'lucide-react'
 import { toast } from 'sonner'
 
+import { TelegramIcon } from '@/components/icons/telegram'
 import { AgentsIcon, RoutinesIcon } from '@/components/nav-icons'
 import { RoutineSheet } from '@/components/routines/routine-sheet'
 import { Button } from '@/components/ui/button'
@@ -256,9 +257,25 @@ export function RoutinesList({
                     {/* "By" plus the agent icon, because a bare name under a
                         bare name said nothing about how the two relate: the
                         routine is the job, the agent is who does it. */}
+                    {/* Delivery is stated on the row, not left to the sheet.
+                        A routine whose reports leave the app is a different
+                        thing from one whose reports wait in it, and the whole
+                        point of switching it on is that you stop opening this
+                        page. Spelled out rather than reduced to a glyph: it
+                        only appears when it is true, so there is no second
+                        state to decode. */}
                     <p className="mt-0.5 flex items-center gap-1 truncate text-xs text-muted-foreground">
                       By <AgentsIcon className="size-3.5 shrink-0" />
                       {r.agentName}
+                      {r.deliverTelegram ? (
+                        <>
+                          <span aria-hidden className="px-0.5">
+                            ·
+                          </span>
+                          <TelegramIcon className="size-3 shrink-0" />
+                          Telegram
+                        </>
+                      ) : null}
                     </p>
                     {/* No last-run snippet here (founder's call: rows stay
                         minimal; in practice agents title reports after the
