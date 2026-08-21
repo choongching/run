@@ -555,6 +555,10 @@ Around that loop, the product has filled out:
   open or ignore. Each step carries the mark of whatever did it, so you can
   tell a search from a page read from an inbox lookup at a glance. Nothing is
   invented; the steps are the real calls, and a step that failed is not kept.
+  Where an answer came from shows too, as a small badge at the end of the claim
+  it supports, carrying the site's own icon and its name. Those icons are
+  fetched and cached by Run rather than by your browser, so nobody outside
+  learns which pages your agent read.
 - **You can see what you have used.** A meter beside your account and a small
   ring in every chat show how much of the month is left. The meter opens into
   a breakdown of where the month went, agent by agent, and a log of every

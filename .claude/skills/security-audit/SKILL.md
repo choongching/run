@@ -50,6 +50,21 @@ via timing-safe compare and failing closed when the env var is missing:
 Telegram in the `X-Telegram-Bot-Api-Secret-Token` header). Verify those two
 behaviors instead of user auth. Every file in `app/actions` must check
 identity.
+- `app/api/favicon/route.ts` is the THIRD no-user route (added 2026-08-21) and
+  the only one safe to leave open, because nothing sits behind it: it returns a
+  public brand image and reveals nothing about the caller. It is also the most
+  dangerous route in the app, because a server that fetches a host the caller
+  names is SSRF by default. Check all of it, every sweep: `lib/favicon.ts` is
+  an ALLOW shape (a hostname must look like an ordinary registrable domain, and
+  the alphabetic final label is what refuses every IPv4 literal without parsing
+  one), the scheme and path are fixed so only the host varies, redirects are
+  manual with exactly ONE hop and the new host re-tested, only image
+  content-types are relayed, the response content-type is ours and never the
+  upstream one, and the body is buffered so the REAL length is enforced rather
+  than the declared one. Probe it with `169.254.169.254`, `localhost` and
+  `metadata.google.internal`; all must 404.
+  THE RULE: any future route that fetches a caller-supplied address gets this
+  same treatment, and "it is only an image" is not a reason to relax it.
 - The Telegram webhook has a second property to check, and it is a boundary
   rather than a scope cut: it understands `/start` and `/stop` and NOTHING
   else. Any other message gets one canned reply and is discarded. It must

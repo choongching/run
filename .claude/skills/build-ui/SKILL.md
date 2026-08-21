@@ -49,6 +49,25 @@ that question in the conversation, scoped to the one agent's actual job. If
 another agent once someone owns several; nothing today qualifies.
 See `docs/guidance-patterns-spike-2026-08-21.md`.
 
+**A fallback only fires if the failure is a failure.** Earned 2026-08-21 on the
+source chip. The favicon route answered "no icon" with a 200 and a transparent
+pixel, reasoning that a browser should never paint a broken image. But a 200
+means the image LOADED, so `onError` never fired, the globe fallback never
+appeared, and every site that refused us rendered as an empty circle. Nothing
+looked broken and nothing was right. Whenever a component has a fallback path,
+check that the thing it waits for can actually happen.
+
+**Three pill and popover traps, all paid for once:** a pill needs more
+horizontal inset than its height implies, because the rounded edge curves
+furthest inward exactly at the vertical centre where the content sits, so
+padding that looks right on a rectangle reads as touching; an icon inside a
+pill should be a circle, concentric rather than arguing with it at the tightest
+point; and an absolutely positioned card STILL inherits typography from
+whatever it is nested in, so a card inside a `<p>` picks up the paragraph's
+line-height through the strut and needs its own reset. Also scope icon styles
+at the top level, not under the one component you first used them in, or every
+other use falls back to inline text.
+
 **Teach the SYSTEM, never teach prompt skill.** The rule for any help element,
 settled 2026-08-21 after researching how v0, Lovable and Ona guide people. A
 tooltip may state a fact about our machinery that nobody can deduce by
