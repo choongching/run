@@ -23,6 +23,9 @@ top of it: speed came back clean, and both audits found one real defect each,
 both in code written the same week. The one that mattered was ours to be
 embarrassed by, a pairing link signed with the one secret we share with
 Telegram; it now has a secret of its own and was re-verified on a real phone.
+Timing the chat itself then showed 4.6 seconds of nothing on screen before a
+reply begins, now down to 1.1, with the remaining wait measured and split
+between what is ours and what is the AI thinking.
 Next: the before-more-users pair, a
 sign-up email provider and the database plan upgrade, plus two founder-only
 items, connecting a real Jina account end to end and rotating the platform
@@ -132,6 +135,31 @@ Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
 
 ---
+
+## 2026-08-21 (later still): The chat stopped looking dead while it thinks
+
+- Measured what happens between pressing send and seeing anything, which we
+  had never actually timed. On the live site it was **4.6 seconds of nothing**,
+  and on a fresh conversation still nearly 3. The reply itself then arrived in
+  about a second and a half, smoothly, with no stalls. So the waiting was not
+  the agent being slow; it was the app saying nothing while the agent worked.
+- Worse, the silence grows the longer a conversation goes on, because the agent
+  has more to read before it can start. The wait gets longest exactly when a
+  chat has become worth having.
+- Fixed by having the app speak first. It now opens its reply the instant it
+  starts work rather than when the agent produces a first word. **The wait
+  before anything appears went from 4.6 seconds to 1.1**, and the total time
+  did not change at all, which is the honest description: nothing got faster,
+  the screen stopped pretending nothing was happening.
+- Measuring it also told us where the time actually goes, which we had only
+  been guessing at: about a second is our own database work, about four seconds
+  is the AI thinking, and about a second and a half is the reply arriving.
+  Only the first is ours to fix.
+- That first second is now a costed decision rather than a hunch. Removing it
+  means changing how the busiest part of the app reports failures, so it is
+  written down with its price rather than done in passing.
+- Merged to `main` via pull request #252 and deployed, then measured again on
+  the live site to confirm the number moved.
 
 ## 2026-08-21 (later): Two audits, and both found our own code
 
