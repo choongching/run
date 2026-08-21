@@ -92,6 +92,11 @@ a page's data fetching, or navigation):
   instant. Also skip a tick while a check is still in flight, or slow calls
   stack. One shared hook: `lib/use-connect-poll.ts`; add call sites to it
   rather than hand-rolling a fifth.
+- **Markup-only refactors do not move server timings, and if they seem to,
+  measure again before believing it.** The page-container refactor rewrote the
+  containers of six surfaces and changed no query; the numbers still appeared
+  to move by 300ms in both directions until the sample size went up. Check
+  what the change could physically affect before hunting for a cause.
 - **Grep every timer as its own pass.** `setInterval`/`setTimeout` across
   `components` and `app` is a ten-second sweep that no page-timing number will
   ever surface, because a leaked interval costs nothing on the page you are
@@ -115,20 +120,41 @@ prefetched nav clicks 0 fetches and ~130ms to the destination heading. The
 220-420ms drain is the ~120ms Supabase floor stacking, not app code; do not
 chase it until the plan-tier question is answered.
 
-## Baselines, localhost production build (2026-08-21)
+## Baselines, localhost production build (2026-08-21, re-measured at close)
 
-Not comparable to the Vercel numbers below (no network hop), but useful as a
-same-machine before/after. Median of six, cold run discarded, signed in:
-RSC first chunk 16-21ms on every route including chat. Fully streamed:
-`/routines` 191, `/connectors` 196, `/chat` 217, `/settings` 356,
-`/knowledge` 359, `/` 519. `perf-check --prod` green with biggest chunk 272KB
-and total client JS 1.8MB.
+Not comparable to the Vercel numbers above (no network hop), but useful as a
+same-machine before/after. Signed in, production build, dev server STOPPED,
+16 samples per route with the cold run discarded:
 
-Two things worth carrying forward. **Adding queries to an existing
-`Promise.all` is free**: `/connectors` and `/routines` each gained two and
-stayed the two fastest pages. And **the home route is the slowest full stream
-by a wide margin**, untouched for months; that is where to look next, not at
-the pages someone just edited.
+| Route | First chunk | Full stream (median) | p90 |
+| --- | --- | --- | --- |
+| `/chat` | 15ms | 394 | 404 |
+| `/routines` | 23ms | 206 | 414 |
+| `/knowledge` | 24ms | 215 | 242 |
+| `/settings` | 26ms | 332 | 419 |
+| `/connectors` | 29ms | 372 | 537 |
+| `/` | 30ms | 341 | 532 |
+
+`perf-check --prod` green, biggest chunk 273KB, total client JS 1.8MB.
+
+**READ THE FULL-STREAM COLUMN WITH SUSPICION, and this is the lesson of the
+day.** That distribution is fat-tailed, not normal: sixteen samples of
+`/connectors` came back 195, 205, 209, 209, 210, 210, 212, 217, 225, 246, then
+371, 379, 389, 408, 479. Two clusters, one at the ~200ms the page really costs
+and one at roughly double it. A median of six therefore lands wherever the
+tail fell, and the same route measured twice ten minutes apart gave 212 and
+372. The earlier single-run table in this file (connectors 196, knowledge 359)
+was one draw from that distribution quoted as a fact.
+
+So: **at least 15 samples, quote the median AND the p90, and never read a
+±150ms move on this machine as a change.** The tail is the ~120ms Supabase
+round trip jittering, not app code. First chunk is the stable number and the
+one worth defending; it stayed in band through a refactor that touched every
+standard page.
+
+Second thing worth carrying: **run the gate with the dev server stopped.**
+Leaving `next dev` running beside `next start` added roughly 10ms to the first
+chunk of every route, uniformly, which is enough to look like a regression.
 
 ## The chat turn, measured (production, 2026-08-21)
 
