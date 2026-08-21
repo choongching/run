@@ -59,8 +59,10 @@ export const CONNECTORS = [
     // anyone who already knows Jina and tells a stranger nothing.
     label: 'Jina',
     Icon: JinaIcon,
-    blurb:
-      'Another web search engine. Connect your own Jina account and searches stop counting against your monthly limit.',
+    // Kept to one line. It can afford to drop "web" and to leave the limit
+    // unnamed because it always renders directly under the web search row,
+    // which states both.
+    blurb: 'Another search engine. Connect your own for searches with no limit.',
   },
 ] as const satisfies ReadonlyArray<{
   app: ConnectorApp

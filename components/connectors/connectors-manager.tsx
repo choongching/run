@@ -164,13 +164,14 @@ export function ConnectorsManager({
           }
           label="Web search"
           state={onOwnAccount ? 'On your account' : 'Included'}
-          // Opens on what you have rather than on plumbing. The engine still
-          // gets named in the same breath, because the row's other job is
-          // saying whose account the searching runs on.
+          // Opens on what you have rather than on plumbing, and stays on one
+          // line. Whose account it runs on is folded into the first clause
+          // rather than given a sentence, because that is the fact the Jina
+          // row directly below plays off.
           detail={
             onOwnAccount
-              ? 'Every agent can search the web. Runs on Jina, on your own account, with no limit.'
-              : `Every agent can search the web. Runs on Brave, on our account, fresh ${searches.limit.toLocaleString()} on ${refillMonth} 1.`
+              ? 'Search the web on your own Jina account. No monthly limit.'
+              : `Search the web on our Brave account. Fresh ${searches.limit.toLocaleString()} on ${refillMonth} 1.`
           }
           trailing={
             onOwnAccount ? (
