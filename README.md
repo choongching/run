@@ -558,7 +558,12 @@ Around that loop, the product has filled out:
   Where an answer came from shows too, as a small badge at the end of the claim
   it supports, carrying the site's own icon and its name. Those icons are
   fetched and cached by Run rather than by your browser, so nobody outside
-  learns which pages your agent read.
+  learns which pages your agent read. Hover a badge and you get the page
+  itself, its headline, its opening lines and when it was published, with
+  arrows through the other pages behind the same answer. Some of those were
+  never named in the reply, which is the reason the arrows are there. You will
+  not find a number of sources anywhere: we know which pages the agent opened,
+  not which ones it leaned on, and a count would claim otherwise.
 - **You can see what you have used.** A meter beside your account and a small
   ring in every chat show how much of the month is left. The meter opens into
   a breakdown of where the month went, agent by agent, and a log of every

@@ -201,6 +201,19 @@ the `answer-security-questions` discipline applied to ordinary copy, and it is
 where the good version came from too: naming the real file types (documents,
 sheets, PDFs) is more useful than any adjective.
 
+## A number is a claim (2026-08-21)
+
+Counts read as measurements, so only print one the data actually supports.
+The source popover wanted to say "5 sources" and could not: what we store is
+what the agent's searches RETURNED, and one real reply looked at five pages
+and wrote from four. Counting the links it wrote instead undercounted by half.
+Both numbers would have been wrong in opposite directions, so the card carries
+none, and "1 of 5" was cut for the same reason, a total wearing a hat.
+
+The general form: before shipping a figure, find the thing it counts and check
+that it counts exactly that. When it does not, say the true unnumbered
+sentence. "The pages behind this answer" is honest and lost nothing.
+
 ## Claims must agree across the document (2026-08-01)
 
 The README now makes verified claims about what agents can and cannot do

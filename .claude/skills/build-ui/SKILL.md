@@ -167,6 +167,9 @@ mobile width.
   that prevents reflow visibly pushes short words sideways on a phone).
   TRAP: a component's own size-variant classes (peer-data top-2) outrank
   `max-md:` overrides unpredictably; pin with a trailing `!` (max-md:top-3!).
+- **NEVER run `npx prettier` on this repo.** There is no prettier config and
+  the code is not prettier-formatted (single quotes, no semicolons), so it
+  rewrites hundreds of lines in a foreign style. Match the file you are in.
 - **CSS overrides:** Tailwind v4 cascade layers mean the utilities layer beats
   `@layer components` regardless of selector specificity. Any custom rule that
   must override a utility-classed element goes in `@layer utilities` in
@@ -211,6 +214,26 @@ mobile width.
   bleed through), and the founder's final call was no tint at all: solid
   card, cursor-pointer and a title-row chevron carry the affordance, and
   the WHOLE card is the click target so the chevron keeps its promise.
+- **A card hanging off INLINE content is portalled, not absolutely
+  positioned.** The two above hang off block-level controls, where a relative
+  wrapper is right. A card anchored to something inside a paragraph (the
+  source chip) cannot be: a div inside a `<p>` is invalid nesting React warns
+  about in the console, and any ancestor with hidden overflow clips it.
+  `createPortal` to `document.body` with `position: fixed`, coordinates taken
+  from the trigger's rect when it opens, and then three consequences that are
+  not optional: it closes on scroll and on resize (viewport coordinates go
+  stale), it picks left or right anchoring from `rect.left + width` against
+  the window, and it flips below when `rect.top` leaves no room above.
+  Portalled content still bubbles through the REACT tree, so an Escape
+  handler on the trigger's wrapper catches keys from inside the card.
+- **A hover card that opens over a gap needs the gap covered.** The trigger's
+  mouseleave fires as the pointer crosses into the card, so the card cancels
+  the pending close on its own mouseenter. Open on a delay (about 250ms) so a
+  pointer passing through does not flash it; close on a short one.
+- **A hover-only affordance is a phone-only omission.** Say so out loud in the
+  component and in the log rather than discovering it on a device. Focus
+  handlers cover the keyboard for free; touch usually does not have an answer
+  when the trigger's tap already has a job.
 - **In a history list, status speaks only for the exception.** "Done" on
   every row of finished work read as meaningless and "Active" would
   misdescribe a past event; ordinary rows carry nothing, failures carry one
