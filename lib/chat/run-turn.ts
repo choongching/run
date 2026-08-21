@@ -22,7 +22,7 @@ import { toChatError, type ChatError } from '@/lib/chat/errors'
 import { executeTool } from '@/lib/tools/execute'
 import { MAX_SEARCHES_PER_DRAIN } from '@/lib/search/limits'
 import { resolveProviderId } from '@/lib/search/resolve'
-import { toMessageSources } from '@/lib/chat/sources'
+import { toMessageSources, type MessageSource } from '@/lib/chat/sources'
 import type { SearchHit } from '@/lib/search/types'
 import { recordUsage } from '@/lib/usage'
 import type { Database, Json, UsageSource } from '@/lib/types/database'
@@ -61,7 +61,7 @@ export type Frame =
   // card's whole point.
   | ({ type: 'routine'; id: string } & RoutineDraft)
   | { type: 'onboarded' }
-  | { type: 'done'; text: string }
+  | { type: 'done'; text: string; sources?: MessageSource[] }
   | ({ type: 'error' } & ChatError)
 
 // How a turn ended: paused for the user (write approval or a question), or ran
@@ -859,12 +859,18 @@ async function drainSessionInner(
     !sessionError
 
   const closingText = finalText || (benignNoReply ? noReplyText : '')
+  // The sources ride on the reply they justify. Null rather than an empty
+  // array when nothing was searched: null means "no searching happened
+  // here", while [] would claim we looked and came back with nothing, and a
+  // reader is owed the difference.
+  //
+  // Computed out here because the same list goes two places: onto the stored
+  // row, and out on the closing frame. Without the second, the chips in a
+  // reply you just watched arrive would have nothing behind them until a
+  // reload, which is the one moment someone is most likely to check.
+  const sources = searchHits.length ? toMessageSources(searchHits) : null
+  const sent = sources?.length ? sources : undefined
   if (closingText) {
-    // The sources ride on the reply they justify. Null rather than an empty
-    // array when nothing was searched: null means "no searching happened
-    // here", while [] would claim we looked and came back with nothing, and a
-    // reader is owed the difference.
-    const sources = searchHits.length ? toMessageSources(searchHits) : null
     await supabase.from('messages').insert({
       thread_id: threadId,
       role: 'agent',
@@ -887,7 +893,7 @@ async function drainSessionInner(
   if (status) {
     // A card (approval or question) is already sent; finalize any preamble
     // text. Empty text is fine; the client skips empty done frames.
-    send({ type: 'done', text: finalText })
+    send({ type: 'done', text: finalText, sources: sent })
   } else if (!finalText && (sentConnect || artifacts.length > 0)) {
     // A connect card or an artifact already conveys the result; finish quietly
     // rather than showing an error or a redundant note.
@@ -895,14 +901,14 @@ async function drainSessionInner(
   } else if (benignNoReply) {
     // The agent did its work but wrote no closing line. A warm note beats a red
     // error: the turn succeeded, there was just nothing to say back.
-    send({ type: 'done', text: noReplyText })
+    send({ type: 'done', text: noReplyText, sources: sent })
   } else if (!finalText) {
     // A genuine failure with no text: surface the underlying session error.
     // A session error is the model's own failure report, not a sentence we
     // wrote, so it goes through the same translation as an exception.
     send({ type: 'error', ...toChatError(sessionError ?? new Error('no reply')) })
   } else {
-    send({ type: 'done', text: finalText })
+    send({ type: 'done', text: finalText, sources: sent })
   }
 
   return result
