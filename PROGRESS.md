@@ -18,8 +18,8 @@ up. Everywhere an agent's details appear now says where its reports go.
 Connectors dropped from four group headings to two, every row was rewritten to
 say what the thing actually is, and one row was found to be claiming something
 the product cannot do. A failed routine no longer prints a stack trace at
-people. Next: merge the open pull request, then the before-more-users pair
-(sign-up email provider and the database plan upgrade), and two founder-only
+people. All of that is merged and live. Next: the before-more-users pair, a
+sign-up email provider and the database plan upgrade, plus two founder-only
 items, connecting a real Jina account end to end and rotating the platform
 search key.
 
@@ -210,6 +210,8 @@ and backups.
   agent's voice and its knowledge are added underneath.
 - Verified against the founder's real phone and a real paired account, on
   desktop and at phone width.
+- Merged to `main` via pull request #247, on top of the delivery work already
+  merged as #245 and #246.
 
 - Closed two of the four follow-ups the search work left open, both by
   checking rather than assuming:
