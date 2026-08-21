@@ -35,7 +35,7 @@ export default async function RoutinesPage() {
   ])
 
   return (
-    <PageShell wide>
+    <PageShell>
       <PageHeader
         title="Routines"
         // One line naming the page's job, in the shape the other page

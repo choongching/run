@@ -274,6 +274,16 @@ mobile width.
   canvas. Use `bg-border` for the unfilled part of any meter or progress track,
   and `bg-foreground/70` for the fill, escalating to `bg-chart-4` and
   `bg-destructive` at threshold.
+- **Every page is a stack of SectionCards, and a list lives in a RowBox**
+  (`components/section-card.tsx`, styleguide 7a, settled with the founder on
+  a canvas). The card carries the heading and the one line under it; the rows
+  live in their own bordered box one radius step down, divided by hairlines
+  and nothing else; the footnote is the card's last line; an empty state
+  fills the box's slot so the card stays. A section of form FIELDS is the
+  exception and keeps them on the card, because a hairline between two inputs
+  reads as a table of inputs. Do not hand-roll `rounded-xl border
+  border-border bg-card` for a new section, and never use the shadcn `Card`
+  primitive on a page: it draws a ring rather than our border token.
 - **Every standard page lives in PageShell** (`components/page-shell.tsx`):
   the same centered `max-w-thread` column the chat uses, wrapping the header,
   body AND the route's loading.tsx. Never give a page or a card its own width

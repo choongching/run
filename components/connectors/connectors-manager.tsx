@@ -5,9 +5,12 @@ import { useRouter } from 'next/navigation'
 import { Check } from 'lucide-react'
 
 import {
-  ConnectorList,
+  CONNECTORS,
+  ConnectorRow,
+  type ConnectorApp,
   type ConnectorState,
 } from '@/components/connectors/connector-list'
+import { Row, RowBox, RowTile, SectionCard } from '@/components/section-card'
 import { TelegramRow } from '@/components/connectors/telegram-row'
 import { BraveIcon } from '@/components/icons/brave'
 import { JinaIcon } from '@/components/icons/jina'
@@ -36,22 +39,20 @@ function StaticConnectorRow({
   trailing: React.ReactNode
 }) {
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
-      <span className="flex size-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border bg-background">
-        {icon}
-      </span>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2">
-          <p className="text-sm font-medium">{label}</p>
+    <Row
+      lead={<RowTile>{icon}</RowTile>}
+      title={
+        <>
+          {label}
           <span className="flex items-center gap-1 text-xs text-primary">
             <Check className="size-3 shrink-0" />
             {state}
           </span>
-        </div>
-        <p className="mt-1 text-xs text-muted-foreground">{detail}</p>
-      </div>
-      <div className="shrink-0 pl-3">{trailing}</div>
-    </div>
+        </>
+      }
+      detail={detail}
+      trailing={trailing}
+    />
   )
 }
 
@@ -120,6 +121,23 @@ export function ConnectorsManager({
     month: 'long',
   })
 
+  // Rendered one at a time rather than through ConnectorList, because this
+  // page interleaves them with rows that have no account behind them and all
+  // of it has to land in ONE box.
+  const connector = (app: ConnectorApp) => {
+    const c = CONNECTORS.find((x) => x.app === app)!
+    return (
+      <ConnectorRow
+        app={c.app}
+        label={c.label}
+        Icon={c.Icon}
+        detail={c.blurb}
+        connected={connections[c.app]}
+        onChanged={refresh}
+      />
+    )
+  }
+
   return (
     // Width comes from the PageShell column; a second cap here would put
     // this page out of step with every other one.
@@ -132,106 +150,101 @@ export function ConnectorsManager({
     //
     // The subtitle already names exactly two things. Making those the groups
     // means the headings stop being a second taxonomy to learn.
-    <div className="flex flex-col gap-6">
-      {/* No heading on this group. It would have read "What your agents can
-          use", which is the page subtitle word for word, two lines apart. The
-          subtitle already labels this list; only the group that departs from
-          it needs naming, which is the same instinct as a history list where
-          status speaks only for the exception. */}
-      <section className="flex flex-col gap-2">
-        <ConnectorList
-          connections={connections}
-          onChanged={refresh}
-          showBlurb
-          only={['gmail', 'google_drive']}
-        />
-        {/* Web search and Jina stay adjacent, which is not cosmetic: Jina's
-            line refers to a monthly limit that only the row above it states.
-            Split them and the Jina row becomes an unexplained third-party
-            sign-up. */}
-        <StaticConnectorRow
-          icon={
-            onOwnAccount ? (
-              <JinaIcon className="size-5" />
-            ) : (
-              <BraveIcon className="size-5" />
-            )
-          }
-          label="Web search"
-          state={onOwnAccount ? 'On your account' : 'Included'}
-          // Opens on what you have rather than on plumbing, and stays on one
-          // line. Whose account it runs on is folded into the first clause
-          // rather than given a sentence, because that is the fact the Jina
-          // row directly below plays off.
-          detail={
-            onOwnAccount
-              ? 'Search the web on your own Jina account. No monthly limit.'
-              : `Search the web on our Brave account. Fresh ${searches.limit.toLocaleString()} on ${refillMonth} 1.`
-          }
-          trailing={
-            onOwnAccount ? (
-              <span className="text-xs text-muted-foreground">No limit</span>
-            ) : (
-              <SearchMeter used={searches.used} limit={searches.limit} />
-            )
-          }
-        />
-        <ConnectorList
-          connections={connections}
-          onChanged={refresh}
-          showBlurb
-          only={['jina_ai']}
-        />
-        {/* Claude last in the group. It is the only row nobody can act on, so
-            it sits after everything that has a button. The "Engine" heading it
-            used to have is gone; the detail line now carries that job. */}
-        <StaticConnectorRow
-          icon={<Image src="/claude-icon.png" alt="" width={26} height={26} />}
-          label="Claude"
-          state="Always on"
-          // Plain, and the job before the vendor. "Anthropic's AI behind every
-          // agent" was a credit line, and a credit does not explain why this
-          // is the one row with no button.
-          detail="The engine behind every agent. Run is built on Anthropic's Claude."
-          trailing={
-            <span className="px-3 text-xs text-muted-foreground">Built in</span>
-          }
-        />
-        {/* The trust promise closes the group it is about, rather than the
-            page. It is also the ONE place the approval rule is stated, which
-            is why no connector row above carries its own approval clause:
-            said per row it sounds like a quirk of that connector, said once
-            here it is how the product works.
+    //
+    // Each group is a card and its rows share one bordered box, the shape
+    // every standard page now uses. Five separate cards floating in a column
+    // made five things look unrelated when they are one list.
+    <div className="flex flex-col gap-5">
+      <SectionCard
+        // The heading the page used to leave off. It was omitted because it
+        // would have repeated the subtitle word for word, which was true of
+        // "What your agents can use" and is not true of this: the subtitle
+        // names the page, this names the pile.
+        title="Accounts and tools"
+        description="Every agent you make can reach these."
+        /* The trust promise closes the group it is about, rather than the
+           page. It is also the ONE place the approval rule is stated, which
+           is why no connector row above carries its own approval clause:
+           said per row it sounds like a quirk of that connector, said once
+           here it is how the product works.
 
-            Two short sentences rather than one joined by "but". The promise
-            should read like it was said out loud. */}
-        <p className="px-0.5 text-xs text-muted-foreground">
-          Your agents only read. Anything that changes something needs your
-          approval.
-        </p>
-      </section>
-
-      {/* Its own group, because it runs the other way from
-          everything above it. Those are accounts an agent reaches into; this
-          is an address Run sends to. The heading is word for word the one on
-          a routine's own switch, so the two places read as one setting. */}
-      {telegram ? (
-        <section className="flex flex-col gap-2">
-          <h3 className="text-xs font-medium text-muted-foreground">
-            Where reports go
-          </h3>
-          <TelegramRow
-            initialPaired={telegram.paired}
-            sendingCount={telegram.sendingCount}
+           Two short sentences rather than one joined by "but". The promise
+           should read like it was said out loud. */
+        footnote="Your agents only read. Anything that changes something needs your approval."
+      >
+        <RowBox>
+          {connector('gmail')}
+          {connector('google_drive')}
+          {/* Web search and Jina stay adjacent, which is not cosmetic: Jina's
+              line refers to a monthly limit that only the row above it states.
+              Split them and the Jina row becomes an unexplained third-party
+              sign-up. */}
+          <StaticConnectorRow
+            icon={
+              onOwnAccount ? (
+                <JinaIcon className="size-5" />
+              ) : (
+                <BraveIcon className="size-5" />
+              )
+            }
+            label="Web search"
+            state={onOwnAccount ? 'On your account' : 'Included'}
+            // Opens on what you have rather than on plumbing, and stays on one
+            // line. Whose account it runs on is folded into the first clause
+            // rather than given a sentence, because that is the fact the Jina
+            // row directly below plays off.
+            detail={
+              onOwnAccount
+                ? 'Search the web on your own Jina account. No monthly limit.'
+                : `Search the web on our Brave account. Fresh ${searches.limit.toLocaleString()} on ${refillMonth} 1.`
+            }
+            trailing={
+              onOwnAccount ? (
+                <span className="text-xs text-muted-foreground">No limit</span>
+              ) : (
+                <SearchMeter used={searches.used} limit={searches.limit} />
+              )
+            }
           />
-          {/* The honest line, next to the thing it is about. Someone looking
-              at a chat app on this page will assume their agent got a new
-              place to talk, and it did not. */}
-          <p className="px-0.5 text-xs text-muted-foreground">
-            Your agents cannot use this. Run sends the reports, and the bot
-            only listens for start and stop.
-          </p>
-        </section>
+          {connector('jina_ai')}
+          {/* Claude last in the group. It is the only row nobody can act on, so
+              it sits after everything that has a button. The "Engine" heading it
+              used to have is gone; the detail line now carries that job. */}
+          <StaticConnectorRow
+            icon={<Image src="/claude-icon.png" alt="" width={26} height={26} />}
+            label="Claude"
+            state="Always on"
+            // Plain, and the job before the vendor. "Anthropic's AI behind every
+            // agent" was a credit line, and a credit does not explain why this
+            // is the one row with no button.
+            detail="The engine behind every agent. Run is built on Anthropic's Claude."
+            trailing={
+              <span className="text-xs text-muted-foreground">Built in</span>
+            }
+          />
+        </RowBox>
+      </SectionCard>
+
+      {/* Its own card, because it runs the other way from everything above it.
+          Those are accounts an agent reaches into; this is an address Run
+          sends to. The heading is word for word the one on a routine's own
+          switch, so the two places read as one setting. */}
+      {telegram ? (
+        <SectionCard
+          title="Where reports go"
+          description="Your routines can send their reports here."
+          /* The honest line, next to the thing it is about. Someone looking
+             at a chat app on this page will assume their agent got a new
+             place to talk, and it did not. */
+          footnote="Your agents cannot use this. Run sends the reports, and the bot only listens for start and stop."
+        >
+          <RowBox>
+            <TelegramRow
+              initialPaired={telegram.paired}
+              sendingCount={telegram.sendingCount}
+            />
+          </RowBox>
+        </SectionCard>
       ) : null}
     </div>
   )

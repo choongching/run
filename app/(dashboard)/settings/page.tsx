@@ -22,7 +22,7 @@ export default async function SettingsPage({
   return (
     <PageShell>
       <PageHeader title="Settings" description="Your account" />
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-5">
         <ProfileForm
           initialDisplayName={profile?.display_name ?? ''}
           email={email}

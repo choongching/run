@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { GmailIcon } from '@/components/icons/gmail'
 import { GoogleDriveIcon } from '@/components/icons/google-drive'
 import { JinaIcon } from '@/components/icons/jina'
+import { Row, RowBox, RowTile } from '@/components/section-card'
 import { Button } from '@/components/ui/button'
 import { useConnectPoll } from '@/lib/use-connect-poll'
 import {
@@ -90,7 +91,10 @@ export function ConnectorList({
     ? CONNECTORS.filter((c) => only.includes(c.app))
     : CONNECTORS
   return (
-    <div className="flex flex-col gap-2">
+    // One box, hairlines between the rows. The Connectors page builds its own
+    // box because it interleaves rows that have no account behind them; this
+    // is for the surfaces that want the whole catalogue and nothing else.
+    <RowBox>
       {rows.map(({ app, label, Icon, blurb }) => (
         <ConnectorRow
           key={app}
@@ -102,7 +106,7 @@ export function ConnectorList({
           onChanged={onChanged}
         />
       ))}
-    </div>
+    </RowBox>
   )
 }
 
@@ -189,13 +193,15 @@ export function ConnectorRow({
   }
 
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border bg-background">
-        <Icon className="size-5" />
-      </span>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-1.5">
-          <p className="text-sm font-medium">{label}</p>
+    <Row
+      lead={
+        <RowTile>
+          <Icon className="size-5" />
+        </RowTile>
+      }
+      title={
+        <>
+          {label}
           {/* State is one icon beside the name, words on hover: the same
               check in both states, green when connected and faint ink when
               not, so colour alone carries the state (founder's call after a
@@ -226,14 +232,13 @@ export function ConnectorRow({
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-        </div>
-        {detail && (
-          <p className="mt-1 text-xs text-muted-foreground">{detail}</p>
-        )}
-      </div>
-      {/* One line on hover saying what the click does, in consequences, not
-          mechanics. Same recipe as the configure toggle in config-dock. */}
-      <TooltipProvider delay={300}>
+        </>
+      }
+      detail={detail}
+      trailing={
+        /* One line on hover saying what the click does, in consequences, not
+           mechanics. Same recipe as the configure toggle in config-dock. */
+        <TooltipProvider delay={300}>
         <Tooltip>
           {connected ? (
             <>
@@ -270,8 +275,9 @@ export function ConnectorRow({
               </TooltipContent>
             </>
           )}
-        </Tooltip>
-      </TooltipProvider>
-    </div>
+          </Tooltip>
+        </TooltipProvider>
+      }
+    />
   )
 }

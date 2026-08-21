@@ -5,14 +5,8 @@ import { useRouter } from 'next/navigation'
 import { ImageUp, LoaderCircle } from 'lucide-react'
 import { toast } from 'sonner'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { SectionCard } from '@/components/section-card'
 import { Button } from '@/components/ui/button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 
@@ -80,14 +74,13 @@ export function ProfileForm({
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Profile</CardTitle>
-        <CardDescription>
-          How you appear across Run: in the sidebar and in your agent chats.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="grid gap-6">
+    <SectionCard
+      title="Profile"
+      description="How you appear across Run: in the sidebar and in your agent chats."
+    >
+      {/* A form keeps its fields ON the card, with no inner box: a hairline
+          between two inputs reads as a table of inputs. */}
+      <div className="grid gap-6">
         <div className="flex items-center gap-4">
           <Avatar className="size-16">
             {preview && <AvatarImage src={preview} alt={name} />}
@@ -152,7 +145,7 @@ export function ProfileForm({
             Your sign-in email can&apos;t be changed here.
           </p>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </SectionCard>
   )
 }

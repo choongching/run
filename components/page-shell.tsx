@@ -12,23 +12,16 @@
 // column uses, so header, body, empty states and skeletons land in the same
 // place on every route and cannot drift apart page by page.
 //
-// `wide` is the one sanctioned exception (founder's call): a management list
-// like Routines is scanned left to right (name on one edge, status on the
-// other), and the reading column squeezes that into a ribbon. Still one
-// centered column, still one shell; a page and its loading skeleton must
-// pass the same value.
-export function PageShell({
-  children,
-  wide = false,
-}: {
-  children: React.ReactNode
-  wide?: boolean
-}) {
+// There used to be a `wide` exception for Routines, on the argument that a
+// management list is scanned left to right and the reading column squeezes it
+// into a ribbon. It went when the pages were unified: a routine's rows now sit
+// in a bordered box inside a card like every other list in the app, and one
+// page running wider than the rest was the loudest thing about it. Founder's
+// call, made on the canvas.
+export function PageShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="p-6 md:p-8">
-      <div className={`mx-auto w-full ${wide ? 'max-w-4xl' : 'max-w-thread'}`}>
-        {children}
-      </div>
+      <div className="mx-auto w-full max-w-thread">{children}</div>
     </div>
   )
 }

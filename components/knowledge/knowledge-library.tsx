@@ -12,6 +12,7 @@ import {
   setKnowledgeScope,
 } from '@/app/actions/knowledge'
 import { KnowledgeIcon } from '@/components/nav-icons'
+import { RowBox, SectionCard } from '@/components/section-card'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -110,7 +111,10 @@ export function KnowledgeLibrary({
 
   if (items.length === 0) {
     return (
-      <div className="flex flex-col items-center rounded-xl border border-dashed border-border py-14 text-center">
+      // The card stays when the library is empty, so the page keeps its shape.
+      // No heading on it: the page title already says Knowledge.
+      <SectionCard>
+      <div className="flex flex-col items-center rounded-lg border border-dashed border-border py-12 text-center">
         <span className="mb-5 flex size-11 items-center justify-center rounded-lg border border-border bg-background">
           <KnowledgeIcon className="size-5 text-muted-foreground" />
         </span>
@@ -124,25 +128,27 @@ export function KnowledgeLibrary({
           Add notes or files to any of your agents. They all end up here.
         </p>
       </div>
+      </SectionCard>
     )
   }
 
   return (
     <>
-      <div className="mb-4 flex items-center gap-3">
-        <span className="text-sm font-medium">
-          {items.length} {items.length === 1 ? 'source' : 'sources'}
-        </span>
-        <span className="text-sm text-muted-foreground">
-          {totalChars.toLocaleString()} characters, {MAX_LIBRARY_SOURCES} allowed
-        </span>
-        <span className="h-px flex-1 bg-border" />
-      </div>
-
-      <ul className="divide-y divide-border rounded-xl border border-border bg-card">
+      <SectionCard
+        title="Your library"
+        // Two facts, each attached to the thing it counts. The old line read
+        // "33 characters, 50 allowed", which put the source limit next to the
+        // character count and so appeared to cap the characters. 50 is how
+        // many sources you may keep.
+        description={`${items.length} ${
+          items.length === 1 ? 'source' : 'sources'
+        } of ${MAX_LIBRARY_SOURCES} allowed. ${totalChars.toLocaleString()} characters in all.`}
+        footnote="A source belongs to you rather than to one agent, so the same note can feed several of them."
+      >
+      <RowBox list>
         {items.map((s) => (
-          <li key={s.id} className="flex items-center gap-3 px-4 py-3.5">
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-lg border border-border bg-background text-muted-foreground">
+          <li key={s.id} className="flex items-center gap-3 px-3.5 py-3">
+            <span className="flex size-9 shrink-0 items-center justify-center rounded-md border border-border bg-background text-muted-foreground">
               {s.kind === 'file' ? (
                 <FileText className="size-4" />
               ) : (
@@ -249,7 +255,8 @@ export function KnowledgeLibrary({
             )}
           </li>
         ))}
-      </ul>
+      </RowBox>
+      </SectionCard>
 
       <Dialog open={confirmOpen} onOpenChange={setConfirmOpen}>
         <DialogContent>
