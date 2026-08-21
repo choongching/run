@@ -27,6 +27,7 @@ import {
   parseSetupAnswers,
   stripBrief,
 } from '@/lib/chat/onboarding'
+import { parseMessageSources } from '@/lib/chat/sources'
 import { createClient } from '@/lib/supabase/server'
 
 // The live chat surface (Phase 2): loads the thread's history and hands it to
@@ -74,7 +75,7 @@ export default async function ChatPage({
     supabase
       .from('threads')
       .select(
-        'id, pending_tools, pending_attachment, messages(id, role, content, attachments, payload, created_at)'
+        'id, pending_tools, pending_attachment, messages(id, role, content, attachments, payload, sources, created_at)'
       )
       .eq('agent_id', agentId)
       .eq('user_id', userId)
@@ -107,7 +108,7 @@ export default async function ChatPage({
     const { data: created } = await supabase
       .from('threads')
       .select(
-        'id, pending_tools, pending_attachment, messages(id, role, content, attachments, payload, created_at)'
+        'id, pending_tools, pending_attachment, messages(id, role, content, attachments, payload, sources, created_at)'
       )
       .eq('agent_id', agent.id)
       .eq('user_id', userId)
@@ -127,6 +128,11 @@ export default async function ChatPage({
       content: r.content,
       createdAt: r.created_at ?? undefined,
       attachments: (r.attachments as AttachmentMeta[] | null) ?? undefined,
+      // Tolerant on the way in: this is jsonb written by whatever version of
+      // the app was running at the time, so nothing about its shape is
+      // guaranteed. Undefined when there is nothing, so a reply that searched
+      // nothing carries no empty array around.
+      sources: r.sources ? parseMessageSources(r.sources) : undefined,
       artifact: payload?.artifact ?? undefined,
       notice: payload?.notice ?? undefined,
       icon: payload?.icon ?? undefined,

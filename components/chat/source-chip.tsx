@@ -1,8 +1,14 @@
 'use client'
 
-import { useState } from 'react'
-import { Globe } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 
+import { SourceFavicon } from '@/components/chat/source-favicon'
+import {
+  findSource,
+  SourcePopover,
+  useSources,
+} from '@/components/chat/source-popover'
 import { domainLabel } from '@/lib/favicon'
 
 // A citation, as a pill rather than as prose.
@@ -32,9 +38,59 @@ import { domainLabel } from '@/lib/favicon'
 //
 // Both scale exceptions are founder-approved, alongside the home hero and the
 // composer.
+//
+// Hovering one opens the card in source-popover.tsx, which is the only way to
+// reach a page the agent read but never linked. That makes the card hover and
+// keyboard only: on a phone the chip is still just a link. Recorded rather than
+// hidden, because it is the one gap in this feature.
+
+// Long enough that a chip crossed on the way somewhere else stays quiet, short
+// enough that a chip aimed at feels instant.
+const OPEN_MS = 260
+// Covers the small gap between chip and card: the pointer leaves one before it
+// enters the other, and the card cancels this timer on the way in.
+const CLOSE_MS = 120
+
+// The card's width, which the placement maths needs to know. It is stated in
+// the card's own class too, so keep the two in step.
+const CARD_W = 320
+// Room the card wants above the chip before it gives up and hangs below.
+const CARD_H = 220
+const GAP = 6
+
+type Placement = {
+  left?: number
+  right?: number
+  top?: number
+  bottom?: number
+}
 
 export function SourceChip({ href }: { href: string }) {
-  const [iconFailed, setIconFailed] = useState(false)
+  const sources = useSources()
+  const [index, setIndex] = useState(-1)
+  const [place, setPlace] = useState<Placement | null>(null)
+  const wrapper = useRef<HTMLSpanElement>(null)
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    return () => {
+      if (timer.current) clearTimeout(timer.current)
+    }
+  }, [])
+
+  // The card is positioned against the viewport, so a scroll would leave it
+  // hanging over the wrong line. Closing is the honest answer, and it is what
+  // someone scrolling away wanted anyway.
+  useEffect(() => {
+    if (!place) return
+    const close = () => setPlace(null)
+    window.addEventListener('scroll', close, true)
+    window.addEventListener('resize', close)
+    return () => {
+      window.removeEventListener('scroll', close, true)
+      window.removeEventListener('resize', close)
+    }
+  }, [place])
 
   let host: string
   try {
@@ -43,63 +99,92 @@ export function SourceChip({ href }: { href: string }) {
     return null
   }
 
-  const label = domainLabel(host)
+  // The chip is a link whether or not we know anything about the page behind
+  // it. A reply written before we stored sources, or one where the model linked
+  // a page no search returned, simply has no card.
+  const found = findSource(sources, href)
+  const hasCard = found !== -1
+
+  function schedule(next: boolean) {
+    if (timer.current) clearTimeout(timer.current)
+    timer.current = setTimeout(
+      () => {
+        if (!next) {
+          setPlace(null)
+          return
+        }
+        const rect = wrapper.current?.getBoundingClientRect()
+        if (!rect) return
+        // Opens on the page this chip points at; the arrows walk the rest.
+        setIndex(found)
+        setPlace({
+          // A chip at the end of a line is common, and a card that always hung
+          // from the left edge would run off the screen there. 16 is the gutter
+          // we keep from the viewport edge.
+          ...(rect.left + CARD_W > window.innerWidth - 16
+            ? { right: Math.max(16, window.innerWidth - rect.right) }
+            : { left: Math.max(16, rect.left) }),
+          // Above by preference, because that is where the sentence it belongs
+          // to is. Below when there is no room, near the top of a thread.
+          ...(rect.top > CARD_H
+            ? { bottom: window.innerHeight - rect.top + GAP }
+            : { top: rect.bottom + GAP }),
+        })
+      },
+      next ? OPEN_MS : CLOSE_MS
+    )
+  }
 
   return (
-    <a
-      href={href}
-      target="_blank"
-      rel="noopener noreferrer"
-      // not-prose: the typography plugin would give this an underline, its own
-      // colour and its own font size, all of which fight the design.
-      className="not-prose mx-px inline-flex h-[19px] max-w-full items-center gap-[5px] rounded-full bg-muted/70 pr-[9px] pl-1 align-[1px] font-mono text-[10px] whitespace-nowrap text-muted-foreground no-underline transition-colors hover:bg-muted hover:text-foreground"
+    <span
+      ref={wrapper}
+      className="relative inline-block"
+      onMouseEnter={hasCard ? () => schedule(true) : undefined}
+      onMouseLeave={hasCard ? () => schedule(false) : undefined}
+      // Portalled content still bubbles through the React tree, so this catches
+      // Escape from the chip and from the card's arrows alike.
+      onKeyDown={(e) => {
+        if (e.key === 'Escape') setPlace(null)
+      }}
     >
-      {/* The box is its final size before the image exists, so a favicon
-          arriving late during a stream cannot reflow the paragraph. */}
-      <span className="flex size-[13px] shrink-0 items-center justify-center overflow-hidden rounded-full">
-        {iconFailed ? (
-          // Globe, and not for want of alternatives: earth, link, link-2 and
-          // circle-dashed were all rendered at this exact size and rejected.
-          // Earth's continents turn to noise at 13px, both links say "a link"
-          // when the chip already IS one and the glyph should say what it
-          // points AT, and a dashed circle reads as loading rather than
-          // unknown.
-          //
-          // The deciding argument is not taste: Chrome, Safari and Firefox all
-          // show a globe for a site with no favicon, so a reader already knows
-          // this shape means "a website we could not identify" without being
-          // taught.
-          //
-          // Full muted rather than muted/70: at 13px the lighter weight read
-          // as a smudge next to type of the same colour. Stroke 2.25 for the
-          // same reason, since Lucide's default 2 thins out at this size.
-          <Globe
-            className="size-[13px] text-muted-foreground"
-            strokeWidth={2.25}
-            aria-hidden
-          />
-        ) : (
-          // Through our own route, never the source and never a favicon
-          // service: either of those would tell somebody else which domains
-          // this person's agent surfaced. See app/api/favicon/route.ts.
-          //
-          // Plain img rather than next/image: the domains are arbitrary, so
-          // there is no remotePatterns list that could ever cover them.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={`/api/favicon?host=${encodeURIComponent(host)}`}
-            alt=""
-            width={13}
-            height={13}
-            loading="lazy"
-            decoding="async"
-            className="size-[13px] object-contain"
-            onError={() => setIconFailed(true)}
-          />
+      <a
+        href={href}
+        target="_blank"
+        rel="noopener noreferrer"
+        // Focus opens the card too, so the pages behind an answer are reachable
+        // from a keyboard and not only from a mouse.
+        onFocus={hasCard ? () => schedule(true) : undefined}
+        onBlur={hasCard ? () => schedule(false) : undefined}
+        // not-prose: the typography plugin would give this an underline, its own
+        // colour and its own font size, all of which fight the design.
+        className="not-prose mx-px inline-flex h-[19px] max-w-full items-center gap-[5px] rounded-full bg-muted/70 pr-[9px] pl-1 align-[1px] font-mono text-[10px] whitespace-nowrap text-muted-foreground no-underline transition-colors hover:bg-muted hover:text-foreground"
+      >
+        <SourceFavicon host={host} px={13} />
+        {domainLabel(host)}
+      </a>
+
+      {place &&
+        hasCard &&
+        // Into the body rather than beside the chip. A chip lives inside a
+        // paragraph and a card is a block, which is invalid html React warns
+        // about, and any ancestor with hidden overflow would clip it anyway.
+        // Positioned against the viewport, which is why it closes on scroll.
+        createPortal(
+          <div
+            className="fixed z-50"
+            style={place}
+            // The pointer left the chip's wrapper to get here, so the card
+            // holds itself open and closes on its own terms.
+            onMouseEnter={() => {
+              if (timer.current) clearTimeout(timer.current)
+            }}
+            onMouseLeave={() => schedule(false)}
+          >
+            <SourcePopover sources={sources} index={index} onIndex={setIndex} />
+          </div>,
+          document.body
         )}
-      </span>
-      {label}
-    </a>
+    </span>
   )
 }
 

@@ -3,6 +3,8 @@ import ReactMarkdown from 'react-markdown'
 import remarkGfm from 'remark-gfm'
 
 import { isCitationLink, SourceChip } from '@/components/chat/source-chip'
+import { SourcesProvider } from '@/components/chat/source-popover'
+import type { MessageSource } from '@/lib/chat/sources'
 
 // Agent replies render as markdown, constrained to our tokens. Kept small so
 // streaming re-renders stay cheap; the cite-strip is memoized because this
@@ -28,57 +30,69 @@ import { isCitationLink, SourceChip } from '@/components/chat/source-chip'
 // stream.
 const BRACKETED_LINK = /\((\[[^\]\n]{1,64}\]\([^)\s]+\))\)/g
 
-export function Markdown({ children }: { children: string }) {
+export function Markdown({
+  children,
+  // The pages this reply's searches returned, passed down so a chip can show
+  // what is behind the link it points at. Absent for a reply that searched
+  // nothing, and for the live draft, which has no stored sources until the turn
+  // closes.
+  sources,
+}: {
+  children: string
+  sources?: MessageSource[]
+}) {
   const text = useMemo(
     () => children.replace(/<\/?cite\b[^>]*>/g, '').replace(BRACKETED_LINK, '$1'),
     [children],
   )
   return (
-    <div className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-muted prose-pre:text-foreground prose-code:text-foreground prose-headings:font-semibold prose-a:text-primary prose-a:underline-offset-2">
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        components={{
-          // A citation renders as a chip; a prose link stays a link. The test
-          // lives beside the chip so both halves of the decision are in one
-          // file. Falls back to an ordinary link whenever the children are not
-          // plain text, because anything with formatting inside it is a
-          // sentence rather than a source name.
-          a: ({ href, children: label }) => {
-            const text = typeof label === 'string' ? label : null
-            if (href && text && isCitationLink(text, href)) {
-              return <SourceChip href={href} />
-            }
-            return (
-              <a href={href} target="_blank" rel="noopener noreferrer">
-                {label}
-              </a>
-            )
-          },
-          // A comparison table is usually wider than the conversation column
-          // (38.4rem), so it scrolls inside its own box rather than pushing
-          // the whole thread sideways. Same rule as code blocks.
-          table: ({ children: cells }) => (
-            <div className="not-prose my-4 overflow-x-auto rounded-lg border border-border">
-              <table className="w-full border-collapse text-sm">{cells}</table>
-            </div>
-          ),
-          // Header cells carry the weight; body cells stay quiet. Cells wrap
-          // rather than truncate, because a spec value cut in half is worse
-          // than a tall row.
-          th: ({ children: cell }) => (
-            <th className="border-b border-border bg-muted/60 px-3 py-2 text-left align-top font-semibold">
-              {cell}
-            </th>
-          ),
-          td: ({ children: cell }) => (
-            <td className="border-b border-border px-3 py-2 align-top last:border-r-0">
-              {cell}
-            </td>
-          ),
-        }}
-      >
-        {text}
-      </ReactMarkdown>
-    </div>
+    <SourcesProvider sources={sources}>
+      <div className="prose prose-sm dark:prose-invert max-w-none prose-p:leading-relaxed prose-pre:bg-muted prose-pre:text-foreground prose-code:text-foreground prose-headings:font-semibold prose-a:text-primary prose-a:underline-offset-2">
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          components={{
+            // A citation renders as a chip; a prose link stays a link. The test
+            // lives beside the chip so both halves of the decision are in one
+            // file. Falls back to an ordinary link whenever the children are not
+            // plain text, because anything with formatting inside it is a
+            // sentence rather than a source name.
+            a: ({ href, children: label }) => {
+              const text = typeof label === 'string' ? label : null
+              if (href && text && isCitationLink(text, href)) {
+                return <SourceChip href={href} />
+              }
+              return (
+                <a href={href} target="_blank" rel="noopener noreferrer">
+                  {label}
+                </a>
+              )
+            },
+            // A comparison table is usually wider than the conversation column
+            // (38.4rem), so it scrolls inside its own box rather than pushing
+            // the whole thread sideways. Same rule as code blocks.
+            table: ({ children: cells }) => (
+              <div className="not-prose my-4 overflow-x-auto rounded-lg border border-border">
+                <table className="w-full border-collapse text-sm">{cells}</table>
+              </div>
+            ),
+            // Header cells carry the weight; body cells stay quiet. Cells wrap
+            // rather than truncate, because a spec value cut in half is worse
+            // than a tall row.
+            th: ({ children: cell }) => (
+              <th className="border-b border-border bg-muted/60 px-3 py-2 text-left align-top font-semibold">
+                {cell}
+              </th>
+            ),
+            td: ({ children: cell }) => (
+              <td className="border-b border-border px-3 py-2 align-top last:border-r-0">
+                {cell}
+              </td>
+            ),
+          }}
+        >
+          {text}
+        </ReactMarkdown>
+      </div>
+    </SourcesProvider>
   )
 }

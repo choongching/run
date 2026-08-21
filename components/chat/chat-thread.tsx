@@ -29,6 +29,7 @@ import { ApprovalCard, type ApprovalCall } from '@/components/chat/approval-card
 import { ArtifactCard, type ArtifactMeta } from '@/components/chat/artifact-card'
 import { ConnectCard } from '@/components/chat/connect-card'
 import { Markdown } from '@/components/chat/markdown'
+import type { MessageSource } from '@/lib/chat/sources'
 import { RunDonut } from '@/components/usage/run-donut'
 import { OptionsCard } from '@/components/chat/options-card'
 import { ReviewCard, type ReviewSpec } from '@/components/chat/review-card'
@@ -81,6 +82,10 @@ export type ChatMessage = {
   createdAt?: string
   attachments?: AttachmentMeta[]
   artifact?: ArtifactMeta
+  // The pages this reply's searches returned. Stored on the message so a chip
+  // inside it can show what is behind the link, and absent on every reply that
+  // searched nothing.
+  sources?: MessageSource[]
   // For activity rows: the present-tense label to show while the step runs
   // (content holds the past-tense label shown once it is done).
   activityPresent?: string
@@ -115,7 +120,7 @@ type Frame =
   | ({ type: 'review'; id: string } & ReviewSpec)
   | ({ type: 'routine'; id: string } & RoutineDraft)
   | { type: 'onboarded' }
-  | { type: 'done'; text: string }
+  | { type: 'done'; text: string; sources?: MessageSource[] }
   | ({ type: 'error' } & ChatError)
 
 export function ChatThread({
@@ -294,7 +299,13 @@ export function ChatThread({
         if (frame.text) {
           setMessages((prev) => [
             ...prev,
-            { id: tempId.current--, role: 'agent', content: frame.text, createdAt: nowIso() },
+            {
+              id: tempId.current--,
+              role: 'agent',
+              content: frame.text,
+              createdAt: nowIso(),
+              sources: frame.sources,
+            },
           ])
         }
         setDraft(null)
@@ -1052,7 +1063,9 @@ function MessageRow({
   if (message.artifact) {
     return (
       <div className="group flex flex-col gap-2">
-        {message.content && <Markdown>{message.content}</Markdown>}
+        {message.content && (
+          <Markdown sources={message.sources}>{message.content}</Markdown>
+        )}
         <ArtifactCard artifact={message.artifact} />
         {showTime && message.createdAt && (
           <time className="text-[11px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
@@ -1069,7 +1082,7 @@ function MessageRow({
           that clears the moment the next turn starts, so a transcript read back
           later shows the work rather than an outage we already recovered from. */}
       <div className="text-sm">
-        <Markdown>{message.content}</Markdown>
+        <Markdown sources={message.sources}>{message.content}</Markdown>
       </div>
       {showTime && message.createdAt && (
         <time className="mt-1 block text-[11px] text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">
