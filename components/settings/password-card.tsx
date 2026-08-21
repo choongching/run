@@ -1,13 +1,7 @@
 import { updatePassword } from '@/app/actions/auth'
 import { PasswordInput } from '@/components/auth/password-input'
+import { SectionCard } from '@/components/section-card'
 import { SubmitButton } from '@/components/auth/submit-button'
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 
 // Change the password from inside a signed-in session. Same action as the
@@ -21,14 +15,10 @@ export function PasswordCard({
   message?: string
 }) {
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Password</CardTitle>
-        <CardDescription>
-          Pick a new one. You stay signed in on this device.
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
+    <SectionCard
+      title="Password"
+      description="Pick a new one. You stay signed in on this device."
+    >
         <form action={updatePassword} className="flex flex-col gap-4">
           <input type="hidden" name="from" value="settings" />
           <div className="flex flex-col gap-2">
@@ -58,7 +48,6 @@ export function PasswordCard({
             <SubmitButton label="Change password" pendingLabel="Changing" className="" />
           </div>
         </form>
-      </CardContent>
-    </Card>
+    </SectionCard>
   )
 }

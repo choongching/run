@@ -5,6 +5,7 @@ import { Check, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { TelegramIcon } from '@/components/icons/telegram'
+import { Row, RowTile } from '@/components/section-card'
 import { Button } from '@/components/ui/button'
 import { useConnectPoll } from '@/lib/use-connect-poll'
 import {
@@ -116,13 +117,15 @@ export function TelegramRow({ initialPaired, sendingCount }: Props) {
       : 'Get your routine reports as Telegram messages.'
 
   return (
-    <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
-      <span className="flex size-10 shrink-0 items-center justify-center rounded-lg border border-border bg-background">
-        <TelegramIcon className="size-5" />
-      </span>
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-1.5">
-          <p className="text-sm font-medium">Telegram</p>
+    <Row
+      lead={
+        <RowTile>
+          <TelegramIcon className="size-5" />
+        </RowTile>
+      }
+      title={
+        <>
+          Telegram
           {/* The app-wide status recipe: same check in both states, colour
               carries it, the word lives in the tooltip and the aria-label. */}
           <TooltipProvider delay={300}>
@@ -149,11 +152,11 @@ export function TelegramRow({ initialPaired, sendingCount }: Props) {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
-        </div>
-        <p className="mt-1 text-xs text-muted-foreground">{detail}</p>
-      </div>
-
-      <TooltipProvider delay={300}>
+        </>
+      }
+      detail={detail}
+      trailing={
+        <TooltipProvider delay={300}>
         <Tooltip>
           {paired ? (
             <>
@@ -190,8 +193,9 @@ export function TelegramRow({ initialPaired, sendingCount }: Props) {
               </TooltipContent>
             </>
           )}
-        </Tooltip>
-      </TooltipProvider>
-    </div>
+          </Tooltip>
+        </TooltipProvider>
+      }
+    />
   )
 }

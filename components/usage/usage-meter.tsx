@@ -235,10 +235,15 @@ function UsageHistory({
               first, bars relative to it. */}
           {byAgent !== null && byAgent.length > 0 && (
             <div>
-              <p className="mb-2 text-xs font-medium text-muted-foreground">
-                By agent
-              </p>
-              <div className="flex flex-col gap-2.5 rounded-xl border p-3.5">
+              {/* The section-label recipe the rest of the app uses. These
+                  two were 12px muted, which read as captions under the
+                  dialog's own description rather than as the two things it
+                  holds. */}
+              <p className="mb-2 text-sm font-medium">By agent</p>
+              {/* Same box as every list in the app now: the border TOKEN, not
+                  a bare border, and the radius one step down from the surface
+                  it sits on. */}
+              <div className="flex flex-col gap-2.5 rounded-lg border border-border p-3.5">
                 {byAgent.map((a) => (
                   <div key={a.agentId ?? 'deleted'}>
                     <div className="flex items-baseline justify-between gap-3 text-sm">
@@ -266,10 +271,8 @@ function UsageHistory({
           {/* The log: every run, newest first, each row a door back to the
               conversation that spent it. */}
           <div>
-            <p className="mb-2 text-xs font-medium text-muted-foreground">
-              Recent runs
-            </p>
-            <div className="max-h-96 divide-y overflow-y-auto rounded-xl border">
+            <p className="mb-2 text-sm font-medium">Recent runs</p>
+            <div className="max-h-96 divide-y divide-border overflow-y-auto rounded-lg border border-border">
               {runs.map((run) => (
                 <RunRow key={run.id} run={run} />
               ))}
@@ -280,7 +283,7 @@ function UsageHistory({
         // Loading and empty share one dashed box at one height, so the dialog
         // holds its shape instead of collapsing around a floating sentence and
         // jumping when the answer arrives.
-        <div className="flex min-h-64 flex-col items-center justify-center rounded-xl border border-dashed border-border px-6 py-12 text-center">
+        <div className="flex min-h-64 flex-col items-center justify-center rounded-lg border border-dashed border-border px-6 py-12 text-center">
           {runs === null ? (
             <p className="text-sm text-muted-foreground">Loading your runs...</p>
           ) : (
@@ -323,7 +326,7 @@ function RunRow({ run }: { run: RunHistoryEntry }) {
         {/* A run that a schedule fired, not the person. The one word keeps
             the history honest when work happened while nobody was here. */}
         {run.source === 'schedule' && (
-          <span className="rounded-md border border-border px-2 py-0.5 text-xs text-muted-foreground">
+          <span className="flex h-6 items-center rounded-md border border-border bg-background px-2 text-xs text-muted-foreground">
             Routine
           </span>
         )}
@@ -334,7 +337,7 @@ function RunRow({ run }: { run: RunHistoryEntry }) {
             needs no label saying it finished; "Done" on every row read as
             meaningless, and "Active" would misdescribe a past event. */}
         {failed && (
-          <span className="rounded-md border border-border px-2 py-0.5 text-xs text-muted-foreground">
+          <span className="flex h-6 items-center rounded-md border border-border bg-background px-2 text-xs text-muted-foreground">
             Did not finish
           </span>
         )}
@@ -346,7 +349,7 @@ function RunRow({ run }: { run: RunHistoryEntry }) {
   // Linking only the rows whose agent still exists made some clickable and
   // some not, which read as broken; consistency beats the shortcut.
   return (
-    <div className="flex min-h-12 items-center justify-between gap-3 px-3.5 py-2.5">
+    <div className="flex min-h-12 items-center justify-between gap-3 px-3.5 py-3">
       {inner}
     </div>
   )

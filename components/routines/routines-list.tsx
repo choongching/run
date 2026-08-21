@@ -17,6 +17,7 @@ import { toast } from 'sonner'
 import { TelegramIcon } from '@/components/icons/telegram'
 import { AgentsIcon, RoutinesIcon } from '@/components/nav-icons'
 import { RoutineSheet } from '@/components/routines/routine-sheet'
+import { RowBox, SectionCard, SectionCount } from '@/components/section-card'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -130,6 +131,15 @@ function StatusDot({ r }: { r: RoutineListItem }) {
   )
 }
 
+// One line per group saying what being in it MEANS. The old bar carried the
+// word and a count and nothing else, which told someone who had never seen
+// this page what the pile was called but not what it was.
+const GROUP_BLURB: Record<string, string> = {
+  'Needs you': 'These stopped and are waiting on something you can fix.',
+  Active: 'These start on their own and report back when they finish.',
+  Paused: 'These will not start until you say so.',
+}
+
 export function RoutinesList({
   routines,
   firstAgent,
@@ -202,7 +212,11 @@ export function RoutinesList({
 
   if (routines.length === 0) {
     return (
-      <div className="flex flex-col items-center rounded-xl border border-dashed border-border py-14 text-center">
+      // No heading on this card. The page title two lines up already says
+      // Routines, and a card that exists only to hold "nothing yet" does not
+      // need to be introduced.
+      <SectionCard>
+      <div className="flex flex-col items-center rounded-lg border border-dashed border-border py-12 text-center">
         <span className="mb-5 flex size-11 items-center justify-center rounded-lg border border-border bg-background">
           <RoutinesIcon className="size-5 text-muted-foreground" />
         </span>
@@ -238,6 +252,7 @@ export function RoutinesList({
           )}
         </div>
       </div>
+      </SectionCard>
     )
   }
 
@@ -253,22 +268,28 @@ export function RoutinesList({
   return (
     <>
       {groups.map((group) => (
-        <div key={group.title} className="mb-6">
-          <div className="mb-2 flex items-center gap-3">
-            <span className="text-sm font-medium">{group.title}</span>
-            <span className="text-sm text-muted-foreground">
-              {group.items.length}
-            </span>
-            <span className="h-px flex-1 bg-border" />
-          </div>
-          <ul className="flex flex-col gap-3">
+        <SectionCard
+          key={group.title}
+          title={
+            <>
+              {group.title}
+              <SectionCount>{group.items.length}</SectionCount>
+            </>
+          }
+          description={GROUP_BLURB[group.title]}
+          className="mb-5"
+        >
+          {/* One box, hairlines between the routines. They used to be separate
+              cards floating in a column, which made a list of one job read as
+              several unrelated things. */}
+          <RowBox list>
             {group.items.map((r) => {
               const state = rowState(r)
               const lastRun = r.runs[0] ?? null
               return (
                 <li
                   key={r.id}
-                  className="group flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-card px-3.5 py-3.5 hover:bg-muted/40"
+                  className="group flex cursor-pointer items-start gap-3 px-3.5 py-3 hover:bg-muted/40"
                   onClick={() => {
                     setSelected(r)
                     setOpen(true)
@@ -533,8 +554,8 @@ export function RoutinesList({
                 </li>
               )
             })}
-          </ul>
-        </div>
+          </RowBox>
+        </SectionCard>
       ))}
 
       <RoutineSheet

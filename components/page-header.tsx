@@ -20,7 +20,7 @@ export function PageHeader({
 
 export function PlaceholderCard({ note }: { note: string }) {
   return (
-    <div className="flex min-h-40 items-center justify-center rounded-xl border border-dashed text-sm text-muted-foreground">
+    <div className="flex min-h-40 items-center justify-center rounded-xl border border-dashed border-border text-sm text-muted-foreground">
       {note}
     </div>
   )

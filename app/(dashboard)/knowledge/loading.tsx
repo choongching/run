@@ -10,14 +10,11 @@ export default function Loading() {
         <Skeleton className="h-8 w-40" />
         <Skeleton className="mt-1.5 h-5 w-full max-w-md" />
       </div>
-      <div className="flex flex-col gap-2">
-        {/* A fixed three rows rather than a guess at the real count: this
-            stands in for "a list is coming", and pretending to know its
-            length would only make the swap more jarring when it is wrong. */}
-        {[0, 1, 2].map((i) => (
-          <Skeleton key={i} className="h-16 w-full rounded-xl" />
-        ))}
-      </div>
+      {/* One card, at a fixed height rather than a guess at the real row
+          count: this stands in for "a library is coming", and pretending to
+          know its length would only make the swap more jarring when it is
+          wrong. */}
+      <Skeleton className="h-64 w-full rounded-xl" />
     </PageShell>
   )
 }

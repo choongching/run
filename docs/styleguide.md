@@ -199,6 +199,45 @@ exists only for the chat's docked config panel. Rules on mobile:
 
 ## 7. Component recipes
 
+### 7a. Page containers (the shape every standard page uses)
+
+Settled with the founder on a canvas, 2026-08-21, and implemented as
+`components/section-card.tsx`. It replaces four different answers to the same
+question that had grown across Connectors, Routines, Knowledge and the run
+history. Use these components rather than re-deriving the classes.
+
+- **A page is a stack of cards.** `SectionCard` = `rounded-xl border
+  border-border bg-card p-5`, laid out `flex flex-col gap-3.5`, and the page
+  stacks them with `gap-5`. Never the shadcn `Card` primitive on a page: it
+  draws `ring-1 ring-foreground/10` rather than our border token, which is why
+  Settings used to be the only page outlined differently.
+- **The card carries the words.** Heading `text-base font-medium` (one step
+  below the page title, which stays the loudest voice), one `text-sm
+  text-muted-foreground` line under it saying what the section is for, and an
+  optional action at the trailing edge of the heading's line. A count beside
+  the heading is `SectionCount`: `text-sm font-normal text-muted-foreground`.
+- **A card that holds a list puts it in a bordered box.** `RowBox` =
+  `divide-y divide-border overflow-hidden rounded-lg border border-border`,
+  one radius step down from the card. Hairlines only: a gap turns every row
+  back into a card, a vertical rule turns the box into a table. Pass `list`
+  when the rows are `<li>`.
+- **Rows are one shape.** `Row` = `flex items-center gap-3 px-3.5 py-3`, an
+  optional `RowTile` lead (`size-9 rounded-md border border-border
+  bg-background`), the name `text-sm font-medium`, a `text-xs` muted detail
+  that WRAPS rather than truncates, and everything actionable gathered at the
+  trailing edge. A row whose detail is data rather than prose passes its own
+  truncating node.
+- **The footnote is the card's last line**, `text-xs text-muted-foreground`,
+  one fact about the whole section and never a second description.
+- **Empty fills the box's slot, not the card's.** `EmptyBox`, or the page
+  hero below, inside the same `SectionCard` the rows would have used, so the
+  page keeps its shape when there is nothing in it yet.
+- **A form is the exception.** A section of inputs keeps its fields on the
+  card with no inner box: a hairline between two inputs reads as a table of
+  inputs. Settings is the only page where this applies.
+- **One width.** Every standard page is the `max-w-thread` column via
+  `PageShell`. The old `wide` escape hatch for Routines is gone.
+
 - **Primary button** ("Create"): `bg-primary text-primary-foreground rounded-lg h-8/h-9`,
   hover slightly lighter (`/80` handled by the button variant).
 - **Outline button** (Filter, sidebar Create): white bg, `border-border`, ink text,
@@ -226,7 +265,9 @@ exists only for the chat's docked config panel. Rules on mobile:
   Anatomy top to bottom: a cluster of three tilted icon tiles (`size-11/12`
   `rounded-lg border border-border bg-background`, outer tiles
   `-rotate-6`/`rotate-6` and nudged inward, center tile raised and on top,
-  monochrome Lucide icons in muted ink); headline `text-xl font-semibold`;
+  monochrome Lucide icons in muted ink); headline `text-base font-medium`
+  (matching what shipped on Knowledge and Routines; this said `text-xl
+  font-semibold` for a year and nothing ever used it);
   one friendly sentence of why (`text-sm text-muted-foreground max-w-lg`)
   naming the concrete benefit; a single primary CTA with a trailing
   `ChevronRight`; then a `text-xs` muted caption defusing the scary part
