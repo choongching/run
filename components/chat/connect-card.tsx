@@ -1,12 +1,13 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Check, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { GmailIcon } from '@/components/icons/gmail'
 import { GoogleDriveIcon } from '@/components/icons/google-drive'
 import { JinaIcon } from '@/components/icons/jina'
+import { useConnectPoll } from '@/lib/use-connect-poll'
 
 // Every connectable app needs an entry here or the card renders NOTHING and
 // the agent's request becomes a dead end. Jina cannot reach this today, since
@@ -45,9 +46,38 @@ export function ConnectCard({
   const [status, setStatus] = useState<
     'idle' | 'connecting' | 'connected' | 'error'
   >('idle')
+  const popupRef = useRef<Window | null>(null)
   const meta = APPS[app as ConnectApp]
+  const label = meta?.label ?? ''
+
+  // ABOVE the early return, because hooks cannot sit after one. The poll is
+  // driven by status rather than started inside the click, so it dies with the
+  // card: this one is rendered inside a chat thread, which unmounts and
+  // remounts far more readily than a settings page, and the old interval kept
+  // hitting the connections route for three minutes after the card was gone.
+  useConnectPoll({
+    active: status === 'connecting',
+    intervalMs: 2000,
+    timeoutMs: 180_000,
+    check: async () => {
+      const res = await fetch(`/api/connections/${app}`, { method: 'POST' })
+      const data = await res.json()
+      return Boolean(data.connected)
+    },
+    onDone: () => {
+      popupRef.current?.close()
+      setStatus('connected')
+      toast.success(`${label} connected.`)
+      onConnected()
+    },
+    onTimeout: () => {
+      setStatus('error')
+      toast.error(`Connecting ${label} didn't finish. Please try again.`)
+    },
+  })
+
   if (!meta) return null
-  const { label, Icon } = meta
+  const { Icon } = meta
 
   async function connect() {
     if (status === 'connecting') return
@@ -55,6 +85,7 @@ export function ConnectCard({
     // Open the popup synchronously (inside the click) to dodge blockers, then
     // point it at the connect link once we have it.
     const popup = window.open('', 'run_connect', 'width=600,height=720')
+    popupRef.current = popup
     try {
       const res = await fetch(`/api/connections/${app}`)
       const data = await res.json()
@@ -64,31 +95,8 @@ export function ConnectCard({
       popup?.close()
       setStatus('error')
       toast.error(`We couldn't start connecting ${label}. Please try again.`)
-      return
     }
-
-    const started = Date.now()
-    const poll = setInterval(async () => {
-      if (Date.now() - started > 180_000) {
-        clearInterval(poll)
-        setStatus('error')
-        toast.error(`Connecting ${label} didn't finish. Please try again.`)
-        return
-      }
-      try {
-        const res = await fetch(`/api/connections/${app}`, { method: 'POST' })
-        const data = await res.json()
-        if (data.connected) {
-          clearInterval(poll)
-          popup?.close()
-          setStatus('connected')
-          toast.success(`${label} connected.`)
-          onConnected()
-        }
-      } catch {
-        // Keep polling until timeout.
-      }
-    }, 2000)
+    // The poll is already running: setStatus('connecting') above started it.
   }
 
   const subtext =

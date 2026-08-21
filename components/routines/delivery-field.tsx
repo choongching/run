@@ -1,11 +1,12 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Check, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
+import { useConnectPoll } from '@/lib/use-connect-poll'
 import {
   Tooltip,
   TooltipContent,
@@ -51,24 +52,20 @@ export function DeliveryField({ routineId, initialOn, initialPaired }: Props) {
     return data.paired
   }, [])
 
-  // While they are off in Telegram, ask every few seconds whether the webhook
-  // has heard from them. Same shape as the connector connect loop: the person
-  // should never have to come back and refresh to find out it worked.
-  useEffect(() => {
-    if (!waiting) return
-    const id = setInterval(async () => {
-      if (await readPaired()) {
-        setWaiting(false)
-        toast.success('Telegram connected')
-      }
-    }, 2500)
-    // Stop after five minutes rather than polling this tab forever.
-    const stop = setTimeout(() => setWaiting(false), 5 * 60 * 1000)
-    return () => {
-      clearInterval(id)
-      clearTimeout(stop)
-    }
-  }, [waiting, readPaired])
+  // While they are off in Telegram, ask whether the webhook has heard from
+  // them, so nobody has to come back and refresh to find out it worked. The
+  // shared hook also rechecks the instant this tab is looked at again, which
+  // matters most here: pairing finishes on a phone, so the timer has usually
+  // been throttled to a crawl by the time the person turns back.
+  useConnectPoll({
+    active: waiting,
+    check: readPaired,
+    onDone: () => {
+      setWaiting(false)
+      toast.success('Telegram connected')
+    },
+    onTimeout: () => setWaiting(false),
+  })
 
   async function toggle(next: boolean) {
     setOn(next)

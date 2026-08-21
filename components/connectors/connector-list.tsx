@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { Check, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -8,6 +8,7 @@ import { GmailIcon } from '@/components/icons/gmail'
 import { GoogleDriveIcon } from '@/components/icons/google-drive'
 import { JinaIcon } from '@/components/icons/jina'
 import { Button } from '@/components/ui/button'
+import { useConnectPoll } from '@/lib/use-connect-poll'
 import {
   Tooltip,
   TooltipContent,
@@ -121,6 +122,36 @@ export function ConnectorRow({
   onChanged: () => void
 }) {
   const [busy, setBusy] = useState(false)
+  // Waiting is its own state rather than a local closure, so the poll can be
+  // owned by an effect and therefore die with the component. It used to be an
+  // interval started inside the click and cleared only from inside its own
+  // callback, which meant navigating away mid-connect left it hitting this
+  // route every two seconds for the full three minutes.
+  const [waiting, setWaiting] = useState(false)
+  const popupRef = useRef<Window | null>(null)
+
+  useConnectPoll({
+    active: waiting,
+    intervalMs: 2000,
+    timeoutMs: 180_000,
+    check: async () => {
+      const res = await fetch(`/api/connections/${app}`, { method: 'POST' })
+      const data = await res.json()
+      return Boolean(data.connected)
+    },
+    onDone: () => {
+      popupRef.current?.close()
+      setWaiting(false)
+      setBusy(false)
+      toast.success(`${label} connected.`)
+      onChanged()
+    },
+    onTimeout: () => {
+      setWaiting(false)
+      setBusy(false)
+      toast.error(`Connecting ${label} didn't finish. Please try again.`)
+    },
+  })
 
   // Open Pipedream Connect in a popup (synchronously, to dodge blockers) and
   // poll until the account lands, then refresh so the row shows Connected.
@@ -128,6 +159,7 @@ export function ConnectorRow({
     if (busy) return
     setBusy(true)
     const popup = window.open('', 'run_connect', 'width=600,height=720')
+    popupRef.current = popup
     try {
       const res = await fetch(`/api/connections/${app}`)
       const data = await res.json()
@@ -139,29 +171,7 @@ export function ConnectorRow({
       toast.error(`We couldn't start connecting ${label}. Please try again.`)
       return
     }
-
-    const started = Date.now()
-    const poll = setInterval(async () => {
-      if (Date.now() - started > 180_000) {
-        clearInterval(poll)
-        setBusy(false)
-        toast.error(`Connecting ${label} didn't finish. Please try again.`)
-        return
-      }
-      try {
-        const res = await fetch(`/api/connections/${app}`, { method: 'POST' })
-        const data = await res.json()
-        if (data.connected) {
-          clearInterval(poll)
-          popup?.close()
-          setBusy(false)
-          toast.success(`${label} connected.`)
-          onChanged()
-        }
-      } catch {
-        // Keep polling until timeout.
-      }
-    }, 2000)
+    setWaiting(true)
   }
 
   async function disconnect() {
