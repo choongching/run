@@ -38,7 +38,12 @@ export default async function RoutinesPage() {
     <PageShell wide>
       <PageHeader
         title="Routines"
-        description="Work your agents do on their own, on a schedule you set."
+        // One line naming the page's job, in the shape the other page
+        // subtitles already use ("What your agents always know", "What your
+        // agents can use"). The old line said the schedule twice, once in the
+        // page name and once in a trailing clause, and opened on the noun
+        // "Work", which reads as a label rather than a sentence.
+        description="What your agents do on their own."
       />
       <RoutinesList
         routines={routines}

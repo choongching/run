@@ -86,10 +86,48 @@ function StatusDot({ r }: { r: RoutineListItem }) {
     : r.status === 'active'
       ? 'bg-chart-1'
       : 'border border-muted-foreground/50 bg-transparent'
-  // `block` is load-bearing: a span is inline, and an inline box ignores
-  // width and height, so without it the dot is nothing but its own border
-  // smeared down a line box.
-  return <span aria-hidden className={`block size-1.5 shrink-0 rounded-full ${cls}`} />
+
+  // The dot was the only thing on the row carrying state and the only thing
+  // with no way to read it: 6px, aria-hidden, no words anywhere. Now it is
+  // 10px with a ring that lifts it off the tile corner, and it says what it
+  // means on hover, the same bargain the connector rows strike.
+  const label = needsAttention(r)
+    ? r.status === 'paused_system'
+      ? 'Paused itself'
+      : 'Recent runs failed'
+    : r.status === 'active'
+      ? 'Running on schedule'
+      : 'Paused'
+
+  return (
+    <TooltipProvider delay={300}>
+      <Tooltip>
+        <TooltipTrigger
+          render={
+            <span
+              role="img"
+              aria-label={label}
+              className="flex shrink-0 items-center"
+            />
+          }
+        >
+          {/* `block` is load-bearing: a span is inline, and an inline box
+              ignores width and height, so without it the dot is nothing but
+              its own border smeared down a line box.
+
+              ring-card rather than a border, so the ring reads as the card
+              punching a hole around the dot instead of the dot growing an
+              outline of its own. */}
+          <span
+            className={`block size-2.5 shrink-0 rounded-full ring-2 ring-card ${cls}`}
+          />
+        </TooltipTrigger>
+        <TooltipContent side="top" sideOffset={6}>
+          {label}
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  )
 }
 
 export function RoutinesList({
@@ -230,7 +268,7 @@ export function RoutinesList({
               return (
                 <li
                   key={r.id}
-                  className="group flex cursor-pointer items-start gap-2.5 rounded-xl border border-border bg-card px-3.5 py-4 hover:bg-muted/40"
+                  className="group flex cursor-pointer items-start gap-3 rounded-xl border border-border bg-card px-3.5 py-3.5 hover:bg-muted/40"
                   onClick={() => {
                     setSelected(r)
                     setOpen(true)
@@ -239,9 +277,18 @@ export function RoutinesList({
                   {/* The icon tile from the knowledge-list recipe, with the
                       status dot riding its corner: the tile says what kind
                       of thing this is, the dot says how it is doing. */}
-                  <span className="relative shrink-0">
-                    <span className="flex size-9 items-center justify-center rounded-lg border border-border bg-background">
-                      <RoutinesIcon className="size-4 text-muted-foreground" />
+                  {/* size-10 with a size-5 icon, which is the styleguide's
+                      recipe for a tile beside a TWO-line row: the tile then
+                      stands as tall as title plus detail. It was size-9, 36px
+                      against a 44px text block, so it sat visibly high and the
+                      row read as misaligned.
+
+                      mt-0.5 takes up the remaining 4px as 2px top and 2px
+                      bottom, so the tile is optically centred on the two lines
+                      rather than hanging from the first. */}
+                  <span className="relative mt-0.5 shrink-0">
+                    <span className="flex size-10 items-center justify-center rounded-lg border border-border bg-background">
+                      <RoutinesIcon className="size-5 text-muted-foreground" />
                     </span>
                     <span className="absolute -top-0.5 -right-0.5">
                       <StatusDot r={r} />
@@ -394,10 +441,11 @@ export function RoutinesList({
                               <MessageSquare className="size-4" />
                             </TooltipTrigger>
                             <TooltipContent side="bottom" sideOffset={8}>
-                              {/* Names the destination, not just the act:
-                                  the row just taught that the routine and
-                                  the agent are different things. */}
-                              Chat with {r.agentName}
+                              {/* Not the agent's name. The row two inches to
+                                  the left already says whose agent it is, and
+                                  a long name turned a one-line chip into a
+                                  banner wider than the controls it labels. */}
+                              Chat with this agent
                             </TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
