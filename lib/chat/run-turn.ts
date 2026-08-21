@@ -22,6 +22,8 @@ import { toChatError, type ChatError } from '@/lib/chat/errors'
 import { executeTool } from '@/lib/tools/execute'
 import { MAX_SEARCHES_PER_DRAIN } from '@/lib/search/limits'
 import { resolveProviderId } from '@/lib/search/resolve'
+import { toMessageSources } from '@/lib/chat/sources'
+import type { SearchHit } from '@/lib/search/types'
 import { recordUsage } from '@/lib/usage'
 import type { Database, Json, UsageSource } from '@/lib/types/database'
 
@@ -373,6 +375,10 @@ async function drainSessionInner(
   // Which slot belongs to which custom tool call, so an error can find it.
   const activitySlot = new Map<string, number>()
   const artifacts: { title: string; content: string }[] = []
+  // Every search hit this turn produced, in order, deduped and capped when it
+  // is written. Lives here rather than in the tally because it is content, not
+  // accounting.
+  const searchHits: SearchHit[] = []
   // Searches performed in this drain. Counted here rather than in the executor
   // because the executor sees one call at a time and the model can ask for
   // several at once: a check made before the loop would let a batch of six
@@ -751,6 +757,13 @@ async function drainSessionInner(
         if (outcome.kind === 'result' && outcome.billed) {
           tally.providerSearches += 1
         }
+        // Keep the structure behind a search, not just the text the model saw.
+        // Collected across the whole turn because an agent often searches more
+        // than once before it writes anything, and all of it stands behind the
+        // one reply that follows.
+        if (outcome.kind === 'result' && outcome.hits?.length) {
+          searchHits.push(...outcome.hits)
+        }
         if (outcome.kind !== 'result') {
           // Take the line back. Found live: with the monthly search allowance
           // spent, the agent correctly said it could not search, and the
@@ -847,9 +860,17 @@ async function drainSessionInner(
 
   const closingText = finalText || (benignNoReply ? noReplyText : '')
   if (closingText) {
-    await supabase
-      .from('messages')
-      .insert({ thread_id: threadId, role: 'agent', content: closingText })
+    // The sources ride on the reply they justify. Null rather than an empty
+    // array when nothing was searched: null means "no searching happened
+    // here", while [] would claim we looked and came back with nothing, and a
+    // reader is owed the difference.
+    const sources = searchHits.length ? toMessageSources(searchHits) : null
+    await supabase.from('messages').insert({
+      thread_id: threadId,
+      role: 'agent',
+      content: closingText,
+      sources: (sources?.length ? sources : null) as unknown as Json,
+    })
   }
   await supabase
     .from('threads')
