@@ -31,6 +31,11 @@ fetched by us so nobody else learns what your agent read. Hovering one opens
 the page behind it and walks the others the agent read for that answer,
 including the ones it never mentioned, and it never claims a number of sources,
 because what we keep is what the agent opened rather than what it leaned on.
+Every page then took one container shape, settled on a canvas first: a stack of
+cards, and a card that holds a list puts it in its own bordered box. Four pages
+had been disagreeing about that in thirteen ways, the style guide had been
+describing an app we never built, and the speed check that closed the day found
+its own baseline had been written down from too few samples.
 Next: the before-more-users pair, a
 sign-up email provider and the database plan upgrade, plus two founder-only
 items, connecting a real Jina account end to end and rotating the platform
@@ -140,6 +145,50 @@ Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
 
 ---
+
+## 2026-08-21 (late night): One shape for every page
+
+- The founder pointed at another app and asked why our pages do not wrap
+  their sections the way that one does. Before changing anything we surveyed
+  our own, and found thirteen ways four pages disagreed about the same thing:
+  rows separated four different ways, four values for the padding inside a
+  row, five treatments of a section heading, four ways of showing status on
+  two pages, and Settings the only surface in the app outlined by something
+  other than our border colour.
+- We settled the shape on a shared canvas before writing code. A page is a
+  stack of cards. A card carries the words, a heading and one line saying what
+  the section is for. A card that holds a list puts that list in its own
+  bordered box, with hairlines between the rows and nothing else. The quiet
+  footnote is the card's last line. An empty state fills the box's slot rather
+  than replacing the card, so a page keeps its shape when there is nothing in
+  it yet.
+- A section of form fields is the exception and keeps them on the card. A
+  hairline between two inputs reads as a table of inputs.
+- Connectors, Routines, Knowledge, Settings, the Configure panel and the usage
+  history all took the new shape. Routines also loses the extra width it alone
+  had, since the reason for it goes away once its rows sit in a box like every
+  other list.
+- **Two real bugs fell out of the work.** The knowledge page read "33
+  characters, 50 allowed", which put the limit on how many sources you may
+  keep right beside the character count, so it appeared to cap the characters
+  at fifty. And the first group on Connectors had no heading at all.
+- **The style guide turned out to be describing someone else's app.** It
+  opened by saying so, and it carried recipes for tables, tabs, breadcrumbs, a
+  kanban board and a detail modal that Run has never had. That is worse than a
+  gap, because it gets followed: one of its rules specified an empty-state
+  headline size nothing in the app used, and it survived long enough to be
+  quoted back at us during an audit. Everything without code behind it is gone,
+  and the rule now standing is that a guide and the app disagreeing means one
+  of them is a bug.
+- **The closing speed check passed**, and taught us how to measure. Every
+  budget is green and first paint is 15 to 30 milliseconds on every page. But
+  the fuller timings appeared to move by 300 milliseconds in both directions
+  at once, from a change that touched no data. Sixteen samples of one page
+  explained it: the timings come in two clusters, one at what the page really
+  costs and one at roughly double, so a median of six lands wherever the tail
+  fell. Our own recorded baseline was one lucky draw written down as a fact.
+  It is now sixteen samples with the spread quoted beside it.
+- Merged to `main` via pull requests #259, #260 and #261.
 
 ## 2026-08-21 (night): The pages an answer never mentioned
 
