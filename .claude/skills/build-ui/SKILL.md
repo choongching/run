@@ -9,6 +9,36 @@ Follow this procedure whenever creating or changing UI. It encodes the design
 system plus every convention already verified the hard way in this codebase.
 Goal: zero re-derivation, zero styling drift.
 
+## The shape of a page, before anything else
+
+`docs/styleguide.md` section **7a** is the container pattern, and
+`components/section-card.tsx` is the code. A page is a stack of `SectionCard`s;
+a card that holds a list puts it in a `RowBox`, hairlines between the rows and
+nothing else; the footnote is the card's last line; an empty state fills the
+box's slot so the card stays. A section of form FIELDS is the exception and
+keeps them on the card, because a hairline between two inputs reads as a table
+of inputs.
+
+Do not hand-roll `rounded-xl border border-border bg-card` for a new section,
+and never use the shadcn `Card` primitive on a page: it draws a ring rather
+than our border token, which is how Settings ended up the only differently
+outlined page in the app.
+
+Why this leads: on 2026-08-21 a survey found thirteen ways four pages
+disagreed about the same thing, including four row-padding values and five
+treatments of a section heading. Every one of them was written by someone
+following this skill and solving the problem locally. If a page needs a
+container shape 7a does not cover, that is a change to 7a and the component,
+not a new arrangement in one file.
+
+**The styleguide describes what is built, and only that.** It carried recipes
+for tables, tabs, breadcrumbs and a kanban board that Run has never had, and
+one of its empty-state rules specified a headline size nothing used, which is
+how a real defect got past review. If a rule in that file and the app
+disagree, one of them is a bug: say which, fix it in the same pass, and never
+quietly work around it. Same duty when you add a rule, it goes in only once
+code follows it.
+
 ## 0. Before you build any of it
 
 Two questions, in this order. Both have cost the project real work when
@@ -186,15 +216,17 @@ mobile width.
   (canonical example: the keyed inner body in
   `components/chat/config-panel.tsx`, `key={agentId}`).
 - **Empty states are dashed boxes, app-wide (founder decision 2026-07-30).**
-  Never a floating sentence. Two sizes: FULL (pages, dialogs) is
-  `rounded-xl border border-dashed border-border` with centered icon tile
-  (`size-11 rounded-lg border bg-background`, icon `size-5
-  text-muted-foreground`), a `font-medium` title one step below the surface's
-  heading, and a one-line muted sub; COMPACT (sidebar, docked panels) is
-  `rounded-lg border border-dashed border-border px-2.5 py-2 text-xs
-  text-muted-foreground`, one line, no icon. In dialogs, loading and empty
-  share the same min-height box so the surface holds its shape (see
-  `components/usage/usage-meter.tsx`).
+  Never a floating sentence, and never instead of the card: the box fills the
+  slot the rows would have taken, INSIDE the SectionCard, so the page keeps
+  its shape. Two sizes: FULL (pages, dialogs) is `rounded-lg border
+  border-dashed border-border` centred at `py-12`, with a `size-11 rounded-lg
+  border border-border bg-background` tile, a `size-5 text-muted-foreground`
+  icon, a `text-base font-medium` headline and one muted line; COMPACT
+  (sidebar, docked panels) is `rounded-lg border border-dashed border-border
+  px-2.5 py-2 text-xs text-muted-foreground`, one line, no icon. The body copy
+  carries the ACTION only; what the thing is belongs in the card's
+  description. In dialogs, loading and empty share one min-height box so the
+  surface does not jump when the answer arrives.
 - **Status is one icon, colour carries the state.** Beside the thing's name:
   the same Check in `text-primary` (on) or `text-muted-foreground/40` (off),
   tooltip holds the word, aria-label keeps it for screen readers (see
@@ -274,16 +306,6 @@ mobile width.
   canvas. Use `bg-border` for the unfilled part of any meter or progress track,
   and `bg-foreground/70` for the fill, escalating to `bg-chart-4` and
   `bg-destructive` at threshold.
-- **Every page is a stack of SectionCards, and a list lives in a RowBox**
-  (`components/section-card.tsx`, styleguide 7a, settled with the founder on
-  a canvas). The card carries the heading and the one line under it; the rows
-  live in their own bordered box one radius step down, divided by hairlines
-  and nothing else; the footnote is the card's last line; an empty state
-  fills the box's slot so the card stays. A section of form FIELDS is the
-  exception and keeps them on the card, because a hairline between two inputs
-  reads as a table of inputs. Do not hand-roll `rounded-xl border
-  border-border bg-card` for a new section, and never use the shadcn `Card`
-  primitive on a page: it draws a ring rather than our border token.
 - **Every standard page lives in PageShell** (`components/page-shell.tsx`):
   the same centered `max-w-thread` column the chat uses, wrapping the header,
   body AND the route's loading.tsx. Never give a page or a card its own width
@@ -300,12 +322,8 @@ mobile width.
   text-primary` with a `Check size-3` for good states. Icon tiles next to a
   two-line row are `size-10` with a `size-5` icon so tile height matches
   title plus detail.
-- **Empty states:** boxed in the same card as content sections (`rounded-xl
-  border border-border bg-card`), headline at card-title level (`text-base
-  font-medium`, NOT text-xl, one loudest voice per page), then one muted line
-  saying how to fill it. In the sidebar, an empty list keeps its group label
-  and shows one dashed slot (`border-dashed`, "Your agents will live here")
-  rather than disappearing.
+- **An empty sidebar list keeps its group label** and shows one dashed slot
+  ("Your agents will live here") rather than disappearing.
 - **JSX comments cannot lead a return:** `{/* */}` directly inside
   `return (...)` before the root element is a syntax error; put it above the
   return or inside the element.
