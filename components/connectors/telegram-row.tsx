@@ -1,11 +1,12 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Check, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { TelegramIcon } from '@/components/icons/telegram'
 import { Button } from '@/components/ui/button'
+import { useConnectPoll } from '@/lib/use-connect-poll'
 import {
   Tooltip,
   TooltipContent,
@@ -49,23 +50,21 @@ export function TelegramRow({ initialPaired, sendingCount }: Props) {
     return data.paired
   }, [])
 
-  // Same connect loop as everywhere else in the app: while they are off in
-  // Telegram, ask every few seconds whether the webhook has heard from them,
-  // so nobody has to come back and refresh to find out it worked.
-  useEffect(() => {
-    if (!waiting) return
-    const id = setInterval(async () => {
-      if (await readPaired()) {
-        setWaiting(false)
-        toast.success('Telegram connected.')
-      }
-    }, 2500)
-    const stop = setTimeout(() => setWaiting(false), 5 * 60 * 1000)
-    return () => {
-      clearInterval(id)
-      clearTimeout(stop)
-    }
-  }, [waiting, readPaired])
+  // The shared connect loop: while they are off in Telegram, ask whether the
+  // webhook has heard from them, so nobody has to come back and refresh to
+  // find out it worked. Pairing happens on a PHONE, so the tab is not just
+  // hidden, it is abandoned; the hook's visibility recheck is what makes
+  // coming back to the tab land instantly instead of waiting out a throttled
+  // timer.
+  useConnectPoll({
+    active: waiting,
+    check: readPaired,
+    onDone: () => {
+      setWaiting(false)
+      toast.success('Telegram connected.')
+    },
+    onTimeout: () => setWaiting(false),
+  })
 
   async function connect() {
     if (busy) return
