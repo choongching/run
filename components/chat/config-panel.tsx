@@ -40,6 +40,7 @@ import {
   type ConnectorState,
 } from '@/components/connectors/connector-list'
 import { TelegramIcon } from '@/components/icons/telegram'
+import { HelpTip } from '@/components/ui/help-tip'
 import { PERSONALITIES } from '@/lib/agents/personalities'
 import type { SetupAnswer } from '@/lib/chat/onboarding'
 import type { PanelRoutine } from '@/lib/chat/panel-data'
@@ -279,7 +280,15 @@ function ConfigPanelBody({
           title="Behavior"
           hint="Its job, and the model it runs on."
         >
-          <Field label="Instructions">
+          {/* The non-obvious fact, verified against buildSystemPrompt: this
+              box is only the BASE. Setup answers, the personality voice, the
+              attached knowledge and two fixed policies are composed in below
+              it and are never shown here, so someone who assumes the textarea
+              is the whole prompt will repeat things that are already there. */}
+          <Field
+            label="Instructions"
+            help="This is the agent's own job description. Your setup answers, its voice, and its knowledge are added underneath, so there is no need to repeat them here."
+          >
             <Textarea
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
@@ -532,13 +541,19 @@ function ConfigPanelBody({
 function Field({
   label,
   children,
+  help,
 }: {
   label: string
   children: React.ReactNode
+  // The one thing about this field a person cannot work out by looking at it.
+  help?: React.ReactNode
 }) {
   return (
     <div className="flex flex-col gap-1.5">
-      <span className="text-xs font-medium">{label}</span>
+      <span className="flex items-center gap-1.5 text-xs font-medium">
+        {label}
+        {help ? <HelpTip>{help}</HelpTip> : null}
+      </span>
       {children}
     </div>
   )

@@ -120,11 +120,6 @@ export function ConnectorsManager({
     month: 'long',
   })
 
-  // With no bot configured there is only one group left, and a lone heading
-  // that repeats the page subtitle word for word is noise. The page drops to
-  // a plain list, which is what six rows wanted in the first place.
-  const twoGroups = telegram !== null
-
   return (
     // Width comes from the PageShell column; a second cap here would put
     // this page out of step with every other one.
@@ -138,12 +133,12 @@ export function ConnectorsManager({
     // The subtitle already names exactly two things. Making those the groups
     // means the headings stop being a second taxonomy to learn.
     <div className="flex flex-col gap-6">
+      {/* No heading on this group. It would have read "What your agents can
+          use", which is the page subtitle word for word, two lines apart. The
+          subtitle already labels this list; only the group that departs from
+          it needs naming, which is the same instinct as a history list where
+          status speaks only for the exception. */}
       <section className="flex flex-col gap-2">
-        {twoGroups ? (
-          <h3 className="text-xs font-medium text-muted-foreground">
-            What your agents can use
-          </h3>
-        ) : null}
         <ConnectorList
           connections={connections}
           onChanged={refresh}
