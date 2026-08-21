@@ -13,6 +13,10 @@ export type PanelRoutine = {
   name: string
   sentence: string
   status: RoutineStatus
+  // Whether this one's reports leave the app. Carried here so the panel can
+  // say so on the row: someone reading an agent's details should not have to
+  // open a second page to find out that its work reaches them somewhere else.
+  deliverTelegram: boolean
 }
 
 export type PanelExtras = {
@@ -82,7 +86,7 @@ export async function loadPanelExtras(
         .order('created_at', { ascending: false }),
       supabase
         .from('routines')
-        .select('id, name, rule, status')
+        .select('id, name, rule, status, deliver_telegram')
         .eq('agent_id', agentId)
         .eq('user_id', userId)
         .order('created_at', { ascending: false }),
@@ -114,6 +118,7 @@ export async function loadPanelExtras(
       name: r.name,
       sentence: rule ? describeRule(rule) : 'Broken schedule',
       status: r.status,
+      deliverTelegram: r.deliver_telegram,
     }
   })
 

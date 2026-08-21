@@ -5,6 +5,7 @@ import {
   toolsetFor,
 } from '@/lib/anthropic/client'
 import { ensureEnvironment } from '@/lib/anthropic/environment'
+import { toChatError } from '@/lib/chat/errors'
 import { drainSession } from '@/lib/chat/run-turn'
 import { getRunAllowance, getSearchAllowance } from '@/lib/entitlements/assert'
 import { FAILING_AFTER } from '@/lib/routines/list'
@@ -348,12 +349,26 @@ Rules for this run:
     // people.
     const failures = routine.consecutive_failures + 1
     const next = nextOccurrences(rule, new Date(), 1)[0] ?? null
+
+    // Through the same translator the chat uses, rather than storing the raw
+    // exception. This column is READ BY A PERSON on the Routines page, and it
+    // used to print err.message straight to the screen: someone who cannot act
+    // on "fetch failed" or a stray stack frame was being handed one anyway.
+    // toChatError already owns every phrasing for this, so a routine failure
+    // now reads exactly like the same failure in a chat.
+    //
+    // The raw error is logged rather than lost. Losing it would trade a user
+    // problem for our own.
+    const friendly = toChatError(err)
+    console.error(`routine ${routine.id} failed`, err)
     await supabase
       .from('routine_runs')
       .update({
         status: 'failed',
         finished_at: new Date().toISOString(),
-        error: err instanceof Error ? err.message.slice(0, 500) : 'Unknown error',
+        // Both lines when there is a second one: the message says what
+        // happened, the sub says what to do about it, and the row has room.
+        error: [friendly.message, friendly.sub].filter(Boolean).join(' ').slice(0, 500),
       })
       .eq('id', run?.id ?? '')
     await supabase

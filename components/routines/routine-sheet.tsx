@@ -4,7 +4,6 @@ import { useState, useSyncExternalStore } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import {
-  CircleQuestionMark,
   Loader2,
   MessageSquare,
   Pause,
@@ -15,6 +14,7 @@ import { toast } from 'sonner'
 
 import { AgentsIcon } from '@/components/nav-icons'
 import { Button, buttonVariants } from '@/components/ui/button'
+import { HelpTip } from '@/components/ui/help-tip'
 import {
   Dialog,
   DialogContent,
@@ -22,12 +22,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip'
 import { formatWhen } from '@/components/routines/routines-list'
 import { sameRule, ScheduleField } from '@/components/routines/schedule-field'
 import { DeliveryField } from '@/components/routines/delivery-field'
@@ -47,34 +41,6 @@ function costTail(rule: RoutineRule): string {
   return said.startsWith('About ')
     ? said.slice(6)
     : said.charAt(0).toLowerCase() + said.slice(1)
-}
-
-// The ? beside a label, for the labels that genuinely need a second
-// sentence: a heading, a plain explanation, and worked examples where they
-// help. Only where hovering tells you something the label cannot.
-function HelpTip({ children }: { children: React.ReactNode }) {
-  return (
-    <TooltipProvider delay={200}>
-      <Tooltip>
-        <TooltipTrigger
-          render={
-            <button
-              type="button"
-              aria-label="What this means"
-              className="inline-flex text-muted-foreground/70 hover:text-foreground"
-            />
-          }
-        >
-          <CircleQuestionMark className="size-3.5" />
-        </TooltipTrigger>
-        <TooltipContent side="right" sideOffset={8}>
-          {/* A plain block, one sentence or two. Anything longer belongs in
-              the interface, not behind a question mark. */}
-          <span className="block max-w-56">{children}</span>
-        </TooltipContent>
-      </Tooltip>
-    </TooltipProvider>
-  )
 }
 
 // One routine, opened: a centered dialog, not a side drawer (founder's call

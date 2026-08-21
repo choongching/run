@@ -163,6 +163,14 @@ write while unattended: anything it would normally ask about, it describes in
 its reply and leaves for you, so an unattended run can never become an
 unattended action.
 
+The report can come to you rather than wait in the app. Switch a routine on
+for Telegram and its reports arrive as a message when the run finishes. When a
+run finds nothing worth saying, nothing arrives, and the next real report tells
+you how many quiet runs there were. A routine that stops itself always says so,
+because a routine that dies quietly is one you keep waiting on. You connect
+once, from the Connectors page or from the routine itself, and every routine
+decides on its own whether to send.
+
 Everything above is per person. An agent acts on the accounts of whoever is
 signed in, and the database enforces that underneath the app.
 
@@ -374,6 +382,33 @@ and what needs you. Open one and you can change its schedule there: how
 often, which days, what time, and the date it counts from. It shows you the
 next three real run dates before you save.
 
+**If reports come to Telegram, what can that bot do, and what does Telegram see?**
+
+I checked this in the code rather than recalling it. The strongest answer
+first: the agent gained nothing. There is no Telegram tool in its toolbox, and
+nothing it can say or be tricked into saying reaches Telegram. The app sends
+the report after the run is over, the same way it would send you a password
+reset. Search the code for who calls Telegram and you find two places, the
+scheduled runner and the bot's own replies, neither of which the agent can
+reach.
+
+The bot understands two things, "start" and "stop". Everything else you send
+it gets one canned sentence and is thrown away. That is a boundary rather than
+a missing feature: letting you talk to your agent through Telegram would open
+a path from an unauthenticated chat into a system that reads your email and
+files, so the bot delivers and does not listen.
+
+Blocking the bot is the off switch, and it needs nothing from us. The next
+send comes back refused, the app forgets your chat, and delivery stops.
+
+Now the weak parts. Telegram sees the content of your reports, exactly as an
+email provider would see an email; there is no way to hand a message to a
+messenger without the messenger reading it. And the link that connects your
+account is a bearer token for one hour: anyone holding it in that window could
+point your reports at their own Telegram. It is the same shape of risk as a
+password reset link, handled the same way, and if delivery ever moves to a
+different chat the old one is told so.
+
 **Does a routine remember its earlier runs?**
 
 Each run starts with a blank memory, like a worker who forgets everything
@@ -553,9 +588,15 @@ Around that loop, the product has filled out:
   present. A schedule is not set in stone either: open a routine and change
   how often, which days and what time, and it answers with the next three
   real run dates before you save.
+- **Reports come to you.** Switch a routine on for Telegram and its report
+  arrives on your phone the moment the run finishes, so checking on your
+  agents does not mean logging in. A run that finds nothing sends nothing,
+  and the next real report says how many quiet runs there were. A routine
+  that stops itself always says so. Your agents cannot use this: Run sends
+  the reports, and the bot only listens for start and stop.
 
-Next: opening the doors to more users (real sign-up emails and Google's app
-verification), exporting documents to Google Docs and PDF, and multiple
+Next: opening the doors to more users (real sign-up emails and a database
+plan that fits them), exporting documents to Google Docs and PDF, and multiple
 conversations per agent.
 
 The full, plain-English history, session by session, lives in

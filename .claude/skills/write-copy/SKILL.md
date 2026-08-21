@@ -142,6 +142,65 @@ copy you would write.
 - **A receipt line folds at its colon** when it needs two lines: muted label
   above, figure below ("Total for this chat:" / "12 runs this month.").
 
+## Describing a thing: the Connectors pass (2026-08-21)
+
+Six row descriptions were rewritten in one sitting, and the founder rejected
+five of them line by line. Every rejection was the same fault wearing a
+different hat. The rules below are the fault, named.
+
+**Say what the thing IS before what it gives you.** The reader's first
+question is "what is this", not "why should I care". Jina's line said
+"Search on your own account, and stop counting against the monthly limit",
+which is a perfect answer to the second question and never answers the first.
+It reads fine to anyone who already knows Jina is a search engine, which is
+nobody who needs the line. Fixed: "Another web search engine. Connect your own
+Jina account and searches stop counting against your monthly limit." What it
+is, then what you get, in that order, always.
+
+**A count is not a description.** "One routine sends its reports here" is a
+status readout in a description's slot. Someone who has never used the feature
+cannot tell from it what is being offered. Lead with the offer ("Get your
+routine reports as Telegram messages") and cut the count: a count of YOUR
+routines is a fact about your routines, not about the thing being described,
+and it already lives on the page that lists them. Keep only the exception, the
+state that looks finished and is not ("No routine sends here yet").
+
+**A rule that applies to everything is stated once.** Two connector rows ended
+in "with your okay" and "for your approval". Said per row, a universal rule
+reads as a quirk of that one connector, and the reader starts wondering what
+the rows WITHOUT the clause are allowed to do. Say it once, at the foot of the
+page, and let every row be shorter. Founder's words: "it's not normal, all
+actions requires your approval?"
+
+**Use the standard word, not a softer one.** "Waits for your okay" was sent
+back for "needs your approval". Approval is the word people expect for the
+thing, and reaching for a friendlier synonym reads as evasive on exactly the
+sentence that must not be. Warmth comes from short sentences, not from
+substituting the vocabulary.
+
+**No credit lines.** "Anthropic's AI behind every agent" is an attribution
+pretending to be an explanation. Name the job first: "The engine behind every
+agent. Run is built on Anthropic's Claude." That version also answers the only
+real question the row raises, which is why it has no button.
+
+**Plain beats clever, every time.** "The thinking part" was a first attempt at
+the Claude line and was sent back the same minute. A metaphor makes the reader
+do a small unpacking job for no gain. The founder's steer, verbatim: "just
+simply explain it plainly".
+
+**Two short sentences beat one joined by "but".** "Agents read your accounts on
+their own, but nothing is sent or changed there without your okay" became "Your
+agents only read. Anything that changes something needs your approval." The
+promise is the kind of line that should sound said out loud.
+
+**Check the verb against the code before shipping it.** Drive's line promised
+to "turn them into new ones". It cannot: `create_document` produces a Run
+document and nothing an agent writes lands back in Drive. One grep through
+`lib/tools/definitions.ts` caught a claim that had been live for weeks. This is
+the `answer-security-questions` discipline applied to ordinary copy, and it is
+where the good version came from too: naming the real file types (documents,
+sheets, PDFs) is more useful than any adjective.
+
 ## Claims must agree across the document (2026-08-01)
 
 The README now makes verified claims about what agents can and cannot do

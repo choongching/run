@@ -42,11 +42,21 @@ report a layer green from reading a migration file alone.
 Unauthenticated curl on EVERY route in `app/api` (all methods): expect 401
 (405 where the method does not exist). Then
 `grep -rL "requireUser\|getUserIdentity" app/api --include=route.ts` must
-return nothing EXCEPT `app/api/routines/tick/route.ts`, the one documented
-exception: it is called by the cron with no user behind it, so it
-authenticates with `ROUTINES_CRON_SECRET` via a timing-safe compare and
-fails closed when the env var is missing. Verify those two behaviors
-instead of user auth. Every file in `app/actions` must check identity.
+return nothing EXCEPT the TWO documented exceptions, both called by a
+machine with no user behind them, both authenticating with a shared secret
+via timing-safe compare and failing closed when the env var is missing:
+`app/api/routines/tick/route.ts` (`ROUTINES_CRON_SECRET`) and
+`app/api/telegram/webhook/route.ts` (`TELEGRAM_WEBHOOK_SECRET`, sent by
+Telegram in the `X-Telegram-Bot-Api-Secret-Token` header). Verify those two
+behaviors instead of user auth. Every file in `app/actions` must check
+identity.
+- The Telegram webhook has a second property to check, and it is a boundary
+  rather than a scope cut: it understands `/start` and `/stop` and NOTHING
+  else. Any other message gets one canned reply and is discarded. It must
+  never pass what a person types into a model, because that would open a path
+  from an unauthenticated chat into a system that reads their email and files.
+  If anyone proposes "let people reply to their agent in Telegram", that is a
+  new trust boundary, not a feature.
 Rate backstop and run allowance both 429 on the message route; uploads
 validate kind and size server side and pass the credential-scan gate.
 
@@ -57,8 +67,13 @@ Then: pg_class join pg_policy for RLS-enabled + policy count on every public
 table; pg_policies for per-command coverage; and the behavior probe: as an
 unrelated authenticated sub and as anon,
 `select count(*)` on user_connections, usage_events, agent_knowledge,
-knowledge_sources, messages, threads, routines, routine_runs, search_usage
-must all be 0. Run
+knowledge_sources, messages, threads, routines, routine_runs, search_usage,
+user_telegram must all be 0.
+- `user_telegram` is the strictest table in the schema and should stay that
+  way: SELECT-your-own-row and NO write policy at all, so the only writer is
+  the service role behind the webhook. That is what stops someone pointing
+  their reports at a chat Telegram never confirmed they control. Probe the
+  write denial, not just the read. Run
 `get_advisors(security)` and triage every WARN.
 
 - TRAP: `authenticated` needs EXECUTE on the SECURITY DEFINER policy helpers

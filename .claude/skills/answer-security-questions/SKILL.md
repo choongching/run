@@ -56,6 +56,18 @@ publish the layer where the answer is weakest.**
   meaning writes and unclassified tools are declined in words and nothing
   is ever left pending from a run nobody watched. Run and search allowances
   are enforced before each run; a capped routine pauses itself and says why.
+- **Telegram delivery adds no agent capability**, and that is the claim to
+  lead with because it is the strongest one. There is no Telegram tool in
+  `lib/tools/definitions.ts`; grep for who calls `sendMessage` and it is only
+  the scheduled runner (`lib/telegram/deliver.ts`) and the bot's own canned
+  replies. The platform sends the report after the run is over, the way it
+  would send a password reset. The bot understands `/start` and `/stop` and
+  discards everything else without it reaching a model.
+  TWO WEAK PARTS to say out loud: Telegram sees the report content, exactly
+  as an email provider would, and the pairing link is a bearer token for an
+  hour, so whoever holds it in that window can point an account's reports at
+  their own chat. Mitigated by the short window and by telling the old chat
+  when delivery moves, which is the same shape as a password reset link.
 - The approve route reads `pending_tools` off the caller's own thread row,
   clears it (no double-run), and executes ONLY that stored call. The request
   body carries a yes/no and nothing else.
