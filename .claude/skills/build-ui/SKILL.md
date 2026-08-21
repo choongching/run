@@ -49,6 +49,29 @@ that question in the conversation, scoped to the one agent's actual job. If
 another agent once someone owns several; nothing today qualifies.
 See `docs/guidance-patterns-spike-2026-08-21.md`.
 
+**Teach the SYSTEM, never teach prompt skill.** The rule for any help element,
+settled 2026-08-21 after researching how v0, Lovable and Ona guide people. A
+tooltip may state a fact about our machinery that nobody can deduce by
+looking: "the chat history is not included in this instruction", "your setup
+answers are added underneath what you type". It may never coach someone on
+writing better prompts. A product that has to teach prompting is admitting it
+needs the user to be good at prompting, and Run's whole pitch is that it does
+not.
+
+The research backs the shape rather than just the taste. v0 keeps its
+prompt-writing framework on a BLOG, not in the app, and Vercel's design system
+names the EMPTY STATE as the in-app teaching surface (variants blank slate /
+informational / educational / guide; one primary CTA, and three CTAs means the
+design is wrong; labels are verb plus noun, "Import Repository" never "Get
+Started"). Competitors that put tips beside the composer do it because their
+input is ONE-SHOT: a thin description produces a bad bot with no way back.
+Ours is a conversation, and the interview repairs a thin prompt, which is why
+their fix does not transfer. Full spike:
+`docs/guidance-patterns-spike-2026-08-21.md`.
+
+The help affordance that exists is `components/ui/help-tip.tsx`. Use it; do
+not invent a second one.
+
 **Show it before you build it.** For anything beyond a tweak, build a lo-fi
 HTML prototype in the scratchpad, publish it with the Artifact tool, and let
 the founder react. They ask for this by name ("can we see a better wireframe

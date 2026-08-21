@@ -640,7 +640,23 @@ The app is a standard Next.js project and deploys cleanly to Vercel:
 3. **Pipedream:** set `PIPEDREAM_ENVIRONMENT=production` and make sure the
    Pipedream project has a production environment with the Gmail and Google Drive
    apps enabled.
-4. **First run:** sign up. The first account can be promoted to admin by setting
+4. **Telegram (optional):** reports only reach a phone if you create a bot with
+   BotFather and tell Telegram where to call. Setting the variables is not
+   enough on its own, and a missing webhook fails quietly: the app hands out
+   pairing links and nothing ever answers them.
+
+   ```bash
+   curl "https://api.telegram.org/bot<BOT_TOKEN>/setWebhook" \
+     -d "url=https://<your-domain>/api/telegram/webhook" \
+     -d "secret_token=<TELEGRAM_WEBHOOK_SECRET>"
+   ```
+
+   `TELEGRAM_PAIRING_SECRET` must be a different value from
+   `TELEGRAM_WEBHOOK_SECRET`. The webhook one is shared with Telegram, so it
+   cannot also be the key that signs pairing links. Leave `TELEGRAM_BOT_TOKEN`
+   unset and the feature disappears from the interface rather than offering a
+   button that leads nowhere.
+5. **First run:** sign up. The first account can be promoted to admin by setting
    `profiles.role = 'admin'` in Supabase, which unlocks the one-time setup of the
    shared agent runtime (the Anthropic environment). After that, anyone can create
    an agent from the home screen, connect their own Gmail or Drive when the agent

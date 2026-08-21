@@ -79,6 +79,23 @@ a page's data fetching, or navigation):
   the change, measure again from the signed-in browser tab (median of 6,
   discard the cold first), `git stash pop`. The only honest before/after on
   a dev server.
+- **Every poll dies with its component, and rechecks on `visibilitychange`.**
+  Earned 2026-08-21, when two of four connect polls turned out to start their
+  interval inside a click handler and clear it only from inside their own
+  callback. Navigating away mid-connect left them hitting a Pipedream-backed
+  route every 2s for the full three minutes and setting state on an unmounted
+  component. An effect must own the loop, driven by state, so unmount kills it.
+  The second half matters more to what a person feels: every one of these flows
+  sends them to a popup or their phone, and Chrome throttles a hidden tab's
+  interval to roughly once a minute, so "this updates itself" can idle long
+  after they finished. Rechecking when the tab is revealed makes coming back
+  instant. Also skip a tick while a check is still in flight, or slow calls
+  stack. One shared hook: `lib/use-connect-poll.ts`; add call sites to it
+  rather than hand-rolling a fifth.
+- **Grep every timer as its own pass.** `setInterval`/`setTimeout` across
+  `components` and `app` is a ten-second sweep that no page-timing number will
+  ever surface, because a leaked interval costs nothing on the page you are
+  measuring and everything on the one you left.
 - **Anything rendered per streaming frame memoizes derived work.** The chat
   thread re-renders every message component on every frame of a live turn;
   a regex or transform over full message/document content must be useMemo'd
@@ -97,6 +114,21 @@ gate against the deployed site. Baselines, all budgets passing: public pages
 prefetched nav clicks 0 fetches and ~130ms to the destination heading. The
 220-420ms drain is the ~120ms Supabase floor stacking, not app code; do not
 chase it until the plan-tier question is answered.
+
+## Baselines, localhost production build (2026-08-21)
+
+Not comparable to the Vercel numbers below (no network hop), but useful as a
+same-machine before/after. Median of six, cold run discarded, signed in:
+RSC first chunk 16-21ms on every route including chat. Fully streamed:
+`/routines` 191, `/connectors` 196, `/chat` 217, `/settings` 356,
+`/knowledge` 359, `/` 519. `perf-check --prod` green with biggest chunk 272KB
+and total client JS 1.8MB.
+
+Two things worth carrying forward. **Adding queries to an existing
+`Promise.all` is free**: `/connectors` and `/routines` each gained two and
+stayed the two fastest pages. And **the home route is the slowest full stream
+by a wide margin**, untouched for months; that is where to look next, not at
+the pages someone just edited.
 
 ## Known floors (do not chase these in code)
 

@@ -18,7 +18,12 @@ up. Everywhere an agent's details appear now says where its reports go.
 Connectors dropped from four group headings to two, every row was rewritten to
 say what the thing actually is, and one row was found to be claiming something
 the product cannot do. A failed routine no longer prints a stack trace at
-people. All of that is merged and live. Next: the before-more-users pair, a
+people. All of that is merged and live, and a speed and security audit ran on
+top of it: speed came back clean, and both audits found one real defect each,
+both in code written the same week. The one that mattered was ours to be
+embarrassed by, a pairing link signed with the one secret we share with
+Telegram; it now has a secret of its own and was re-verified on a real phone.
+Next: the before-more-users pair, a
 sign-up email provider and the database plan upgrade, plus two founder-only
 items, connecting a real Jina account end to end and rotating the platform
 search key.
@@ -127,6 +132,58 @@ Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
 
 ---
+
+## 2026-08-21 (later): Two audits, and both found our own code
+
+- Ran a speed audit and a security audit after the delivery work shipped. Both
+  turned up something real, and in both cases it was code written days earlier
+  in this same stretch of work rather than anything old. That is the finding
+  worth repeating: the newest code is the most suspect, and reviewing it with
+  the same thinking that wrote it reproduces the mistake.
+- **Speed came back clean.** Every page puts its first content on screen in
+  under a fiftieth of a second, well inside the budget, and the two pages that
+  gained new database work this week are the two fastest of the six. That is
+  not luck: the new queries were added alongside the existing ones rather than
+  after them, so they wait together instead of queueing. The home page is now
+  the slowest thing we have and nobody has touched it in months, which is where
+  the next look should go.
+- **The speed audit found a leak anyway**, of a kind no page timing would ever
+  show. Two of the four places that wait for you to finish connecting an
+  account kept waiting after you navigated away, for a full three minutes,
+  asking every two seconds. It cost nothing on the page being measured and
+  everything on the page you had left.
+- Fixing it fixed something you can feel. All four now share one piece of
+  machinery that stops when you leave, and that also checks the instant you
+  look at the tab again. Browsers slow a hidden tab's timers to about once a
+  minute, and every one of these flows sends you somewhere else, to a popup or
+  your phone. So "this updates itself" could sit still for a minute after you
+  had already finished. That is very likely part of why pairing appeared to
+  hang earlier in the week, which we had put down entirely to an expired link.
+- **The security audit found one real weakness, and it was ours.** The link
+  that connects your Telegram to your account is signed, so we can tell it came
+  from someone who pressed the button in Run. It was being signed with the one
+  secret we deliberately hand to somebody else: the value Telegram itself holds
+  so it can prove its calls to us are genuine.
+- Anyone holding that value could have made a valid link for any account and
+  started receiving that person's reports. And the account number was no
+  obstacle, because a separate check showed every signed-in person can read
+  every account's id. Neither half was visible by reading the code; both came
+  from running things and asking who else holds what.
+- Fixed by giving the signature its own secret, which nobody outside Run has.
+  Verified three ways before shipping, then verified again on the live site by
+  disconnecting and re-pairing a real phone.
+- Everything else passed, and passed by being tried rather than by being read.
+  Every part of the interface refuses a stranger. The bot still answers only
+  two words and passes nothing anyone types to an agent. The table holding
+  Telegram connections refuses to be written to even when asked directly by a
+  signed-in account. Agents still cannot act without approval, scheduled runs
+  still cannot write at all, and none of the server's secrets appear anywhere
+  in what a browser downloads.
+- Two things are left for a decision rather than a fix: whether everyone signed
+  in should be able to see everyone else's profile, and whether the bot's stock
+  reply needs a rate limit. Both are written down rather than quietly dropped.
+- Merged to `main` via pull requests #249, #250 and #251, and deployed. The new
+  signing secret is set in production.
 
 ## 2026-08-21: Reports can leave the app, and the app says so everywhere
 

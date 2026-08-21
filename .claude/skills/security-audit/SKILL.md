@@ -124,6 +124,12 @@ user_telegram must all be 0.
   that a token signed with the webhook secret is rejected as `bad_signature`.
   THE RULE: a secret shared with a third party must never also be a signing
   key for our own claims. Check this whenever a new signed token appears.
+- No rate limit on the Telegram webhook's canned reply (found 2026-08-21).
+  Any Telegram user who finds the bot makes us send one outbound message per
+  inbound one. It costs nothing, Telegram throttles bots at its own end, and
+  the reply is a fixed string that reaches no model, so this is egress driven
+  by a stranger rather than an injection path. Cheap to bound if it ever
+  matters; recorded so it is not re-found every sweep.
 - `profiles` is SELECT-able by every authenticated user (`qual = true`), so
   any signed-in person can read every account's uuid, display name, avatar and
   role. Pre-existing and possibly deliberate, but it is what turned the finding
