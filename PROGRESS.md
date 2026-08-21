@@ -27,8 +27,10 @@ Timing the chat itself then showed 4.6 seconds of nothing on screen before a
 reply begins, now down to 1.1, with the remaining wait measured and split
 between what is ours and what is the AI thinking. Replies now show where they
 came from, as a small badge carrying the site's own icon, with the icons
-fetched by us so nobody else learns what your agent read, and each reply keeps
-the pages behind it rather than throwing them away.
+fetched by us so nobody else learns what your agent read. Hovering one opens
+the page behind it and walks the others the agent read for that answer,
+including the ones it never mentioned, and it never claims a number of sources,
+because what we keep is what the agent opened rather than what it leaned on.
 Next: the before-more-users pair, a
 sign-up email provider and the database plan upgrade, plus two founder-only
 items, connecting a real Jina account end to end and rotating the platform
@@ -138,6 +140,35 @@ Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
 
 ---
+
+## 2026-08-21 (night): The pages an answer never mentioned
+
+- The badges from earlier today told you a site's name. Hovering one now opens
+  the page itself: the headline, its opening lines, when it was published, and
+  arrows through the other pages behind the same answer.
+- The arrows are the reason this exists. One real reply sits on five pages and
+  names two of them. Three were read and never mentioned, and until tonight
+  there was no way to see them at all.
+- **There is no source count, and there will not be one.** A number would say
+  we know which pages an answer leaned on, and we do not: we know which ones
+  the agent opened. The same reply opened five and wrote from four. So the
+  card carries no total and no "one of five" either, which is a total wearing
+  a hat. The arrows simply stop at the ends.
+- A badge we cannot match to a page we stored opens nothing. Putting the first
+  stored page under a badge pointing somewhere else would attach the wrong
+  headline to the claim you are reading, which is worse than showing nothing.
+  It has a visible cost: one older reply mentions a site no search returned, so
+  that badge alone stays quiet while its neighbours open.
+- The pages also travel with a reply as it arrives, so the badges work while
+  you are still reading rather than only after a reload.
+- Verified on a real conversation: all five pages reachable from one badge
+  including the three the answer never named, the arrows stopping correctly at
+  both ends, real site icons and the fallback symbol, nothing at all on replies
+  written before we started keeping pages, and no errors.
+- Known gap, recorded rather than hidden: this is a hover, so on a phone a
+  badge is still just a link and the unnamed pages cannot be reached. The fix
+  is not obvious, because tapping a badge already opens the page.
+- Merged to `main` via pull request #257, and checked by the founder.
 
 ## 2026-08-21 (evening): Answers now show where they came from
 
