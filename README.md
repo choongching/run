@@ -588,9 +588,15 @@ Around that loop, the product has filled out:
   present. A schedule is not set in stone either: open a routine and change
   how often, which days and what time, and it answers with the next three
   real run dates before you save.
+- **Reports come to you.** Switch a routine on for Telegram and its report
+  arrives on your phone the moment the run finishes, so checking on your
+  agents does not mean logging in. A run that finds nothing sends nothing,
+  and the next real report says how many quiet runs there were. A routine
+  that stops itself always says so. Your agents cannot use this: Run sends
+  the reports, and the bot only listens for start and stop.
 
-Next: opening the doors to more users (real sign-up emails and Google's app
-verification), exporting documents to Google Docs and PDF, and multiple
+Next: opening the doors to more users (real sign-up emails and a database
+plan that fits them), exporting documents to Google Docs and PDF, and multiple
 conversations per agent.
 
 The full, plain-English history, session by session, lives in

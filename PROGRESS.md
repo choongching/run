@@ -8,7 +8,22 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** Agents search the web through our own provider rather
+**Where we left off:** Routine reports can now leave the app and arrive on
+your phone as Telegram messages, which came straight from a test user saying
+they were too busy to log in every day. You connect once, each routine has its
+own switch, and a run that finds nothing sends nothing. A routine that stops
+itself always says so. The agent gained nothing from this: it has no way to
+reach Telegram, and the app says that out loud on the page where you set it
+up. Everywhere an agent's details appear now says where its reports go.
+Connectors dropped from four group headings to two, every row was rewritten to
+say what the thing actually is, and one row was found to be claiming something
+the product cannot do. A failed routine no longer prints a stack trace at
+people. Next: merge the open pull request, then the before-more-users pair
+(sign-up email provider and the database plan upgrade), and two founder-only
+items, connecting a real Jina account end to end and rotating the platform
+search key.
+
+Before that, agents search the web through our own provider rather
 than Anthropic's, which costs about a twentieth as much, and it is live: the
 app says plainly what search runs on, how much of the month is left, and how
 to put it on your own account instead. Each agent has its own search switch.
@@ -33,10 +48,11 @@ security questions, and dev cleanup have caught up with search and routines.
 Two of the four search follow-ups closed: the free monthly search number
 stays at one hundred, because a routine that runs out pauses itself and says
 how to fix it, and the missing Jina dollar rate turns out to gate nothing a
-user reads. Next: the before-more-users trio (sign-up email provider, Google
-app verification, database plan upgrade), and three founder-only items:
-connecting a real Jina account end to end, a narrow-width check on a real
-phone, and rotating the platform search key. Worth watching now that agents
+user reads. What used to be a before-more-users trio is a pair: Google's app
+verification came off the list once it turned out the Gmail and Drive sign-in
+runs on Pipedream's own Google app rather than ours, so it was never a
+blocker, and doing it on our own would cost a yearly assessment fee. The phone
+check is done. Worth watching now that agents
 can spend while nobody is looking: the monthly meter, which as of 2026-08-18
 finally includes the cost of searching the web.
 
@@ -112,7 +128,88 @@ and backups.
 
 ---
 
-## 2026-08-20: The search design gets written down, and the skills catch up
+## 2026-08-21: Reports can leave the app, and the app says so everywhere
+
+- **Routine reports can now reach you on Telegram.** A real test user said it
+  was troublesome to log in just to check on their routines, and later that
+  they were too busy to log in every day. That is not one person's quirk, it
+  is the definition of the customer routines were built for, so daily logins
+  were the wrong thing to be measuring. Channel options were explored before
+  anything was built. Email was costed and set aside for now: the providers
+  that are generous in testing are not generous in production for this shape
+  of use. Telegram won on being free, instant, and already on the phone.
+- **How it works, in one line each.** You connect once. Each routine has its
+  own switch. A report arrives the moment a run finishes. A run that finds
+  nothing sends nothing, and the next real report says how many quiet runs
+  there were, so silence never reads as breakage. A routine that pauses
+  itself always says so, because a routine that dies quietly is one you keep
+  waiting on.
+- The pairing link is short-lived and one-time. The bot understands exactly
+  two words, start and stop, and answers everything else with the same canned
+  line. Blocking it in Telegram turns delivery off with nothing needed from
+  us.
+- **Three problems were found and fixed before this shipped**, each worth
+  recording:
+  - The chat id was first stored on a table every signed-in person can read.
+    A live check as a made-up user returned every row. It moved to a table of
+    its own with one policy: you can read your row and nothing else, and
+    nobody can write one at all.
+  - The most common way a routine dies, three failures in a row, was the one
+    death that sent nothing. Now it tells you.
+  - The marker an agent writes when it found nothing was matched too
+    loosely, which silently swallowed a real report whose last sentence
+    happened to end with the words "nothing new". It is matched as a whole
+    line now, with tests.
+- **Telegram is now visible everywhere an agent's details are shown**, because
+  transparency was the point. It has its own group on Connectors, deliberately
+  not filed under the accounts an agent can reach into, since the agent gained
+  nothing here: it has no way to send to Telegram and nothing it can be
+  tricked into saying gets there. A routine that delivers says so on its own
+  row and inside its agent's Configure panel. Connectors is also the first
+  place you can disconnect from the app rather than from Telegram.
+- **Connectors went from four group headings to two.** Each of the four sorted
+  by a different question, so nobody could predict where a new row would land.
+  The page subtitle already names two things, so those became the groups. Only
+  the group that departs from the subtitle carries a heading.
+- **Every connector row was rewritten.** They had been describing a state or
+  naming a benefit without ever saying what the thing was. One of them was
+  simply wrong: Google Drive promised to "turn documents into new ones", which
+  it cannot do, and nothing an agent writes lands back in Drive. Checking the
+  claim against the code is how that surfaced. Two rows also ended in their own
+  approval clause; approval is how everything works, not a quirk of those two,
+  so it is stated once at the foot of the page.
+- **A failed routine no longer shows a stack trace.** The failure text was
+  being stored raw and printed to the page, so a non-technical person was
+  handed something they could not act on. It goes through the same translator
+  the chat has used since six routes were caught doing this, so a routine
+  failure now reads like the same failure in a chat. The real error is logged
+  rather than lost.
+- **Researched whether we should teach people how to write prompts**, after
+  seeing a competitor put "Tips for Writing a Good Use Case" beside a progress
+  bar. The answer is no, and the reason is structural: that product takes one
+  shot at your description, so a thin one produces a bad bot with no way back.
+  Ours asks questions and shows you a card to edit before anything is saved.
+  Checking what the mature products actually do supported this: Vercel keeps
+  its prompt guidance on a blog, not in the app, and its design system treats
+  the empty state as the place to teach. We already do that in both places it
+  matters.
+- **Slash commands were considered and declined.** GitLab has deprecated them
+  in its own AI chat, and the pattern libraries name three places not to use
+  them: products whose users never learn command syntax, products with few
+  actions, and mobile-first composers. Run is all three. This is the third
+  proposal of that shape to be cut, after the connector chip row and the
+  composer token, so the reasoning is written into the internal build notes
+  rather than argued again from scratch.
+- Small fixes along the way: a routine's icon tile was too short for its
+  two-line row and sat visibly high; the status dot was the only thing on the
+  row carrying meaning and the only thing with no way to read it, so it is
+  bigger now and says what it means on hover; the Routines subtitle said the
+  schedule twice.
+- The agent Instructions box now explains the one thing nobody can work out by
+  looking at it: what you type is only the base, and your setup answers, the
+  agent's voice and its knowledge are added underneath.
+- Verified against the founder's real phone and a real paired account, on
+  desktop and at phone width.
 
 - Closed two of the four follow-ups the search work left open, both by
   checking rather than assuming:
