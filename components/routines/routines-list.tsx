@@ -331,8 +331,12 @@ export function RoutinesList({
                         never hide. The full run history lives in details. */}
                     {lastRun?.status === 'failed' ? (
                       <p className="mt-2 truncate text-sm text-destructive/90">
-                        Last run did not finish
-                        {lastRun.error ? `: ${lastRun.error}` : ''}
+                        {/* A full stop, not a colon. What follows is now a
+                            plain sentence from toChatError rather than an
+                            exception fragment, and a colon made the two read
+                            as one broken sentence. */}
+                        Last run did not finish.
+                        {lastRun.error ? ` ${lastRun.error}` : ''}
                       </p>
                     ) : null}
                   </div>
