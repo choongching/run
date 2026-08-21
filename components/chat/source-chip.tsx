@@ -58,7 +58,26 @@ export function SourceChip({ href }: { href: string }) {
           arriving late during a stream cannot reflow the paragraph. */}
       <span className="flex size-[13px] shrink-0 items-center justify-center overflow-hidden rounded-full">
         {iconFailed ? (
-          <Globe className="size-3 text-muted-foreground/70" aria-hidden />
+          // Globe, and not for want of alternatives: earth, link, link-2 and
+          // circle-dashed were all rendered at this exact size and rejected.
+          // Earth's continents turn to noise at 13px, both links say "a link"
+          // when the chip already IS one and the glyph should say what it
+          // points AT, and a dashed circle reads as loading rather than
+          // unknown.
+          //
+          // The deciding argument is not taste: Chrome, Safari and Firefox all
+          // show a globe for a site with no favicon, so a reader already knows
+          // this shape means "a website we could not identify" without being
+          // taught.
+          //
+          // Full muted rather than muted/70: at 13px the lighter weight read
+          // as a smudge next to type of the same colour. Stroke 2.25 for the
+          // same reason, since Lucide's default 2 thins out at this size.
+          <Globe
+            className="size-[13px] text-muted-foreground"
+            strokeWidth={2.25}
+            aria-hidden
+          />
         ) : (
           // Through our own route, never the source and never a favicon
           // service: either of those would tell somebody else which domains
