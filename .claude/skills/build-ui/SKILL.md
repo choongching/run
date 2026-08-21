@@ -27,6 +27,28 @@ whose agent reads documents that it also wants their email. Ambient chrome
 states things whether or not they are relevant; conversation states them when
 they are.
 
+That argument has now cut three things: the connector chip row, the pinned
+composer token, and **slash commands in the composer** (founder decision,
+2026-08-21). Treat a fourth proposal of the same shape as already answered
+unless something below has changed.
+
+The slash research is worth keeping, because it was more one-sided than
+expected. **GitLab deprecated slash commands in Duo Chat**; their own design
+system says to refrain from using them. The pattern libraries name three
+places not to use them, and Run is all three: consumer surfaces where people
+never learn command syntax, simple products where a visible control beats a
+hidden one, and mobile-first composers where the menu fights the keyboard.
+The pattern trades discoverability for power-user speed and only works
+"layered on top of discoverable buttons", which is the opposite of what a
+plain-language product wants. A command menu is also a permanent capability
+list, so it fails the same test as the chip row above.
+
+The Run answer to "how do I find out what this can do" is the agent answering
+that question in the conversation, scoped to the one agent's actual job. If
+`@` ever earns a place it will be for a real named object, most likely
+another agent once someone owns several; nothing today qualifies.
+See `docs/guidance-patterns-spike-2026-08-21.md`.
+
 **Show it before you build it.** For anything beyond a tweak, build a lo-fi
 HTML prototype in the scratchpad, publish it with the Artifact tool, and let
 the founder react. They ask for this by name ("can we see a better wireframe
