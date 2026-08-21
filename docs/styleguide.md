@@ -1,9 +1,16 @@
 # Run: Visual Style Guide
 
-Distilled from the reference screenshots (AirOps-style workspace UI). This guide defines
-**tokens, type, spacing, radii, and component recipes only**; page content and structure
-are out of scope. All values below map to CSS variables in `app/globals.css`; always style
-through tokens (`bg-primary`, `text-muted-foreground`, …), never hard-coded hex.
+This describes **Run as it is built**, not a look to aim at. Every recipe below
+has code behind it, and a recipe with no code in the app is not guidance, it is
+fiction: it cost us a real defect the day the empty-state headline in here
+turned out to be a size nothing had ever used. Rewritten 2026-08-21 for that
+reason, when the page containers were unified.
+
+Tokens map to CSS variables in `app/globals.css`; always style through them
+(`bg-primary`, `text-muted-foreground`), never hard-coded hex.
+
+**Section 7a is the shape of a page.** Read it before building any page or
+section; the rest of section 7 is the parts that go inside it.
 
 ## 1. Overall look
 
@@ -98,7 +105,6 @@ overrides. The ladder table and the rules live in section 5b.
 - Page title: `text-2xl font-semibold`; subtitle `text-base text-muted-foreground mt-1.5`.
 - Section/tab labels: `text-sm font-medium`; card titles `text-base font-medium`
   or `text-lg font-semibold` for prominent panels.
-- Table header: `text-sm font-semibold` in full ink (not muted).
 - Meta text (timestamps, group labels, chips): `text-xs` muted.
 
 ## 4. Radii
@@ -129,7 +135,9 @@ above clamped to 6px), so `rounded-xl` and larger render at 6px too.
 - Sidebar inner padding `p-2`; nav item height **36px** (`h-9`), icon 16px, `gap-2`.
 - Nav groups separated by spacing + occasional `SidebarSeparator`; group labels 12px.
 - Main content padding `p-6 md:p-8`; title block ~32px from card top.
-- Table rows ~52 to 56px tall with 1px `--border` dividers; generous first column.
+- One column, `max-w-thread` (38.4rem), on every standard page, via
+  `PageShell`. There is no wide variant; see 7a.
+- List rows are ~52 to 60px tall with 1px `--border` dividers between them.
 
 ### 5b. Mobile (below `md`, 768px)
 
@@ -229,14 +237,16 @@ history. Use these components rather than re-deriving the classes.
   truncating node.
 - **The footnote is the card's last line**, `text-xs text-muted-foreground`,
   one fact about the whole section and never a second description.
-- **Empty fills the box's slot, not the card's.** `EmptyBox`, or the page
-  hero below, inside the same `SectionCard` the rows would have used, so the
+- **Empty fills the box's slot, not the card's.** `EmptyBox`, or the dashed
+  box recipe in 7b, inside the same `SectionCard` the rows would have used, so the
   page keeps its shape when there is nothing in it yet.
 - **A form is the exception.** A section of inputs keeps its fields on the
   card with no inner box: a hairline between two inputs reads as a table of
   inputs. Settings is the only page where this applies.
 - **One width.** Every standard page is the `max-w-thread` column via
   `PageShell`. The old `wide` escape hatch for Routines is gone.
+
+### 7b. The parts that go inside
 
 - **Primary button** ("Create"): `bg-primary text-primary-foreground rounded-lg h-8/h-9`,
   hover slightly lighter (`/80` handled by the button variant).
@@ -247,105 +257,79 @@ history. Use these components rather than re-deriving the classes.
   states: hover = soft wash `bg-sidebar-accent/60`; active = full `bg-sidebar-accent`
   + `font-medium`. Sub-items: `h-8`, same pill states, indented behind a 1px left rail.
   Count badge: `chart-2` blue text on a pale blue tint, `h-5 min-w-5 rounded-md text-xs`.
-- **Tabs:** plain text `text-sm font-medium text-muted-foreground`; active = ink text +
-  2px green underline (line-variant `TabsList` with `after:bg-primary` on triggers).
-- **Detail page anatomy** (a record's own page, e.g. an agent): breadcrumb
-  (`Breadcrumb`, parent listing as a link, current name as `BreadcrumbPage`),
-  then title row `text-2xl font-semibold` name + status meta chip
-  (`AgentStatusChip` pattern), description as the standard subtitle. Below,
-  an inner nav row `border-b border-border` splitting the page into section
-  tabs (line variant, 16px leading icons via `data-icon="inline-start"`) with
-  the primary actions (Save + Cancel, `size="sm"`) pinned right of the same
-  row so they stay visible from every tab. One card per tab; narrow forms cap
-  at `max-w-3xl`, editors run full width. Sections that need a saved record
-  first (e.g. Knowledge on the create page) render as disabled tabs, not
-  hidden ones, so the flow stays discoverable.
-- **Empty-state hero** (a feature with nothing in it yet, e.g. no connections):
-  centered inside the card (`flex flex-col items-center py-14 text-center`).
-  Anatomy top to bottom: a cluster of three tilted icon tiles (`size-11/12`
-  `rounded-lg border border-border bg-background`, outer tiles
-  `-rotate-6`/`rotate-6` and nudged inward, center tile raised and on top,
-  monochrome Lucide icons in muted ink); headline `text-base font-medium`
-  (matching what shipped on Knowledge and Routines; this said `text-xl
-  font-semibold` for a year and nothing ever used it);
-  one friendly sentence of why (`text-sm text-muted-foreground max-w-lg`)
-  naming the concrete benefit; a single primary CTA with a trailing
-  `ChevronRight`; then a `text-xs` muted caption defusing the scary part
-  (what happens next, who has to do it). Never two competing actions.
-- **Table:** semibold ink header row, hover row wash `bg-muted/50`, green checkboxes,
-  kebab (`⋮`) as `icon-sm` ghost/outline button, circular initial avatars in chart colors.
-- **Listing section row** (between page header and a grid/table): count + meta
-  + trailing hairline: `flex items-center gap-3`, `text-sm font-medium` count,
-  `text-sm text-muted-foreground` meta, then `h-px flex-1 bg-border`. Sort
-  listings so working items lead and archived items always sit at the back.
-- **Card overflow menu:** actions live in a kebab (`Ellipsis` icon, ghost
-  `icon-sm` button, `text-muted-foreground`) in `CardAction`, opening a
-  `DropdownMenu`: routine actions first, then a separator and the destructive
-  action (`variant="destructive"`) always last. While the menu is open the
-  card shows a selected state: `ring-ring/50`.
-- **Meta chips** (card base): `h-6 rounded-md border border-border
-  bg-background px-2 text-xs text-muted-foreground` with 12px icons
-  (`[&_svg]:size-3`); status chips lead with a `size-1.5 rounded-full` dot in
-  a data color (`chart-1` green for active, amber `chart-4` paused, muted for
-  archived). Pin the chip row to the card bottom (`mt-auto`).
-- **Connector detail modal:** a connected integration card is itself the
-  trigger (`role="button"`, hover lift, a `text-xs` "View details" + chevron
-  affordance); destructive/config actions live in the modal, not on the card.
-  Modal anatomy (`sm:max-w-xl p-6`): header row of logo tile + title + status
-  chip; then two line-variant tabs so prose and metadata never share one
-  scroll: **Overview** (a lead sentence, then explainer rows in a
-  label-left grid `sm:grid-cols-[8.5rem_1fr]`, `text-sm font-medium` label
-  and muted `text-sm` body, echoing the metadata rows so both tabs share
-  one rhythm) and **Connection** (a metadata `dl` with
-  `rounded-lg border divide-y`, rows `min-h-9 px-3 flex justify-between`,
-  muted `text-sm` label left, value right, ids in `font-mono text-xs` with a
-  ghost `icon-xs` Copy button that toasts on copy, plus a reassuring
-  `text-xs` caption). Give both panels a matching `min-h` so switching tabs
-  does not resize the modal. Footer holds Disconnect (outline with
-  `text-destructive`) + Close, swapping in place to the two-step confirm
-  (Keep connected / destructive Confirm) rather than stacking a second
-  modal.
-- **Side drawer (Sheet):** for editing one row's details without leaving a
-  listing (first use: squad editing on Users). Right side, `sm:max-w-md`,
-  `gap-0` with header and footer split off by `border-b`/`border-t` hairlines
-  and a scrollable `flex-1 overflow-y-auto p-5` body. Header: identity row
-  (avatar/logo + `SheetTitle` + badge) over a one-line `SheetDescription`
-  naming the job to be done; `pr-12` clears the X button. Body lists are the
-  standard `divide-y rounded-xl border` rows with per-row toggle buttons that
-  auto-save instantly (outline "+ Assign" ↔ secondary "✓ In squad", spinner
-  while pending, toast only on failure): no Save button, no dirty state, safe
-  to close anytime. Footer: a single full-width outline "Done". The trigger
-  row in the listing stays clickable end to end (`cursor-pointer`), with the
-  explicit button as the discoverable affordance; empty cells render the call
-  to action itself (outline sm "+ Assign agents") instead of muted placeholder
-  text. Keep the selected record in state after close so the exit animation
-  keeps its content.
-- **Kanban board** (first use: Missions): a toolbar row above the grid
-  (count + meta + hairline, primary action pinned right), then
-  `grid gap-4 md:grid-cols-3`. Columns are soft washes, not cards:
-  `rounded-xl bg-muted/40 p-3 min-h-44` with a `text-sm font-medium` title +
-  `text-xs` muted count header and a `gap-3` card stack. Empty columns show a
-  dashed `rounded-lg border-dashed text-xs` placeholder naming the state
-  ("Nothing queued"), never blank space. Cards are white, `py-4 px-4 gap-3`,
-  whole card clickable to the detail page; the per-state action lives
-  bottom-right of the card (primary Run when actionable, muted
-  spinner + label while working, outline link button when done) with the
-  identity chip bottom-left. Board state is client-authoritative after
-  mount: cards move columns from the API response, not a refetch.
-- **Stat cards** (first use: Usage): a `grid gap-4 sm:grid-cols-3` row above
-  the detail table. Each card `rounded-xl border bg-card p-5`,
-  muted `text-sm` label, `text-2xl font-semibold` value, optional `text-xs`
-  muted caption for the breakdown. Numeric table columns under stat cards
-  are right-aligned `tabular-nums`; any estimated figure gets a `text-xs`
-  muted disclaimer under the table, not in the cells.
-- **Selection toast:** centered bottom `bg-card rounded-xl border shadow-lg px-4 py-3`.
-- **FAB:** fixed bottom-right `size-13 rounded-full bg-primary text-primary-foreground shadow-lg`.
+- **Empty states are dashed boxes.** Never a floating sentence. Two sizes.
+  FULL, for a page or a dialog: `rounded-lg border border-dashed border-border`
+  inside the SectionCard the content would have filled, centred, `py-12`, with
+  a `size-11 rounded-lg border border-border bg-background` tile, a `size-5`
+  muted icon, a `text-base font-medium` headline and one `text-sm` muted line
+  saying how to fill it. COMPACT, for the sidebar and docked panels:
+  `rounded-lg border border-dashed border-border px-2.5 py-2 text-xs
+  text-muted-foreground`, one line, no icon. Body copy carries the action
+  only; what the thing IS belongs in the section description. Loading and
+  empty share one box at one height so the surface holds its shape.
+- **Drop zones are dashed boxes that are real buttons** (same language as an
+  empty state; the zone IS the empty state, never stacked beside one). The
+  button doubles as click-to-browse and keyboard access, drops feed the same
+  handler as the picker, and the size keeps a non-breaking space
+  ("15&nbsp;MB").
+- **Row overflow menu:** a row's actions live in a kebab at its trailing edge
+  (`Ellipsis`, ghost `icon-sm`, `text-muted-foreground`) opening a
+  `DropdownMenu`: the ordinary actions first, then a separator and the
+  destructive one (`variant="destructive"`) always last. Quick actions may
+  also appear on hover beside it (`hidden md:group-hover:flex`), never
+  instead of the menu, because hover does not exist on touch.
+- **Side drawer (Sheet):** for one record's details without leaving the list
+  it came from (Run's use: a routine). Right side, `sm:max-w-md`, `gap-0`,
+  header and footer split off by `border-b`/`border-t` hairlines and a
+  scrollable `flex-1 overflow-y-auto p-5` body; `pr-12` on the header clears
+  the X. Body lists are the 7a `RowBox`. Keep the selected record in state
+  after close (a separate `open` boolean drives visibility) so the overlay
+  keeps its content through the exit animation instead of flashing empty.
+- **Cards IN the conversation** (approval, review, options, routine) are the
+  one place a card is outlined in the focus green rather than the border
+  token: `rounded-xl border border-ring/60 bg-card p-4`. They are asking for
+  a decision, and the green says so. Never use it for a page section.
+- **Dialog:** the usage history is the pattern. Its sections are a
+  `text-sm font-medium` label over a 7a box, not cards: a card inside a dialog
+  is a box in a box. Below `md` it takes the whole screen (see 5b).
+- **Rich hover cards are hand-rolled, not tooltips** (the tooltip primitive is
+  a dark one-line chip). Relative wrapper, mouseenter state, absolute card,
+  fully opaque `bg-card` with `shadow-md`: an alpha tint turns a floating card
+  into glass. Anchor from the edge nearest the container's edge so it opens
+  inward, and make the WHOLE card the click target if anything on it is
+  clickable. A card hanging off something INLINE is portalled to the body
+  instead, positioned against the viewport, and closes on scroll and resize
+  (`components/chat/source-chip.tsx`).
+- **Status is one icon, and colour carries the state.** Beside the thing's
+  name: the same `Check`, `text-primary` when on, `text-muted-foreground/40`
+  when off, the word in the tooltip and in the aria-label. A different icon
+  per state (dashed circle, X) reads as an error; the founder rejected it. In
+  a history list, status speaks only for the exception: ordinary rows carry
+  nothing, failures carry one quiet chip.
+- **Meta chips:** `flex h-6 items-center gap-1.5 rounded-md border
+  border-border bg-background px-2 text-xs text-muted-foreground` with 12px
+  icons (`[&_svg]:size-3`). A chip that must shout (a failure) swaps the
+  border for a tint: `rounded-md bg-destructive/10 px-2 py-0.5 text-xs
+  font-medium text-destructive`, or `bg-chart-4/15 text-chart-4` for a warning.
+- **Meters and progress tracks:** track `bg-border` (never `bg-muted`, which
+  is within a shade of the card and reads as empty), fill `bg-foreground/70`,
+  escalating to `bg-chart-4` at 80% and `bg-destructive` at 95%. Height `h-1`
+  for a row-level meter, `h-1.5` inside a card.
+- **Composer action row:** every control gathers at the trailing edge (meter
+  ring, paperclip, send). The attach icon is `Paperclip`.
 
 ## 8. Do / Don't
 
-- Do keep green rare: one primary action per screen + status accents.
-- Do use `--sidebar` canvas + white cards for any new full-screen layout.
-- Don't reintroduce colored/filled icons, pure-gray-cold neutrals, raw
-  `rounded-[Npx]` values, or any corner outside the 4-6px range (except circles).
-- Don't restyle ad-hoc in pages; change tokens here + `globals.css` so it applies
-  everywhere.
+- Do build a page out of `SectionCard` and `RowBox` (7a) rather than a new
+  arrangement of borders. Four arrangements is what we had, and unpicking it
+  took a day.
+- Do keep green rare: one primary action per screen, plus status accents.
+- Do use the `--sidebar` canvas with white cards for any new full-screen layout.
+- Don't reintroduce coloured or filled icons, cold grey neutrals, raw
+  `rounded-[Npx]` values, or any corner outside the 4 to 6px range (circles
+  excepted).
+- Don't restyle ad hoc in a page; change the token here and in `globals.css`
+  so it lands everywhere at once.
+- Don't leave a recipe in this file that no code follows. If a rule here and
+  the app disagree, one of them is a bug and the disagreement is the finding:
+  fix whichever is wrong in the same pass, and never quietly work around it.
