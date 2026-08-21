@@ -19,6 +19,21 @@ import type { SearchHit } from '@/lib/search/types'
 // normalise data nothing queries across rows. Same reasoning, and the same
 // shape, as `attachments`.
 
+// WHAT THIS IS AND IS NOT, learned from the first real turn that wrote it.
+//
+// These are the hits the agent's searches RETURNED, not the ones it used. A
+// search for "recent AI chip story" came back with four on-topic results and
+// one live politics blog that merely mentioned datacenters; the agent ignored
+// the last one and wrote about the other four. We stored all five, because at
+// the moment a search returns there is no way to know which the model will
+// lean on: it never tells us, and it frequently uses a result without linking
+// it.
+//
+// So a count built from this is "what it looked at", never "what it cited",
+// and the UI must not claim otherwise. Labelling five results as "5 sources"
+// would overclaim in exactly the way a link-derived count underclaimed. The
+// popover should say what is true: these are the pages behind the answer, in
+// the order the search returned them.
 export type MessageSource = {
   url: string
   title: string
