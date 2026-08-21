@@ -33,22 +33,34 @@ export const CONNECTORS = [
     app: 'gmail',
     label: 'Gmail',
     Icon: GmailIcon,
-    blurb: 'Read your mail, search threads, and draft replies for your approval.',
+    // Same rule as Drive below: no approval clause on the row. "Draft" is
+    // already the honest word, since there is no send tool at all.
+    blurb: 'Read your mail, search threads, and draft replies.',
   },
   {
     app: 'google_drive',
     label: 'Google Drive',
     Icon: GoogleDriveIcon,
-    blurb: 'Find and read your documents, and turn them into new ones.',
+    // Names the file types, because that is the part people actually wonder
+    // about. The old line promised "turn them into new ones", which was not
+    // true: create_document makes a Run document, and nothing an agent writes
+    // lands back in Drive.
+    //
+    // No approval clause. Approval is not a fact about Drive, it is how every
+    // write in Run works, and it is stated once at the foot of the page.
+    // Repeating it per row makes it sound like a per-connector quirk.
+    blurb:
+      'Read your documents, sheets and PDFs, and rename, move or file them away.',
   },
   {
     app: 'jina_ai',
-    // The blurb says what connecting BUYS, because unlike the rows above,
-    // search already works without it. A blurb describing what Jina is would
-    // leave someone wondering why they should care.
+    // Says what Jina IS first, then what connecting buys. An earlier version
+    // opened on the benefit and never named the thing, which reads fine to
+    // anyone who already knows Jina and tells a stranger nothing.
     label: 'Jina',
     Icon: JinaIcon,
-    blurb: 'Search on your own account, and stop counting against the monthly limit.',
+    blurb:
+      'Another web search engine. Connect your own Jina account and searches stop counting against your monthly limit.',
   },
 ] as const satisfies ReadonlyArray<{
   app: ConnectorApp

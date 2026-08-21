@@ -152,10 +152,13 @@ export function ConnectorsManager({
           }
           label="Web search"
           state={onOwnAccount ? 'On your account' : 'Included'}
+          // Opens on what you have rather than on plumbing. The engine still
+          // gets named in the same breath, because the row's other job is
+          // saying whose account the searching runs on.
           detail={
             onOwnAccount
-              ? 'Runs on Jina, on your own account. Nothing counts against a limit.'
-              : `Runs on Brave, on our account. Fresh ${searches.limit.toLocaleString()} on ${refillMonth} 1.`
+              ? 'Every agent can search the web. Runs on Jina, on your own account, with no limit.'
+              : `Every agent can search the web. Runs on Brave, on our account, fresh ${searches.limit.toLocaleString()} on ${refillMonth} 1.`
           }
           trailing={
             onOwnAccount ? (
@@ -179,7 +182,10 @@ export function ConnectorsManager({
           icon={<Image src="/claude-icon.png" alt="" width={26} height={26} />}
           label="Claude"
           state="Always on"
-          detail="Anthropic's AI behind every agent."
+          // Plain, and the job before the vendor. "Anthropic's AI behind every
+          // agent" was a credit line, and a credit does not explain why this
+          // is the one row with no button.
+          detail="The engine behind every agent. Run is built on Anthropic's Claude."
           trailing={
             <span className="px-3 text-xs text-muted-foreground">Built in</span>
           }
@@ -210,12 +216,16 @@ export function ConnectorsManager({
       ) : null}
 
       {/* The trust promise stays: this is the page where people hand over
-          their inbox. Named to your accounts now that something on this page
-          does send: without that word, the promise and the row above it read
-          as a contradiction. */}
+          their inbox. It is also the ONE place the approval rule is stated,
+          which is why no connector row carries its own approval clause: said
+          per row it sounds like a quirk of that connector, said once here it
+          is how the product works.
+
+          Two short sentences rather than one joined by "but". The promise
+          should read like it was said out loud. */}
       <p className="px-0.5 text-xs text-muted-foreground">
-        Agents read your accounts on their own, but nothing is sent or changed
-        there without your okay.
+        Your agents only read. Anything that changes something needs your
+        approval.
       </p>
     </div>
   )

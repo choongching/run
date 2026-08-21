@@ -102,16 +102,19 @@ export function TelegramRow({ initialPaired, sendingCount }: Props) {
     }
   }
 
-  // What is actually true right now, in one line. The paired-but-silent case
-  // gets its own sentence because it is the one a person misreads: the account
-  // is linked, so the row looks finished, and yet nothing has anywhere to go.
-  const detail = !paired
-    ? 'Get your routine reports on your phone, instead of waiting here for them.'
-    : sendingCount === 0
-      ? 'Nothing sends here yet. Switch it on for any routine and its reports follow you.'
-      : sendingCount === 1
-        ? 'One routine sends its reports here.'
-        : `${sendingCount} routines send their reports here.`
+  // What the row IS, first and always. An earlier version led with a count of
+  // routines, which reads as a status readout and tells someone who has never
+  // switched delivery on nothing about what is being offered.
+  //
+  // The count is gone. It is a fact about your routines, not about Telegram,
+  // and it belongs on the Routines page where those rows already say it. The
+  // one state that still speaks is paired with nothing sending, and that is
+  // not a count: it is the case that looks finished and is not, so it follows
+  // the app's rule that status speaks only for the exception.
+  const detail =
+    paired && sendingCount === 0
+      ? 'Get your routine reports as Telegram messages. No routine sends here yet.'
+      : 'Get your routine reports as Telegram messages.'
 
   return (
     <div className="flex items-center gap-3 rounded-xl border border-border bg-card p-3">
