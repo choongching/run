@@ -243,6 +243,24 @@ export async function POST(
         controller.enqueue(encoder.encode(`${JSON.stringify(frame)}\n`))
 
       try {
+        // FIRST BYTE, before anything slow. Measured on production 2026-08-21:
+        // 2,869ms to first byte on a bare "hi" and 4,590ms three turns later
+        // in the same thread, with nothing on screen for the whole wait. The
+        // streaming itself was never the problem (no gap over 530ms, median
+        // ~200ms); all of it was front-loaded, and it GROWS as a conversation
+        // gets longer, because the model has more context to read before its
+        // first token.
+        //
+        // This does not make anything faster. It makes the wait visible, which
+        // is the part that was broken: the response now opens immediately and
+        // the composer can show it is working while ensureSession and the
+        // model take their time.
+        //
+        // `thinking` rather than a new frame type on purpose: it already
+        // exists in the Frame union and the client already treats it exactly
+        // like `start`, so nothing downstream changes.
+        send({ type: 'thinking' })
+
         // Reuse the thread's session so the agent keeps context. When there is
         // none (first turn, or a config change cleared it), a new one is
         // created and handed the conversation so far, so a saved edit does not
