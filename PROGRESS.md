@@ -25,7 +25,10 @@ embarrassed by, a pairing link signed with the one secret we share with
 Telegram; it now has a secret of its own and was re-verified on a real phone.
 Timing the chat itself then showed 4.6 seconds of nothing on screen before a
 reply begins, now down to 1.1, with the remaining wait measured and split
-between what is ours and what is the AI thinking.
+between what is ours and what is the AI thinking. Replies now show where they
+came from, as a small badge carrying the site's own icon, with the icons
+fetched by us so nobody else learns what your agent read, and each reply keeps
+the pages behind it rather than throwing them away.
 Next: the before-more-users pair, a
 sign-up email provider and the database plan upgrade, plus two founder-only
 items, connecting a real Jina account end to end and rotating the platform
@@ -135,6 +138,48 @@ Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
 
 ---
+
+## 2026-08-21 (evening): Answers now show where they came from
+
+- Until today a source in a reply was a bare underlined word in the middle of
+  a sentence, which quietly pretends the source is part of what you are
+  reading. It is a small badge now, sitting at the end of the claim it
+  supports: the site's own icon and its name, in small type you can skip
+  without losing the sentence. Ten of them appear correctly in a real
+  conversation.
+- The icons come from us, not from anyone else. The easy way to show a site's
+  icon is to ask Google for it, which quietly tells Google every site your
+  agent read, tied to you. We fetch and cache them ourselves instead, so your
+  browser only ever talks to Run and nobody learns what your agent looked at.
+  It cost about a day more than the easy way and it is the version we can
+  explain.
+- **That fetching is the most dangerous thing in the app**, and it was built
+  accordingly. A server that fetches whatever address it is handed can be
+  tricked into fetching things only a server can reach, so the rule is the
+  reverse of the usual one: an address has to look like a perfectly ordinary
+  website before we will touch it, and everything else is refused. Twenty
+  hostile addresses were tried against it, including the ones that would
+  matter, and all were refused.
+- **Answers also remember what they were based on now.** Search results used to
+  be read once and thrown away, so the reply kept the words and nothing else.
+  Each reply now keeps the pages behind it, with their titles and dates.
+- That was the piece everything else was waiting on. Without it, counting
+  sources would have meant counting the links the agent happened to write, and
+  in a real report that undercounted by half.
+- **Two things only turned up by running it**, which is the argument for doing
+  so. When a site refuses us its icon we used to answer with an invisible
+  image, which the browser treated as success, so the fallback symbol never
+  appeared and those sites showed an empty space. Nothing looked broken and
+  nothing was right.
+- And the stored pages are what the agent **looked at**, not what it **used**.
+  A search for chip news came back with four relevant results and one politics
+  live blog that happened to mention datacenters; the agent sensibly ignored
+  the last one, and we keep it anyway, because nothing tells us which results
+  an answer leaned on. So the next piece of this has to say "the pages behind
+  this answer" and must never claim a precise number of sources.
+- Merged to `main` via pull request #254, with the database change applied
+  first and checked: existing conversations untouched, and the new field
+  invisible to anyone but its owner.
 
 ## 2026-08-21 (later still): The chat stopped looking dead while it thinks
 
