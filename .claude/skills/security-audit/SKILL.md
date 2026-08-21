@@ -94,15 +94,47 @@ user_telegram must all be 0.
 - Headers: X-Frame-Options DENY, nosniff, Referrer-Policy are set in
   next.config.ts (the approval gate must not be frameable). Verify with
   `curl -sI` after any config change; config changes need a dev restart.
+- TRAP, found 2026-08-21: `POST /api/routines/tick` answers **500, not 401**,
+  on a machine where `ROUTINES_CRON_SECRET` is unset. That is the fail-closed
+  branch firing before auth, not an open route. Confirm the variable's absence
+  before treating it as a finding.
 - Secrets: `git config core.hooksPath` is `.githooks`, private-patterns file
   present (git-ignored; recreate from private memory on a fresh clone).
   Server-only keys now include `BRAVE_API_KEY` (the platform search key;
-  a missing key throws SearchUnavailableError, it never falls back) and
+  a missing key throws SearchUnavailableError, it never falls back),
   `ROUTINES_CRON_SECRET` (lives in the Vercel env and the cron job body
-  ONLY, never the repo).
+  ONLY, never the repo), `TELEGRAM_BOT_TOKEN` (send-only: a leak lets
+  someone send as us and read nothing), `TELEGRAM_WEBHOOK_SECRET` (SHARED
+  WITH TELEGRAM by design, so treat it as a value a third party holds) and
+  `TELEGRAM_PAIRING_SECRET` (ours alone, signs pairing tokens, must never
+  equal the webhook secret). Verified 2026-08-21 that none of the three
+  Telegram values, nor the Brave key, appear anywhere in `.next/static`.
 - Full CSP is deliberately deploy-day work; do not bolt one on quickly.
 
 ## Open items ledger (update as they close)
+
+- Telegram pairing signed with a key Telegram holds: **FIXED 2026-08-21**,
+  found by this sweep. `mintPairingToken` used `TELEGRAM_WEBHOOK_SECRET` as
+  its HMAC key, and that is the one value in the system we deliberately give
+  away: it is registered with Telegram at setWebhook time and echoed back on
+  every call. Anyone holding it could mint a token naming any user id, send
+  `/start`, and receive that account's routine reports. The user id was no
+  obstacle either, because `profiles` is readable by every signed-in user.
+  Now signed with its own `TELEGRAM_PAIRING_SECRET`; verified behaviorally
+  that a token signed with the webhook secret is rejected as `bad_signature`.
+  THE RULE: a secret shared with a third party must never also be a signing
+  key for our own claims. Check this whenever a new signed token appears.
+- `profiles` is SELECT-able by every authenticated user (`qual = true`), so
+  any signed-in person can read every account's uuid, display name, avatar and
+  role. Pre-existing and possibly deliberate, but it is what turned the finding
+  above from theoretical into practical, and nothing in the app appears to need
+  cross-user profile reads. FOUNDER DECISION: scope it to `id = auth.uid()`, or
+  say why not.
+- Three SECURITY DEFINER helpers (`get_my_role`, `is_agent_owner`,
+  `owns_knowledge_source`) show as advisor WARNs for being executable by
+  `authenticated`. That is REQUIRED, not a defect: policies evaluate them with
+  the caller's privileges. Do not "fix" these; migrations 033+034 already did
+  the real lockdown (revoke from PUBLIC, grant back authenticated).
 
 - Migration 033+034 (RPC lockdown + avatar listing scope): APPLIED
   2026-07-31, verified via has_function_privilege + RLS probe.

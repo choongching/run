@@ -44,38 +44,74 @@ const TOKEN_LEN = ID_LEN + EXP_LEN + MAC_LEN
 // link, handled the same way, which is why this is an hour and not a day.
 const TTL_MS = 60 * 60 * 1000
 
-function secret(): string {
-  const value = process.env.TELEGRAM_WEBHOOK_SECRET
-  if (!value) throw new Error('TELEGRAM_WEBHOOK_SECRET is not set')
+// A SIGNING key of our own, and deliberately not the webhook secret.
+//
+// This signed the token with TELEGRAM_WEBHOOK_SECRET until the audit on
+// 2026-08-21, which is the one value in the system we hand to somebody else:
+// it is registered with Telegram at setWebhook time and echoed back on every
+// call. So the key that vouches for "this person pressed the button in Run"
+// was a key a third party holds a copy of.
+//
+// What that bought an attacker who had it: mint a token naming ANY user id,
+// send /start, and that account's routine reports arrive in their chat. The
+// user id is not the obstacle it sounds like either, because the profiles
+// table is readable by every signed-in user, so every account's uuid is a
+// query away. The MOVED notice to the losing chat is what stops it being
+// silent, and that is a mitigation rather than a fix.
+//
+// Nothing about this is exotic: a secret shared with a third party must never
+// also be a signing key for your own claims. Separate values, separate jobs.
+function secret(): string | null {
+  return process.env.TELEGRAM_PAIRING_SECRET ?? null
+}
+
+// Minting throws, because being unable to sign is a deployment mistake rather
+// than a user-facing state. The pair route already catches it and answers 503,
+// so the button says Telegram is unavailable instead of handing out tokens
+// nobody can verify.
+function requireSecret(): string {
+  const value = secret()
+  if (!value) throw new Error('TELEGRAM_PAIRING_SECRET is not set')
   return value
 }
 
-function sign(payload: string): string {
-  return createHmac('sha256', secret()).update(payload).digest('base64url').slice(0, MAC_LEN)
+function sign(payload: string, key: string): string {
+  return createHmac('sha256', key).update(payload).digest('base64url').slice(0, MAC_LEN)
 }
 
 export function mintPairingToken(userId: string): string {
+  const key = requireSecret()
   const compactId = userId.replace(/-/g, '')
   const expires = (Date.now() + TTL_MS).toString(36).padStart(EXP_LEN, '0')
-  return `${compactId}${expires}${sign(`${compactId}${expires}`)}`
+  return `${compactId}${expires}${sign(`${compactId}${expires}`, key)}`
 }
 
 export type PairingCheck =
   | { ok: true; userId: string }
-  | { ok: false; reason: 'malformed' | 'expired' | 'bad_signature' }
+  | {
+      ok: false
+      reason: 'malformed' | 'expired' | 'bad_signature' | 'not_configured'
+    }
 
 // Verified in this order deliberately: shape, then signature, then expiry. An
 // expired but genuine token gets to say "expired", which is the message that
 // tells someone to fetch a fresh link. Checking expiry before the signature
 // would leak that a forged token had a valid shape.
 export function verifyPairingToken(token: string): PairingCheck {
+  // Returned, not thrown. The webhook is called by Telegram, which retries
+  // every non-2xx, so an unconfigured deployment throwing here would turn a
+  // missing env var into a retry storm. Failing closed means no pairing, and
+  // the person is told to fetch a fresh link.
+  const key = secret()
+  if (!key) return { ok: false, reason: 'not_configured' }
+
   if (token.length !== TOKEN_LEN) return { ok: false, reason: 'malformed' }
   const compactId = token.slice(0, ID_LEN)
   const expires = token.slice(ID_LEN, ID_LEN + EXP_LEN)
   const mac = token.slice(ID_LEN + EXP_LEN)
   if (!/^[0-9a-f]{32}$/.test(compactId)) return { ok: false, reason: 'malformed' }
 
-  const expected = sign(`${compactId}${expires}`)
+  const expected = sign(`${compactId}${expires}`, key)
   const a = Buffer.from(mac)
   const b = Buffer.from(expected)
   if (a.length !== b.length || !timingSafeEqual(a, b)) {
