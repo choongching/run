@@ -520,7 +520,10 @@ flowchart LR
 ```
 
 - **Front end:** Next.js 16 (App Router), React 19, Tailwind CSS v4. The design
-  system is documented in [docs/styleguide.md](./docs/styleguide.md).
+  system is documented in [docs/styleguide.md](./docs/styleguide.md), which
+  describes what is built rather than what to aim at: every page is one
+  centred column of cards, and a card that holds a list puts that list in its
+  own bordered box.
 - **Data and auth:** Supabase (Postgres, authentication, storage, and row-level
   security that scopes every read and write to its owner).
 - **Agents:** the Anthropic API's Managed Agents, one persistent session per chat
