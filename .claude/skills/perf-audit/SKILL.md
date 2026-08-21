@@ -130,6 +130,42 @@ stayed the two fastest pages. And **the home route is the slowest full stream
 by a wide margin**, untouched for months; that is where to look next, not at
 the pages someone just edited.
 
+## The chat turn, measured (production, 2026-08-21)
+
+Page timings say nothing about a chat turn. Measure it by wrapping `fetch` and
+timestamping NDJSON frames from `/api/chat/[agentId]/message`, reading a
+`res.clone()` so the app's own stream is untouched. Persist to `localStorage`
+per frame: the first version of this probe lived in page memory and lost a real
+measured turn when the tab closed. It only records in the page it was installed
+in, so it must be installed in the tab the message is sent from.
+
+Before the `thinking` frame shipped, first byte was 2,869ms on a bare "hi" and
+4,590ms three turns later in the same thread, with nothing on screen for the
+whole wait. **Time to first byte grows as a conversation ages**, because the
+model reads more context before its first token, so the silence widens exactly
+as a thread becomes worth having.
+
+After: first byte **1,102ms**, total unchanged at 6,295ms. The fix makes
+nothing faster; it makes the wait visible.
+
+**The split, now visible from the gap between `thinking` and `start`:**
+
+| Segment | Cost | Ours? |
+| --- | --- | --- |
+| Pre-stream serial DB round trips | ~1,100ms | yes, recoverable |
+| Session setup + model time to first token | ~3,900ms | no |
+| Streaming the reply | ~1,300ms | no, and healthy |
+
+Streaming is not a problem and never was: no gap over 530ms before the fix,
+median around 200ms, no stall over a second in any turn measured.
+
+**COSTED OPEN ITEM.** The ~1,100ms is four to five serial Supabase round trips
+in the message route before the stream opens: a thread read, `ensureEnvironment`,
+a message insert and a thread update, each paying the ~120ms floor. Collapsing
+them is worth about a second off EVERY turn. The price is that pre-stream HTTP
+error responses become error frames, on the hottest path in the product. Do it
+deliberately or not at all, and re-run this probe to prove it.
+
 ## Known floors (do not chase these in code)
 
 - **~120ms per Supabase request, flat.** Proven with a no-op
