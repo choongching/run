@@ -385,6 +385,10 @@ export type Database = {
           content: string
           payload: Json
           attachments: Json | null
+          // Search hits behind this reply (migration 047). Null means the
+          // message predates the column or did no searching; an empty array
+          // would wrongly claim a search came back with nothing.
+          sources: Json | null
           created_at: string
         }
         Insert: {
@@ -394,6 +398,7 @@ export type Database = {
           content?: string
           payload?: Json
           attachments?: Json | null
+          sources?: Json | null
           created_at?: string
         }
         Update: {
@@ -403,6 +408,7 @@ export type Database = {
           content?: string
           payload?: Json
           attachments?: Json | null
+          sources?: Json | null
           created_at?: string
         }
         Relationships: [

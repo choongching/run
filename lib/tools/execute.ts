@@ -15,6 +15,7 @@ import {
 } from '@/lib/tools/gmail'
 import { TOOL_APP, type ToolName } from '@/lib/tools/definitions'
 import { MAX_RESULTS, isRecency } from '@/lib/search/limits'
+import type { SearchHit } from '@/lib/search/types'
 import { resolveProvider, SearchUnavailableError } from '@/lib/search/resolve'
 import { formatSearchResults } from '@/lib/search/format'
 import { recordSearch } from '@/lib/search/usage'
@@ -36,7 +37,11 @@ export type ToolOutcome =
   // the caller cannot see which provider answered: the same search_web call is
   // our spend or the user's depending on what they have connected, and only
   // the ladder in resolve.ts knows which.
-  | { kind: 'result'; text: string; billed?: boolean }
+  // `hits` is the STRUCTURE behind a search, carried back so the turn can
+  // keep it on the message. The model still only ever sees `text`; these are
+  // for us, and they are what lets a source card show a real title and date
+  // instead of guessing from a link the model happened to write.
+  | { kind: 'result'; text: string; billed?: boolean; hits?: SearchHit[] }
   | { kind: 'error'; text: string }
 
 const KNOWN_TOOLS = new Set<ToolName>([
@@ -276,6 +281,7 @@ async function runSearchWeb(
       kind: 'result',
       text: formatSearchResults(query, result, recency),
       billed: billedToUs,
+      hits: result.hits,
     }
   } catch (err) {
     if (err instanceof SearchUnavailableError) {
