@@ -40,11 +40,20 @@ export default async function ConnectorsPage() {
       .eq('deliver_telegram', true),
   ])
 
+  // The subtitle names the page's groups, so it has to lose its second clause
+  // on a deployment with no bot: otherwise it promises somewhere for reports
+  // to reach you and the page has nowhere to point.
+  const delivery = isTelegramConfigured()
+
   return (
     <PageShell>
       <PageHeader
         title="Connectors"
-        description="What your agents can use, and where your reports reach you."
+        description={
+          delivery
+            ? 'What your agents can use, and where your reports reach you.'
+            : 'What your agents can use.'
+        }
       />
       <ConnectorsManager
         connections={{
@@ -54,7 +63,7 @@ export default async function ConnectorsPage() {
         }}
         searches={searches}
         telegram={
-          isTelegramConfigured()
+          delivery
             ? {
                 paired: Boolean(telegram.data),
                 sendingCount: sending.count ?? 0,
