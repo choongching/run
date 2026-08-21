@@ -30,7 +30,7 @@ publish the layer where the answer is weakest.**
 5. **Then fix it.** A published weakness becomes an open item in the
    `security-audit` skill's ledger.
 
-## What is true today (verified 2026-08-20)
+## What is true today (verified 2026-08-21)
 
 - Agent tools are exactly: `search_web`, `gmail_search`, `gmail_get_message`,
   `gmail_create_draft`, `drive_list_files`, `drive_read_file`,
@@ -68,6 +68,10 @@ publish the layer where the answer is weakest.**
   hour, so whoever holds it in that window can point an account's reports at
   their own chat. Mitigated by the short window and by telling the old chat
   when delivery moves, which is the same shape as a password reset link.
+  The link is signed with `TELEGRAM_PAIRING_SECRET`, ours alone, and NOT with
+  the webhook secret, which Telegram holds a copy of. It was the webhook
+  secret until the 2026-08-21 audit; if anyone asks whether Telegram could
+  forge a pairing, the honest answer is that they could have and now cannot.
 - The approve route reads `pending_tools` off the caller's own thread row,
   clears it (no double-run), and executes ONLY that stored call. The request
   body carries a yes/no and nothing else.
