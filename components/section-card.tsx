@@ -51,7 +51,7 @@ export function SectionCard({
   return (
     <section
       className={cn(
-        'flex flex-col gap-3.5 rounded-xl border border-border bg-card p-5',
+        'flex flex-col gap-3.5 rounded-xl border border-border bg-card p-4 md:p-5',
         className
       )}
     >

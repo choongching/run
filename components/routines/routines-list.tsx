@@ -415,7 +415,7 @@ export function RoutinesList({
                                   variant="ghost"
                                   size="icon-sm"
                                   aria-label={`Run ${r.name} now`}
-                                  className="text-primary hover:text-primary"
+                                  className="run-tap text-primary hover:text-primary"
                                   onClick={() => void runNow(r)}
                                 />
                               }
@@ -437,7 +437,7 @@ export function RoutinesList({
                                     variant="ghost"
                                     size="icon-sm"
                                     aria-label={`Pause ${r.name}`}
-                                    className="text-muted-foreground"
+                                    className="run-tap text-muted-foreground"
                                     onClick={() =>
                                       void patch(r.id, { action: 'pause' }, 'pause it')
                                     }
@@ -481,7 +481,7 @@ export function RoutinesList({
                           <Button
                             variant="ghost"
                             size="icon-sm"
-                            className="text-muted-foreground"
+                            className="run-tap text-muted-foreground"
                             aria-label={`Actions for ${r.name}`}
                             onClick={(e: React.MouseEvent) => e.stopPropagation()}
                           />

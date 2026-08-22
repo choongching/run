@@ -247,6 +247,7 @@ export function ConnectorRow({
                   <Button
                     variant="ghost"
                     size="sm"
+                    className="run-tap"
                     onClick={disconnect}
                     disabled={busy}
                   />
@@ -265,7 +266,14 @@ export function ConnectorRow({
           ) : (
             <>
               <TooltipTrigger
-                render={<Button size="sm" onClick={connect} disabled={busy} />}
+                render={
+                  <Button
+                    size="sm"
+                    className="run-tap"
+                    onClick={connect}
+                    disabled={busy}
+                  />
+                }
               >
                 {busy && <Loader2 className="size-3.5 animate-spin" />}
                 {busy ? 'Connecting' : 'Connect'}

@@ -20,7 +20,10 @@
 // call, made on the canvas.
 export function PageShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="p-6 md:p-8">
+    // px-4 on a phone, not px-6 (styleguide 5b). With a SectionCard's own
+    // padding inside it, 24px here put the text 45px from the screen edge on a
+    // 390px phone, over the 32px inset the chat card was tuned to.
+    <div className="px-4 py-6 md:p-8">
       <div className="mx-auto w-full max-w-thread">{children}</div>
     </div>
   )
