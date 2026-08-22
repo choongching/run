@@ -27,7 +27,7 @@ export function SignOutCard({ email }: { email: string }) {
           detail="On this browser."
           trailing={
             <form action={logout}>
-              <Button type="submit" variant="outline" size="sm">
+              <Button type="submit" variant="outline" size="sm" className="run-tap">
                 Sign out
               </Button>
             </form>

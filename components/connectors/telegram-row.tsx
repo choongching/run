@@ -165,6 +165,7 @@ export function TelegramRow({ initialPaired, sendingCount }: Props) {
                   <Button
                     variant="ghost"
                     size="sm"
+                    className="run-tap"
                     onClick={disconnect}
                     disabled={busy}
                   />
@@ -180,7 +181,12 @@ export function TelegramRow({ initialPaired, sendingCount }: Props) {
             <>
               <TooltipTrigger
                 render={
-                  <Button size="sm" onClick={connect} disabled={busy || waiting} />
+                  <Button
+                    size="sm"
+                    className="run-tap"
+                    onClick={connect}
+                    disabled={busy || waiting}
+                  />
                 }
               >
                 {(busy || waiting) && <Loader2 className="size-3.5 animate-spin" />}

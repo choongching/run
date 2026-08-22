@@ -220,7 +220,7 @@ export function KnowledgeLibrary({
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      className="text-muted-foreground"
+                      className="run-tap text-muted-foreground"
                       aria-label={`Actions for ${s.title}`}
                     />
                   }

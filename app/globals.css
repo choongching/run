@@ -215,6 +215,24 @@
    made the nav look like a thing to act on rather than the frame around one.
    The main region keeps its inset card, which is what marks the workspace. */
 @layer utilities {
+  /* A 44px touch target under a control that looks smaller (styleguide 5b).
+     Row controls are 28px by design, because a row full of 44px buttons reads
+     as a toolbar on a desktop; on a phone that is under the tap floor. This
+     grows the hit area only, below md only, and paints nothing: the control
+     keeps its size and the finger gets its 44px.
+
+     The 8px inset takes a 28px control to 44px exactly. Anything already at
+     or above the floor must not carry this class. */
+  @media (width < 48rem) {
+    .run-tap {
+      position: relative;
+    }
+    .run-tap::after {
+      content: '';
+      position: absolute;
+      inset: -8px;
+    }
+  }
   [data-variant="inset"] [data-slot="sidebar-container"] {
     @apply p-0;
   }
