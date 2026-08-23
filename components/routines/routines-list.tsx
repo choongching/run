@@ -231,7 +231,7 @@ export function RoutinesList({
               <Link
                 key={s}
                 href={`/chat/${firstAgent.id}?prefill=${encodeURIComponent(s)}`}
-                className="rounded-lg border border-border bg-card px-3.5 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+                className="run-focus-fade rounded-lg border border-border bg-card px-3.5 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
               >
                 {s}
               </Link>
@@ -282,7 +282,7 @@ export function RoutinesList({
               return (
                 <li
                   key={r.id}
-                  className="group flex cursor-pointer items-start gap-3 px-3.5 py-3 hover:bg-muted/40"
+                  className="group run-focus-fade flex cursor-pointer items-start gap-3 px-3.5 py-3 hover:bg-muted/40"
                   onClick={() => {
                     setSelected(r)
                     setOpen(true)

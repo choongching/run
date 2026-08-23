@@ -24,7 +24,10 @@ export function PageShell({ children }: { children: React.ReactNode }) {
     // padding inside it, 24px here put the text 45px from the screen edge on a
     // 390px phone, over the 32px inset the chat card was tuned to.
     <div className="px-4 py-6 md:p-8">
-      <div className="mx-auto w-full max-w-thread">{children}</div>
+      {/* run-settle gives the cards inside their entrance (globals.css). It
+          lives here rather than on SectionCard so the same card can sit in a
+          dialog or a sheet without animating every time that opens. */}
+      <div className="run-settle mx-auto w-full max-w-thread">{children}</div>
     </div>
   )
 }
