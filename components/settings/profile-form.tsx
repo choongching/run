@@ -76,7 +76,6 @@ export function ProfileForm({
   return (
     <SectionCard
       title="Profile"
-      description="How you appear across Run: in the sidebar and in your agent chats."
     >
       {/* A form keeps its fields ON the card, with no inner box: a hairline
           between two inputs reads as a table of inputs. */}

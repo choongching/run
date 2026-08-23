@@ -47,7 +47,6 @@ export default async function KnowledgePage() {
     usedBy: usage.get(s.id) ?? [],
   }))
 
-  const totalChars = items.reduce((sum, s) => sum + s.chars, 0)
 
   return (
     <PageShell>
@@ -55,7 +54,7 @@ export default async function KnowledgePage() {
         title="Knowledge"
         description="What your agents always know."
       />
-      <KnowledgeLibrary items={items} totalChars={totalChars} />
+      <KnowledgeLibrary items={items} />
     </PageShell>
   )
 }

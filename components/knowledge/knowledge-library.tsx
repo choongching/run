@@ -12,7 +12,7 @@ import {
   setKnowledgeScope,
 } from '@/app/actions/knowledge'
 import { KnowledgeIcon } from '@/components/nav-icons'
-import { RowBox, SectionCard } from '@/components/section-card'
+import { RowBox, SectionCard, SectionCount } from '@/components/section-card'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -43,10 +43,8 @@ export type LibrarySource = {
 
 export function KnowledgeLibrary({
   items,
-  totalChars,
 }: {
   items: LibrarySource[]
-  totalChars: number
 }) {
   const router = useRouter()
   const [busy, setBusy] = useState<string | null>(null)
@@ -135,15 +133,18 @@ export function KnowledgeLibrary({
   return (
     <>
       <SectionCard
-        title="Your library"
-        // Two facts, each attached to the thing it counts. The old line read
-        // "33 characters, 50 allowed", which put the source limit next to the
-        // character count and so appeared to cap the characters. 50 is how
-        // many sources you may keep.
-        description={`${items.length} ${
-          items.length === 1 ? 'source' : 'sources'
-        } of ${MAX_LIBRARY_SOURCES} allowed. ${totalChars.toLocaleString()} characters in all.`}
-        footnote="A source belongs to you rather than to one agent, so the same note can feed several of them."
+        // The count carries the limit, the way every other section carries
+        // its count. The old prose said "33 characters, 50 allowed", which
+        // read as a fifty-CHARACTER cap; 50 is how many sources you may keep,
+        // so the number now sits beside the only thing it counts.
+        title={
+          <>
+            Your library
+            <SectionCount>
+              {items.length} of {MAX_LIBRARY_SOURCES}
+            </SectionCount>
+          </>
+        }
       >
       <RowBox list>
         {items.map((s) => (

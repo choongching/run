@@ -17,7 +17,6 @@ export function PasswordCard({
   return (
     <SectionCard
       title="Password"
-      description="Pick a new one. You stay signed in on this device."
     >
         <form action={updatePassword} className="flex flex-col gap-4">
           <input type="hidden" name="from" value="settings" />

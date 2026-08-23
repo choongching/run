@@ -219,11 +219,15 @@ history. Use these components rather than re-deriving the classes.
   stacks them with `gap-5`. Never the shadcn `Card` primitive on a page: it
   draws `ring-1 ring-foreground/10` rather than our border token, which is why
   Settings used to be the only page outlined differently.
-- **The card carries the words.** Heading `text-base font-medium` (one step
-  below the page title, which stays the loudest voice), one `text-sm
-  text-muted-foreground` line under it saying what the section is for, and an
-  optional action at the trailing edge of the heading's line. A count beside
+- **The card carries one heading and nothing else in words.** `text-base
+  font-medium`, one step below the page title, which stays the loudest voice,
+  plus an optional action at the trailing edge of that line. A count beside
   the heading is `SectionCount`: `text-sm font-normal text-muted-foreground`.
+  There is no description line and no footnote, and `SectionCard` has no prop
+  for either (founder call 2026-08-23). Every card used to explain itself
+  under its heading and read down a page it was a wall of prose nobody needed
+  twice. What has to be said belongs to the row it is about, or to the page
+  subtitle, or it is not worth saying.
 - **A card that holds a list puts it in a bordered box.** `RowBox` =
   `divide-y divide-border overflow-hidden rounded-lg border border-border`,
   one radius step down from the card. Hairlines only: a gap turns every row
@@ -235,8 +239,6 @@ history. Use these components rather than re-deriving the classes.
   that WRAPS rather than truncates, and everything actionable gathered at the
   trailing edge. A row whose detail is data rather than prose passes its own
   truncating node.
-- **The footnote is the card's last line**, `text-xs text-muted-foreground`,
-  one fact about the whole section and never a second description.
 - **Empty fills the box's slot, not the card's.** `EmptyBox`, or the dashed
   box recipe in 7b, inside the same `SectionCard` the rows would have used, so the
   page keeps its shape when there is nothing in it yet.
@@ -265,7 +267,7 @@ history. Use these components rather than re-deriving the classes.
   saying how to fill it. COMPACT, for the sidebar and docked panels:
   `rounded-lg border border-dashed border-border px-2.5 py-2 text-xs
   text-muted-foreground`, one line, no icon. Body copy carries the action
-  only; what the thing IS belongs in the section description. Loading and
+  only; what the thing IS is already the card's heading. Loading and
   empty share one box at one height so the surface holds its shape.
 - **Drop zones are dashed boxes that are real buttons** (same language as an
   empty state; the zone IS the empty state, never stacked beside one). The

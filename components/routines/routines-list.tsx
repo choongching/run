@@ -134,12 +134,6 @@ function StatusDot({ r }: { r: RoutineListItem }) {
 // One line per group saying what being in it MEANS. The old bar carried the
 // word and a count and nothing else, which told someone who had never seen
 // this page what the pile was called but not what it was.
-const GROUP_BLURB: Record<string, string> = {
-  'Needs you': 'These stopped and are waiting on something you can fix.',
-  Active: 'These start on their own and report back when they finish.',
-  Paused: 'These will not start until you say so.',
-}
-
 export function RoutinesList({
   routines,
   firstAgent,
@@ -276,7 +270,6 @@ export function RoutinesList({
               <SectionCount>{group.items.length}</SectionCount>
             </>
           }
-          description={GROUP_BLURB[group.title]}
           className="mb-5"
         >
           {/* One box, hairlines between the routines. They used to be separate

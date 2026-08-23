@@ -161,16 +161,6 @@ export function ConnectorsManager({
         // "What your agents can use" and is not true of this: the subtitle
         // names the page, this names the pile.
         title="Accounts and tools"
-        description="Every agent you make can reach these."
-        /* The trust promise closes the group it is about, rather than the
-           page. It is also the ONE place the approval rule is stated, which
-           is why no connector row above carries its own approval clause:
-           said per row it sounds like a quirk of that connector, said once
-           here it is how the product works.
-
-           Two short sentences rather than one joined by "but". The promise
-           should read like it was said out loud. */
-        footnote="Your agents only read. Anything that changes something needs your approval."
       >
         <RowBox>
           {connector('gmail')}
@@ -232,11 +222,6 @@ export function ConnectorsManager({
       {telegram ? (
         <SectionCard
           title="Where reports go"
-          description="Your routines can send their reports here."
-          /* The honest line, next to the thing it is about. Someone looking
-             at a chat app on this page will assume their agent got a new
-             place to talk, and it did not. */
-          footnote="Your agents cannot use this. Run sends the reports, and the bot only listens for start and stop."
         >
           <RowBox>
             <TelegramRow
