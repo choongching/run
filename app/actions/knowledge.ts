@@ -28,6 +28,30 @@ export type KnowledgeResult =
   | { ok: false; reason: string }
   | { ok: false; confirm: true; reason: string }
 
+// The text of one source, for the details view.
+//
+// Deliberately not part of the library page's own query: a source runs to
+// 20,000 characters and a full library is 50 of them, so shipping every text
+// to the client to show one of them would be a megabyte nobody reads. RLS is
+// the gate; owner_id is here so a miss reads as "gone" rather than as an
+// empty note.
+export async function readKnowledgeSource(
+  sourceId: string
+): Promise<{ ok: true; content: string } | { ok: false; reason: string }> {
+  const { userId } = await getUserIdentity()
+  const supabase = await createClient()
+
+  const { data } = await supabase
+    .from('knowledge_sources')
+    .select('content')
+    .eq('id', sourceId)
+    .eq('owner_id', userId)
+    .maybeSingle()
+
+  if (!data) return { ok: false, reason: 'That source is no longer available.' }
+  return { ok: true, content: data.content }
+}
+
 // Create a source from typed text and attach it to this agent.
 export async function addKnowledgeNote(
   agentId: string,
@@ -77,6 +101,9 @@ export async function addKnowledgeNote(
       char_count: chars,
       checksum: checksumOf(text),
       origin: truncated ? { truncated: true } : null,
+      // Where it came from, kept for good. The link below says who uses it
+      // today, which is a different question the moment someone detaches it.
+      source_agent_id: agentId,
     })
     .select('id')
     .single()

@@ -484,7 +484,6 @@ export function RoutinesList({
                       </DropdownMenuTrigger>
                       <DropdownMenuContent
                         align="end"
-                        className="min-w-52"
                         onClick={(e: React.MouseEvent) => e.stopPropagation()}
                       >
                         {/* The row itself opens the sheet, but nothing says

@@ -108,6 +108,11 @@ export function Row({
   detail,
   trailing,
   className,
+  // A row inside a `RowBox list`. Same shape, rendered as the <li> that box's
+  // <ul> requires. Knowledge and Routines hand-rolled their rows only because
+  // this component was a <div>, and both drifted from the recipe within a
+  // week of it being written.
+  item = false,
   ...rest
 }: {
   lead?: React.ReactNode
@@ -115,15 +120,21 @@ export function Row({
   detail?: React.ReactNode
   trailing?: React.ReactNode
   className?: string
+  item?: boolean
 } & Omit<React.ComponentProps<'div'>, 'title'>) {
+  // One element type either way; the props are the same in both, and the
+  // union of the two ref types is what TS cannot narrow on its own.
+  const Tag = (item ? 'li' : 'div') as 'div'
   return (
-    <div
+    <Tag
       className={cn('flex items-center gap-3 px-3.5 py-3', className)}
       {...rest}
     >
       {lead}
       <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-1.5 text-sm font-medium">
+        {/* min-w-0 so a long name inside can truncate: a flex item defaults
+            to min-width:auto and would push the row wider instead. */}
+        <div className="flex min-w-0 items-center gap-1.5 text-sm font-medium">
           {title}
         </div>
         {/* Wraps rather than truncates. A row's detail is a sentence about the
@@ -141,7 +152,7 @@ export function Row({
           {trailing}
         </div>
       )}
-    </div>
+    </Tag>
   )
 }
 

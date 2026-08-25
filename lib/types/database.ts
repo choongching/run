@@ -154,6 +154,10 @@ export type Database = {
           checksum: string | null
           origin: Json | null
           applies_to_all: boolean
+          // The agent this source was created in. Null for a source whose
+          // agent is gone, or one that predates the column and was never
+          // attached to anything.
+          source_agent_id: string | null
           created_at: string
           updated_at: string
         }
@@ -167,6 +171,7 @@ export type Database = {
           checksum?: string | null
           origin?: Json | null
           applies_to_all?: boolean
+          source_agent_id?: string | null
           created_at?: string
           updated_at?: string
         }
@@ -180,10 +185,19 @@ export type Database = {
           checksum?: string | null
           origin?: Json | null
           applies_to_all?: boolean
+          source_agent_id?: string | null
           created_at?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: 'knowledge_sources_source_agent_id_fkey'
+            columns: ['source_agent_id']
+            isOneToOne: false
+            referencedRelation: 'agents'
+            referencedColumns: ['id']
+          },
+        ]
       }
       agent_knowledge: {
         Row: {

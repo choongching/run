@@ -238,7 +238,18 @@ history. Use these components rather than re-deriving the classes.
   bg-background`), the name `text-sm font-medium`, a `text-xs` muted detail
   that WRAPS rather than truncates, and everything actionable gathered at the
   trailing edge. A row whose detail is data rather than prose passes its own
-  truncating node.
+  truncating node. Pass `item` for a row inside a `RowBox list` and it renders
+  as the `<li>` that box wants: the pages that hand-rolled their own `<li>`
+  because `Row` was a `<div>` all drifted from this recipe within a week.
+- **A row's facts go on the detail line, not in the middle of the row.**
+  Kind, size, when it changed: one `text-xs` line, separated by middle dots
+  (`·` at `text-muted-foreground/50`), read left to right. A third column
+  floated between the name and the trailing edge lands in a different place on
+  every row and leaves a ragged gap; that was Knowledge's agent chips before
+  2026-08-25. State that belongs to the row and lines up down the list (a meta
+  chip, a status word) goes at the trailing edge with the kebab. Below `sm`,
+  where a 326px row has no width to give, the chip stands down and its words
+  join the detail line.
 - **Empty fills the box's slot, not the card's.** `EmptyBox`, or the dashed
   box recipe in 7b, inside the same `SectionCard` the rows would have used, so the
   page keeps its shape when there is nothing in it yet.
@@ -277,16 +288,28 @@ history. Use these components rather than re-deriving the classes.
 - **Row overflow menu:** a row's actions live in a kebab at its trailing edge
   (`Ellipsis`, ghost `icon-sm`, `text-muted-foreground`) opening a
   `DropdownMenu`: the ordinary actions first, then a separator and the
-  destructive one (`variant="destructive"`) always last. Quick actions may
+  destructive one (`variant="destructive"`) always last. The menu sizes to its
+  own content, never to its anchor (`min-w-[max(8rem,var(--anchor-width))]` on
+  `DropdownMenuContent`): anchored to a 32px kebab, an exact anchor width wrapped
+  "Use only where attached" onto two lines. While a row action is running, the
+  spinner takes the icon's place INSIDE the same button rather than replacing
+  it, so the row does not resize under the pointer. Quick actions may
   also appear on hover beside it (`hidden md:group-hover:flex`), never
   instead of the menu, because hover does not exist on touch.
-- **Side drawer (Sheet):** for one record's details without leaving the list
-  it came from (Run's use: a routine). Right side, `sm:max-w-md`, `gap-0`,
-  header and footer split off by `border-b`/`border-t` hairlines and a
-  scrollable `flex-1 overflow-y-auto p-5` body; `pr-12` on the header clears
-  the X. Body lists are the 7a `RowBox`. Keep the selected record in state
-  after close (a separate `open` boolean drives visibility) so the overlay
-  keeps its content through the exit animation instead of flashing empty.
+- **One record, opened: a Dialog.** For a record's details without leaving
+  the list it came from (a routine, a knowledge source). This used to say
+  "side drawer (Sheet)"; the app has never had one on a page, because the
+  founder chose the centred dialog after seeing both. `gap-0 overflow-hidden
+  p-0`, a `border-b` header with `pr-12` to clear the X, a scrollable `flex-1
+  overflow-y-auto p-5` body, and full screen below `md` (see 5b). Body lists
+  and fact tables are the 7a `RowBox`. Keep the selected record in state after
+  close (a separate `open` boolean drives visibility) so the overlay keeps its
+  content through the exit animation instead of flashing empty, and key the
+  body on the record's id so it remounts rather than syncing props into state.
+- **The row is the door.** A list row whose record has more to it than fits on
+  two lines opens the record on click (`cursor-pointer hover:bg-muted/40`), and
+  the trailing cluster stops the click from reaching it
+  (`onClick={(e) => e.stopPropagation()}`) so the kebab is not also a door.
 - **Cards IN the conversation** (approval, review, options, routine) are the
   one place a card is outlined in the focus green rather than the border
   token: `rounded-xl border border-ring/60 bg-card p-4`. They are asking for
