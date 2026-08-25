@@ -158,23 +158,24 @@ you see the file name and where it is going before anything happens.
 
 **What it does when you are not there**
 
-A routine is the same agent doing the same work on a schedule, with two
-differences worth knowing. It gets a fresh memory each run, carrying only a
-short note from last time so "what changed" means something. And it cannot
-write while unattended: anything it would normally ask about, it describes in
-its reply and leaves for you, so an unattended run can never become an
-unattended action.
+A routine is the same agent doing the same work on a schedule. Its report
+lands in that agent's own chat under a line naming the routine, so you read it
+where you would ask the follow-up.
 
-The report can come to you rather than wait in the app. Switch a routine on
-for Telegram and its reports arrive as a message when the run finishes. When a
-run finds nothing worth saying, nothing arrives, and the next real report tells
-you how many quiet runs there were. A routine that stops itself always says so,
-because a routine that dies quietly is one you keep waiting on. You connect
-once, from the Connectors page or from the routine itself, and every routine
-decides on its own whether to send.
+Two things change when nobody is watching. Each run starts with a blank memory
+and reads only its last report, so "since last time" means something. And it
+cannot write: anything it would normally ask about, it describes in its reply
+and leaves for you, so an unattended run never becomes an unattended action.
 
-Everything above is per person. An agent acts on the accounts of whoever is
-signed in, and the database enforces that underneath the app.
+The report can reach your phone instead. Switch a routine on for Telegram and
+it arrives as a message when the run finishes. Each routine has its own switch,
+and you connect once, from Connectors or from the routine itself. A run that
+finds nothing sends nothing, and the next real report says how many quiet runs
+there were.
+
+Routines spend the same monthly runs as your chats. One that runs out of them,
+or fails three times running, pauses itself and says so, because a routine that
+dies quietly is one you keep waiting on.
 
 ## Trust and safety
 
@@ -604,10 +605,8 @@ Around that loop, the product has filled out:
   real run dates before you save.
 - **Reports come to you.** Switch a routine on for Telegram and its report
   arrives on your phone the moment the run finishes, so checking on your
-  agents does not mean logging in. A run that finds nothing sends nothing,
-  and the next real report says how many quiet runs there were. A routine
-  that stops itself always says so. Your agents cannot use this: Run sends
-  the reports, and the bot only listens for start and stop.
+  agents does not mean logging in. Your agents cannot use this: Run sends the
+  reports, and the bot only listens for start and stop.
 
 Next: opening the doors to more users (real sign-up emails and a database
 plan that fits them), exporting documents to Google Docs and PDF, and multiple
