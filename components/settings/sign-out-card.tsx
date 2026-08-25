@@ -12,7 +12,6 @@ export function SignOutCard({ email }: { email: string }) {
   return (
     <SectionCard
       title="This device"
-      description="Signing out ends this session only. Your agents keep running."
     >
       {/* A row, not a form on a card: it is one thing about one device, which
           is what a row is for. */}

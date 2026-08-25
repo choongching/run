@@ -115,6 +115,8 @@ export async function POST(
         size: file.size,
         truncated,
       } as unknown as Json,
+      // The agent this was uploaded in; see the note path.
+      source_agent_id: agentId,
     })
     .select('id, title, kind, char_count')
     .single()

@@ -134,12 +134,6 @@ function StatusDot({ r }: { r: RoutineListItem }) {
 // One line per group saying what being in it MEANS. The old bar carried the
 // word and a count and nothing else, which told someone who had never seen
 // this page what the pile was called but not what it was.
-const GROUP_BLURB: Record<string, string> = {
-  'Needs you': 'These stopped and are waiting on something you can fix.',
-  Active: 'These start on their own and report back when they finish.',
-  Paused: 'These will not start until you say so.',
-}
-
 export function RoutinesList({
   routines,
   firstAgent,
@@ -237,7 +231,7 @@ export function RoutinesList({
               <Link
                 key={s}
                 href={`/chat/${firstAgent.id}?prefill=${encodeURIComponent(s)}`}
-                className="rounded-lg border border-border bg-card px-3.5 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
+                className="run-focus-fade rounded-lg border border-border bg-card px-3.5 py-2 text-sm text-muted-foreground hover:bg-muted hover:text-foreground"
               >
                 {s}
               </Link>
@@ -276,7 +270,6 @@ export function RoutinesList({
               <SectionCount>{group.items.length}</SectionCount>
             </>
           }
-          description={GROUP_BLURB[group.title]}
           className="mb-5"
         >
           {/* One box, hairlines between the routines. They used to be separate
@@ -289,7 +282,7 @@ export function RoutinesList({
               return (
                 <li
                   key={r.id}
-                  className="group flex cursor-pointer items-start gap-3 px-3.5 py-3 hover:bg-muted/40"
+                  className="group run-focus-fade flex cursor-pointer items-start gap-3 px-3.5 py-3 hover:bg-muted/40"
                   onClick={() => {
                     setSelected(r)
                     setOpen(true)
@@ -491,7 +484,6 @@ export function RoutinesList({
                       </DropdownMenuTrigger>
                       <DropdownMenuContent
                         align="end"
-                        className="min-w-52"
                         onClick={(e: React.MouseEvent) => e.stopPropagation()}
                       >
                         {/* The row itself opens the sheet, but nothing says

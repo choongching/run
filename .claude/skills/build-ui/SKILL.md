@@ -14,7 +14,7 @@ Goal: zero re-derivation, zero styling drift.
 `docs/styleguide.md` section **7a** is the container pattern, and
 `components/section-card.tsx` is the code. A page is a stack of `SectionCard`s;
 a card that holds a list puts it in a `RowBox`, hairlines between the rows and
-nothing else; the footnote is the card's last line; an empty state fills the
+nothing else; the card says nothing beyond its heading; an empty state fills the
 box's slot so the card stays. A section of form FIELDS is the exception and
 keeps them on the card, because a hairline between two inputs reads as a table
 of inputs.
