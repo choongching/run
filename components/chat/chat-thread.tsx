@@ -31,7 +31,10 @@ import { ConnectCard } from '@/components/chat/connect-card'
 import { Markdown } from '@/components/chat/markdown'
 import type { MessageSource } from '@/lib/chat/sources'
 import { RunDonut } from '@/components/usage/run-donut'
-import { OptionsCard } from '@/components/chat/options-card'
+import {
+  InterviewCard,
+  InterviewSummary,
+} from '@/components/chat/interview-card'
 import { ReviewCard, type ReviewSpec } from '@/components/chat/review-card'
 import { RoutineCard } from '@/components/chat/routine-card'
 import { ErrorNote } from '@/components/chat/error-note'
@@ -96,6 +99,10 @@ export type ChatMessage = {
   // A change to the agent itself, marked in the conversation as a rule rather
   // than a message: nobody said this, the setup did.
   notice?: string
+  // An answered round of setup questions. The message text carries the same
+  // answers for the model and for search; this draws them as the card they
+  // were given in.
+  interview?: { q: string; a: string }[]
 }
 
 // The composer's in-progress attachment: validated and confirmed on attach, so
@@ -528,18 +535,29 @@ export function ChatThread({
     )
   }
 
-  // Answer an ask_user question: show the choice and resume the session.
-  async function respondToAsk(answer: string) {
-    if (running) return
+  // Answer an ask_user round: show the answers and resume the session. The
+  // whole round posts at once, which is what lets the card go back and change
+  // an answer up until Save.
+  async function respondToAsk(answers: string[]) {
+    if (running || !ask) return
+    const round = ask.questions
+      .map((q, i) => ({ q: q.question, a: answers[i] ?? '' }))
+      .filter((entry) => entry.a)
     setMessages((prev) => [
       ...prev,
-      { id: tempId.current--, role: 'user', content: answer, createdAt: nowIso() },
+      {
+        id: tempId.current--,
+        role: 'user',
+        content: round.map((entry) => `${entry.q}\n${entry.a}`).join('\n\n'),
+        interview: round,
+        createdAt: nowIso(),
+      },
     ])
     await runStream((signal) =>
       fetch(`/api/chat/${agentId}/answer`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ answer }),
+        body: JSON.stringify({ answers }),
         signal,
       })
     )
@@ -702,6 +720,8 @@ export function ChatThread({
                 )}
                 {first.notice ? (
                   <DayDivider label={first.notice} />
+                ) : first.interview ? (
+                  <InterviewSummary answers={first.interview} />
                 ) : block.kind === 'steps' ? (
                   <StepsBlock steps={block.items} running={blockIsLive} />
                 ) : (
@@ -725,7 +745,7 @@ export function ChatThread({
             <ApprovalCard calls={approval} onDecision={respondToApproval} />
           )}
 
-          {ask && <OptionsCard spec={ask} onAnswer={respondToAsk} />}
+          {ask && <InterviewCard spec={ask} onAnswer={respondToAsk} />}
 
           {review && <ReviewCard spec={review} onConfirm={confirmSetup} />}
 

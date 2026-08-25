@@ -10,10 +10,14 @@ import { drainSession, type Frame, type PendingCall } from '@/lib/chat/run-turn'
 import { isAskTool, summarizeAsk } from '@/lib/tools/definitions'
 import type { Json } from '@/lib/types/database'
 
-// Answer an ask_user question: record the choice, resume the paused session,
-// and stream the agent's next question or reply. When the answer ends a
-// first-run setup interview, save the brief into the agent's instructions and
-// auto-run its first task.
+// Answer an ask_user round: record the choices, resume the paused session, and
+// stream the agent's next question or reply. When the answers end a first-run
+// setup interview, save the brief into the agent's instructions and auto-run
+// its first task.
+//
+// A round arrives whole. The card holds every step client-side and posts once,
+// so this runs one resume per ROUND rather than one per question, which is
+// what makes going back and changing an answer free right up until Save.
 export const maxDuration = 300
 
 export async function POST(
@@ -25,8 +29,15 @@ export async function POST(
   const { agentId } = await params
 
   const body = await request.json().catch(() => null)
-  const answer = typeof body?.answer === 'string' ? body.answer.trim() : ''
-  if (!answer) {
+  // `answers` is a round, in the order the questions were asked. `answer` is
+  // the single-question shape from before rounds existed, still accepted so a
+  // card drawn by the previous deploy can still be answered.
+  const given: string[] = Array.isArray(body?.answers)
+    ? body.answers.map((a: unknown) => (typeof a === 'string' ? a.trim() : ''))
+    : typeof body?.answer === 'string'
+      ? [body.answer.trim()]
+      : []
+  if (given.length === 0 || given.some((a) => !a)) {
     return Response.json({ error: 'An answer is required' }, { status: 400 })
   }
 
@@ -53,21 +64,37 @@ export async function POST(
   }
 
   const sessionId = thread.session_id
-  const question = summarizeAsk(askCall.input).question
+  const asked = summarizeAsk(askCall.input).questions
 
-  // Record the answer and show it in the thread, then clear the pending state
+  // Pair each answer with the question it belongs to. An answer with no
+  // question behind it (a malformed card, a stale post) is dropped rather
+  // than recorded against nothing.
+  const round: SetupAnswer[] = asked
+    .map((q, i) => ({ q: q.question, a: given[i] ?? '' }))
+    .filter((entry) => entry.a)
+  if (round.length === 0) {
+    return Response.json({ error: 'An answer is required' }, { status: 400 })
+  }
+
+  // Record the round and show it in the thread, then clear the pending state
   // so a double-tap can't resume twice.
   const answers: SetupAnswer[] = [
     ...((thread.setup_answers as unknown as SetupAnswer[] | null) ?? []),
-    { q: question, a: answer },
+    ...round,
   ]
   await supabase
     .from('threads')
     .update({ setup_answers: answers as unknown as Json, pending_tools: null })
     .eq('id', thread.id)
-  await supabase
-    .from('messages')
-    .insert({ thread_id: thread.id, role: 'user', content: answer })
+  // One message holds the whole round. `content` is what the model and any
+  // later reader see; `payload.interview` is the same answers structured, so
+  // the thread can draw them as the answered card instead of a wall of text.
+  await supabase.from('messages').insert({
+    thread_id: thread.id,
+    role: 'user',
+    content: round.map((entry) => `${entry.q}\n${entry.a}`).join('\n\n'),
+    payload: { interview: round } as unknown as Json,
+  })
 
   const anthropic = getAnthropicClient()
   const encoder = new TextEncoder()
@@ -94,7 +121,14 @@ export async function POST(
             {
               type: 'user.custom_tool_result',
               custom_tool_use_id: askCall.id,
-              content: [{ type: 'text', text: answer }],
+              content: [
+                {
+                  type: 'text',
+                  text: round
+                    .map((entry) => `${entry.q}\n${entry.a}`)
+                    .join('\n\n'),
+                },
+              ],
             },
           ],
           send,

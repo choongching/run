@@ -8,7 +8,12 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** A knowledge source now says who is using it and where
+**Where we left off:** The setup interview is one card you can walk back
+through. The agent asks its questions as a round rather than one at a time, so
+the card steps through them without leaving the page, and nothing is sent until
+you save.
+
+Before that, a knowledge source started saying who is using it and where
 it came from. Its row opens into the record: every agent that carries it, when
 it was added and last changed, and the agent it was made in, which the app now
 records rather than working out from links that vanish the moment someone
@@ -152,6 +157,47 @@ Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
 
 ---
+
+## 2026-08-25 (night): The setup interview became one card you can walk back through
+
+- **The founder shared another product's interview card and asked for that
+  shape**: a step counter, questions arriving one at a time, and Back and Save.
+  The gap turned out not to be visual. Each question was its own server round
+  trip, so by the time question two was drawn, question one's answer was
+  already inside a session at Anthropic that nothing here can rewind. There was
+  no Back to build.
+- **So the agent now asks a ROUND.** One call carries up to four questions, the
+  card steps through them in the browser, and nothing is sent until Save. Going
+  back, changing an earlier answer and moving on again are free. It also drops
+  two model turns of waiting out of a three-question setup, since the round
+  resumes the session once instead of once per question.
+- **The agent still adapts, between rounds instead of between questions.** It
+  can ask another round once it has read the answers, and the counter keeps
+  counting, so a follow-up reads four of four rather than starting over at one.
+- **The card says where you are and lets you go back to it.** A counter, the
+  question's own two-word title, and a rail where every answered step is a
+  check you can click to return to it. The rail is hidden on phones: a dot that
+  small cannot reach the 44 pixel tap floor without taking over the header, and
+  Back covers the same ground one step at a time.
+- **Answering is now two moves, choosing and continuing.** A tap used to send
+  immediately, which is what made a mistake unfixable. Next stays off until the
+  step has an answer, and "Something else" with an empty box counts as no
+  answer rather than as an empty one.
+- **The answered round is a card, not a wall of text.** Saving writes one
+  message holding every answer, and the thread draws that message as the card
+  it was given in, live and on reload. A bubble repeating what the card already
+  said would have been the duplicate.
+- **Shown before it was built.** A clickable draft went to the founder first,
+  every state and the phone width included, which is where the shape was
+  agreed. Their one change on the real thing was the free-text field, which had
+  been indented to hang under its label and only left a gutter.
+- **Two defects found by driving it, both mine and both from this session.**
+  The helper that reads a stored round was exported from a client file and
+  called by the server page, which put the whole chat route into its error
+  boundary; and the option rows computed no accessible name, so a screen reader
+  read five unnamed radios.
+- Verified live by building two real agents end to end and deleting both after.
+  Phone width is still unseen, as it has been since the container work.
 
 ## 2026-08-25: A knowledge source says who uses it and where it came from
 

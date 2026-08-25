@@ -14,7 +14,7 @@ import {
   summarizeProposal,
   summarizeRoutine,
   summarizeWrite,
-  type AskOption,
+  type AskSpec,
   type RoutineDraft,
 } from '@/lib/tools/definitions'
 import { neededConnectors, type NeededConnector } from '@/lib/chat/onboarding'
@@ -38,16 +38,7 @@ export type Frame =
       type: 'approval'
       calls: { id: string; title: string; detail: string }[]
     }
-  | {
-      type: 'ask'
-      id: string
-      question: string
-      help?: string
-      options: AskOption[]
-      allowOther: boolean
-      step?: number
-      total?: number
-    }
+  | ({ type: 'ask'; id: string } & AskSpec)
   | {
       type: 'review'
       id: string
