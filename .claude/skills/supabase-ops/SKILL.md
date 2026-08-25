@@ -24,6 +24,24 @@ public.
   (`select('*, agents(name)')`) MUST have `Relationships` FK metadata arrays
   or tsc rejects the join.
 
+## Shipping a schema change with its code
+
+Dev and prod are the SAME project, so a migration is live the moment it is
+applied. For an additive nullable column that means: apply the migration
+first, then merge the code that writes and reads it. The old code ignores a
+column it does not know about, so the window between the two is safe; the
+reverse order ships code that queries a column that is not there yet.
+
+A new FK also needs its `Relationships` entry in `lib/types/database.ts`
+before an embedded join will typecheck, and the join names the constraint
+(`added_in:agents!knowledge_sources_source_agent_id_fkey(id, name)`) rather
+than the table, because a table can reach the same table more than one way.
+
+Backfill in the same migration, and say in a comment what the backfilled value
+IS: `source_agent_id` is filled from each source's earliest link, which is the
+creating agent, because creation attaches in the same action. A row with no
+link keeps a null, and the UI omits the line rather than guessing.
+
 ## RLS design rules (each learned from a real bug)
 
 - **RLS answers "who are you"; queries answer "what state".** Never let a

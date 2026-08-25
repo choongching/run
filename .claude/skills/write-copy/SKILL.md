@@ -51,6 +51,13 @@ otherwise, treat them as two registers of one style.
   the only write tool is `gmail_create_draft`, so the product cannot send at
   all. Before shipping a label, find the code that does the thing. If you
   cannot, the label is fiction.
+- **Never drop someone's own words into the middle of your sentence.** A title
+  a person wrote is a whole sentence often enough, full stop and all, and
+  `${title} deleted.` then ships "Always use emojis in your titles. now applies
+  only where it is attached." Quote it and trim the trailing stop, or put it at
+  the end of the line where its own punctuation can land. Same for a dialog
+  heading: `Delete {title}?` produced "Delete Always use emojis in your
+  titles.?".
 - **Do not explain the machine.** The reader does not care that it composes a
   system prompt or streams frames. They care what it does for them.
 - **Write it the way the person would say it back.** "It asks before it acts"

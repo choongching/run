@@ -8,7 +8,14 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** Routine reports can now leave the app and arrive on
+**Where we left off:** A knowledge source now says who is using it and where
+it came from. Its row opens into the record: every agent that carries it, when
+it was added and last changed, and the agent it was made in, which the app now
+records rather than working out from links that vanish the moment someone
+detaches it. Cards themselves stopped explaining what they are for, so a page
+is a stack of headings and the things under them.
+
+Before that, routine reports could leave the app and arrive on
 your phone as Telegram messages, which came straight from a test user saying
 they were too busy to log in every day. You connect once, each routine has its
 own switch, and a run that finds nothing sends nothing. A routine that stops
@@ -145,6 +152,47 @@ Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
 
 ---
+
+## 2026-08-25: A knowledge source says who uses it and where it came from
+
+- **Cards stopped explaining themselves.** Four days ago every card got a line
+  under its heading saying what the section was for, plus a quiet footnote
+  under the box. Read down a page they were a wall of explanation nobody
+  needed twice, so both are gone and the component has no way to bring them
+  back. A heading names the pile, the rows say the rest. The cards also land
+  now rather than appearing.
+- **The Knowledge page was the founder's next stop.** Its row put the agent
+  chip in a block of its own between the name and the menu, so the chip landed
+  somewhere different on every row with a ragged gap around it, and the row was
+  a hand-rolled copy of the shared one rather than the shared one. It now uses
+  the real row, with its facts on one line, kind, size and when it last
+  changed, and the chip at the trailing edge where the whole column lines up.
+  The chip had also been hidden on phones, which is where the one fact this
+  page exists to show was most needed; on a narrow screen its words now join
+  the line of facts instead.
+- **A row was a name and a dead end.** The questions people actually have about
+  a source are about where it came from, and none of them fit on a line. The
+  row is now a door: it opens the source, showing every agent using it, each a
+  link into that agent's chat, when it was added and last changed, the agent it
+  was created in, the original file if it came from one, and the text the agent
+  actually carries.
+- **Where a source came from is now recorded rather than inferred.** The links
+  say who uses it today, which stops being an answer the moment someone
+  detaches it everywhere, and an unattached source is exactly the one this page
+  exists to rescue. A source now remembers the agent it was made in, and older
+  sources were filled in from the first agent they were ever attached to. One
+  with nothing to go on says nothing rather than guessing.
+- **Two fixes landed in the shared parts rather than on this page.** The row
+  component could only be a plain block, which is the whole reason two pages
+  had hand-rolled their own and drifted; it can now be a list item. And every
+  row menu in the app was being sized to the button it hangs off, a 32 pixel
+  dot, so its longest line wrapped in two. Menus size to their own content now,
+  and the local patch Routines had been carrying for it is gone.
+- **A small copy bug, worth a rule.** Notes are usually titled with a whole
+  sentence, full stop included, and we were reading them into ours: "Always use
+  emojis in your titles. now applies only where it is attached." Titles are
+  quoted now, and the rule is written down.
+- Merged to `main` via pull request #264, and live.
 
 ## 2026-08-21 (late night): One shape for every page
 
