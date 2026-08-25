@@ -257,20 +257,40 @@ export function summarizeDocument(input: Record<string, unknown>): {
 
 export type AskOption = { value: string; label: string; description?: string }
 
-export type AskSpec = {
+export type AskQuestion = {
+  // Two or three words naming what this one is about, shown in the card's
+  // header beside the counter. Optional: the counter carries the sequence on
+  // its own, so a missing title costs nothing.
+  title?: string
   question: string
   help?: string
   options: AskOption[]
   allowOther: boolean
+}
+
+// A ROUND of questions, asked in one call and answered in one go.
+//
+// One call used to carry one question, which made every answer a server round
+// trip that resumed the paused session. That is why the card had no Back: by
+// the time question 2 was drawn, question 1's answer was already inside a
+// remote session nothing here can rewind. A round makes stepping local, so
+// Back, Next and revisiting an answered step cost nothing and send nothing,
+// and it drops two model turns of waiting out of a three-question setup.
+//
+// The agent still adapts, between rounds rather than between questions: it can
+// ask another round once it has read these answers.
+export type AskSpec = {
+  questions: AskQuestion[]
+  // Where this round sits in the interview as a whole: `step` is the number of
+  // its FIRST question (1-based) and `total` the questions planned across every
+  // round. Both feed the counter only, so a follow-up round reads "4 of 4"
+  // rather than starting over at one.
   step?: number
   total?: number
 }
 
-// Normalize an ask_user tool call into the props the options card renders.
-// Tolerant of loose model output (missing labels, non-array options).
-export function summarizeAsk(input: Record<string, unknown>): AskSpec {
-  const rawOptions = Array.isArray(input.options) ? input.options : []
-  const options = rawOptions
+function normalizeOptions(raw: unknown): AskOption[] {
+  return (Array.isArray(raw) ? raw : [])
     .map((o): AskOption | null => {
       const obj = (o ?? {}) as Record<string, unknown>
       const label = String(obj.label ?? obj.value ?? '').trim()
@@ -283,15 +303,67 @@ export function summarizeAsk(input: Record<string, unknown>): AskSpec {
       }
     })
     .filter((o): o is AskOption => o !== null)
+}
+
+function normalizeQuestion(raw: unknown): AskQuestion | null {
+  const obj = (raw ?? {}) as Record<string, unknown>
+  const question = String(obj.question ?? '').trim()
+  if (!question) return null
+  const title = String(obj.title ?? '').trim()
+  return {
+    title: title ? title.slice(0, 40) : undefined,
+    question,
+    help: obj.help ? String(obj.help).trim() : undefined,
+    options: normalizeOptions(obj.options),
+    allowOther: obj.allow_other !== false,
+  }
+}
+
+// How many questions one call may carry. A round longer than this is a form,
+// and a form is the thing the interview exists instead of.
+export const MAX_ASK_QUESTIONS = 4
+
+// Normalize an ask_user tool call into what the interview card renders.
+// Tolerant of loose model output (missing labels, non-array options), and of
+// the single-question shape this tool used before rounds existed, because a
+// thread can be holding one of those calls when the new code deploys.
+export function summarizeAsk(input: Record<string, unknown>): AskSpec {
+  const batch = Array.isArray(input.questions)
+    ? input.questions.map(normalizeQuestion).filter((q): q is AskQuestion => q !== null)
+    : []
+  const legacy = batch.length === 0 ? normalizeQuestion(input) : null
+
+  const questions = (legacy ? [legacy] : batch).slice(0, MAX_ASK_QUESTIONS)
 
   return {
-    question: String(input.question ?? '').trim() || 'Which fits best?',
-    help: input.help ? String(input.help).trim() : undefined,
-    options,
-    allowOther: input.allow_other !== false,
+    // Never empty: a call too malformed to read still has to draw a card the
+    // person can answer, or the turn is stranded with nothing on screen.
+    questions: questions.length
+      ? questions
+      : [{ question: 'Which fits best?', options: [], allowOther: true }],
     step: typeof input.step === 'number' ? input.step : undefined,
     total: typeof input.total === 'number' ? input.total : undefined,
   }
+}
+
+// The answers to a round, pulled off a stored message's payload so the thread
+// can draw them as the card they were given in. Lives here rather than beside
+// the card because the chat page reads it on the SERVER, and a function
+// exported from a 'use client' module cannot be called there.
+//
+// Tolerant: this is jsonb written by whatever version of the app was running
+// at the time.
+export function parseInterview(raw: unknown): { q: string; a: string }[] | null {
+  if (!Array.isArray(raw)) return null
+  const rows = raw
+    .map((x) => {
+      const o = (x ?? {}) as Record<string, unknown>
+      const q = String(o.q ?? '').trim()
+      const a = String(o.a ?? '').trim()
+      return q && a ? { q, a } : null
+    })
+    .filter((x): x is { q: string; a: string } => x !== null)
+  return rows.length ? rows : null
 }
 
 // A human-readable summary of a write call for the approval card.
@@ -531,48 +603,68 @@ export const CHAT_TOOL_DEFINITIONS = [
     type: 'custom' as const,
     name: 'ask_user',
     description:
-      "Ask the user ONE focused question and pause for their answer. Use this to run the first-run setup interview (understand what they want and how they want it) and any time a choice is bounded. Give 3 to 6 concrete `options`, each with a short bold `label` and a one-line `description` of what it means. Set `step` and `total` to show progress (e.g. step 1 of 3). The user can also type a free-text answer unless you set allow_other to false. Ask one question per call and wait for the answer before asking the next; keep going until the goal is clear, then confirm what you understood.",
+      "Ask the user a ROUND of 1 to 4 related questions in one call and pause for their answers. Use this to run the first-run setup interview (understand what they want and how they want it) and any time a choice is bounded. The user gets one card that steps through the round, so they can move back and change an answer before sending, and every answer comes back to you together. Ask everything you can already plan for in a single round rather than one question per call. Give each question 3 to 5 concrete `options`, each with a short `label` and a one-line `description` of what it means. Set `step` to the number of the round's FIRST question and `total` to how many questions the whole interview will have, so a second round continues the count instead of restarting it. The user can also write their own answer unless you set allow_other to false. Once you have the answers, ask another round only if something they said opened a question you could not have planned; otherwise stop and confirm what you understood.",
     input_schema: {
       type: 'object' as const,
       properties: {
-        question: { type: 'string', description: 'The single question to ask.' },
-        help: {
-          type: 'string',
-          description: 'One line of supporting context shown under the question.',
-        },
-        options: {
+        questions: {
           type: 'array',
-          description: 'The choices to offer, 3 to 6 is ideal.',
+          description:
+            'The round of questions, in the order they should be asked. 1 to 4; three is usually right for setup.',
           items: {
             type: 'object',
             properties: {
-              value: {
+              title: {
                 type: 'string',
-                description: 'Short stable value (falls back to label).',
+                description:
+                  "Two or three words naming what this question is about, shown in the card header (e.g. 'The job', 'What starts me off').",
               },
-              label: { type: 'string', description: 'Bold choice label the user sees.' },
-              description: {
+              question: { type: 'string', description: 'The question itself.' },
+              help: {
                 type: 'string',
-                description: 'One-line explanation of this choice.',
+                description: 'One line of supporting context shown under the question.',
+              },
+              options: {
+                type: 'array',
+                description: 'The choices to offer, 3 to 5 is ideal.',
+                items: {
+                  type: 'object',
+                  properties: {
+                    value: {
+                      type: 'string',
+                      description: 'Short stable value (falls back to label).',
+                    },
+                    label: {
+                      type: 'string',
+                      description: 'Bold choice label the user sees.',
+                    },
+                    description: {
+                      type: 'string',
+                      description: 'One-line explanation of this choice.',
+                    },
+                  },
+                  required: ['label'],
+                },
+              },
+              allow_other: {
+                type: 'boolean',
+                description: 'Let them write their own answer (default true).',
               },
             },
-            required: ['label'],
+            required: ['question'],
           },
-        },
-        allow_other: {
-          type: 'boolean',
-          description: 'Allow a free-text answer (default true).',
         },
         step: {
           type: 'number',
-          description: 'Current question number, for the progress indicator.',
+          description:
+            "The number of this round's first question within the whole interview, 1-based.",
         },
         total: {
           type: 'number',
-          description: 'Total planned questions, for the progress indicator.',
+          description: 'Total questions planned across the whole interview.',
         },
       },
-      required: ['question'],
+      required: ['questions'],
     },
   },
   {

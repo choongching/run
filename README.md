@@ -66,9 +66,11 @@ The loop, in six beats:
 
 1. **You state the intent.** One box, one sentence: *"Summarize my inbox each
    morning and flag anything that needs a reply."*
-2. **It writes its own job description.** A few quick questions, the last one
-   being what starts it off, then the name, the job, and the rhythm it
-   understood, shown to you on a card.
+2. **It writes its own job description.** A few quick questions on one card,
+   one at a time, with the last one being what starts it off. Nothing is sent
+   until you save, so you can step back and change an earlier answer while you
+   are still thinking. Then the name, the job, and the rhythm it understood,
+   shown to you on a card.
 3. **You approve it.** Edit either field, or tell it what to fix. Nothing runs
    before your yes.
 4. **It does the work.** Reading your inbox and files needs no permission, and

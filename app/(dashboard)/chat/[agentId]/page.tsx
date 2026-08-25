@@ -14,6 +14,7 @@ import {
 } from '@/components/chat/chat-thread'
 import {
   isAskTool,
+  parseInterview,
   isProposeTool,
   isSetRoutineTool,
   summarizeAsk,
@@ -120,7 +121,12 @@ export default async function ChatPage({
 
   const initialMessages: ChatMessage[] = (rows ?? []).map((r) => {
     const payload = r.payload as
-      | { artifact?: ArtifactMeta; notice?: string; icon?: ActivityIcon }
+      | {
+          artifact?: ArtifactMeta
+          notice?: string
+          icon?: ActivityIcon
+          interview?: unknown
+        }
       | null
     return {
       id: r.id,
@@ -136,6 +142,9 @@ export default async function ChatPage({
       artifact: payload?.artifact ?? undefined,
       notice: payload?.notice ?? undefined,
       icon: payload?.icon ?? undefined,
+      // An answered round of setup questions draws as its card again, not as
+      // the paragraph its text would make.
+      interview: parseInterview(payload?.interview) ?? undefined,
     }
   })
 
