@@ -48,6 +48,10 @@ The founder values live verification of each phase. This is the loop.
   window stays put. Have the user exit fullscreen first, then ALWAYS
   confirm with `window.innerWidth` via the javascript tool before trusting
   any responsive screenshot.
+- The iframe workaround does not exist either: our own security headers
+  send `X-Frame-Options: DENY`, so framing a route at 390px inside the page
+  renders nothing, and `window.open` at a set size is popup-blocked. READ
+  THIS SECTION BEFORE TRYING; it was rediscovered the slow way on 2026-08-25.
 - Even windowed, macOS Chrome will not go below ~500px wide, so true
   phone width (412) is unreachable here; below-md behavior is testable,
   exact phone layout is not. The founder's real device is the standing

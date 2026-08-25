@@ -19,6 +19,19 @@ box's slot so the card stays. A section of form FIELDS is the exception and
 keeps them on the card, because a hairline between two inputs reads as a table
 of inputs.
 
+The row is part of that shape, not a per-page invention. `Row` takes `item`
+and renders as the `<li>` a `RowBox list` wants, so there is no reason left to
+hand-roll one: Knowledge and Routines both did, only because the component was
+a `<div>`, and both drifted from the recipe within a week. Its anatomy also
+answers where a fact goes. The DETAIL LINE carries what the thing is (kind,
+size, when it changed), middle dots between, read left to right. The TRAILING
+edge carries state that lines up down the list (a meta chip, a status word)
+plus the kebab. Nothing goes in a third column between them: a `flex-1` block
+floated mid-row lands in a different place on every row and leaves a ragged
+gap, which is what Knowledge's agent chips did until 2026-08-25. Below `sm`
+that chip stands down and its words join the detail line, because a 326px row
+has no width to lend.
+
 Do not hand-roll `rounded-xl border border-border bg-card` for a new section,
 and never use the shadcn `Card` primitive on a page: it draws a ring rather
 than our border token, which is how Settings ended up the only differently
@@ -286,6 +299,22 @@ mobile width.
   keeps a non-breaking space (see `components/chat/knowledge-section.tsx`).
   Do not stack a drop zone beside an empty-state strip; the zone IS the
   empty state.
+- **The row is the door, and the kebab is not.** A row whose record has more
+  to it than fits on two lines opens that record on click (`cursor-pointer
+  hover:bg-muted/40`), and the trailing cluster stops the click reaching the
+  row (`onClick={(e) => e.stopPropagation()}`). One record opens in a DIALOG,
+  not a Sheet: the styleguide said drawer for a year while the app never had
+  one, because the founder picked the centred dialog after seeing both.
+- **A row action's spinner goes INSIDE the button it replaces.** Swapping the
+  kebab for a bare `Loader2` resizes the row under the pointer mid-action;
+  keep the button mounted and disabled and put the spinner where the icon was.
+- **A menu sizes to its content, never to its anchor.** Fixed at the source
+  2026-08-25: `DropdownMenuContent` is
+  `min-w-[max(8rem,var(--anchor-width))]`. It used to be `w-(--anchor-width)`,
+  right for the wide account button and wrong for every row kebab in the app,
+  which wrapped "Use only where attached" onto two lines. Routines had patched
+  around it locally with `min-w-52`; a local width patch on a shared primitive
+  is the smell that the primitive is wrong.
 - **Overlay exit animations:** keep the selected record in state after close
   (a separate `open` boolean drives visibility) so the overlay keeps its
   content through the exit transition instead of flashing empty.
