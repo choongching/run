@@ -387,30 +387,24 @@ next three real run dates before you save.
 
 **If reports come to Telegram, what can that bot do, and what does Telegram see?**
 
-I checked this in the code rather than recalling it. The strongest answer
-first: the agent gained nothing. There is no Telegram tool in its toolbox, and
-nothing it can say or be tricked into saying reaches Telegram. The app sends
-the report after the run is over, the same way it would send you a password
-reset. Search the code for who calls Telegram and you find two places, the
-scheduled runner and the bot's own replies, neither of which the agent can
-reach.
+The agent gained nothing. There is no Telegram tool in its toolbox, so
+nothing it can say, or be tricked into saying, reaches Telegram. Run sends the
+report once the run is over, the way it would send you a password reset.
 
-The bot understands two things, "start" and "stop". Everything else you send
-it gets one canned sentence and is thrown away. That is a boundary rather than
-a missing feature: letting you talk to your agent through Telegram would open
-a path from an unauthenticated chat into a system that reads your email and
-files, so the bot delivers and does not listen.
+The bot understands two words, start and stop. Everything else you send it
+gets one line back and is thrown away. That is deliberate. If you could talk
+to your agent through Telegram, anyone who got into that chat could talk to
+something that reads your email and files. The bot delivers, it does not
+listen.
 
-Blocking the bot is the off switch, and it needs nothing from us. The next
-send comes back refused, the app forgets your chat, and delivery stops.
+Blocking it is the off switch, and it needs nothing from us. The next send
+comes back refused, Run forgets your chat, and delivery stops.
 
-Now the weak parts. Telegram sees the content of your reports, exactly as an
-email provider would see an email; there is no way to hand a message to a
-messenger without the messenger reading it. And the link that connects your
-account is a bearer token for one hour: anyone holding it in that window could
-point your reports at their own Telegram. It is the same shape of risk as a
-password reset link, handled the same way, and if delivery ever moves to a
-different chat the old one is told so.
+Now the weak parts. Telegram sees the content of your reports, the way an
+email provider sees your email. You cannot hand a message to a messenger the
+messenger cannot read. And the link that connects your account works for one
+hour, so anyone holding it in that window could point your reports at their
+own Telegram. If delivery ever moves to another chat, the old one is told.
 
 **Does a routine remember its earlier runs?**
 
