@@ -109,43 +109,56 @@ job description you gave it.
 
 ## What an agent can actually do
 
-Not what it is allowed to do. This is the whole list of things it is able to
-do, and nothing outside it exists to be misused.
+This is the whole list. Not what it is allowed to do today, but what it is
+able to do at all: there is no tool outside this list for an agent to reach
+for.
+
+Reading asks nothing, because reading changes nothing. Anything that would
+change something stops first and shows you exactly what it is about to do, so
+the only rows worth marking are the ones that can change anything.
 
 **In your Gmail**
 
-| It can | Asks first? |
+| It can | |
 | --- | --- |
-| Search your inbox | No, reading is free |
-| Read an email | No |
-| Write a draft | Yes |
+| Search your inbox | |
+| Read an email | |
+| Write a draft | Asks first |
 
 There is no send. A draft sits in your drafts folder and the only finger that
 can press Send is yours.
 
 **In your Google Drive**
 
-| It can | Asks first? |
+| It can | |
 | --- | --- |
-| List your files | No |
-| Read a file | No |
-| Create a folder | Yes |
-| Move a file | Yes |
-| Rename a file | Yes |
+| List your files | |
+| Read a document, sheet or PDF | |
+| Create a folder | Asks first |
+| Move a file | Asks first |
+| Rename a file | Asks first |
 
 There is no delete and no trash. Moving and renaming are both reversible, and
 you see the file name and where it is going before anything happens.
 
-**On the web and in the chat**
+**On the web**
 
-| It can | Asks first? |
+| It can | |
 | --- | --- |
-| Search the web, and read a page it found | No |
-| Read a link you paste, even with search switched off | No |
-| Write you a document you can download | No, it hands it to you |
-| Ask you a round of questions, on one card | It is a question |
-| Propose its own name and job at setup | Yes, that is the setup card |
-| Propose a routine | Yes, with the real run dates |
+| Search the web, and read a page it found | |
+| Read a link you paste, even with search switched off | |
+
+**In the chat**
+
+Nothing here reaches outside the app, so none of it has to ask.
+
+- **It writes you documents.** A document it makes lands in the chat, ready to
+  read or download. Nothing in your Drive changes.
+- **It asks you things.** A round of questions on a single card, at setup or
+  any time a decision is yours to make.
+- **It proposes itself.** Its name and its job at setup, and a routine after
+  the first run, with the real dates it would run on. Both arrive as a card
+  you approve, edit or ignore.
 
 **What you can give it**
 
