@@ -133,12 +133,28 @@ export function PromptComposer({
       <form
         ref={formRef}
         action={startAgentFromPrompt}
+        // The box is three lines tall and mostly empty, so people aim at the
+        // middle of it rather than at the one line of text. Without this,
+        // clicking anywhere below the first line lands on the form and takes
+        // focus OFF the textarea, which now also throws the backdrop back out
+        // of its focused state: the box visibly un-focuses when you click it.
+        // mousedown rather than click, so focus never leaves in the first
+        // place, and never when the press is on something that wants it.
+        // Checking the form element alone is not enough: the send button sits
+        // in its own row, and a press on that row's padding has the row as
+        // its target rather than the form.
+        onMouseDown={(e) => {
+          if ((e.target as HTMLElement).closest('button, textarea, a, input'))
+            return
+          e.preventDefault()
+          textareaRef.current?.focus()
+        }}
         // Hidden (not unmounted) while building: the in-flight server action
         // belongs to this form, so it must stay in the tree.
         // rounded-[9px] is a founder-set hero exception to the 4-6px radius
         // scale, local to this composer only.
         className={cn(
-          'run-rise run-sheen relative rounded-[9px] border border-input bg-card run-focus-fade [--rise-delay:180ms] focus-within:border-ring focus-within:shadow-focus',
+          'run-rise run-sheen relative rounded-[9px] border border-input bg-card run-focus-fade [--rise-delay:180ms] focus-within:border-ring',
           pending && 'hidden'
         )}
       >

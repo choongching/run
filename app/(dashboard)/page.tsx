@@ -33,9 +33,14 @@ export default async function HomePage({
   const allowed = await canCreateAgent(supabase, userId)
 
   return (
-    // The wash needs the full width of the card to spread across, so it sits
-    // on the outer region while the content keeps its narrow column.
-    <div className="relative flex flex-1 flex-col overflow-hidden px-4 py-16 sm:px-6 md:px-8">
+    // The backdrop needs the full width of the card to spread across, so it
+    // sits on the outer region while the content keeps its narrow column.
+    //
+    // run-stage is the hook that lets focusing the composer move the picture
+    // behind it. The two are siblings, and a :has() on their shared parent is
+    // what joins them without lifting a piece of state up here and threading
+    // it back down into a server component's child.
+    <div className="run-stage relative flex flex-1 flex-col overflow-hidden px-4 py-16 sm:px-6 md:px-8">
       <AmbientBackdrop />
       <div className="run-hero relative z-10 mx-auto flex w-full max-w-2xl flex-1 flex-col items-center justify-center">
       {/* No mark here. The greeting opens the screen instead: the sidebar

@@ -381,6 +381,23 @@ The one hero on the product, and the only place these recipes apply.
   stays static so nobody is read a moving string. The static tip line under
   the box was cut when this shipped, because it was saying in words what the
   box now demonstrates.
+- **Focusing the box steps the room back.** The picture eases from
+  `scale(1.06)` to `1.015` and fades while the veil comes up, so the wall
+  recedes and the box comes forward; the box takes a deeper shadow with a wide
+  green pool under it that reads as light from behind rather than a cast
+  shadow. Blurring reverses every part of it. 700ms, slower than a control's
+  feedback and faster than an arrival. Two things make it work: the scale has
+  a hard floor at 1.0, because the image is `object-cover` and anything under
+  that shows the card's background at the edges; and the two elements are
+  joined by a `:has()` on their shared `run-stage` parent rather than by
+  lifting state, since the backdrop is a sibling of the composer and a server
+  component's child.
+- **A big empty box has to focus from anywhere inside it.** The composer is
+  three lines tall and mostly empty, so people aim at the middle rather than
+  at the one line of text. A press on the padding focuses the textarea, on
+  `mousedown` so focus never leaves in the first place, and only when the
+  press missed everything that wants focus itself. Without it the box visibly
+  un-focused when you clicked it, which is how this was found.
 - **The jobs under it are one row you push sideways**, never a block that
   wraps (`components/home/job-rail.tsx`). A wrapping block lets the width
   decide how many jobs are worth offering: five wrapped into three ragged

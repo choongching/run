@@ -498,6 +498,53 @@
     opacity: 0.55;
     filter: saturate(70%) brightness(104%);
   }
+  /* Clicking into the composer steps the room back.
+     
+     The picture eases from 1.06 down to 1.015 and fades a little while the
+     veil comes up, so the wall recedes and the box it is behind comes
+     forward. Scale is the whole effect and it is bounded at the bottom by
+     geometry, not by taste: the image is object-cover at exactly 1.0, so
+     anything under that would show the card's own background at the edges.
+     1.015 is as far back as it can go with a hair of margin.
+     
+     700ms and eased out, which is slower than a control's feedback and
+     faster than the arrival. It should read as the room adjusting rather than
+     as a thing that flashed. Blurring the box reverses every part of it,
+     because these are transitions between two states and not an animation
+     that plays: nothing here runs unless a person just did something. */
+  .run-backdrop,
+  .run-backdrop-veil {
+    transition:
+      transform 700ms cubic-bezier(0.22, 0.61, 0.36, 1),
+      opacity 700ms cubic-bezier(0.22, 0.61, 0.36, 1),
+      background-color 700ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  .run-stage:has(.run-sheen:focus-within) .run-backdrop {
+    transform: scale(1.015);
+    opacity: 0.44;
+  }
+  .run-stage:has(.run-sheen:focus-within) .run-backdrop-veil {
+    background: color-mix(in oklch, var(--sidebar) 58%, transparent);
+  }
+  /* The other half: the box lifts as the wall drops. A hairline under the
+     edge for the physical drop, then a wide, deep green pool below it that
+     reads as light coming from behind the card rather than as a shadow cast
+     by it. This replaces the shared shadow-focus token on the home composer
+     only; the chat composer keeps the quieter lift, because a box people
+     return to forty times a day should not perform. */
+  .run-sheen:focus-within {
+    box-shadow:
+      0 1px 2px color-mix(in oklch, var(--foreground) 7%, transparent),
+      0 10px 24px -10px color-mix(in oklch, var(--foreground) 14%, transparent),
+      0 28px 56px -18px color-mix(in oklch, var(--primary) 32%, transparent);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    /* The states still swap, they just arrive rather than travel. */
+    .run-backdrop,
+    .run-backdrop-veil {
+      transition: none;
+    }
+  }
   /* A sheet of the app's own canvas colour laid over the picture. The
      photograph is a cool mint and the shell around it is warm paper, so
      without this the hero reads as a green panel dropped beside a grey
