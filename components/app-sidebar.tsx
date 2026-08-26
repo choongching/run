@@ -148,7 +148,17 @@ export function AppSidebar({
                     button sets every icon inside it to 18px muted, which is
                     right for a destination and wrong for a filled mark. */}
                 <SidebarMenuButton
-                  isActive={pathname === '/'}
+                  // Deliberately never active. It is the one row that acts
+                  // rather than goes somewhere, and it happens to act by
+                  // navigating to "/", which used to light it up as the
+                  // current page whenever you were on the home screen. That
+                  // put two contradictory marks on one row: the filled icon
+                  // saying it does something, the wash saying you are here.
+                  // Collapsed, with no label under it, the wash read as a box
+                  // drawn around a green dot for no reason.
+                  //
+                  // Home keeps its door: the brand mark at the top of the rail
+                  // is a link to the same place.
                   tooltip="New agent"
                   render={<Link href="/" />}
                   className="min-h-11 md:min-h-0"
