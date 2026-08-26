@@ -8,10 +8,16 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** The home screen shows you what to type instead of
-telling you. The box types real first prompts while it waits, the jobs under it
-are one row you push sideways rather than a block that wraps, and the border
-drifts a dim green while nothing is happening.
+**Where we left off:** The home screen has a photograph behind it, a wall of
+leaf shadows the box sits on, and clicking into the box steps that wall back
+while the box lifts. Nothing in the app moves on its own any more: the founder
+heard their fans, and every animation that never ended is gone. The sidebar
+folds down to a strip of icons and remembers whether you left it that way, and
+collapsed, the Run mark itself is the way back.
+
+Before that, the home box learned to show you what to type instead of telling
+you: it types real first prompts while it waits, and the jobs under it are one
+row you push sideways rather than a block that wraps.
 
 Before that, the setup interview became one card you can walk back
 through. The agent asks its questions as a round rather than one at a time, so
@@ -162,6 +168,77 @@ Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
 
 ---
+
+## 2026-08-26 (evening): A wall behind the box, and nothing that moves on its own
+
+- **The home screen got a photograph.** Behind the composer there used to be
+  three blurred green shapes drifting about, which was the best atmosphere
+  available without a picture. It is now a real one: monstera shadows thrown
+  across a pale wall, filling the whole area. It is held well back, just over
+  half strength and desaturated under a sheet of the app's own paper colour,
+  so it reads as a wall the box sits on rather than as a picture competing
+  with it.
+- **The founder picked the numbers on a bench built for it.** A photograph has
+  about a dozen settings and none of them are independent: turn the veil up
+  and the texture goes, blur the leaves and you can push the strength, a green
+  tint that looks right at full strength turns to sludge at half. Rather than
+  guess one at a time through a code change and a screenshot, we built the
+  same screen with every number on a slider, which printed the answer as code
+  and kept it in the address bar so a link was a decision. It took one round.
+- **Then the laptop fans came on, and that turned out to be the real story.**
+  Two things on that screen were moving forever: the picture drifting, and a
+  dim green light going round the box while it waited. Both are gone. Nothing
+  in the app loops any more, and everything that moves is either an arrival or
+  an answer to something a person just did.
+- **The measurement that said the animations were free was measuring the wrong
+  thing.** They had been benchmarked at a smooth 120 frames a second with
+  nothing dropped, injected or removed, and that was true. What it missed is
+  that an animation which never ends keeps the screen awake for as long as the
+  tab is open, with room to spare the whole time, so nothing ever looks wrong.
+  The question is not whether motion keeps up. It is whether the page can go
+  completely still when nobody is touching it. The founder found it by
+  listening, before any instrument did.
+- **Clicking into the box now steps the room back.** The wall eases away and
+  fades while the box takes a deeper shadow with a green pool under it, as if
+  the light were behind the card. Clicking out reverses all of it. This is a
+  move between two states rather than something that plays, so the screen
+  still goes completely still afterwards.
+- **A bug that only showed once the wall reacted.** The box is three lines
+  tall and mostly empty, so people aim at the middle of it. A click there was
+  landing on the box rather than in the text, which quietly moved the cursor
+  out. It had always been wrong and nobody could see it; the moment the wall
+  started responding to focus, the box visibly un-focused when you clicked it.
+  It now takes the cursor from anywhere inside.
+- **Every corner in the app got rounder,** from 8px to 14px, off one setting.
+  A hard corner on a photograph reads as a crop where a soft one reads as a
+  card.
+- **The suggestions under the box stopped being beige.** Their fill was a warm
+  grey, which was right while the screen was warm paper and turned to a smudge
+  the day the wall behind them went cool. They are a wash of the app's own ink
+  now, which has no colour of its own and borrows whatever is behind it, so
+  they can never clash with a backdrop again. Resting they are barely there;
+  under the cursor each becomes a real card, lifted; pressed, it sinks back.
+- **The sidebar folds down to a strip of icons.** A control at the top of it
+  shrinks the rail to 48px and brings it back, and the choice is remembered,
+  so the page arrives in the state you left it rather than flapping open every
+  time you move around. Collapsed, the Run mark itself is the way back: hover
+  it and it turns into the control. That was the founder's idea, and it gives
+  back a row that a narrow rail was spending on a button you touch twice a
+  day. Every icon keeps its name in a tooltip, so a list of agents does not
+  become a column of identical robots.
+- **Seven other products were read before any of this was drawn.** They agree
+  on almost everything: the control at the top, the account at the bottom, a
+  soft filled shape marking where you are. They disagree completely on how the
+  create button should look, which is probably why ours has been changed more
+  than once. And all seven have the same wide empty middle we do, so that is
+  the shape of the thing rather than a fault in ours.
+- **What was tried and did not survive.** Colouring each icon in the rail, the
+  way one of those products does, which reads well and would have cost the
+  amber routine badge its meaning. Shrinking the logo so it matched the icons
+  exactly, which aligned everything and made the brand look broken: the fix
+  was to give them a shared centre, not a shared size. Arrow buttons on the
+  suggestion rail, cut earlier in the day. And the create button lighting up
+  as the page you are on, which fought the green mark already on it.
 
 ## 2026-08-26: The home box shows you what to type
 
