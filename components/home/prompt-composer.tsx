@@ -11,6 +11,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { useTypedPlaceholder } from '@/lib/use-typed-placeholder'
 import { cn } from '@/lib/utils'
 
 // One-click seeds that teach what an agent can be. Clicking fills the box
@@ -26,6 +27,27 @@ import { cn } from '@/lib/utils'
 // Written the way you would ask a colleague, not the way you would describe a
 // feature: "tell me what needs a reply" is something people say out loud, and
 // "answer questions from my documents" is not.
+// What the placeholder types out before it rests. These are NOT the chips
+// below, and the difference is the reason both exist: a chip is a short ask
+// you can click, and these are what a good first prompt looks like written
+// out, which is the thing the static tip describes and cannot show. Each one
+// still has to be a job the tool list can finish, same rule as the chips.
+const PLACEHOLDER_EXAMPLES = [
+  'Read my inbox each morning and tell me what needs a reply',
+  'Answer questions from the documents in my Drive',
+  'Draft replies in my voice, for me to approve',
+  'Watch a topic each week and write me the short version',
+]
+
+// The line it starts on and returns to for good.
+//
+// It used to carry a tip: "say what it should read and what you want back". A
+// shorter version was tried and rejected in 2026-08-01 because the tip was the
+// only teaching on the screen. The examples above now demonstrate exactly what
+// that sentence described, and showing beats telling, so the tip went. If the
+// examples ever go, the tip comes back with them.
+const RESTING_PLACEHOLDER = 'Describe what you need done...'
+
 const SUGGESTIONS = [
   'Tell me what needs a reply today',
   'Draft replies to the emails waiting on me',
@@ -90,6 +112,7 @@ export function PromptComposer({
 }) {
   const [value, setValue] = useState('')
   const [pending, setPending] = useState(false)
+  const [focused, setFocused] = useState(false)
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const formRef = useRef<HTMLFormElement>(null)
 
@@ -100,6 +123,14 @@ export function PromptComposer({
 
   const blocked = blockedReason !== null
   const canSubmit = value.trim().length > 0 && !pending && !blocked
+
+  // Only while the box is genuinely idle: empty, nobody in it, nothing more
+  // urgent for the placeholder to be saying.
+  const placeholder = useTypedPlaceholder({
+    examples: PLACEHOLDER_EXAMPLES,
+    resting: RESTING_PLACEHOLDER,
+    active: !blocked && !pending && !focused && value.length === 0,
+  })
 
   // Show the creation state first, submit a beat later. The head start buys
   // the fade-out room to play and the first stage lines a moment to be read,
@@ -141,16 +172,14 @@ export function PromptComposer({
           }}
           rows={4}
           disabled={blocked}
+          onFocus={() => setFocused(true)}
+          onBlur={() => setFocused(false)}
+          // Static, because the placeholder moves. With no visible label the
+          // placeholder is what a screen reader announces as the field's name,
+          // and a name that changes twenty times a second is not one.
+          aria-label="Describe what you need done"
           placeholder={
-            blocked
-              ? 'Delete an agent to make room for a new one'
-              : // The headline and button already say "build an agent", so
-                // this line does not: just the action and the tip. A shorter
-                // version that folded the tip into the sentence was tried and
-                // rejected (founder, 2026-08-01): the explicit "Tip:" is doing
-                // teaching work here, and terse reads as less helpful on the
-                // one screen where someone has no idea what to type.
-                'Describe what you need done... (Tip: say what it should read and what you want back)'
+            blocked ? 'Delete an agent to make room for a new one' : placeholder
           }
           // Hero sizing, home only: body-size text in a roomier box. The rest
           // of the app keeps text-sm inputs.
