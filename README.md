@@ -65,7 +65,9 @@ flowchart TD
 The loop, in six beats:
 
 1. **You state the intent.** One box, one sentence: *"Summarize my inbox each
-   morning and flag anything that needs a reply."*
+   morning and flag anything that needs a reply."* The box types real examples
+   while it waits, and a row of jobs sits under it that you can push sideways
+   and tap to fill the box.
 2. **It writes its own job description.** A few quick questions on one card,
    one at a time, with the last one being what starts it off. Nothing is sent
    until you save, so you can step back and change an earlier answer while you
@@ -141,7 +143,7 @@ you see the file name and where it is going before anything happens.
 | Search the web, and read a page it found | No |
 | Read a link you paste, even with search switched off | No |
 | Write you a document you can download | No, it hands it to you |
-| Ask you a question, with options to tap | It is a question |
+| Ask you a round of questions, on one card | It is a question |
 | Propose its own name and job at setup | Yes, that is the setup card |
 | Propose a routine | Yes, with the real run dates |
 
