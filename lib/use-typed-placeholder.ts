@@ -32,7 +32,9 @@ import { useEffect, useRef, useState } from 'react'
 //      Same lesson as lib/use-connect-poll.ts, opposite conclusion: that one
 //      rechecks on return, this one restarts the line it was in the middle of.
 //
-// Returns the string to hand the placeholder attribute. Give the field its own
+// Returns the string to hand the placeholder attribute, and whether the run is
+// over. The caller uses the second to know when the box is finally still,
+// which is when the idle border animation is allowed to start. Give the field its own
 // static aria-label: with no visible label the placeholder IS the field's
 // accessible name, and a name that changes twenty times a second is not one.
 const TYPE_MS = 38
@@ -51,7 +53,7 @@ export function useTypedPlaceholder(opts: {
   // Whether it may run at all: the box empty, unfocused, and in a state
   // where the placeholder is this line rather than something more urgent.
   active: boolean
-}): string {
+}): { placeholder: string; resting: boolean } {
   const { examples, resting, active } = opts
   const [typed, setTyped] = useState('')
   // Whether a run is underway, which is NOT the same question as "is there
@@ -60,6 +62,11 @@ export function useTypedPlaceholder(opts: {
   // the resting line in that window flashed the old copy back on every
   // boundary. It read as a glitch, which is exactly what it was.
   const [running, setRunning] = useState(false)
+  // Whether the whole run is over. This is STATE and not the `done` ref
+  // beside it, because the return value is read while rendering and a ref
+  // read there is forbidden (react-hooks/refs). The ref stops the timers; this
+  // tells the caller.
+  const [finished, setFinished] = useState(false)
   // Progress lives in refs, not state: it has to survive the pauses (a focus,
   // a hidden tab) without restarting from the top, and nothing renders from it.
   const index = useRef(0)
@@ -123,6 +130,7 @@ export function useTypedPlaceholder(opts: {
       if (index.current >= examples.length) {
         done.current = true
         setRunning(false)
+        setFinished(true)
         return
       }
       schedule(GAP_MS, () => type(''))
@@ -154,5 +162,11 @@ export function useTypedPlaceholder(opts: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, examples])
 
-  return active && running ? typed : resting
+  return {
+    placeholder: active && running ? typed : resting,
+    // Not simply "!running": before the first character it has not started
+    // rather than finished, and starting the border drift in that gap would
+    // put the two together for the one second this exists to avoid.
+    resting: finished,
+  }
 }

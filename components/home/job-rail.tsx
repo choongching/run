@@ -2,8 +2,6 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import {
-  ChevronLeft,
-  ChevronRight,
   FileText,
   FolderTree,
   Mail,
@@ -29,49 +27,56 @@ import { cn } from '@/lib/utils'
 type Job = { label: string; prompt: string; icon: LucideIcon }
 
 // Every one has to be a job lib/tools/definitions.ts can actually finish,
-// because picking one makes it the agent's first task. The label is short so
-// the row stays scannable; the prompt is the whole sentence, because that is
-// what the agent is being asked to do.
+// because picking one makes it the agent's first task.
+//
+// The label is a phrase rather than a heading, because the rail bought the
+// room for it: when the chips had to fit one static row, "What needs a reply"
+// was as long as they could be, and it read as a category. "Tell me what needs
+// a reply" is something a person says out loud, which is the whole pitch. The
+// prompt underneath is longer still, since that is what the agent acts on.
 const JOBS: Job[] = [
   {
-    label: 'What needs a reply',
+    label: 'Tell me what needs a reply',
     prompt: 'Tell me what needs a reply today',
     icon: Mail,
   },
   {
-    label: 'Draft my replies',
+    label: 'Draft the replies waiting on me',
     prompt: 'Draft replies to the emails waiting on me',
     icon: PenLine,
   },
   {
-    label: 'Read a document',
+    label: 'Read a long document for me',
     prompt: 'Read a long document and tell me what matters',
     icon: FileText,
   },
   {
-    label: 'Answer from my docs',
+    label: 'Answer questions from my docs',
     prompt: 'Answer questions from the documents in my Drive',
     icon: FileText,
   },
   {
-    label: 'Watch a topic',
+    label: 'Watch a topic every week',
     prompt: 'Watch a topic each week and write me the short version',
     icon: Search,
   },
   {
-    label: 'Tidy my Drive',
+    label: 'Tidy my Drive into folders',
     prompt: 'Tidy my Drive into folders that make sense',
     icon: FolderTree,
   },
 ]
 
-// How far an arrow moves the rail, and how far a pointer may travel before a
-// drag stops counting as a click on the pill underneath it.
-const NUDGE = 240
+// How far a pointer may travel before a drag stops counting as a click on the
+// pill underneath it.
 const DRAG_SLOP = 4
 // The fade is this wide, and a side counts as "at the end" within this many
 // pixels: sub-pixel scroll positions never land exactly on 0 or on the max.
-const FADE = 30
+//
+// Wide on purpose. A narrow fade is a vignette you notice as an effect; a wide
+// one is a pill quietly running out of ink, and only the second one reads as
+// "there is more this way" without anything having to say so.
+const FADE = 56
 const EDGE = 4
 
 export function JobRail({
@@ -110,13 +115,8 @@ export function JobRail({
     return () => observer.disconnect()
   }, [measure])
 
-  function nudge(by: number) {
-    rail.current?.scrollBy({ left: by, behavior: smoothly() })
-  }
-
   return (
-    <div className="group/rail relative mt-5 w-full">
-      <div
+    <div
         ref={rail}
         onScroll={measure}
         onWheel={(e) => {
@@ -153,7 +153,7 @@ export function JobRail({
           WebkitMaskImage: fade(more),
         }}
         className={cn(
-          'no-scrollbar flex gap-2 overflow-x-auto px-0.5 py-0.5',
+          'no-scrollbar mt-5 flex w-full gap-2 overflow-x-auto px-0.5 py-0.5',
           overflows ? 'justify-start' : 'justify-center'
         )}
       >
@@ -172,57 +172,38 @@ export function JobRail({
             {label}
           </button>
         ))}
-      </div>
-
-      {/* Hover-only, and a phone-only omission on purpose: a phone swipes the
-          rail, which is the better gesture anyway. Focus reaches every pill
-          through the tab order with or without these. */}
-      {more.left && (
-        <RailArrow side="left" onClick={() => nudge(-NUDGE)} disabled={disabled} />
-      )}
-      {more.right && (
-        <RailArrow side="right" onClick={() => nudge(NUDGE)} disabled={disabled} />
-      )}
     </div>
   )
 }
 
-function RailArrow({
-  side,
-  onClick,
-  disabled,
-}: {
-  side: 'left' | 'right'
-  onClick: () => void
-  disabled: boolean
-}) {
-  const Icon = side === 'left' ? ChevronLeft : ChevronRight
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      aria-label={side === 'left' ? 'Show earlier jobs' : 'Show more jobs'}
-      className={cn(
-        'absolute top-1/2 hidden size-7 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-card text-foreground opacity-0 shadow-sm transition-opacity hover:bg-muted focus-visible:opacity-100 group-hover/rail:opacity-100 md:flex',
-        side === 'left' ? '-left-3' : '-right-3'
-      )}
-    >
-      <Icon className="size-3.5" />
-    </button>
-  )
-}
-
+// The mask, with the falloff eased rather than linear.
+//
+// A two-stop gradient fades at a constant rate, which the eye reads as a grey
+// band laid over the row. Two extra stops put most of the disappearing in the
+// last third, so a pill stays legible until it is nearly gone and then goes
+// quickly. That is the difference between a vignette and something running off
+// the edge of the screen.
 function fade({ left, right }: { left: boolean; right: boolean }) {
-  const l = left ? `${FADE}px` : '0px'
-  const r = right ? `${FADE}px` : '0px'
-  return `linear-gradient(to right, transparent 0px, #000 ${l}, #000 calc(100% - ${r}), transparent 100%)`
-}
-
-// Smooth unless the person asked for less motion, in which case jump.
-function smoothly(): ScrollBehavior {
-  if (typeof window === 'undefined') return 'auto'
-  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    ? 'auto'
-    : 'smooth'
+  const stops: string[] = []
+  if (left) {
+    stops.push(
+      'transparent 0px',
+      `rgb(0 0 0 / 0.12) ${Math.round(FADE * 0.35)}px`,
+      `rgb(0 0 0 / 0.62) ${Math.round(FADE * 0.68)}px`,
+      `#000 ${FADE}px`
+    )
+  } else {
+    stops.push('#000 0px')
+  }
+  if (right) {
+    stops.push(
+      `#000 calc(100% - ${FADE}px)`,
+      `rgb(0 0 0 / 0.62) calc(100% - ${Math.round(FADE * 0.68)}px)`,
+      `rgb(0 0 0 / 0.12) calc(100% - ${Math.round(FADE * 0.35)}px)`,
+      'transparent 100%'
+    )
+  } else {
+    stops.push('#000 100%')
+  }
+  return `linear-gradient(to right, ${stops.join(', ')})`
 }

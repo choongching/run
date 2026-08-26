@@ -108,10 +108,11 @@ export function PromptComposer({
 
   // Only while the box is genuinely idle: empty, nobody in it, nothing more
   // urgent for the placeholder to be saying.
-  const placeholder = useTypedPlaceholder({
+  const idle = !blocked && !pending && !focused && value.length === 0
+  const { placeholder, resting } = useTypedPlaceholder({
     examples: PLACEHOLDER_EXAMPLES,
     resting: RESTING_PLACEHOLDER,
-    active: !blocked && !pending && !focused && value.length === 0,
+    active: idle,
   })
 
   // Show the creation state first, submit a beat later. The head start buys
@@ -138,6 +139,9 @@ export function PromptComposer({
         // scale, local to this composer only.
         className={cn(
           'run-rise run-sheen relative rounded-[9px] border border-input bg-card run-focus-fade [--rise-delay:180ms] focus-within:border-ring focus-within:shadow-focus',
+          // The border drifts only once the box is truly waiting: nothing
+          // typed, nobody in it, and the placeholder done with its examples.
+          idle && resting && 'run-sheen-idle',
           pending && 'hidden'
         )}
       >
