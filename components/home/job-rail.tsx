@@ -104,47 +104,71 @@ export function JobRail({
     })
   }, [])
 
+  // One effect owns every listener the rail needs, so unmounting kills all of
+  // them. The drag pair used to be added inside the pointerdown handler and
+  // removed only on pointerup, which is the same shape as the connect-poll bug
+  // from 2026-08-21: leave the page mid-drag and they outlive the component.
   useEffect(() => {
-    measure()
     const el = rail.current
     if (!el) return
+    measure()
+
     // The row reflows with the window, and whether it overflows is the whole
     // basis of the fade, so it has to be remeasured rather than assumed.
     const observer = new ResizeObserver(measure)
     observer.observe(el)
-    return () => observer.disconnect()
+
+    // Native and non-passive on purpose. React attaches wheel listeners
+    // passively at the root, so a handler in the JSX cannot stop the page
+    // scrolling underneath while the rail moves sideways: on a short window
+    // both would move at once. The home page does not scroll today, which is
+    // exactly why this would have been found late.
+    const onWheel = (e: WheelEvent) => {
+      if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return
+      e.preventDefault()
+      el.scrollLeft += e.deltaY
+    }
+    el.addEventListener('wheel', onWheel, { passive: false })
+
+    let startX = 0
+    let startLeft = 0
+    const onMove = (e: PointerEvent) => {
+      const travelled = e.clientX - startX
+      if (Math.abs(travelled) > DRAG_SLOP) dragged.current = true
+      el.scrollLeft = startLeft - travelled
+    }
+    const onUp = () => {
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('pointerup', onUp)
+      window.removeEventListener('pointercancel', onUp)
+    }
+    const onDown = (e: PointerEvent) => {
+      // A touch already scrolls this natively, and hijacking it fights the
+      // browser's own momentum.
+      if (e.pointerType === 'touch') return
+      dragged.current = false
+      startX = e.clientX
+      startLeft = el.scrollLeft
+      window.addEventListener('pointermove', onMove)
+      window.addEventListener('pointerup', onUp)
+      // Without this, a drag that ends outside the window leaves both
+      // listeners attached until the next pointerup anywhere.
+      window.addEventListener('pointercancel', onUp)
+    }
+    el.addEventListener('pointerdown', onDown)
+
+    return () => {
+      observer.disconnect()
+      el.removeEventListener('wheel', onWheel)
+      el.removeEventListener('pointerdown', onDown)
+      onUp()
+    }
   }, [measure])
 
   return (
     <div
         ref={rail}
         onScroll={measure}
-        onWheel={(e) => {
-          // A wheel over a horizontal row should move it sideways. Without
-          // this the rail feels dead to anyone without a trackpad.
-          if (Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return
-          const el = rail.current
-          if (!el) return
-          el.scrollLeft += e.deltaY
-        }}
-        onPointerDown={(e) => {
-          const el = rail.current
-          if (!el || e.pointerType === 'touch') return
-          dragged.current = false
-          const startX = e.clientX
-          const startLeft = el.scrollLeft
-          const move = (ev: PointerEvent) => {
-            const travelled = ev.clientX - startX
-            if (Math.abs(travelled) > DRAG_SLOP) dragged.current = true
-            el.scrollLeft = startLeft - travelled
-          }
-          const up = () => {
-            window.removeEventListener('pointermove', move)
-            window.removeEventListener('pointerup', up)
-          }
-          window.addEventListener('pointermove', move)
-          window.addEventListener('pointerup', up)
-        }}
         // Only ever fade a side that has something behind it. A permanent fade
         // on both edges is decoration claiming there is more, which is a worse
         // lie than a hard cut.
