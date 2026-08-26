@@ -1,4 +1,5 @@
 import { Suspense } from 'react'
+import { cookies } from 'next/headers'
 import Image from 'next/image'
 
 import { AppSidebar } from '@/components/app-sidebar'
@@ -26,13 +27,22 @@ import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/s
 // streams into its own Suspense boundary as it arrives. The reads still run
 // concurrently, so nothing got slower; what changed is that the first paint no
 // longer waits for any of them.
-export default function DashboardLayout({
+//
+// It awaits one thing now, and deliberately: the cookie holding whether the
+// rail is collapsed. That is a read of headers already in hand rather than a
+// network call, and the alternative is worse than the microsecond it costs.
+// Without it the server always renders the rail expanded and the client
+// corrects it after hydration, so anyone who chose the icon rail watches it
+// flap open and shut on every single navigation.
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
+  const railOpen = (await cookies()).get('sidebar_state')?.value !== 'false'
+
   return (
-    <SidebarProvider>
+    <SidebarProvider defaultOpen={railOpen}>
       <AppSidebar
         agentSlot={
           <Suspense fallback={<AgentsFallback />}>

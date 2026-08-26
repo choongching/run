@@ -60,7 +60,7 @@ export function AccountMenu({
                 {initials}
               </AvatarFallback>
             </Avatar>
-            <div className="flex min-w-0 flex-1 flex-col leading-tight">
+            <div className="flex min-w-0 flex-1 flex-col leading-tight group-data-[collapsible=icon]:hidden">
               <TruncatedLabel text={name} className="text-sm font-medium" />
               {/* Everyone has their own space, so there is no member or
                   administrator rank to show. The account it belongs to is
@@ -70,7 +70,7 @@ export function AccountMenu({
                 className="text-xs text-muted-foreground"
               />
             </div>
-            <ChevronsUpDown className="ml-auto size-4 shrink-0 text-muted-foreground" />
+            <ChevronsUpDown className="ml-auto size-4 shrink-0 text-muted-foreground group-data-[collapsible=icon]:hidden" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" side="top">
             <DropdownMenuItem render={<Link href="/settings" />}>

@@ -17,6 +17,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarSeparator,
+  SidebarTrigger,
 } from '@/components/ui/sidebar'
 
 export type { SidebarAgent } from '@/components/sidebar/agent-list'
@@ -43,14 +44,39 @@ export function AppSidebar({
   const pathname = usePathname()
 
   return (
-    <Sidebar variant="inset">
+    // collapsible="icon" rather than the default offcanvas: on a desktop the
+    // rail can now shrink to a 48px strip of icons instead of only being able
+    // to disappear. The choice is kept in a cookie and read by the layout, so
+    // the server renders whichever one you left it in.
+    //
+    // Mobile is untouched by this. Below md the rail is still a drawer that
+    // slides over the page, which is the only thing that works on a phone.
+    <Sidebar variant="inset" collapsible="icon">
       <SidebarHeader>
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton size="lg" render={<Link href="/" />}>
+          {/* Expanded: the mark, the wordmark, and the collapse control at the
+              trailing edge, which is where all four of the products we looked
+              at put it. Collapsed, there is no room for two things on a 48px
+              row, so the control moves to its own row underneath, and the
+              mark keeps the top spot. */}
+          <SidebarMenuItem className="flex items-center gap-1">
+            <SidebarMenuButton
+              size="lg"
+              render={<Link href="/" />}
+              className="min-w-0 flex-1"
+            >
               <Image src="/run-icon.png" alt="" width={28} height={28} />
-              <span className="text-base font-semibold">Run</span>
+              <span className="text-base font-semibold group-data-[collapsible=icon]:hidden">
+                Run
+              </span>
             </SidebarMenuButton>
+            <SidebarTrigger
+              aria-label="Collapse the sidebar"
+              className="shrink-0 max-md:hidden group-data-[collapsible=icon]:hidden"
+            />
+          </SidebarMenuItem>
+          <SidebarMenuItem className="hidden justify-center group-data-[collapsible=icon]:flex">
+            <SidebarTrigger aria-label="Expand the sidebar" />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
@@ -60,15 +86,25 @@ export function AppSidebar({
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
-                {/* A plain nav item, tried as a solid primary button and
-                    reverted the same evening (founder's call): the filled
-                    block crowded the rail more than it invited. */}
+                {/* The one row in the rail that does something rather than
+                    going somewhere, and it now says so. A solid primary ROW
+                    was tried once and reverted the same evening (founder's
+                    call): the filled block crowded the rail more than it
+                    invited. Filling the icon instead is the version Town
+                    uses, and it marks the action without spending the width.
+
+                    The size and colour overrides are deliberate: the menu
+                    button sets every icon inside it to 18px muted, which is
+                    right for a destination and wrong for a filled mark. */}
                 <SidebarMenuButton
                   isActive={pathname === '/'}
+                  tooltip="New agent"
                   render={<Link href="/" />}
                   className="min-h-11 md:min-h-0"
                 >
-                  <Plus className="size-4.5 shrink-0" />
+                  <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary [&_svg]:size-3! [&_svg]:text-primary-foreground!">
+                    <Plus strokeWidth={2.5} />
+                  </span>
                   <span className="font-medium">New agent</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
@@ -80,6 +116,7 @@ export function AppSidebar({
               <SidebarMenuItem>
                 <SidebarMenuButton
                   isActive={pathname.startsWith('/routines')}
+                  tooltip="Routines"
                   render={<Link href="/routines" prefetch />}
                   className="min-h-11 md:min-h-0"
                 >
@@ -105,6 +142,7 @@ export function AppSidebar({
                 goes out of date the moment the next reply lands. */}
             <SidebarMenuButton
               isActive={pathname.startsWith('/knowledge')}
+              tooltip="Knowledge"
               render={<Link href="/knowledge" prefetch />}
               className="min-h-11 md:min-h-0"
             >
@@ -115,6 +153,7 @@ export function AppSidebar({
           <SidebarMenuItem>
             <SidebarMenuButton
               isActive={pathname.startsWith('/connectors')}
+              tooltip="Connectors"
               render={<Link href="/connectors" prefetch />}
               className="min-h-11 md:min-h-0"
             >
