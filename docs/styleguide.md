@@ -4,7 +4,8 @@ This describes **Run as it is built**, not a look to aim at. Every recipe below
 has code behind it, and a recipe with no code in the app is not guidance, it is
 fiction: it cost us a real defect the day the empty-state headline in here
 turned out to be a size nothing had ever used. Rewritten 2026-08-21 for that
-reason, when the page containers were unified.
+reason, when the page containers were unified, and extended 2026-08-26 with
+the motion vocabulary and the home composer.
 
 Tokens map to CSS variables in `app/globals.css`; always style through them
 (`bg-primary`, `text-muted-foreground`), never hard-coded hex.
@@ -66,7 +67,7 @@ primary flips to a lighter green with dark text.
   rings and the lift are made of, so without this class the ring appears in
   a single frame. Disabled under `prefers-reduced-motion`.
 - No component hand-rolls a focus style. Six files did (the chat header,
-  knowledge search, the config panel, the review card, the options card) and
+  knowledge search, the config panel, the review card, the interview card) and
   all now use the recipe above.
 - The shadow is always the green, never a grey or black, in both themes.
   Dark uses the lighter primary at more alpha, because a deep green glow
@@ -120,7 +121,15 @@ above clamped to 6px), so `rounded-xl` and larger render at 6px too.
   `rounded-md` (5px).
 - Kbd chips and the tightest details: `rounded-sm` (4px).
 - Never write a raw `rounded-[Npx]`; always go through the scale so the
-  4-to-6px rule holds everywhere at once.
+  4-to-6px rule holds everywhere at once. The home composer is the one
+  component that does, at `rounded-[9px]`, a founder call from 2026-07-30: it
+  is the largest single control on the emptiest screen, where even the shell's
+  8px reads as square. It is marked as an exception in the code and there are
+  no others.
+- **Pills are not capsules.** The job rail's pills are `rounded-md` like every
+  other small control. A capsule was proposed from a reference and declined:
+  fully round is reserved for true circles, and one capsule would have been
+  the only one in the app.
 - Only exceptions: true circles (avatars, FAB, status dots) stay `rounded-full`,
   and the two layout shell cards (the conversation and the docked configure
   panel, plus the content card on every other route) use `rounded-shell` (8px).
@@ -310,10 +319,21 @@ history. Use these components rather than re-deriving the classes.
   two lines opens the record on click (`cursor-pointer hover:bg-muted/40`), and
   the trailing cluster stops the click from reaching it
   (`onClick={(e) => e.stopPropagation()}`) so the kebab is not also a door.
-- **Cards IN the conversation** (approval, review, options, routine) are the
+- **Cards IN the conversation** (approval, review, interview, routine) are the
   one place a card is outlined in the focus green rather than the border
   token: `rounded-xl border border-ring/60 bg-card p-4`. They are asking for
   a decision, and the green says so. Never use it for a page section.
+- **A round of questions is one card that steps.**
+  `components/chat/interview-card.tsx`. A counter chip (`{n} of {total}`,
+  `tabular-nums`) and the question's short title in the header, the question
+  and its help line above a `RowBox` of radio rows, Back and Save in a
+  `border-t` footer at `min-h-11 md:min-h-9`. The header also carries a
+  clickable rail of check pips for jumping between questions, `hidden md:flex`,
+  because a 24px pip cannot reach the 44px tap floor and a phone steps with
+  Back and Next instead. Nothing is sent until Save, and the answered round
+  redraws in place as a summary card. The stepping is local state, which is
+  only possible because the whole round arrives in one tool call: a card that
+  sent each answer as it was picked could not offer Back at all.
 - **Dialog:** the usage history is the pattern. Its sections are a
   `text-sm font-medium` label over a 7a box, not cards: a card inside a dialog
   is a box in a box. Below `md` it takes the whole screen (see 5b).
@@ -343,7 +363,95 @@ history. Use these components rather than re-deriving the classes.
 - **Composer action row:** every control gathers at the trailing edge (meter
   ring, paperclip, send). The attach icon is `Paperclip`.
 
-## 8. Do / Don't
+### 7c. The home composer and its job rail
+
+The one hero on the product, and the only place these recipes apply.
+
+- **The box.** `rounded-[9px] border border-input bg-card`, three rows tall,
+  with the action row gathering at the trailing edge (7b). The send control is
+  `size-11` below `md` so it clears the tap floor, and a labelled button above
+  it.
+- **It shows what to type rather than saying it.** The placeholder types four
+  real first prompts one letter at a time, erases each before the next, and
+  then rests on one plain line for good (`lib/use-typed-placeholder.ts`). It
+  writes into the real `placeholder` attribute, so there is no second element
+  to keep in sync and nothing to hide from a screen reader; the `aria-label`
+  stays static so nobody is read a moving string. The static tip line under
+  the box was cut when this shipped, because it was saying in words what the
+  box now demonstrates.
+- **The jobs under it are one row you push sideways**, never a block that
+  wraps (`components/home/job-rail.tsx`). A wrapping block lets the width
+  decide how many jobs are worth offering: five wrapped into three ragged
+  lines, so the count was cut to three, so the screen offered a narrow view of
+  what an agent is for. A rail is one line at any count, and on a phone it
+  replaces six stacked 44px rows with one.
+- **A rail pill drops the border.** `rounded-md bg-muted px-3 py-1.5
+  text-[13px] text-muted-foreground`, `min-h-11 md:min-h-0`, and
+  `border-transparent` so hover shifts nothing. The outline is what makes a
+  control compete, not its size: bordered, the rail read as a second composer
+  under the first. The composer owns the only border in that block.
+- **Fade an edge only when there is something behind it.** The mask is built
+  from the scroll position, one side at a time, and a side with nothing behind
+  it gets a hard `#000` stop. A permanent fade on both edges is decoration
+  claiming there is more, which is a worse lie than a hard cut. Ease the
+  falloff with two extra stops rather than fading linearly: a constant fade
+  reads as a grey band laid over the row, an eased one reads as a pill running
+  off the screen.
+- **No arrow buttons** (founder call). The mask, and a pill cut in half at the
+  edge, are the whole affordance. Hide the scrollbar with `no-scrollbar`,
+  which is what makes the mask load-bearing rather than decorative. That class
+  is not ours: it arrives with `shadcn/tailwind.css`, which `globals.css`
+  imports, and it is one more reason shadcn stays a dependency rather than
+  being vendored in.
+- **One effect owns every listener**, so unmounting kills all of them. Two
+  traps live here: React attaches `wheel` passively at the root, so turning a
+  vertical wheel into sideways scroll needs a native listener added with
+  `{ passive: false }` or the page moves underneath; and drag listeners added
+  inside `pointerdown` outlive the component if the drag ends off the window,
+  so they belong to the effect with `pointercancel` handled beside
+  `pointerup`. Touch is left to the browser, which already has momentum.
+- **A drag past four pixels is not a click.** Set a ref while dragging and
+  read it in the pill's click handler, or pushing the rail chooses whatever
+  was under the finger.
+
+## 8. Motion
+
+The vocabulary as built. All of it lives in `@layer utilities` in
+`globals.css`, which is where a utility has to be for its class to beat
+Tailwind's own. Whether something should move at all is the `motion` skill's
+question, not this file's.
+
+| Utility | What it tells the person |
+|---|---|
+| `run-rise` | the home hero has arrived; stagger siblings with `--rise-delay` |
+| `run-settle` | a standard page's cards have settled, in reading order |
+| `run-flip` | the headline word is one of several |
+| `run-focus-fade` | you are now in this field; 180ms, on every focusable control |
+| `run-sheen` | one sweep of the composer's border on the click that focuses it |
+| `run-sheen-idle` | the composer is waiting for you |
+| `run-wash`, `run-hero-dim` | the home canvas, and the hero standing down while an agent builds |
+
+- **Composite-only properties.** `transform`, `opacity`, `filter`. A keyframe
+  on width, height, top or left reflows the page every frame. A registered
+  `@property` is the exception that makes a gradient angle animatable at all.
+- **Every one carries `prefers-reduced-motion: reduce`.** A JS-driven
+  animation checks `matchMedia` on mount and returns early instead.
+- **Anything that starts on its own, runs past five seconds and sits beside
+  other content needs a way to pause it** (WCAG 2.2.2, Level A). Run's answer
+  is to stop rather than to add a pause button: the typed placeholder runs
+  once through its examples and rests, which conforms with nothing to click.
+  The composer's idle drift is the one standing exception, a founder decision
+  made twice, and its mitigations are written into `globals.css` next to the
+  rule rather than left to memory.
+- **One surface, one thing moving,** and two states of one surface never both
+  live: the drift runs only while the box is idle, the sweep only on the click
+  that ends it.
+- **To paint a gradient on a border**, fill the box and punch its middle out
+  with two mask layers, and write the `-webkit-` pair FIRST. Each shorthand
+  resets its own composite mode, so whichever is last wins, and with the
+  standard pair last the gradient floods the whole box.
+
+## 9. Do / Don't
 
 - Do build a page out of `SectionCard` and `RowBox` (7a) rather than a new
   arrangement of borders. Four arrangements is what we had, and unpicking it

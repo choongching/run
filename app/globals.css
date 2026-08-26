@@ -286,11 +286,11 @@
      border when you click in, then it settles to the ordinary ring every
      other input in the app uses. Home composer only.
      
-     Deliberately NOT ambient. The placeholder inside the box is already
-     typing, and a second loop around the box would put two animations on one
-     control competing for the same glance. A loop would also start on its
-     own and never end, which is the WCAG 2.2.2 case the placeholder was
-     written to avoid; a one-shot on a deliberate action is not.
+     One shot, on a deliberate action, which is why it needs no pause
+     mechanism: a sweep that runs for under a second when you click into a
+     control is not the WCAG 2.2.2 case. The ambient version of this is
+     .run-sheen-idle below, and the two never run together: clicking in is
+     exactly what stops the drift.
      
      The angle is a registered custom property because a plain custom property
      cannot be animated. Where @property is unsupported the sweep does not
