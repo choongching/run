@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils'
 // Each one still has to be a job the tool list can finish, same rule as the
 // chips. One per word in the headline's cycle: inbox, reading, drafts,
 // research.
-const PLACEHOLDER_EXAMPLES = [
+export const PLACEHOLDER_EXAMPLES = [
   'Read my inbox each morning and tell me what needs a reply',
   'Answer questions from the documents in my Drive',
   'Draft replies in my voice, for me to approve',
@@ -36,7 +36,7 @@ const PLACEHOLDER_EXAMPLES = [
 // only teaching on the screen. The examples above now demonstrate exactly what
 // that sentence described, and showing beats telling, so the tip went. If the
 // examples ever go, the tip comes back with them.
-const RESTING_PLACEHOLDER = 'Describe what you need done...'
+export const RESTING_PLACEHOLDER = 'Describe what you need done...'
 
 // What creation genuinely does, in its true order (see startAgentFromPrompt:
 // reading the prompt, the naming call, buildSystemPrompt, buildAgentToolset,
@@ -133,16 +133,28 @@ export function PromptComposer({
       <form
         ref={formRef}
         action={startAgentFromPrompt}
+        // The box is three lines tall and mostly empty, so people aim at the
+        // middle of it rather than at the one line of text. Without this,
+        // clicking anywhere below the first line lands on the form and takes
+        // focus OFF the textarea, which now also throws the backdrop back out
+        // of its focused state: the box visibly un-focuses when you click it.
+        // mousedown rather than click, so focus never leaves in the first
+        // place, and never when the press is on something that wants it.
+        // Checking the form element alone is not enough: the send button sits
+        // in its own row, and a press on that row's padding has the row as
+        // its target rather than the form.
+        onMouseDown={(e) => {
+          if ((e.target as HTMLElement).closest('button, textarea, a, input'))
+            return
+          e.preventDefault()
+          textareaRef.current?.focus()
+        }}
         // Hidden (not unmounted) while building: the in-flight server action
         // belongs to this form, so it must stay in the tree.
         // rounded-[9px] is a founder-set hero exception to the 4-6px radius
         // scale, local to this composer only.
         className={cn(
-          'run-rise run-sheen relative rounded-[9px] border border-input bg-card run-focus-fade [--rise-delay:180ms] focus-within:border-ring focus-within:shadow-focus',
-          // The border drifts whenever the box is waiting: nothing typed and
-          // nobody in it. It rides alongside the placeholder's typing rather
-          // than queueing behind it, which is what made it invisible.
-          idle && 'run-sheen-idle',
+          'run-rise run-sheen relative rounded-[9px] border border-input bg-card run-focus-fade [--rise-delay:180ms] focus-within:border-ring',
           pending && 'hidden'
         )}
       >

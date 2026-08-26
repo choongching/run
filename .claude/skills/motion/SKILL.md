@@ -55,12 +55,18 @@ pause control is worse than no animation. The typed placeholder runs once
 through its examples and rests forever; that is what makes it conformant with
 nothing to click. Prefer this shape every time.
 
-**When the founder overrides it** (they did, twice, for the composer's idle
-drift), say so once, plainly, then build it and write the mitigations in the
-CSS next to the rule: what makes it defensible, and what is genuinely given
-up. The comment on `.run-sheen-idle` in `globals.css` is the template. Do not
-re-litigate a decision the founder has made twice; do not let it go
-unrecorded either.
+**When the founder overrides it**, say so once, plainly, then build it and
+write the mitigations in the CSS next to the rule: what makes it defensible,
+and what is genuinely given up. Do not re-litigate a decision the founder has
+made twice; do not let it go unrecorded either.
+
+**And know that an override can come back.** They overrode this twice for the
+composer's idle drift, and four days later cut that drift, the backdrop's
+drift, and the whole idea of ambient looping on the home screen, because their
+laptop fans were spinning up on that page. As of 2026-08-26 the app has no
+perpetual animation anywhere. Which means the argument above was right and the
+mitigations were not the point: the reason to write them down is that the
+person who reads them next may be deciding whether to keep the thing at all.
 
 ## Always, without being asked
 
@@ -145,3 +151,18 @@ Which is why `JobRail` is deliberately NOT memoized. The obvious optimisation
 was left out because the measurement said it bought nothing, and a `memo` on a
 component whose parent re-renders constantly is a comment claiming a problem
 that is not there.
+
+**That measurement was also used to conclude the animations were free, and
+that conclusion was wrong.** Later the same day the founder reported their fans
+spinning up on that page. Re-running the benchmark with the border drift
+injected and removed gave identical numbers, 120fps and no dropped frames
+either way, because frame pacing is not what an ambient animation costs. What
+it costs is that the page never goes idle: one perpetual animation pins the
+compositor and a 120Hz display at 120 frames a second for as long as the tab
+is open, and there is headroom the whole time, so nothing looks wrong.
+
+So the test for ambient motion is not "does it hit the frame rate". It is
+**can this page reach zero frames when nobody is touching it**, and the way to
+answer it is `document.getAnimations()` in the console after the arrivals have
+finished. An empty array is the pass. Anything with `iterations: Infinity` in
+it is a battery bill, however smooth it measures.

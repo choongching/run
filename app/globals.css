@@ -107,7 +107,7 @@
      reading measure short. Named because three elements have to agree on it,
      the header rule, the message list and the composer, or they misalign. */
   --container-thread: 38.4rem;
-  --radius-shell: 0.5rem;
+  --radius-shell: 0.875rem;
   --radius-sm: 0.25rem;
   --radius-md: 0.3125rem;
   --radius-lg: var(--radius);
@@ -288,9 +288,13 @@
      
      One shot, on a deliberate action, which is why it needs no pause
      mechanism: a sweep that runs for under a second when you click into a
-     control is not the WCAG 2.2.2 case. The ambient version of this is
-     .run-sheen-idle below, and the two never run together: clicking in is
-     exactly what stops the drift.
+     control is not the WCAG 2.2.2 case.
+
+     There was an ambient version of this for two days, drifting round the
+     border while the box waited. The founder cut it on 2026-08-26 along with
+     the backdrop's drift, and the home screen now has no perpetual motion on
+     it at all: everything that moves here is either an arrival or an answer
+     to something a person just did.
      
      The angle is a registered custom property because a plain custom property
      cannot be animated. Where @property is unsupported the sweep does not
@@ -329,62 +333,6 @@
   }
   .run-sheen:focus-within::after {
     animation: run-sheen-sweep 900ms cubic-bezier(0.22, 0.61, 0.36, 1) 1;
-  }
-  /* The idle state: a slow, dim drift around the border while the box is
-     waiting for someone. Half the brightness of the focus sweep and six times
-     slower, so it reads as the box breathing rather than as something
-     happening.
-
-     Brighter and longer-armed than it started: at 0.45 with the focus
-     sweep's narrow arc it was there but not noticeable, which is the wrong
-     side of subtle for something whose whole job is to catch an eye.
-
-     It runs for as long as the box is idle. That is a founder decision made
-     twice, over my objection that motion which starts on its own and never
-     ends is the WCAG 2.2.2 case. What makes it defensible: it is dim, it is
-     slow, clicking into the box stops it, typing a character stops it, and
-     reduced motion never starts it. What is given up: a person who wants it
-     still while doing neither has no way to ask.
-
-     It also no longer waits for the placeholder to finish. Gated that way it
-     took seventeen seconds to appear and stopped twenty-two seconds later,
-     which is a thing nobody would ever see. */
-  .run-sheen-idle::after {
-    /* Its own arc, wider than the focus sweep's and ramped through two stops
-       so the light has a leading and trailing falloff rather than one hard
-       edge. The focus sweep keeps the tighter arc above: it is brighter and
-       over in under a second, so it does not need the length to be seen. */
-    background: conic-gradient(
-      from var(--run-sheen-angle),
-      transparent 0deg,
-      transparent 200deg,
-      color-mix(in oklab, var(--ring) 30%, transparent) 258deg,
-      var(--ring) 320deg,
-      color-mix(in oklab, var(--ring) 45%, transparent) 350deg,
-      transparent 360deg
-    );
-    animation: run-sheen-drift 5500ms linear infinite;
-  }
-  @keyframes run-sheen-drift {
-    0% {
-      opacity: 0;
-      --run-sheen-angle: 0deg;
-    }
-    14% {
-      opacity: 0.75;
-    }
-    86% {
-      opacity: 0.75;
-    }
-    100% {
-      opacity: 0;
-      --run-sheen-angle: 360deg;
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .run-sheen-idle::after {
-      animation: none;
-    }
   }
   @keyframes run-sheen-sweep {
     from {
@@ -505,15 +453,16 @@
     }
   }
 
-  /* Ambient wash behind the home prompt box (components/home/ambient-backdrop).
-     Built from the palette, not invented colour: two deep-forest-green washes
-     and one warm paper wash, all at single-digit alpha. The styleguide reserves
-     colour pops for data, so nothing here borrows the chart hues; the effect is
-     a green haze on warm paper, which is the brand at low volume.
-     Only transform and opacity animate, so this stays on the compositor. */
+  /* The home backdrop (components/home/ambient-backdrop). A photograph of
+     monstera shadows on a pale wall, filling the hero region edge to edge.
+     It replaced three blurred green washes built from the palette: those were
+     the best atmosphere available without an image, and an image is better.
+
+     The only thing that animates is the opening, and it animates transform
+     and opacity, so it stays on the compositor and never triggers layout. */
   /* The opening: the whole layer glows up from nothing over a couple of
      seconds, so arriving on the home screen feels like the light coming on
-     rather than a coloured panel appearing. Slower than any UI transition on
+     rather than a picture appearing. Slower than any UI transition on
      purpose; this is atmosphere, not feedback. */
   .run-wash-layer {
     animation: run-wash-in 2600ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
@@ -528,72 +477,98 @@
       transform: scale(1);
     }
   }
-  .run-wash {
-    position: absolute;
-    border-radius: 9999px;
-    filter: blur(90px);
-    will-change: transform, opacity;
+  /* Founder's numbers, off the bench at /design/backdrop on 2026-08-26.
+     Just over half strength, desaturated and lifted a little, under a veil
+     twice as heavy as the first pass: the wall is a suggestion rather than a
+     subject, which is what keeps a photograph from becoming the loudest thing
+     on a screen whose job is a single empty box.
+
+     It does not move. A slow drift was built and then cut by the founder, and
+     the cut is the better answer twice over: at this strength nothing was
+     gained by moving it, and a backdrop that arrives and then holds still is
+     outside WCAG 2.2.2 entirely rather than being an exception argued for.
+     The opening above is the whole of the motion here. It plays once, and
+     after that this screen is a photograph. */
+  .run-backdrop {
+    /* No will-change. It was here for the drift, and a will-change on a
+       full-screen photograph pins a large texture on the GPU for the life of
+       the page: worth it for something that moves every frame, pure cost for
+       something that never moves again. */
+    transform: scale(1.06);
+    opacity: 0.55;
+    filter: saturate(70%) brightness(104%);
   }
-  .run-wash-a {
-    top: -14%;
-    left: 18%;
-    width: 42rem;
-    height: 30rem;
-    background: radial-gradient(
-      closest-side,
-      color-mix(in oklch, var(--primary) 16%, transparent),
-      transparent
-    );
-    animation: run-wash-a 43s ease-in-out infinite alternate;
+  /* Clicking into the composer steps the room back.
+     
+     The picture eases from 1.06 down to 1.015 and fades a little while the
+     veil comes up, so the wall recedes and the box it is behind comes
+     forward. Scale is the whole effect and it is bounded at the bottom by
+     geometry, not by taste: the image is object-cover at exactly 1.0, so
+     anything under that would show the card's own background at the edges.
+     1.015 is as far back as it can go with a hair of margin.
+     
+     700ms and eased out, which is slower than a control's feedback and
+     faster than the arrival. It should read as the room adjusting rather than
+     as a thing that flashed. Blurring the box reverses every part of it,
+     because these are transitions between two states and not an animation
+     that plays: nothing here runs unless a person just did something. */
+  .run-backdrop,
+  .run-backdrop-veil {
+    transition:
+      transform 700ms cubic-bezier(0.22, 0.61, 0.36, 1),
+      opacity 700ms cubic-bezier(0.22, 0.61, 0.36, 1),
+      background-color 700ms cubic-bezier(0.22, 0.61, 0.36, 1);
   }
-  .run-wash-b {
-    top: 22%;
-    left: 46%;
-    width: 36rem;
-    height: 28rem;
-    background: radial-gradient(
-      closest-side,
-      color-mix(in oklch, var(--primary) 11%, transparent),
-      transparent
-    );
-    animation: run-wash-b 59s ease-in-out infinite alternate;
+  .run-stage:has(.run-sheen:focus-within) .run-backdrop {
+    transform: scale(1.015);
+    opacity: 0.44;
   }
-  .run-wash-c {
-    top: 4%;
-    left: 8%;
-    width: 44rem;
-    height: 32rem;
-    background: radial-gradient(
-      closest-side,
-      color-mix(in oklch, var(--sidebar-accent) 90%, transparent),
-      transparent
-    );
-    animation: run-wash-c 71s ease-in-out infinite alternate;
+  .run-stage:has(.run-sheen:focus-within) .run-backdrop-veil {
+    background: color-mix(in oklch, var(--sidebar) 58%, transparent);
   }
-  /* Durations are long and share no common factor, so the three never resync
-     into a rhythm you can follow, which is what makes a loop read as a loop. */
-  @keyframes run-wash-a {
-    from { transform: translate3d(-4%, -2%, 0) scale(1); opacity: 0.9; }
-    to   { transform: translate3d(6%, 4%, 0) scale(1.12); opacity: 1; }
+  /* The other half: the box lifts as the wall drops. A hairline under the
+     edge for the physical drop, then a wide, deep green pool below it that
+     reads as light coming from behind the card rather than as a shadow cast
+     by it. This replaces the shared shadow-focus token on the home composer
+     only; the chat composer keeps the quieter lift, because a box people
+     return to forty times a day should not perform. */
+  .run-sheen:focus-within {
+    box-shadow:
+      0 1px 2px color-mix(in oklch, var(--foreground) 7%, transparent),
+      0 10px 24px -10px color-mix(in oklch, var(--foreground) 14%, transparent),
+      0 28px 56px -18px color-mix(in oklch, var(--primary) 32%, transparent);
   }
-  @keyframes run-wash-b {
-    from { transform: translate3d(3%, 3%, 0) scale(1.08); opacity: 1; }
-    to   { transform: translate3d(-5%, -3%, 0) scale(1); opacity: 0.85; }
-  }
-  @keyframes run-wash-c {
-    from { transform: translate3d(2%, -3%, 0) scale(1.05); opacity: 0.8; }
-    to   { transform: translate3d(-3%, 4%, 0) scale(1); opacity: 1; }
-  }
-  /* Reduced motion keeps the tint and drops the movement: the colour is part
-     of the surface, the drifting is the part that can make people unwell. */
   @media (prefers-reduced-motion: reduce) {
-    .run-wash {
-      animation: none;
+    /* The states still swap, they just arrive rather than travel. */
+    .run-backdrop,
+    .run-backdrop-veil {
+      transition: none;
     }
-    /* The tint still arrives, it just does not travel to get here. */
+  }
+  /* A sheet of the app's own canvas colour laid over the picture. The
+     photograph is a cool mint and the shell around it is warm paper, so
+     without this the hero reads as a green panel dropped beside a grey
+     sidebar rather than as the same room. It also lifts the muted greeting
+     off the darker leaves. One number to turn if it wants to be louder or
+     quieter. */
+  .run-backdrop-veil {
+    background: color-mix(in oklch, var(--sidebar) 46%, transparent);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    /* The picture stays, the arrival goes. Colour is part of the surface;
+       travelling to get here is the part that can make people unwell. */
     .run-wash-layer {
       animation: none;
     }
+  }
+  /* Dark mode is not reachable in the app today, but the tokens are, and a
+     pale wall at full strength on a charcoal shell would be a flashbang. Hold
+     it far back and let the canvas lead. */
+  .dark .run-backdrop {
+    opacity: 0.18;
+  }
+  .dark .run-backdrop-veil {
+    background: color-mix(in oklch, var(--sidebar) 55%, transparent);
   }
 
   /* The chat page reads at one size up: every text token inside it is 1px
