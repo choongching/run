@@ -24,10 +24,16 @@ is one of several (`run-flip`), you are now in this field (`run-focus-fade`,
 the focus sheen).
 
 **2. Does this surface already have motion?** One surface, one animation at a
-time. The composer's border drift is gated on the placeholder finishing its
-run precisely because two things animating in one control compete for a single
-glance, and the person resolves it by looking at neither. When two are
-genuinely wanted, sequence them; do not overlap them.
+time, and two states of one surface are never both live. The composer's border
+drift runs only while the box is idle and its focus sweep only on the click
+that ends that idleness, so the two can never share a glance.
+
+The drift was gated the other way first, on the placeholder finishing its run,
+which is the trap worth naming: a rule applied to the wrong pair. The
+placeholder is INSIDE the box and the drift is around its edge, so they read as
+one thing breathing rather than two things competing, and gating them made the
+drift take seventeen seconds to appear. Ask which two things actually compete
+before sequencing anything.
 
 **3. Does it stop?** See the gate below. This is the question that gets
 skipped, and it is the only one with a standards answer.
