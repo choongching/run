@@ -42,6 +42,37 @@ The founder values live verification of each phase. This is the loop.
 - A model turn takes seconds; `wait` 6-10s between an action and the screenshot
   that checks its result.
 
+## A blank screenshot is not evidence (2026-08-26)
+
+Hit twice in one session, and it nearly became a hunt for a bug that did not
+exist. For several seconds after a recompile the Chrome tool captures an empty
+page while the DOM is entirely correct: the `h1` was present, `opacity: 1`,
+laid out at the right coordinates, with the rail's six pills and a correct
+mask string.
+
+**Read the DOM before concluding the page is broken.** One `javascript_tool`
+call answers it:
+
+```js
+const h1 = document.querySelector('h1')
+JSON.stringify({ text: h1?.innerText.slice(0, 40), rect: h1?.getBoundingClientRect(),
+                 opacity: h1 && getComputedStyle(h1).opacity })
+```
+
+If the element is there with real geometry, the capture is the problem, not
+the code. Take another screenshot rather than editing anything.
+
+## Click small targets by ref, not by coordinate
+
+Coordinates in a `browser_batch` refer to the screenshot taken BEFORE the
+batch, and the page moves between the two: an entrance animation settles, a
+sticky thread scrolls, a card re-renders taller. A 24px target (a stepper pip,
+a kebab, a chip) misses again and again and reads as "the button does not
+work". `read_page` with `filter: "interactive"` then `computer` with
+`ref: "ref_12"` hits it the first time, and the accessible name in that
+listing doubles as an a11y check: an unnamed `radio` in the tree is a real
+defect, not a tooling artefact.
+
 ## Narrow-width (mobile) checks
 
 - `resize_window` LIES in macOS fullscreen: it reports success while the
