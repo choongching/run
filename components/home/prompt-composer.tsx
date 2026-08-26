@@ -109,7 +109,7 @@ export function PromptComposer({
   // Only while the box is genuinely idle: empty, nobody in it, nothing more
   // urgent for the placeholder to be saying.
   const idle = !blocked && !pending && !focused && value.length === 0
-  const { placeholder, resting } = useTypedPlaceholder({
+  const placeholder = useTypedPlaceholder({
     examples: PLACEHOLDER_EXAMPLES,
     resting: RESTING_PLACEHOLDER,
     active: idle,
@@ -139,9 +139,10 @@ export function PromptComposer({
         // scale, local to this composer only.
         className={cn(
           'run-rise run-sheen relative rounded-[9px] border border-input bg-card run-focus-fade [--rise-delay:180ms] focus-within:border-ring focus-within:shadow-focus',
-          // The border drifts only once the box is truly waiting: nothing
-          // typed, nobody in it, and the placeholder done with its examples.
-          idle && resting && 'run-sheen-idle',
+          // The border drifts whenever the box is waiting: nothing typed and
+          // nobody in it. It rides alongside the placeholder's typing rather
+          // than queueing behind it, which is what made it invisible.
+          idle && 'run-sheen-idle',
           pending && 'hidden'
         )}
       >

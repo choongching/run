@@ -335,14 +335,18 @@
      slower, so it reads as the box breathing rather than as something
      happening.
 
-     The caller only adds this class once the placeholder has finished typing
-     its examples, so the two are never animating at once, and it runs a fixed
-     four passes and stops. Both of those are why this is allowed to exist:
-     motion that starts on its own and never ends needs a way to pause it
-     (WCAG 2.2.2), and an ambient loop next to a typing placeholder is two
-     things competing for one glance. */
+     It runs for as long as the box is idle. That is a founder decision made
+     twice, over my objection that motion which starts on its own and never
+     ends is the WCAG 2.2.2 case. What makes it defensible: it is dim, it is
+     slow, clicking into the box stops it, typing a character stops it, and
+     reduced motion never starts it. What is given up: a person who wants it
+     still while doing neither has no way to ask.
+
+     It also no longer waits for the placeholder to finish. Gated that way it
+     took seventeen seconds to appear and stopped twenty-two seconds later,
+     which is a thing nobody would ever see. */
   .run-sheen-idle::after {
-    animation: run-sheen-drift 5500ms linear 4;
+    animation: run-sheen-drift 5500ms linear infinite;
   }
   @keyframes run-sheen-drift {
     0% {
