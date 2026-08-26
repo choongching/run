@@ -22,7 +22,7 @@ import { cn } from '@/lib/utils'
 // Each one still has to be a job the tool list can finish, same rule as the
 // chips. One per word in the headline's cycle: inbox, reading, drafts,
 // research.
-export const PLACEHOLDER_EXAMPLES = [
+const PLACEHOLDER_EXAMPLES = [
   'Read my inbox each morning and tell me what needs a reply',
   'Answer questions from the documents in my Drive',
   'Draft replies in my voice, for me to approve',
@@ -36,7 +36,7 @@ export const PLACEHOLDER_EXAMPLES = [
 // only teaching on the screen. The examples above now demonstrate exactly what
 // that sentence described, and showing beats telling, so the tip went. If the
 // examples ever go, the tip comes back with them.
-export const RESTING_PLACEHOLDER = 'Describe what you need done...'
+const RESTING_PLACEHOLDER = 'Describe what you need done...'
 
 // What creation genuinely does, in its true order (see startAgentFromPrompt:
 // reading the prompt, the naming call, buildSystemPrompt, buildAgentToolset,
