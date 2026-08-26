@@ -335,6 +335,10 @@
      slower, so it reads as the box breathing rather than as something
      happening.
 
+     Brighter and longer-armed than it started: at 0.45 with the focus
+     sweep's narrow arc it was there but not noticeable, which is the wrong
+     side of subtle for something whose whole job is to catch an eye.
+
      It runs for as long as the box is idle. That is a founder decision made
      twice, over my objection that motion which starts on its own and never
      ends is the WCAG 2.2.2 case. What makes it defensible: it is dim, it is
@@ -346,6 +350,19 @@
      took seventeen seconds to appear and stopped twenty-two seconds later,
      which is a thing nobody would ever see. */
   .run-sheen-idle::after {
+    /* Its own arc, wider than the focus sweep's and ramped through two stops
+       so the light has a leading and trailing falloff rather than one hard
+       edge. The focus sweep keeps the tighter arc above: it is brighter and
+       over in under a second, so it does not need the length to be seen. */
+    background: conic-gradient(
+      from var(--run-sheen-angle),
+      transparent 0deg,
+      transparent 200deg,
+      color-mix(in oklab, var(--ring) 30%, transparent) 258deg,
+      var(--ring) 320deg,
+      color-mix(in oklab, var(--ring) 45%, transparent) 350deg,
+      transparent 360deg
+    );
     animation: run-sheen-drift 5500ms linear infinite;
   }
   @keyframes run-sheen-drift {
@@ -354,10 +371,10 @@
       --run-sheen-angle: 0deg;
     }
     14% {
-      opacity: 0.45;
+      opacity: 0.75;
     }
     86% {
-      opacity: 0.45;
+      opacity: 0.75;
     }
     100% {
       opacity: 0;
