@@ -36,8 +36,11 @@ import { useEffect, useRef, useState } from 'react'
 // static aria-label: with no visible label the placeholder IS the field's
 // accessible name, and a name that changes twenty times a second is not one.
 const TYPE_MS = 38
+// Erasing is faster than typing, the way a typewriter loop always is: nobody
+// reads a line backwards, they just need to see it go.
+const ERASE_MS = 16
 const HOLD_MS = 1900
-const GAP_MS = 300
+const GAP_MS = 160
 const FIRST_MS = 1100
 
 export function useTypedPlaceholder(opts: {
@@ -51,6 +54,12 @@ export function useTypedPlaceholder(opts: {
 }): string {
   const { examples, resting, active } = opts
   const [typed, setTyped] = useState('')
+  // Whether a run is underway, which is NOT the same question as "is there
+  // text right now". Mid-run the text is legitimately empty for a moment,
+  // between one line being erased and the next starting, and falling back to
+  // the resting line in that window flashed the old copy back on every
+  // boundary. It read as a glitch, which is exactly what it was.
+  const [running, setRunning] = useState(false)
   // Progress lives in refs, not state: it has to survive the pauses (a focus,
   // a hidden tab) without restarting from the top, and nothing renders from it.
   const index = useRef(0)
@@ -97,21 +106,36 @@ export function useTypedPlaceholder(opts: {
         schedule(TYPE_MS, () => type(next))
         return
       }
-      schedule(HOLD_MS, () => {
-        index.current += 1
-        setTyped('')
-        if (index.current >= examples.length) {
-          done.current = true
-          return
-        }
-        schedule(GAP_MS, () => type(''))
-      })
+      schedule(HOLD_MS, () => erase(full))
+    }
+
+    // Take the line back off the screen before the next one arrives, rather
+    // than cutting to an empty box. This is the half that makes it read as one
+    // line replacing another instead of the text disappearing.
+    const erase = (text: string) => {
+      if (text.length > 0) {
+        const next = text.slice(0, -1)
+        setTyped(next)
+        schedule(ERASE_MS, () => erase(next))
+        return
+      }
+      index.current += 1
+      if (index.current >= examples.length) {
+        done.current = true
+        setRunning(false)
+        return
+      }
+      schedule(GAP_MS, () => type(''))
     }
 
     // Restart the line it was part way through rather than the whole run: the
     // characters already typed are gone from the screen either way, and
     // finishing a sentence nobody saw the start of reads as a glitch.
-    const begin = (delay: number) => schedule(delay, () => type(''))
+    const begin = (delay: number) =>
+      schedule(delay, () => {
+        setRunning(true)
+        type('')
+      })
 
     const onVisibility = () => {
       if (document.hidden) stop()
@@ -130,5 +154,5 @@ export function useTypedPlaceholder(opts: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active, examples])
 
-  return active && typed ? typed : resting
+  return active && running ? typed : resting
 }
