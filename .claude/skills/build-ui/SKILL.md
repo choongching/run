@@ -223,6 +223,22 @@ mobile width.
   `@layer components` regardless of selector specificity. Any custom rule that
   must override a utility-classed element goes in `@layer utilities` in
   `globals.css` (see the existing sidebar shell override there as the pattern).
+- **A class you want to use WITH A VARIANT must be declared `@utility`, not
+  written by hand in `@layer utilities`.** Tailwind only composes variants
+  onto utilities it knows about, so `[&>span:last-child]:run-rail-fade` or
+  `md:run-rail-fade` on a hand-written class generates nothing and applies
+  NOWHERE, silently, with no build error. `@utility run-rail-fade { ... }` at
+  the top level (not nested inside `@layer`) fixes it and still produces the
+  plain class for unprefixed use. The tell is a class that is definitely in
+  the markup and definitely in the stylesheet and definitely not applying:
+  check the computed style before you go looking for a specificity fight.
+- **A class you cannot find may not be ours.** `globals.css` imports
+  `tailwindcss`, `tw-animate-css` and `shadcn/tailwind.css`, so grepping the
+  repo for a utility and finding nothing does not mean it is undefined:
+  `no-scrollbar` ships in shadcn's stylesheet and I "fixed" it as a missing
+  class one evening after this file had already said so that same morning.
+  Grep `node_modules/**/*.css` before concluding, and read the recipe here
+  first.
 - **Dark mode:** every new token or color decision must be mirrored in the
   `.dark` block in `globals.css`.
 - **Sidebar shell:** `variant="inset"`; sidebar width token is 15rem. Do not

@@ -87,6 +87,30 @@ The same call also returned the official product logos, which is where the
 connector icons came from. Look at the whole response, not just the field you
 went for.
 
+## Reading competitors: agreement is the answer, disagreement is the question
+
+The founder handed over seven products' sidebars in one sitting (2026-08-26).
+Read as a set rather than one at a time, they sorted themselves:
+
+- **Where all seven agree, copy it and stop thinking.** The collapse control
+  in the top row, the account and plan at the bottom, a soft filled rounded
+  shape marking the current row. Seven independent teams landing in the same
+  place is a settled question, and re-deriving it is spending judgment you
+  need elsewhere.
+- **Where they disagree completely, that is the real question, and it is
+  yours to answer.** Their create actions were: nothing, a filled circular
+  icon, an outlined full-width button, a `+` on the group label, and a compact
+  pill sharing a row. No convention exists, which is exactly why ours had
+  already been built and reverted once. Name it as unsettled to the founder
+  instead of picking one and calling it best practice.
+- **A flaw every one of them shares is the shape of the thing, not a fault in
+  yours.** All seven had the same wide empty middle we had been treating as a
+  bug to fix.
+
+So: put the references side by side and sort the features into agreed, split,
+and universally-flawed BEFORE proposing anything. It turns "here are seven
+screenshots" into three decisions with different weights.
+
 ## Where it goes
 
 - Spike docs live in `docs/<topic>-spike-<YYYY-MM-DD>.md`. **`docs/*` is
