@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { ArrowUp } from 'lucide-react'
 
 import { startAgentFromPrompt } from '@/app/actions/agents'
+import { JobRail } from '@/components/home/job-rail'
 import { Button } from '@/components/ui/button'
 import {
   Tooltip,
@@ -36,41 +37,6 @@ const PLACEHOLDER_EXAMPLES = [
 // that sentence described, and showing beats telling, so the tip went. If the
 // examples ever go, the tip comes back with them.
 const RESTING_PLACEHOLDER = 'Describe what you need done...'
-
-// One-click seeds that teach what an agent can be. Clicking fills the box
-// (editable) rather than submitting: the user learns plain language is the
-// interface. See docs/revamp-happy-path (Beat 1). Every chip must be a job
-// the tool list in lib/tools/definitions.ts can actually finish, because a
-// chip is the agent's first task.
-//
-// THREE, not five. There used to be one per word in the headline's cycle plus
-// a Drive tidy-up. Then the placeholder started typing an example of all four
-// words, so every idea on this screen was being made three times: once in the
-// headline, once inside the box, once underneath it. What survives is chosen
-// by what CLICKING it teaches that the others do not, which is the three
-// shapes of the trust model: reading your mail needs no permission, writing
-// to it stops for your approval, and reading is free one connector over in
-// Drive too.
-//
-// Written the way you would ask a colleague, not the way you would describe a
-// feature: "tell me what needs a reply" is something people say out loud, and
-// "answer questions from my documents" is not.
-//
-// The chip WEARS a short label and PUTS a whole sentence in the box. They used
-// to be the same string, which forced a choice between a chip short enough to
-// sit in one row and a first task worth giving an agent. Splitting them ends
-// the argument: the row stays clean and the box still gets the full ask.
-const SUGGESTIONS = [
-  { label: 'What needs a reply', prompt: 'Tell me what needs a reply today' },
-  {
-    label: 'Draft my replies',
-    prompt: 'Draft replies to the emails waiting on me',
-  },
-  {
-    label: 'Read a document',
-    prompt: 'Read a long document and tell me what matters',
-  },
-]
 
 // What creation genuinely does, in its true order (see startAgentFromPrompt:
 // reading the prompt, the naming call, buildSystemPrompt, buildAgentToolset,
@@ -242,23 +208,8 @@ export function PromptComposer({
         composerForm
       )}
 
-      <div
-        className={cn(
-          'run-rise mt-5 flex flex-wrap justify-center gap-2.5 [--rise-delay:270ms]',
-          pending && 'hidden'
-        )}
-      >
-        {SUGGESTIONS.map(({ label, prompt }) => (
-          <button
-            key={label}
-            type="button"
-            onClick={() => pickSuggestion(prompt)}
-            disabled={pending || blocked}
-            className="min-h-11 rounded-lg border border-border bg-card px-3.5 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50 md:min-h-0"
-          >
-            {label}
-          </button>
-        ))}
+      <div className={cn('run-rise [--rise-delay:270ms]', pending && 'hidden')}>
+        <JobRail onPick={pickSuggestion} disabled={pending || blocked} />
       </div>
     </div>
   )
