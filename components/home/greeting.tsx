@@ -36,8 +36,14 @@ export function Greeting({ name }: { name: string }) {
   // Sits tight to the headline: the two lines are one thought, and the
   // reserved height is trimmed to the text so the leading does not add a gap
   // of its own.
+  //
+  // foreground/65 rather than the muted token, which is what every other
+  // quiet line in the app uses. This one stopped sitting on a near-white card
+  // the day the home screen gained a photographic backdrop: measured against
+  // the picture, muted came to 3.28:1 at 21px, under the 4.5:1 this size
+  // needs. At 65% of the ink it measures 4.76:1 and still reads as an aside.
   return (
-    <p className="run-hero-dim mb-1 h-8 text-[21px]/8 text-muted-foreground">
+    <p className="run-hero-dim mb-1 h-8 text-[21px]/8 text-foreground/65">
       {hello && <span className="run-rise inline-block">{hello}</span>}
     </p>
   )
