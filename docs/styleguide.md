@@ -149,6 +149,19 @@ above clamped to 6px), so `rounded-xl` and larger render at 6px too.
 - One column, `max-w-thread` (38.4rem), on every standard page, via
   `PageShell`. There is no wide variant; see 7a.
 - List rows are ~52 to 60px tall with 1px `--border` dividers between them.
+- **Leading glyphs share a centre, and in a left-aligned row that means they
+  share a BOX, not a size.** The sidebar had five centre lines at once: a 28px
+  logo, a 20px filled circle, 18px nav icons, 32px buttons in a 50px track.
+  Two separate faults, and the fix for each is different. Where a row is
+  left-aligned (the expanded rail), the leading box's width decides where the
+  LABEL starts, so every box is 18px and a mark that wants to be bigger is
+  drawn larger inside one and overflows it symmetrically. Where a row is
+  centred (the collapsed rail), only the centre matters and sizes may differ
+  freely.
+- **Fixing it the other way round is the trap.** Shrinking the logo to 18px to
+  win the alignment argument aligned everything and made the brand look
+  broken, and the founder caught it in one glance. Equal widths were never the
+  requirement.
 
 ### 5b. Mobile (below `md`, 768px)
 

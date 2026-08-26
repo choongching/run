@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { Plus } from 'lucide-react'
+import { PanelLeft, Plus } from 'lucide-react'
 
 import { ConnectorsIcon, KnowledgeIcon, RoutinesIcon } from '@/components/nav-icons'
 import {
@@ -18,6 +18,7 @@ import {
   SidebarMenuItem,
   SidebarSeparator,
   SidebarTrigger,
+  useSidebar,
 } from '@/components/ui/sidebar'
 
 export type { SidebarAgent } from '@/components/sidebar/agent-list'
@@ -30,6 +31,35 @@ export type { SidebarAgent } from '@/components/sidebar/agent-list'
 // paints in milliseconds and one that waits on the slowest query before showing
 // anything at all. Nav is the thing a person reaches for first, so it should
 // never be held up by a usage count.
+// The collapsed rail's top row: the Run mark at rest, the panel icon under a
+// pointer or a focus ring. SidebarTrigger renders its own icon and ignores
+// children, so this reaches for the same hook it does rather than wrapping it.
+//
+// The swap is on focus-visible as well as hover on purpose. A control that
+// only exists under a mouse is a control a keyboard cannot find, and this one
+// is the only way back to a labelled rail.
+function BrandToggle() {
+  const { toggleSidebar } = useSidebar()
+
+  return (
+    <button
+      type="button"
+      onClick={toggleSidebar}
+      aria-label="Expand the sidebar"
+      className="group/brand run-focus-fade flex size-8 items-center justify-center rounded-lg outline-none hover:bg-sidebar-accent/60 focus-visible:ring-2 focus-visible:ring-sidebar-ring"
+    >
+      <Image
+        src="/run-icon.png"
+        alt=""
+        width={28}
+        height={28}
+        className="size-[22px] max-w-none shrink-0 group-hover/brand:hidden group-focus-visible/brand:hidden"
+      />
+      <PanelLeft className="hidden size-4.5 shrink-0 stroke-[1.75] text-sidebar-foreground/70 group-hover/brand:block group-focus-visible/brand:block" />
+    </button>
+  )
+}
+
 export function AppSidebar({
   agentSlot,
   meterSlot,
@@ -55,28 +85,49 @@ export function AppSidebar({
       <SidebarHeader>
         <SidebarMenu>
           {/* Expanded: the mark, the wordmark, and the collapse control at the
-              trailing edge, which is where all four of the products we looked
-              at put it. Collapsed, there is no room for two things on a 48px
-              row, so the control moves to its own row underneath, and the
-              mark keeps the top spot. */}
-          <SidebarMenuItem className="flex items-center gap-1">
+              trailing edge, which is where all seven of the products we looked
+              at put it. */}
+          <SidebarMenuItem className="flex w-full items-center gap-1 group-data-[collapsible=icon]:hidden">
             <SidebarMenuButton
               size="lg"
               render={<Link href="/" />}
               className="min-w-0 flex-1"
             >
-              <Image src="/run-icon.png" alt="" width={28} height={28} />
-              <span className="text-base font-semibold group-data-[collapsible=icon]:hidden">
-                Run
+              {/* The BOX is 18px, the same one every nav icon occupies, so
+                  every label in the rail starts at the same x and every glyph
+                  shares a centre line. The mark itself is drawn larger inside
+                  it and overflows symmetrically, because a logo is not a nav
+                  icon and shrinking it to 18px to win the alignment argument
+                  just made it look broken instead.
+
+                  Equal widths were never the requirement. Equal centres were,
+                  and centring is what the column does now. */}
+              <span className="flex size-4.5 shrink-0 items-center justify-center">
+                <Image
+                  src="/run-icon.png"
+                  alt=""
+                  width={28}
+                  height={28}
+                  className="size-[22px] max-w-none"
+                />
               </span>
+              <span className="text-base font-semibold">Run</span>
             </SidebarMenuButton>
             <SidebarTrigger
               aria-label="Collapse the sidebar"
-              className="shrink-0 max-md:hidden group-data-[collapsible=icon]:hidden"
+              className="shrink-0 max-md:hidden"
             />
           </SidebarMenuItem>
-          <SidebarMenuItem className="hidden justify-center group-data-[collapsible=icon]:flex">
-            <SidebarTrigger aria-label="Expand the sidebar" />
+          {/* Collapsed: the mark IS the control. It used to sit on its own row
+              underneath, which spent one of about eight rows a 48px rail has
+              on a thing you touch twice a day. Hovering swaps the mark for the
+              panel icon, so the row costs nothing until you want it.
+
+              It stops being a link to home when it is collapsed, and that
+              loses nothing: New agent, directly below it, goes to the same
+              place. */}
+          <SidebarMenuItem className="hidden group-data-[collapsible=icon]:flex">
+            <BrandToggle />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>
@@ -102,7 +153,7 @@ export function AppSidebar({
                   render={<Link href="/" />}
                   className="min-h-11 md:min-h-0"
                 >
-                  <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-primary [&_svg]:size-3! [&_svg]:text-primary-foreground!">
+                  <span className="flex size-4.5 shrink-0 items-center justify-center rounded-full bg-primary [&_svg]:size-3! [&_svg]:text-primary-foreground!">
                     <Plus strokeWidth={2.5} />
                   </span>
                   <span className="font-medium">New agent</span>

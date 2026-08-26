@@ -102,10 +102,10 @@ export function AgentList({ agents }: { agents: SidebarAgent[] }) {
                 tooltip={agent.name}
                 render={<Link href={`/chat/${agent.id}`} />}
                 // min-h-11: the mobile tap floor (styleguide 5b); md resets.
-                // pr-7 clears the delete action, which the primitive hides in
-                // icon mode; the padding goes with it or the icon sits off
-                // centre in a 32px square.
-                className="min-h-11 pr-7 group-data-[collapsible=icon]:pr-2! md:min-h-0"
+                // pr-7 clears the delete action. The primitive's p-0! in icon
+                // mode overrides it, which it has to: the action is hidden
+                // there, and the padding would push the icon off the column.
+                className="min-h-11 pr-7 md:min-h-0"
               >
                 <AgentsIcon className="size-4.5 shrink-0" />
                 <TruncatedLabel text={agent.name} />
