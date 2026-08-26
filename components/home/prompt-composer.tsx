@@ -55,10 +55,21 @@ const RESTING_PLACEHOLDER = 'Describe what you need done...'
 // Written the way you would ask a colleague, not the way you would describe a
 // feature: "tell me what needs a reply" is something people say out loud, and
 // "answer questions from my documents" is not.
+//
+// The chip WEARS a short label and PUTS a whole sentence in the box. They used
+// to be the same string, which forced a choice between a chip short enough to
+// sit in one row and a first task worth giving an agent. Splitting them ends
+// the argument: the row stays clean and the box still gets the full ask.
 const SUGGESTIONS = [
-  'Tell me what needs a reply today',
-  'Draft replies to the emails waiting on me',
-  'Read a long document and tell me what matters',
+  { label: 'What needs a reply', prompt: 'Tell me what needs a reply today' },
+  {
+    label: 'Draft my replies',
+    prompt: 'Draft replies to the emails waiting on me',
+  },
+  {
+    label: 'Read a document',
+    prompt: 'Read a long document and tell me what matters',
+  },
 ]
 
 // What creation genuinely does, in its true order (see startAgentFromPrompt:
@@ -160,7 +171,7 @@ export function PromptComposer({
         // rounded-[9px] is a founder-set hero exception to the 4-6px radius
         // scale, local to this composer only.
         className={cn(
-          'run-rise rounded-[9px] border border-input bg-card run-focus-fade [--rise-delay:180ms] focus-within:border-ring focus-within:shadow-focus',
+          'run-rise run-sheen relative rounded-[9px] border border-input bg-card run-focus-fade [--rise-delay:180ms] focus-within:border-ring focus-within:shadow-focus',
           pending && 'hidden'
         )}
       >
@@ -237,15 +248,15 @@ export function PromptComposer({
           pending && 'hidden'
         )}
       >
-        {SUGGESTIONS.map((text) => (
+        {SUGGESTIONS.map(({ label, prompt }) => (
           <button
-            key={text}
+            key={label}
             type="button"
-            onClick={() => pickSuggestion(text)}
+            onClick={() => pickSuggestion(prompt)}
             disabled={pending || blocked}
             className="min-h-11 rounded-lg border border-border bg-card px-3.5 py-2 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50 md:min-h-0"
           >
-            {text}
+            {label}
           </button>
         ))}
       </div>

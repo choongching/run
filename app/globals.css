@@ -282,6 +282,70 @@
     }
   }
 
+  /* The home composer's focus sheen. One pass of the focus green around the
+     border when you click in, then it settles to the ordinary ring every
+     other input in the app uses. Home composer only.
+     
+     Deliberately NOT ambient. The placeholder inside the box is already
+     typing, and a second loop around the box would put two animations on one
+     control competing for the same glance. A loop would also start on its
+     own and never end, which is the WCAG 2.2.2 case the placeholder was
+     written to avoid; a one-shot on a deliberate action is not.
+     
+     The angle is a registered custom property because a plain custom property
+     cannot be animated. Where @property is unsupported the sweep does not
+     move and the sheen simply fades, which is a fair fallback. */
+  @property --run-sheen-angle {
+    syntax: '<angle>';
+    initial-value: 0deg;
+    inherits: false;
+  }
+  .run-sheen::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: conic-gradient(
+      from var(--run-sheen-angle),
+      transparent 0deg,
+      transparent 290deg,
+      var(--ring) 340deg,
+      transparent 360deg
+    );
+    /* Paint the ring only: fill the box, then punch its middle out. The
+       prefixed pair MUST come first, because each shorthand resets its own
+       composite mode, so whichever is written last is the one that wins. */
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .run-sheen:focus-within::after {
+    animation: run-sheen-sweep 900ms cubic-bezier(0.22, 0.61, 0.36, 1) 1;
+  }
+  @keyframes run-sheen-sweep {
+    from {
+      opacity: 1;
+      --run-sheen-angle: 0deg;
+    }
+    to {
+      opacity: 0;
+      --run-sheen-angle: 360deg;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .run-sheen:focus-within::after {
+      animation: none;
+    }
+  }
+
   /* The cycling word in the home headline (components/home/flip-word). Blurs
      and lifts into place, then holds until the next turn. Transform, opacity
      and filter only, so it composites rather than reflows. */
