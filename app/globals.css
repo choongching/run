@@ -330,6 +330,41 @@
   .run-sheen:focus-within::after {
     animation: run-sheen-sweep 900ms cubic-bezier(0.22, 0.61, 0.36, 1) 1;
   }
+  /* The idle state: a slow, dim drift around the border while the box is
+     waiting for someone. Half the brightness of the focus sweep and six times
+     slower, so it reads as the box breathing rather than as something
+     happening.
+
+     The caller only adds this class once the placeholder has finished typing
+     its examples, so the two are never animating at once, and it runs a fixed
+     four passes and stops. Both of those are why this is allowed to exist:
+     motion that starts on its own and never ends needs a way to pause it
+     (WCAG 2.2.2), and an ambient loop next to a typing placeholder is two
+     things competing for one glance. */
+  .run-sheen-idle::after {
+    animation: run-sheen-drift 5500ms linear 4;
+  }
+  @keyframes run-sheen-drift {
+    0% {
+      opacity: 0;
+      --run-sheen-angle: 0deg;
+    }
+    14% {
+      opacity: 0.45;
+    }
+    86% {
+      opacity: 0.45;
+    }
+    100% {
+      opacity: 0;
+      --run-sheen-angle: 360deg;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .run-sheen-idle::after {
+      animation: none;
+    }
+  }
   @keyframes run-sheen-sweep {
     from {
       opacity: 1;
