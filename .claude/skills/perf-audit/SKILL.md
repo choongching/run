@@ -213,8 +213,38 @@ with the border drifting a masked conic gradient: **120fps, zero dropped
 frames, zero long tasks** in both windows. So `JobRail` is deliberately NOT
 memoized, and the reason is written where the temptation is.
 
-The general rule: an animation's cost is a measurement, and the measurement is
-cheap. Take it before optimising and before defending.
+**Then the founder's laptop fans overturned that conclusion the same evening,
+and the correction is the more useful half.** Re-running the probe with the
+border drift injected and removed gave IDENTICAL numbers, 120fps and nothing
+dropped either way. Frame pacing is not what an ambient animation costs. What
+it costs is that the page never goes idle: one infinite animation pins the
+compositor and a 120Hz display at 120 frames a second for as long as the tab
+is open, and because there is headroom the whole time, the smoothness metric
+stays perfectly clean. Both drifts were cut and the app now has no perpetual
+animation anywhere.
+
+So the probe above answers "does this animation stutter", which is a real
+question. It does not answer "does this animation cost anything", and it must
+never be quoted for the second. For that:
+
+```js
+document.getAnimations().filter(a => a.effect.getTiming().iterations === Infinity)
+```
+
+after the arrivals have finished. Empty is the pass. Anything in there is a
+battery bill however smooth it measures. (`claude-pulse` is the Claude in
+Chrome extension, not ours.)
+
+**And take a null reading before trusting any of it.** Sampling frame times
+from the Chrome automation tab gave a median of 33.3ms during a collapse,
+which reads as a damning 30fps; the idle baseline was also 33.3ms, so the
+number was that tab's cap and said nothing at all. One measurement of nothing
+happening catches this before it becomes a conclusion. See the
+`verify-in-browser` skill for what to read instead.
+
+The general rule: an animation's cost is a measurement, the measurement is
+cheap, and the measurement is only worth having once you have proved it can
+tell the two cases apart.
 
 ## Baselines, localhost production build (2026-08-26, home composer work)
 
@@ -231,6 +261,31 @@ biggest chunk 273KB, total client JS 1.8MB, both identical before and after.
 A hook and a component of this size cost nothing measurable in JS weight, so
 "is it worth the bundle" is not the question to ask about one; whether it
 earns the screen is.
+
+## Images: the weight is in the noise, not the pixels (2026-08-26)
+
+The home backdrop is a 5000x3334 photograph of a textured wall. Encoded
+straight it is 216KB at 2000px wide, and the size is almost all the wall's
+grain, which is noise no encoder can compress. **A 1.2px blur BEFORE encoding
+takes it to 70KB and is invisible at display size**, because the image is
+downscaled again by the browser; blur 2 takes it to 31KB. Try that before
+reaching for a lower quality setting, which softens the shapes you care about
+while leaving the noise.
+
+```js
+sharp(src).resize({ width: 2200 }).blur(1.2).webp({ quality: 60, effort: 6 })
+```
+
+Ship the sizes by hand with a plain `<img srcSet sizes>` rather than
+`next/image` when the asset is fixed and already tuned: the optimizer would
+re-encode a file you shaped deliberately and bill a transform for it, and
+`next/image` with `unoptimized` cannot emit a srcSet at all, so the small
+variant would be dead weight. Disable the `no-img-element` lint inline with
+that reason. Decorative images take an empty alt, no pointer events, and
+`fetchPriority="low"` so they cannot compete with the headline.
+
+AVIF is not automatically smaller. On this picture WebP beat it at every
+quality tried, because fine noise is where AVIF's advantage disappears.
 
 ## Known floors (do not chase these in code)
 
