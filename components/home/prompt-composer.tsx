@@ -170,7 +170,10 @@ export function PromptComposer({
               startBuild()
             }
           }}
-          rows={4}
+          // Three lines, not four. The box was sized when the placeholder was
+          // one long static line that wrapped; a typed example is one line and
+          // the empty depth below it read as a form nobody had filled in.
+          rows={3}
           disabled={blocked}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
