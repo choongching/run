@@ -14,24 +14,13 @@ import {
 import { useTypedPlaceholder } from '@/lib/use-typed-placeholder'
 import { cn } from '@/lib/utils'
 
-// One-click seeds that teach what an agent can be. Clicking fills the box
-// (editable) rather than submitting: the user learns plain language is the
-// interface. See docs/revamp-happy-path (Beat 1).
-//
-// Every chip must be a job the tool list in lib/tools/definitions.ts can
-// actually finish (a chip is the agent's first task), and the first four
-// follow the headline's cycle in order: inbox, drafts, reading, research.
-// The organize chip came back once Drive write tools (folders, move,
-// rename) shipped; it was removed while Drive was read-only.
-//
-// Written the way you would ask a colleague, not the way you would describe a
-// feature: "tell me what needs a reply" is something people say out loud, and
-// "answer questions from my documents" is not.
 // What the placeholder types out before it rests. These are NOT the chips
 // below, and the difference is the reason both exist: a chip is a short ask
 // you can click, and these are what a good first prompt looks like written
-// out, which is the thing the static tip describes and cannot show. Each one
-// still has to be a job the tool list can finish, same rule as the chips.
+// out, which is the thing the old static tip described and could not show.
+// Each one still has to be a job the tool list can finish, same rule as the
+// chips. One per word in the headline's cycle: inbox, reading, drafts,
+// research.
 const PLACEHOLDER_EXAMPLES = [
   'Read my inbox each morning and tell me what needs a reply',
   'Answer questions from the documents in my Drive',
@@ -48,12 +37,28 @@ const PLACEHOLDER_EXAMPLES = [
 // examples ever go, the tip comes back with them.
 const RESTING_PLACEHOLDER = 'Describe what you need done...'
 
+// One-click seeds that teach what an agent can be. Clicking fills the box
+// (editable) rather than submitting: the user learns plain language is the
+// interface. See docs/revamp-happy-path (Beat 1). Every chip must be a job
+// the tool list in lib/tools/definitions.ts can actually finish, because a
+// chip is the agent's first task.
+//
+// THREE, not five. There used to be one per word in the headline's cycle plus
+// a Drive tidy-up. Then the placeholder started typing an example of all four
+// words, so every idea on this screen was being made three times: once in the
+// headline, once inside the box, once underneath it. What survives is chosen
+// by what CLICKING it teaches that the others do not, which is the three
+// shapes of the trust model: reading your mail needs no permission, writing
+// to it stops for your approval, and reading is free one connector over in
+// Drive too.
+//
+// Written the way you would ask a colleague, not the way you would describe a
+// feature: "tell me what needs a reply" is something people say out loud, and
+// "answer questions from my documents" is not.
 const SUGGESTIONS = [
   'Tell me what needs a reply today',
   'Draft replies to the emails waiting on me',
   'Read a long document and tell me what matters',
-  'Look something up and write it up for me',
-  'Tidy my Drive into folders that make sense',
 ]
 
 // What creation genuinely does, in its true order (see startAgentFromPrompt:
