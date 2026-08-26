@@ -8,7 +8,12 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** The setup interview is one card you can walk back
+**Where we left off:** The home screen shows you what to type instead of
+telling you. The box types real first prompts while it waits, the jobs under it
+are one row you push sideways rather than a block that wraps, and the border
+drifts a dim green while nothing is happening.
+
+Before that, the setup interview became one card you can walk back
 through. The agent asks its questions as a round rather than one at a time, so
 the card steps through them without leaving the page, and nothing is sent until
 you save.
@@ -157,6 +162,57 @@ Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
 
 ---
+
+## 2026-08-26: The home box shows you what to type
+
+- **The tip became a demonstration.** The composer used to say "say what it
+  should read and what you want back". It now types four real first prompts,
+  one after another, then rests on a short line and stops. Showing beat
+  telling, so the tip itself is gone. It runs once rather than looping,
+  because motion that starts on its own and never ends needs a way to pause
+  it, and stopping on its own is the version that does not put a pause button
+  on the front page.
+- **A bug the screenshots caught and the code review would not have.** Between
+  one example and the next the text went empty, and empty fell through to the
+  resting line, so the old copy flashed back for a third of a second on every
+  boundary. Each line is erased before the next begins now.
+- **The chips became a rail.** Five chips wrapped into three ragged lines, so
+  they were cut to three, so the screen offered a narrow view of what an agent
+  can be. The count was being decided by how wide the row was. Six jobs now
+  sit in one row you push sideways with a drag, a wheel or a swipe, which is
+  one line at any count and, on a phone, replaces six stacked rows with a
+  swipe.
+- **The edge does the explaining.** Arrow buttons were tried and cut: they sat
+  on top of the first and last pill and clipped them. What is left is a fade
+  that appears on a side only when that side has more behind it, eased so a
+  pill stays readable until it is nearly gone. A fade on both edges of a row
+  that has nothing behind them is decoration claiming content.
+- **The pill got quieter, and the outline was what was loud.** A smaller pill
+  with a border still competed with the box, because a bordered pill and a
+  bordered composer carry the same weight whatever their size. Dropping the
+  border did it. The composer now owns the only outline on the screen.
+- **The box breathes.** A dim pass of the focus green drifts around the border
+  while nothing is happening, and a brighter one sweeps once when you click
+  in. The first version was gated so carefully that it appeared seventeen
+  seconds after landing and stopped twenty-two seconds later, which is a
+  feature nobody would ever see; the founder asked twice, and it now runs
+  while the box is idle. Clicking in stops it, typing stops it, and reduced
+  motion never starts it.
+- **A speed pass on all of it came back clean, and still found two things.**
+  First chunk on the home page is 15ms against a 100ms budget, the bundle did
+  not grow, and the animations hold 120fps with no dropped frames. But the
+  rail's drag listeners were attached to the window inside a pointerdown and
+  removed only on pointerup, so leaving the page mid-drag left them behind,
+  and its wheel handler could not stop the page scrolling underneath because
+  React attaches wheel listeners passively. Neither would have shown up in a
+  timing.
+- **Two README passes.** The routines section was claiming a quiet-run tally
+  the app does not have outside Telegram and describing a run's memory as a
+  short note when it carries the whole last report; it now says where a report
+  lands and why a routine would stop itself. The Telegram answer lost about
+  eighty words that were explaining that it had been checked rather than
+  answering the question.
+- Merged as pull requests #266 through #276, all live.
 
 ## 2026-08-25 (night): The setup interview became one card you can walk back through
 
