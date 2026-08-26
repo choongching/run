@@ -123,18 +123,20 @@ above clamped to 6px), so `rounded-xl` and larger render at 6px too.
 - Never write a raw `rounded-[Npx]`; always go through the scale so the
   4-to-6px rule holds everywhere at once. The home composer is the one
   component that does, at `rounded-[9px]`, a founder call from 2026-07-30: it
-  is the largest single control on the emptiest screen, where even the shell's
-  8px reads as square. It is marked as an exception in the code and there are
-  no others.
+  is the largest single control on the emptiest screen, where 6px reads as
+  square. It is marked as an exception in the code and there are no others.
 - **Pills are not capsules.** The job rail's pills are `rounded-md` like every
   other small control. A capsule was proposed from a reference and declined:
   fully round is reserved for true circles, and one capsule would have been
   the only one in the app.
 - Only exceptions: true circles (avatars, FAB, status dots) stay `rounded-full`,
   and the two layout shell cards (the conversation and the docked configure
-  panel, plus the content card on every other route) use `rounded-shell` (8px).
-  Those are the largest surfaces on screen, where a 6px corner reads as almost
-  square. It is a named token so it stays countable; do not reach for it on
+  panel, plus the content card on every other route) use `rounded-shell`,
+  **14px** since 2026-08-26. Those are the largest surfaces on screen, where a
+  6px corner reads as almost square, and the founder raised the token from 8px
+  once the home screen had a photograph in it: a hard corner on a picture reads
+  as a crop, where a soft one reads as a card. One token moves every shell
+  card at once, which is the whole reason it is named. Do not reach for it on
   anything that sits inside a card.
 - Tooltips: dark ink bubble: `bg-foreground text-background rounded-lg px-3 py-2 text-sm font-medium`.
 
@@ -385,11 +387,17 @@ The one hero on the product, and the only place these recipes apply.
   lines, so the count was cut to three, so the screen offered a narrow view of
   what an agent is for. A rail is one line at any count, and on a phone it
   replaces six stacked 44px rows with one.
-- **A rail pill drops the border.** `rounded-md bg-muted px-3 py-1.5
-  text-[13px] text-muted-foreground`, `min-h-11 md:min-h-0`, and
-  `border-transparent` so hover shifts nothing. The outline is what makes a
-  control compete, not its size: bordered, the rail read as a second composer
-  under the first. The composer owns the only border in that block.
+- **A rail pill is a wash, and its states tell one story.** At rest,
+  `bg-foreground/[0.045]` with a `border-foreground/[0.07]` hairline,
+  `text-[13px] text-muted-foreground`, `min-h-11 md:min-h-0`. A wash has no
+  colour of its own, so it borrows the surface behind it and can never clash
+  with it: the fill used to be `bg-muted`, which worked while the hero was
+  warm paper and turned to a beige smudge the day the wall went cool. On
+  hover it becomes an object, `bg-card` with `border-border` and a one-pixel
+  shadow, lifted off the surface. Pressed, it sinks: shadow gone, fill to
+  `bg-muted`, `active:scale-[0.985]`, which is felt rather than seen. The
+  composer above still owns the only permanent border in the block, which is
+  what keeps the rail quieter than it.
 - **Fade an edge only when there is something behind it.** The mask is built
   from the scroll position, one side at a time, and a side with nothing behind
   it gets a hard `#000` stop. A permanent fade on both edges is decoration
@@ -428,24 +436,29 @@ question, not this file's.
 | `run-flip` | the headline word is one of several |
 | `run-focus-fade` | you are now in this field; 180ms, on every focusable control |
 | `run-sheen` | one sweep of the composer's border on the click that focuses it |
-| `run-sheen-idle` | the composer is waiting for you |
-| `run-wash`, `run-hero-dim` | the home canvas, and the hero standing down while an agent builds |
+| `run-wash-layer` | the home backdrop arriving, once, like the light coming on |
+| `run-hero-dim` | the hero standing down while an agent builds |
 
 - **Composite-only properties.** `transform`, `opacity`, `filter`. A keyframe
   on width, height, top or left reflows the page every frame. A registered
   `@property` is the exception that makes a gradient angle animatable at all.
 - **Every one carries `prefers-reduced-motion: reduce`.** A JS-driven
   animation checks `matchMedia` on mount and returns early instead.
-- **Anything that starts on its own, runs past five seconds and sits beside
-  other content needs a way to pause it** (WCAG 2.2.2, Level A). Run's answer
-  is to stop rather than to add a pause button: the typed placeholder runs
-  once through its examples and rests, which conforms with nothing to click.
-  The composer's idle drift is the one standing exception, a founder decision
-  made twice, and its mitigations are written into `globals.css` next to the
-  rule rather than left to memory.
-- **One surface, one thing moving,** and two states of one surface never both
-  live: the drift runs only while the box is idle, the sweep only on the click
-  that ends it.
+- **Nothing in the app loops forever.** Anything that starts on its own, runs
+  past five seconds and sits beside other content needs a way to pause it
+  (WCAG 2.2.2, Level A), and Run's answer has always been to stop rather than
+  to add a pause button. As of 2026-08-26 there are no exceptions left: the
+  home screen carried two perpetual animations for two days, a drifting
+  backdrop and a drifting border on the composer, and the founder cut both.
+  Everything that moves now is either an arrival or an answer to something a
+  person just did.
+- **A perpetual animation is a power cost even at a perfect frame rate**, and
+  this is the part that is easy to measure wrong. Both drifts were benchmarked
+  at 120fps with zero dropped frames and read as free; what that measured was
+  smoothness, and what they actually cost was keeping the compositor and a
+  120Hz display awake for as long as the tab was open. The founder found it
+  before any instrument did, by listening to their fans. Frame pacing is not
+  the test for ambient motion. Whether the page can go completely idle is.
 - **To paint a gradient on a border**, fill the box and punch its middle out
   with two mask layers, and write the `-webkit-` pair FIRST. Each shorthand
   resets its own composite mode, so whichever is last wins, and with the

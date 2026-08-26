@@ -139,10 +139,6 @@ export function PromptComposer({
         // scale, local to this composer only.
         className={cn(
           'run-rise run-sheen relative rounded-[9px] border border-input bg-card run-focus-fade [--rise-delay:180ms] focus-within:border-ring focus-within:shadow-focus',
-          // The border drifts whenever the box is waiting: nothing typed and
-          // nobody in it. It rides alongside the placeholder's typing rather
-          // than queueing behind it, which is what made it invisible.
-          idle && 'run-sheen-idle',
           pending && 'hidden'
         )}
       >

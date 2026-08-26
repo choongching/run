@@ -12,7 +12,6 @@ import {
 } from '@/components/home/prompt-composer'
 import { Button } from '@/components/ui/button'
 import { useTypedPlaceholder } from '@/lib/use-typed-placeholder'
-import { cn } from '@/lib/utils'
 
 // A bench for the home backdrop, not a page of the product.
 //
@@ -56,9 +55,6 @@ type Settings = {
   // Treatments
   grain: number
   vignette: number
-  // Movement
-  drift: boolean
-  driftSeconds: number
 }
 
 // What ships today, so the bench opens on the current answer rather than on
@@ -83,8 +79,6 @@ const SHIPPED: Settings = {
   tintBlend: 'soft-light',
   grain: 0,
   vignette: 0,
-  drift: true,
-  driftSeconds: 96,
 }
 
 // Starting points worth arguing with, each one a different answer to "how
@@ -179,19 +173,6 @@ const GRAIN =
 
 const LAB_CSS = `
 .run-lab-shot { transform: scale(var(--lab-zoom, 1.06)); }
-.run-lab-drift {
-  animation-name: run-lab-drift;
-  animation-timing-function: ease-in-out;
-  animation-iteration-count: infinite;
-  animation-direction: alternate;
-}
-@keyframes run-lab-drift {
-  from { transform: scale(var(--lab-zoom, 1.06)) translate3d(-1.1%, -0.5%, 0); }
-  to { transform: scale(calc(var(--lab-zoom, 1.06) * 1.06)) translate3d(1.1%, 0.7%, 0); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .run-lab-drift { animation: none; }
-}
 `
 
 // ---------------------------------------------------------------------------
@@ -223,9 +204,6 @@ function cssFor(s: Settings) {
     `  object-position: ${s.posX}% ${s.posY}%;`,
     s.opacity !== 100 ? `  opacity: ${(s.opacity / 100).toFixed(2)};` : null,
     filterCss(s) !== 'none' ? `  filter: ${filterCss(s)};` : null,
-    s.drift
-      ? `  animation: run-backdrop-drift ${s.driftSeconds}s ease-in-out infinite alternate;`
-      : '  animation: none;',
     '}',
     '.run-backdrop-veil {',
     `  background: ${mix(s.veilToken, s.veilAmount)};`,
@@ -358,11 +336,8 @@ function HeroStage({
 }) {
   return (
     <div className="relative flex flex-1 flex-col overflow-hidden rounded-shell px-4 py-16 sm:px-6 md:px-8">
-      {/* The bench's own CSS lives here rather than in globals.css. The zoom
-          is a variable because the drift animates transform, and an inline
-          transform would lose to the keyframe: the slider and the movement
-          would fight over the same property. Keeping it local also means
-          globals never carries a rule the product does not use. */}
+      {/* The bench's own CSS lives here rather than in globals.css, so globals
+          never carries a rule the product does not use. */}
       <style>{LAB_CSS}</style>
       <div
         aria-hidden
@@ -372,16 +347,12 @@ function HeroStage({
         <img
           src="/home-backdrop-2200.webp"
           alt=""
-          className={cn(
-            'run-lab-shot absolute inset-0 size-full object-cover',
-            s.drift && 'run-lab-drift'
-          )}
+          className="run-lab-shot absolute inset-0 size-full object-cover"
           style={
             {
               opacity: s.opacity / 100,
               filter: filterCss(s),
               objectPosition: `${s.posX}% ${s.posY}%`,
-              animationDuration: `${s.driftSeconds}s`,
               '--lab-zoom': (s.zoom / 100).toFixed(3),
             } as React.CSSProperties
           }
@@ -452,10 +423,7 @@ function MockComposer() {
   return (
     <div className="w-full">
       <div
-        className={cn(
-          'run-sheen run-focus-fade relative rounded-[9px] border border-input bg-card focus-within:border-ring focus-within:shadow-focus',
-          idle && 'run-sheen-idle'
-        )}
+        className="run-sheen run-focus-fade relative rounded-[9px] border border-input bg-card focus-within:border-ring focus-within:shadow-focus"
       >
         <textarea
           value={value}
@@ -704,26 +672,6 @@ function Panel({
             max={70}
             unit="%"
             onChange={(v) => set('vignette', v)}
-          />
-        </Group>
-
-        <Group label="Movement">
-          <label className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground">Drift</span>
-            <input
-              type="checkbox"
-              checked={s.drift}
-              onChange={(e) => set('drift', e.target.checked)}
-              className="size-4 accent-primary"
-            />
-          </label>
-          <Slider
-            label="One pass takes"
-            value={s.driftSeconds}
-            min={20}
-            max={240}
-            unit="s"
-            onChange={(v) => set('driftSeconds', v)}
           />
         </Group>
 

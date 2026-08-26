@@ -107,7 +107,7 @@
      reading measure short. Named because three elements have to agree on it,
      the header rule, the message list and the composer, or they misalign. */
   --container-thread: 38.4rem;
-  --radius-shell: 0.5rem;
+  --radius-shell: 0.875rem;
   --radius-sm: 0.25rem;
   --radius-md: 0.3125rem;
   --radius-lg: var(--radius);
@@ -288,9 +288,13 @@
      
      One shot, on a deliberate action, which is why it needs no pause
      mechanism: a sweep that runs for under a second when you click into a
-     control is not the WCAG 2.2.2 case. The ambient version of this is
-     .run-sheen-idle below, and the two never run together: clicking in is
-     exactly what stops the drift.
+     control is not the WCAG 2.2.2 case.
+
+     There was an ambient version of this for two days, drifting round the
+     border while the box waited. The founder cut it on 2026-08-26 along with
+     the backdrop's drift, and the home screen now has no perpetual motion on
+     it at all: everything that moves here is either an arrival or an answer
+     to something a person just did.
      
      The angle is a registered custom property because a plain custom property
      cannot be animated. Where @property is unsupported the sweep does not
@@ -329,62 +333,6 @@
   }
   .run-sheen:focus-within::after {
     animation: run-sheen-sweep 900ms cubic-bezier(0.22, 0.61, 0.36, 1) 1;
-  }
-  /* The idle state: a slow, dim drift around the border while the box is
-     waiting for someone. Half the brightness of the focus sweep and six times
-     slower, so it reads as the box breathing rather than as something
-     happening.
-
-     Brighter and longer-armed than it started: at 0.45 with the focus
-     sweep's narrow arc it was there but not noticeable, which is the wrong
-     side of subtle for something whose whole job is to catch an eye.
-
-     It runs for as long as the box is idle. That is a founder decision made
-     twice, over my objection that motion which starts on its own and never
-     ends is the WCAG 2.2.2 case. What makes it defensible: it is dim, it is
-     slow, clicking into the box stops it, typing a character stops it, and
-     reduced motion never starts it. What is given up: a person who wants it
-     still while doing neither has no way to ask.
-
-     It also no longer waits for the placeholder to finish. Gated that way it
-     took seventeen seconds to appear and stopped twenty-two seconds later,
-     which is a thing nobody would ever see. */
-  .run-sheen-idle::after {
-    /* Its own arc, wider than the focus sweep's and ramped through two stops
-       so the light has a leading and trailing falloff rather than one hard
-       edge. The focus sweep keeps the tighter arc above: it is brighter and
-       over in under a second, so it does not need the length to be seen. */
-    background: conic-gradient(
-      from var(--run-sheen-angle),
-      transparent 0deg,
-      transparent 200deg,
-      color-mix(in oklab, var(--ring) 30%, transparent) 258deg,
-      var(--ring) 320deg,
-      color-mix(in oklab, var(--ring) 45%, transparent) 350deg,
-      transparent 360deg
-    );
-    animation: run-sheen-drift 5500ms linear infinite;
-  }
-  @keyframes run-sheen-drift {
-    0% {
-      opacity: 0;
-      --run-sheen-angle: 0deg;
-    }
-    14% {
-      opacity: 0.75;
-    }
-    86% {
-      opacity: 0.75;
-    }
-    100% {
-      opacity: 0;
-      --run-sheen-angle: 360deg;
-    }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .run-sheen-idle::after {
-      animation: none;
-    }
   }
   @keyframes run-sheen-sweep {
     from {
@@ -510,8 +458,8 @@
      It replaced three blurred green washes built from the palette: those were
      the best atmosphere available without an image, and an image is better.
 
-     Only transform and opacity animate here, so the layer stays on the
-     compositor and never triggers layout. */
+     The only thing that animates is the opening, and it animates transform
+     and opacity, so it stays on the compositor and never triggers layout. */
   /* The opening: the whole layer glows up from nothing over a couple of
      seconds, so arriving on the home screen feels like the light coming on
      rather than a picture appearing. Slower than any UI transition on
@@ -529,28 +477,26 @@
       transform: scale(1);
     }
   }
-  /* The light moves. Ninety-six seconds for a drift of about one percent,
-     which is under a pixel a second: nobody watches it happen, and the screen
-     is never quite where they left it. The base scale is what buys the room
-     to travel without showing an edge.
+  /* Founder's numbers, off the bench at /design/backdrop on 2026-08-26.
+     Just over half strength, desaturated and lifted a little, under a veil
+     twice as heavy as the first pass: the wall is a suggestion rather than a
+     subject, which is what keeps a photograph from becoming the loudest thing
+     on a screen whose job is a single empty box.
 
-     This is the same ambient-loop bargain the washes made before it and the
-     composer's idle drift makes beside it (see the motion skill): it starts
-     on its own and does not end. What makes it defensible is that it is
-     slower than anything a person can follow, it carries no colour change,
-     and reduced motion holds it still. */
+     It does not move. A slow drift was built and then cut by the founder, and
+     the cut is the better answer twice over: at this strength nothing was
+     gained by moving it, and a backdrop that arrives and then holds still is
+     outside WCAG 2.2.2 entirely rather than being an exception argued for.
+     The opening above is the whole of the motion here. It plays once, and
+     after that this screen is a photograph. */
   .run-backdrop {
+    /* No will-change. It was here for the drift, and a will-change on a
+       full-screen photograph pins a large texture on the GPU for the life of
+       the page: worth it for something that moves every frame, pure cost for
+       something that never moves again. */
     transform: scale(1.06);
-    animation: run-backdrop-drift 96s ease-in-out infinite alternate;
-    will-change: transform;
-  }
-  @keyframes run-backdrop-drift {
-    from {
-      transform: scale(1.06) translate3d(-1.1%, -0.5%, 0);
-    }
-    to {
-      transform: scale(1.13) translate3d(1.1%, 0.7%, 0);
-    }
+    opacity: 0.55;
+    filter: saturate(70%) brightness(104%);
   }
   /* A sheet of the app's own canvas colour laid over the picture. The
      photograph is a cool mint and the shell around it is warm paper, so
@@ -559,14 +505,11 @@
      off the darker leaves. One number to turn if it wants to be louder or
      quieter. */
   .run-backdrop-veil {
-    background: color-mix(in oklch, var(--sidebar) 22%, transparent);
+    background: color-mix(in oklch, var(--sidebar) 46%, transparent);
   }
   @media (prefers-reduced-motion: reduce) {
-    /* The picture stays, the movement goes. Colour is part of the surface;
-       drifting is the part that can make people unwell. */
-    .run-backdrop {
-      animation: none;
-    }
+    /* The picture stays, the arrival goes. Colour is part of the surface;
+       travelling to get here is the part that can make people unwell. */
     .run-wash-layer {
       animation: none;
     }

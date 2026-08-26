@@ -20,10 +20,21 @@ import { cn } from '@/lib/utils'
 // narrow view of what an agent can be. A rail breaks that tie. It is one line
 // at any count, and on a phone it replaces six stacked 44px rows with one.
 //
-// The pill is deliberately quieter than the box above it. Dropping the outline
-// is what does that, not the smaller text: a bordered pill and a bordered
-// composer carry the same weight whatever their size, so the composer now owns
-// the only border on the screen and the rail reads as a shelf beneath it.
+// The pill is deliberately quieter than the box above it, and against a
+// photograph that takes a different trick than it did against a flat canvas.
+//
+// It was a warm grey fill with no outline, which worked while the hero was
+// warm paper and turned to a beige smudge the day the wall behind it went
+// cool. So the fill is now a wash of the app's own ink at four and a half
+// percent: a wash has no colour of its own, it borrows whatever is behind it,
+// so the rail can never clash with a backdrop again.
+//
+// The states tell one story. At rest the pill is barely a thing, part of the
+// wall. Under the cursor it becomes a real object, an opaque card with a
+// hairline and a shadow a single pixel deep, lifted off the surface. Pressed,
+// it sinks back: the shadow goes, the fill deepens, and it scales down by
+// about one and a half percent, which is felt rather than seen. The composer
+// above still owns the only permanent border on the screen.
 type Job = { label: string; prompt: string; icon: LucideIcon }
 
 // Every one has to be a job lib/tools/definitions.ts can actually finish,
@@ -190,9 +201,9 @@ export function JobRail({
               if (dragged.current) return
               onPick(prompt)
             }}
-            className="flex min-h-11 shrink-0 items-center gap-1.5 rounded-md border border-transparent bg-muted px-3 py-1.5 text-[13px] text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-50 md:min-h-0"
+            className="group flex min-h-11 shrink-0 cursor-pointer items-center gap-2 rounded-md border border-foreground/[0.07] bg-foreground/[0.045] px-3 py-1.5 text-[13px] whitespace-nowrap text-muted-foreground transition-[background-color,border-color,color,box-shadow,transform] duration-150 ease-out select-none hover:border-border hover:bg-card hover:text-foreground hover:shadow-[0_1px_2px_oklch(0.235_0.006_95/0.06)] focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/10 focus-visible:outline-none active:scale-[0.985] active:bg-muted active:shadow-none disabled:pointer-events-none disabled:opacity-50 md:min-h-0"
           >
-            <Icon className="size-3.5 shrink-0" />
+            <Icon className="size-3.5 shrink-0 text-muted-foreground/70 transition-colors duration-150 group-hover:text-foreground" />
             {label}
           </button>
         ))}
