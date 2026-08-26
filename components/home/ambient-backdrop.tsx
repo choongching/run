@@ -23,11 +23,15 @@ export function AmbientBackdrop() {
   return (
     <div
       aria-hidden
-      // rounded-shell matches the content card this sits inside. The layer is
-      // exactly coincident with that card, and without the radius the picture
-      // squares off its two top corners: the shell keeps its rounded edge
-      // everywhere in the app except the one screen with a photograph in it.
-      className="run-wash-layer pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-shell"
+      // One pixel less than the shell's radius, and the pixel matters.
+      //
+      // The card this sits in has a 1px border, so the layer starts 1px inside
+      // it. Two rounded rectangles are only concentric when the inner one's
+      // radius is the outer's minus the inset: at the same 14px the inner
+      // curve pulls away from the border through the corner and lets the
+      // card's white background show as a crescent. Straight edges hide it,
+      // corners do not.
+      className="run-wash-layer pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[calc(var(--radius-shell)-1px)]"
     >
       {/* A plain img, not next/image. The picture is already exactly the two
           sizes it needs, so the optimizer would re-encode a file we tuned by

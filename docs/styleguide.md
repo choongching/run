@@ -125,6 +125,14 @@ above clamped to 6px), so `rounded-xl` and larger render at 6px too.
   component that does, at `rounded-[9px]`, a founder call from 2026-07-30: it
   is the largest single control on the emptiest screen, where 6px reads as
   square. It is marked as an exception in the code and there are no others.
+- **Nested radii are concentric, or the corner leaks.** A rounded box inside
+  another rounded box needs the outer radius MINUS the inset between them, not
+  the same radius. The home backdrop sits inside a card with a 1px border, so
+  it starts 1px in: at a matching 14px its curve pulled away from the border
+  through the corner and let the card's white background show as a crescent.
+  Straight edges hide this completely, corners do not, and the fix is to say
+  it in the markup rather than hard-code the arithmetic:
+  `rounded-[calc(var(--radius-shell)-1px)]`.
 - **Pills are not capsules.** The job rail's pills are `rounded-md` like every
   other small control. A capsule was proposed from a reference and declined:
   fully round is reserved for true circles, and one capsule would have been
