@@ -125,6 +125,14 @@ above clamped to 6px), so `rounded-xl` and larger render at 6px too.
   component that does, at `rounded-[9px]`, a founder call from 2026-07-30: it
   is the largest single control on the emptiest screen, where 6px reads as
   square. It is marked as an exception in the code and there are no others.
+- **Nested radii are concentric, or the corner leaks.** A rounded box inside
+  another rounded box needs the outer radius MINUS the inset between them, not
+  the same radius. The home backdrop sits inside a card with a 1px border, so
+  it starts 1px in: at a matching 14px its curve pulled away from the border
+  through the corner and let the card's white background show as a crescent.
+  Straight edges hide this completely, corners do not, and the fix is to say
+  it in the markup rather than hard-code the arithmetic:
+  `rounded-[calc(var(--radius-shell)-1px)]`.
 - **Pills are not capsules.** The job rail's pills are `rounded-md` like every
   other small control. A capsule was proposed from a reference and declined:
   fully round is reserved for true circles, and one capsule would have been
@@ -149,6 +157,19 @@ above clamped to 6px), so `rounded-xl` and larger render at 6px too.
 - One column, `max-w-thread` (38.4rem), on every standard page, via
   `PageShell`. There is no wide variant; see 7a.
 - List rows are ~52 to 60px tall with 1px `--border` dividers between them.
+- **Leading glyphs share a centre, and in a left-aligned row that means they
+  share a BOX, not a size.** The sidebar had five centre lines at once: a 28px
+  logo, a 20px filled circle, 18px nav icons, 32px buttons in a 50px track.
+  Two separate faults, and the fix for each is different. Where a row is
+  left-aligned (the expanded rail), the leading box's width decides where the
+  LABEL starts, so every box is 18px and a mark that wants to be bigger is
+  drawn larger inside one and overflows it symmetrically. Where a row is
+  centred (the collapsed rail), only the centre matters and sizes may differ
+  freely.
+- **Fixing it the other way round is the trap.** Shrinking the logo to 18px to
+  win the alignment argument aligned everything and made the brand look
+  broken, and the founder caught it in one glance. Equal widths were never the
+  requirement.
 
 ### 5b. Mobile (below `md`, 768px)
 
@@ -208,6 +229,14 @@ exists only for the chat's docked config panel. Rules on mobile:
   (`stroke-[1.75]`), 18px (`size-4.5`) in nav, 16px (`size-4`) in dense contexts like
   tables. No multi-color/filled illustration icons.
 - Icons inherit text color: ink in nav, muted in secondary contexts.
+- **Put to the founder again on 2026-08-26 and upheld.** Twenty gives every
+  destination in its rail its own hue, which is how it stays navigable at 48px
+  with no labels at all, and it is a real product doing the opposite of this
+  rule well. The call was to keep ink: colour in the rail is reserved for the
+  three things that mean something (the green plus on New agent, the amber
+  routines badge, the account avatar), and a collapsed rail gets its identity
+  from tooltips instead. Adding five more hues would have cost the amber badge
+  its meaning. Recorded so the next reference that does it does not reopen it.
 - App nav icons live in `components/nav-icons.tsx` as re-exported lucide icons;
   swap there, never inline new icon styles in pages.
 - **Exception, connector logos:** third-party integrations (Google Drive, etc.)

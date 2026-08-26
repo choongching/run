@@ -341,7 +341,7 @@ function HeroStage({
       <style>{LAB_CSS}</style>
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-shell"
+        className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[calc(var(--radius-shell)-1px)]"
       >
         {/* eslint-disable-next-line @next/next/no-img-element -- the bench points at the same static file the app does */}
         <img

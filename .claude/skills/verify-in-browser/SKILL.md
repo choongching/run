@@ -101,6 +101,23 @@ this.
 Zoom into corners and edges rather than judging from a full screenshot. Shadow,
 radius and hairline differences are invisible at page scale and obvious at 4x.
 
+## Frame rate cannot be measured from the automation tab
+
+Sampling `requestAnimationFrame` deltas here to judge whether an animation is
+smooth gives a median of 33.3ms, which reads as a damning 30fps. The idle
+baseline on the same page is also 33.3ms: Chrome caps this tab, and the number
+describes the cap rather than the animation. Earlier the same day the same
+probe returned 120fps, so it is not even stable between runs.
+
+Two things follow. Never quote an fps figure taken from this tab. And when a
+founder says something feels wrong, assess the STRUCTURE instead, which is
+deterministic and does not need a clock: read `transitionProperty`,
+`transitionDuration` and `transitionTimingFunction` off every element involved
+and look for the real faults, which are usually several durations running at
+once, a `linear` curve where the app uses an ease-out, layout properties being
+animated, and `display: none` snapping where a fade was intended. That found
+four separate faults in the sidebar collapse in one pass.
+
 ## Evidence and cleanup
 
 - Record with `gif_creator` (start_recording -> actions -> stop_recording ->

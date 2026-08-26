@@ -96,8 +96,15 @@ export function AgentList({ agents }: { agents: SidebarAgent[] }) {
                   never runs under the trash and its tooltip never fights it. */}
               <SidebarMenuButton
                 isActive={pathname === `/chat/${agent.id}`}
+                // Collapsed, every agent is the same robot icon, so the name
+                // has to live somewhere. The tooltip only renders in icon
+                // mode, which is exactly when the label is gone.
+                tooltip={agent.name}
                 render={<Link href={`/chat/${agent.id}`} />}
                 // min-h-11: the mobile tap floor (styleguide 5b); md resets.
+                // pr-7 clears the delete action. The primitive's p-0! in icon
+                // mode overrides it, which it has to: the action is hidden
+                // there, and the padding would push the icon off the column.
                 className="min-h-11 pr-7 md:min-h-0"
               >
                 <AgentsIcon className="size-4.5 shrink-0" />

@@ -673,3 +673,32 @@
     animation: run-caret 1s step-end infinite;
   }
 }
+
+/* Anything in the rail that disappears when it collapses.
+
+   display is not an animatable property, so a plain `hidden` means every
+   label, count and email in the sidebar vanishes on frame 0 while the rail is
+   still its full width, and what you watch is a wide empty panel sliding shut.
+   transition-behavior: allow-discrete defers the display flip to the END of
+   the transition, so the opacity fade gets to happen first and the text leaves
+   with the width rather than ahead of it.
+
+   Pair it with `opacity-0` in the collapsed state and `hidden` after it. Where
+   the browser does not support allow-discrete this degrades to exactly the
+   snap it had before.
+
+   Declared with @utility rather than as a plain class in @layer utilities,
+   which is the part that is easy to get wrong: Tailwind can only prefix a
+   class with a variant (`[&>span:last-child]:run-rail-fade`) if it knows the
+   class as a utility. Written the other way it silently applies nowhere. */
+@utility run-rail-fade {
+  transition:
+    opacity 140ms cubic-bezier(0.22, 0.61, 0.36, 1),
+    display 140ms allow-discrete;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .run-rail-fade {
+    transition: none;
+  }
+}

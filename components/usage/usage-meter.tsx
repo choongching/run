@@ -63,10 +63,14 @@ export function UsageMeter({ userId, used, limit, resetsAt }: UsageMeterProps) {
           onClick={() => setOpen(true)}
           onFocus={() => setHovering(true)}
           onBlur={() => setHovering(false)}
-          className="w-full cursor-pointer rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-sidebar-accent/60"
+          className="w-full cursor-pointer rounded-lg px-2.5 py-2 text-left transition-colors group-data-[collapsible=icon]:px-2 hover:bg-sidebar-accent/60"
           aria-label="Usage this month"
         >
-          <div className="flex items-baseline justify-between gap-2">
+          {/* Collapsed, the counts go and the track stays. A bar is still a
+              readable answer to "how much of the month is left" at 32px wide,
+              where "150 / 200 runs" is not readable at all, and the hover card
+              and the history dialog both still open from it. */}
+          <div className="run-rail-fade flex items-baseline justify-between gap-2 group-data-[collapsible=icon]:hidden group-data-[collapsible=icon]:opacity-0">
             <span className="text-xs font-medium tabular-nums">
               {count.toLocaleString()}
               <span className="text-muted-foreground">
@@ -79,7 +83,7 @@ export function UsageMeter({ userId, used, limit, resetsAt }: UsageMeterProps) {
           {/* The track is the hairline token, not the muted fill: muted and
               the sidebar canvas are within a shade of each other, so the
               unspent part of the month would read as empty space. */}
-          <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-border">
+          <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-border group-data-[collapsible=icon]:mt-0">
             <div
               className={`h-full rounded-full transition-[width] ${fill}`}
               style={{ width: `${pct}%` }}
