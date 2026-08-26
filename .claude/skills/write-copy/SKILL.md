@@ -208,6 +208,36 @@ the `answer-security-questions` discipline applied to ordinary copy, and it is
 where the good version came from too: naming the real file types (documents,
 sheets, PDFs) is more useful than any adjective.
 
+## Showing beats telling, and the tip goes (2026-08-26)
+
+The home composer's placeholder read "Describe what you need done... (Tip: say
+what it should read and what you want back)". The tip was right, and it was
+the only teaching on the screen, which is why a shorter version had been
+written and rejected on 2026-08-01.
+
+Then the box started typing real examples, each one demonstrating exactly the
+shape the tip described ("Read my inbox each morning AND tell me what needs a
+reply"). The tip was now a caption on a picture of itself, so it was cut.
+
+**A decision is only as good as the premise it was made under.** When a
+founder's earlier call was made because nothing better existed, and something
+better now exists, that is not overturning them; it is the same reasoning
+arriving somewhere new. Say which premise changed, in the file, so the call
+can be reversed again if the demonstration ever goes. The comment above
+`RESTING_PLACEHOLDER` is the template.
+
+## Split the label from the thing it does
+
+The home chips carried one string that was both the words on the pill and the
+prompt typed into the box. That single string forced a fight nobody could win:
+short enough for a tidy row meant a first task too thin to give an agent, and
+a task worth giving meant a row that wrapped into ragged lines.
+
+Splitting them ended it in one move: "Tell me what needs a reply" on the pill,
+"Tell me what needs a reply today" into the box. Whenever a label is under
+pressure from two directions at once, check whether it is secretly doing two
+jobs.
+
 ## A number is a claim (2026-08-21)
 
 Counts read as measurements, so only print one the data actually supports.

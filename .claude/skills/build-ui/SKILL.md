@@ -134,6 +134,12 @@ their fix does not transfer. Full spike:
 The help affordance that exists is `components/ui/help-tip.tsx`. Use it; do
 not invent a second one.
 
+**Anything that moves belongs to the `motion` skill.** Load it before writing
+a keyframe, a transition, a loop, or an entrance. It carries the WCAG 2.2.2
+gate (auto-start plus over five seconds plus other content beside it needs a
+way to pause it, and Run's answer is to stop rather than to add a button),
+the one-animation-per-surface rule, and the reduced-motion floor.
+
 **Show it before you build it.** For anything beyond a tweak, build a lo-fi
 HTML prototype in the scratchpad, publish it with the Artifact tool, and let
 the founder react. They ask for this by name ("can we see a better wireframe
@@ -353,6 +359,35 @@ mobile width.
   title plus detail.
 - **An empty sidebar list keeps its group label** and shows one dashed slot
   ("Your agents will live here") rather than disappearing.
+- **A border is what competes, not the size.** Earned 2026-08-26 trying to
+  quiet the home rail. A pill one step smaller still fought the composer,
+  because a bordered pill and a bordered box carry the same weight at any
+  scale. Dropping the outline for a `bg-muted` fill quieted it immediately,
+  and left the composer owning the only border on the screen. To make a
+  control recede, take its outline before you take its size. It still needs a
+  surface to aim at: a control with no fill and no border reads as a caption
+  you happen to be able to click, which trips the rule that what is
+  interactive should look interactive.
+- **Painting a gradient on a border: the prefixed mask pair goes FIRST.**
+  `-webkit-mask` then `-webkit-mask-composite: xor`, THEN `mask` then
+  `mask-composite: exclude`. Each shorthand resets its own composite mode, so
+  whichever is written last wins; standard-first floods the whole element and
+  looks like a rendering bug. Full recipe in the `motion` skill.
+- **React attaches `wheel` listeners PASSIVELY at the root**, so an `onWheel`
+  in JSX can never `preventDefault`. A horizontal scroller written that way
+  moves sideways AND scrolls whatever is behind it. Attach a native listener
+  with `{ passive: false }` inside the effect that owns the element (see
+  `components/home/job-rail.tsx`). This is invisible on a page that does not
+  scroll, which is exactly how it reaches a short laptop screen.
+- **A horizontal rail's edge fade must be a FACT.** Fade a side only when that
+  side has content behind it, and drop it at the end; a permanent fade on both
+  edges claims there is more where there is nothing, which is a worse lie than
+  a hard cut. Hide the scrollbar with the existing `no-scrollbar` utility
+  (it ships in shadcn's stylesheet, the sidebar already uses it), centre the
+  row when nothing overflows, and suppress the click on a pill when the
+  pointer travelled more than a few pixels, or dragging the rail past one
+  picks it. Arrow buttons were built and cut: they sat on top of the first and
+  last item and clipped them.
 - **JSX comments cannot lead a return:** `{/* */}` directly inside
   `return (...)` before the root element is a syntax error; put it above the
   return or inside the element.

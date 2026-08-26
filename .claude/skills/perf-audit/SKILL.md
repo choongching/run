@@ -192,6 +192,46 @@ them is worth about a second off EVERY turn. The price is that pre-stream HTTP
 error responses become error frames, on the hottest path in the product. Do it
 deliberately or not at all, and re-run this probe to prove it.
 
+## Measuring an animation, not arguing about it (2026-08-26)
+
+Page timings say nothing about whether an animation is expensive, and the
+instinct to memoize "just in case" produces a `memo` that reads as a claim
+about a problem nobody measured. Sample frame gaps from the signed-in tab
+instead:
+
+```js
+const lt = []
+new PerformanceObserver((l) => l.getEntries().forEach((e) => lt.push(Math.round(e.duration))))
+  .observe({ entryTypes: ['longtask'] })
+// collect requestAnimationFrame deltas for 6 to 8s, then report
+// median, p95, worst, and how many gaps exceed 20ms
+```
+
+Measured on the home composer with the placeholder typing (about 26
+re-renders a second, each re-rendering the six-pill rail beneath it) and again
+with the border drifting a masked conic gradient: **120fps, zero dropped
+frames, zero long tasks** in both windows. So `JobRail` is deliberately NOT
+memoized, and the reason is written where the temptation is.
+
+The general rule: an animation's cost is a measurement, and the measurement is
+cheap. Take it before optimising and before defending.
+
+## Baselines, localhost production build (2026-08-26, home composer work)
+
+Same method as the table above (production build, dev server stopped, 16
+samples, cold run discarded), after the typed placeholder, the scrollable job
+rail and two border animations shipped:
+
+| Route | First chunk | Full stream (median) | p90 |
+| --- | --- | --- | --- |
+| `/` | 15ms | 353 | 501 |
+
+Down from 30ms in the 2026-08-21 table, and the bundle did not move at all:
+biggest chunk 273KB, total client JS 1.8MB, both identical before and after.
+A hook and a component of this size cost nothing measurable in JS weight, so
+"is it worth the bundle" is not the question to ask about one; whether it
+earns the screen is.
+
 ## Known floors (do not chase these in code)
 
 - **~120ms per Supabase request, flat.** Proven with a no-op
