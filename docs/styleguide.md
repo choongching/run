@@ -208,6 +208,14 @@ exists only for the chat's docked config panel. Rules on mobile:
   (`stroke-[1.75]`), 18px (`size-4.5`) in nav, 16px (`size-4`) in dense contexts like
   tables. No multi-color/filled illustration icons.
 - Icons inherit text color: ink in nav, muted in secondary contexts.
+- **Put to the founder again on 2026-08-26 and upheld.** Twenty gives every
+  destination in its rail its own hue, which is how it stays navigable at 48px
+  with no labels at all, and it is a real product doing the opposite of this
+  rule well. The call was to keep ink: colour in the rail is reserved for the
+  three things that mean something (the green plus on New agent, the amber
+  routines badge, the account avatar), and a collapsed rail gets its identity
+  from tooltips instead. Adding five more hues would have cost the amber badge
+  its meaning. Recorded so the next reference that does it does not reopen it.
 - App nav icons live in `components/nav-icons.tsx` as re-exported lucide icons;
   swap there, never inline new icon styles in pages.
 - **Exception, connector logos:** third-party integrations (Google Drive, etc.)
