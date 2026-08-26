@@ -70,7 +70,7 @@ export function UsageMeter({ userId, used, limit, resetsAt }: UsageMeterProps) {
               readable answer to "how much of the month is left" at 32px wide,
               where "150 / 200 runs" is not readable at all, and the hover card
               and the history dialog both still open from it. */}
-          <div className="flex items-baseline justify-between gap-2 group-data-[collapsible=icon]:hidden">
+          <div className="run-rail-fade flex items-baseline justify-between gap-2 group-data-[collapsible=icon]:hidden group-data-[collapsible=icon]:opacity-0">
             <span className="text-xs font-medium tabular-nums">
               {count.toLocaleString()}
               <span className="text-muted-foreground">
