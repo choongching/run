@@ -1,4 +1,5 @@
 import { AuthForm } from '@/components/auth/auth-form'
+import { AuthShell } from '@/components/auth/auth-shell'
 
 export default async function LoginPage({
   searchParams,
@@ -7,8 +8,8 @@ export default async function LoginPage({
 }) {
   const { error, message } = await searchParams
   return (
-    <div className="flex min-h-svh items-center justify-center bg-muted/40 p-6 max-md:bg-background max-md:px-4">
+    <AuthShell showcase="play">
       <AuthForm mode="login" error={error} message={message} />
-    </div>
+    </AuthShell>
   )
 }

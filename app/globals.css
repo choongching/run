@@ -672,6 +672,78 @@
     border-radius: 1px;
     animation: run-caret 1s step-end infinite;
   }
+
+  /* The sign-in showcase (components/auth/showcase.tsx). A scene arrives in
+     four beats when it becomes active and then holds still: the line rises,
+     the card lands with the focus green blooming past its rest value and
+     settling, then the pill and the claim. About 900ms, once per scene,
+     three scenes, and after that nothing on the page animates.
+
+     The animations key off data-active flipping, which is what restarts
+     them for each scene: an element whose animation-name goes from none to
+     a keyframe plays from the start. Inactive scenes are opacity 0 with no
+     pointer events, so they cost layout but never paint. */
+  .run-scene {
+    opacity: 0;
+    pointer-events: none;
+  }
+  .run-scene[data-active] {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .run-scene[data-active] .run-scene-line {
+    animation: run-scene-rise 420ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  }
+  .run-scene[data-active] .run-scene-card {
+    /* The composer's focus lift, so the card and the box on the home screen
+       are visibly the same kind of thing. The token carries the dark value. */
+    box-shadow: var(--shadow-focus);
+    animation: run-scene-land 560ms cubic-bezier(0.22, 0.61, 0.36, 1) 180ms both;
+  }
+  .run-scene[data-active] .run-scene-pill {
+    animation: run-scene-rise 320ms cubic-bezier(0.22, 0.61, 0.36, 1) 460ms both;
+  }
+  .run-scene[data-active] .run-scene-claim {
+    animation: run-scene-rise 360ms cubic-bezier(0.22, 0.61, 0.36, 1) 540ms both;
+  }
+  @keyframes run-scene-rise {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes run-scene-land {
+    from {
+      opacity: 0;
+      transform: translateY(18px) scale(0.985);
+      box-shadow: 0 0 0 0 oklch(0.36 0.06 155 / 0);
+    }
+    60% {
+      box-shadow:
+        0 8px 34px -10px oklch(0.36 0.06 155 / 0.42),
+        0 1px 2px oklch(0 0 0 / 0.04);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+      box-shadow: var(--shadow-focus);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    /* Every arrival becomes a cut. The scenes still hand over once, because
+       a finite, stoppable change of picture is not the thing that makes
+       people unwell; travelling to get there is. */
+    .run-scene[data-active] .run-scene-line,
+    .run-scene[data-active] .run-scene-card,
+    .run-scene[data-active] .run-scene-pill,
+    .run-scene[data-active] .run-scene-claim {
+      animation: none;
+    }
+  }
 }
 
 /* Anything in the rail that disappears when it collapses.

@@ -468,6 +468,41 @@ The one hero on the product, and the only place these recipes apply.
   read it in the pill's click handler, or pushing the rail chooses whatever
   was under the finger.
 
+### 7d. The auth door (`components/auth/auth-shell.tsx`)
+
+The four auth pages (sign in, register, forgot, reset) share one shell and
+none of them has a card any more: the form lives on the page.
+
+- **Two columns from `md`.** Left half: the mark top-left (28px, wordmark
+  `text-base font-semibold`), the form vertically centred in a `max-w-sm`
+  column, the maker's mark at the foot. Right half: the showcase panel, inset
+  `p-3` with no left padding so it sits 12px from the viewport edge, `rounded-
+  shell` (14px) with a 1px border and `bg-sidebar`. The inset is what makes it
+  read as a card the page holds rather than a split screen.
+- **Below `md`** the panel becomes a 176px banner ABOVE the form (`order-first`)
+  showing only the pill and the claim; the agent line and the artefact card
+  are `hidden md:flex`.
+- **Form copy.** Title `text-2xl font-semibold`, subtitle `text-base
+  text-muted-foreground`, `gap-7` between the two and the form, `gap-4`
+  between fields. Errors and messages stay as one `text-sm` line between the
+  last field and the submit, unchanged.
+- **The showcase** (`components/auth/showcase.tsx`) is three scenes of the
+  same four-part sentence: the agent says what it did (22px prose), the
+  thing it made floats below in a `bg-card` box at `radius-shell - 1px` with
+  the composer's `--shadow-focus` lift, then a pill (`bg-primary/12
+  text-primary`, uppercase, `tracking-wider`) naming where, and one claim at
+  `text-xl font-medium`. Every scene is something the code does today,
+  checked against `lib/tools/definitions.ts`; a fourth needs the tool first.
+- **Play or still.** Sign-in plays: each scene holds 6s and hands over once,
+  three scenes, then the panel is idle for good. Register, forgot and reset
+  are `still`: scene one, no dots, nothing moves after the arrival.
+- **The dots are the control** (`role="tablist"`, 6px visual in a 24px hit
+  area, the active one 20px wide). Picking one cancels the auto-advance;
+  hovering the panel holds the current scene. Reduced motion turns every
+  arrival into a cut and leaves the finite hand-over in place.
+- Backdrop is the home screen's photograph at the home screen's numbers,
+  `sizes="(min-width: 768px) 50vw, 100vw"` so the phone gets the 18KB file.
+
 ## 8. Motion
 
 The vocabulary as built. All of it lives in `@layer utilities` in
@@ -484,6 +519,7 @@ question, not this file's.
 | `run-sheen` | one sweep of the composer's border on the click that focuses it |
 | `run-wash-layer` | the home backdrop arriving, once, like the light coming on |
 | `run-hero-dim` | the hero standing down while an agent builds |
+| `run-scene` | a sign-in scene arriving: line, card, pill, claim, once, then still |
 
 - **Composite-only properties.** `transform`, `opacity`, `filter`. A keyframe
   on width, height, top or left reflows the page every frame. A registered

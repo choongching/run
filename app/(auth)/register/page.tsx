@@ -1,4 +1,5 @@
 import { AuthForm } from '@/components/auth/auth-form'
+import { AuthShell } from '@/components/auth/auth-shell'
 
 export default async function RegisterPage({
   searchParams,
@@ -7,8 +8,8 @@ export default async function RegisterPage({
 }) {
   const { error } = await searchParams
   return (
-    <div className="flex min-h-svh items-center justify-center bg-muted/40 p-6 max-md:bg-background max-md:px-4">
+    <AuthShell showcase="still">
       <AuthForm mode="register" error={error} />
-    </div>
+    </AuthShell>
   )
 }
