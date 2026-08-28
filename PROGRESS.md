@@ -8,12 +8,18 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** The home screen has a photograph behind it, a wall of
-leaf shadows the box sits on, and clicking into the box steps that wall back
-while the box lifts. Nothing in the app moves on its own any more: the founder
-heard their fans, and every animation that never ended is gone. The sidebar
-folds down to a strip of icons and remembers whether you left it that way, and
-collapsed, the Run mark itself is the way back.
+**Where we left off:** The sign-in page has a second column now, and what is
+in it is the product itself: Run's own chat, told as a short story. A message
+arrives, the agent thinks for a beat, the reply lands, then the thing it made,
+a Gmail draft waiting for approval. Three stories, switched by pills carrying
+the products' own marks, playing once each and then holding still. The page
+opens in order, form first, and the form takes typing from the first frame.
+
+Before that, the home screen got a photograph behind it, a wall of leaf
+shadows the box sits on, and clicking into the box steps that wall back while
+the box lifts. Nothing in the app moves on its own any more: the founder heard
+their fans, and every animation that never ended is gone. The sidebar folds
+down to a strip of icons and remembers whether you left it that way.
 
 Before that, the home box learned to show you what to type instead of telling
 you: it types real first prompts while it waits, and the jobs under it are one
@@ -168,6 +174,55 @@ Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
 
 ---
+
+## 2026-08-28: The door shows the product
+
+- **The sign-in page got a second column, and it is the product.** The form
+  moved to the left, on the page with no card around it, and the right half
+  became a panel with one thing in it: Run's own chat, as a new person will
+  see it a minute from now. The founder's brief was a two-column page, one
+  side for the form and one side to show what Run is for, and the references
+  shared along the way settled the shape: one big believable surface in the
+  middle of an airy panel, not a feature list beside a form.
+- **What the panel shows is a story, not a screenshot.** A message arrives,
+  the agent thinks for a moment (the real chat shows the same line), the
+  reply lands where the thinking line was, then the thing it made. Three
+  stories, each checked against what the code can actually do: a Gmail draft
+  that waits for approval, an answer from Drive with its sources, a routine's
+  weekly brief sent to Telegram. They are switched by pills carrying the
+  products' own marks, and the card grows as the agent speaks, from its
+  centre, so it is never taller than what has been said. The first cut stacked
+  three cards and swapped them, and the founder saw the seam at once; now
+  there is one card, which empties and refills.
+- **Everything moves once, then holds still.** The page opens in order: the
+  form column rises first and takes typing from the first frame, the wall
+  fades up, the pills, then the empty card, then the first story. Sign-in
+  hands over to the next story twice and stops; register, forgot and reset
+  play the first story and hold. Picking a pill stops the hand-over for good,
+  hovering the panel pauses it, and reduced motion turns every beat into a
+  cut. Nothing on the page animates forever, which is the rule the fans
+  taught us two days ago.
+- **Copy was rewritten line by line from the founder's eye.** "Ran on its own"
+  became "Routine ran", because that is the product's word. The weekly brief
+  names two concrete things with a number in each. The composer under each
+  story says the next natural thing rather than "Message Inbox Assistant".
+  The "Approve this action?" heading went, because the button says it.
+- **Nothing was added on the server.** The auth pages still make no database
+  call on render, and the audit at the end proved it: first byte 4 to 8ms and
+  equal to the fully streamed page, no long tasks on load, one small client
+  island for the story timer, and at 25 seconds with the tab in front, zero
+  of our animations running.
+- **What the tools got wrong, written down so it stays learned.** A signed-out
+  visit is easy (cookies are per host, so 127.0.0.1 is a fresh visitor) but
+  the dev server refuses to hydrate it, so behaviour has to be proven on a
+  production build. A browser tab that is not in front freezes every
+  animation and drops clicks, which made three real features look broken in
+  turn. A production server left over from the previous day served the old
+  page for ten minutes. All three are in the verify-in-browser skill now.
+- **Two small things noticed and left for the founder.** Visiting the sign-in
+  page with an error in the address while already signed in bounces home and
+  paints the error there. And the real approval card and composer in the chat
+  still carry the two lines the mock dropped.
 
 ## 2026-08-26 (evening): A wall behind the box, and nothing that moves on its own
 
