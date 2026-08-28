@@ -13,6 +13,8 @@ export function proxy(request: NextRequest) {
 // a streaming chat turn.
 export const config = {
   matcher: [
-    '/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    // robots.txt and sitemap.xml are public by definition; gating them sent
+    // every crawler to /login and the sitemap said "/login" in its body.
+    '/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
