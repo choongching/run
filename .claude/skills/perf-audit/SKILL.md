@@ -338,3 +338,22 @@ quality tried, because fine noise is where AVIF's advantage disappears.
 
 Numbers from a production build, before and after, quoted in the commit
 message; dev server restarted; and any new rule earned goes into this file.
+
+## An unattended job has its own timing table (2026-08-28)
+
+Page probes cannot see the routine heartbeat. Its cost lives in
+`cron.job_run_details`: `end_time - start_time` per run, grouped by
+`command`, which also gives an honest before/after when the command
+changes. Reading the bearer token from Vault inside a function (migrations
+049 + 050) versus the token pasted inline: p50 17.0ms to 18.5ms, p90 32.6ms
+to 34.0ms over 521 and 8 runs, 0 failures either way. That 1.5ms is the
+whole price of not having a secret in the job text. The tick itself is one
+`net.http_post` with an 8s timeout; the route's own work is bounded by
+`TIME_BUDGET_MS` (240s) inside a 300s function ceiling, which is where a
+thundering-herd of routines would show up first, as latency of the last
+routine in the batch rather than as a failure.
+
+And the standing gate is the right thing to run even when no app code
+changed: `perf-check --prod --base https://tryrun.today` on 2026-08-28 was
+green (TTFB 73 to 90ms, redirects 32 to 45ms, chunk 275KB, JS 1.9MB), which
+proves the branch touched nothing it should not have.

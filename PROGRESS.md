@@ -8,7 +8,18 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** The sign-in page has a second column now, and what is
+**Where we left off:** The clock that runs routines is in the repo now. It
+had lived only in the production database, made by hand, with its password
+pasted into its own command, and during a call about how Run works somebody
+switched it off; nothing in the code could have shown that. Routines were
+silent for a day. The job is now created by a migration, reads its password
+from the database's own vault, and a missing password is a failed run rather
+than a quiet one. The same session answered a front-end developer's questions
+about where uploaded files go (nowhere: they become text or a resized image
+and are consumed by the message) and what a chat turn costs on the database
+(about nine calls before the first byte, still the open item).
+
+Before that, the sign-in page got a second column, and what is
 in it is the product itself: Run's own chat, told as a short story. A message
 arrives, the agent thinks for a beat, the reply lands, then the thing it made,
 a Gmail draft waiting for approval. Three stories, switched by pills carrying
@@ -174,6 +185,72 @@ Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
 
 ---
+
+## 2026-08-28 (evening): The clock is in the repo, and a day of silence explained
+
+- **Found: the routine heartbeat had been off for a day.** A front-end
+  developer walked through the app with the founder on 2026-08-27 and asked
+  the right question: who runs the routines? The answer is a database timer
+  (pg_cron in Supabase) that calls one route every five minutes. While
+  looking at it in the dashboard they switched it off, at 15:55 local, and
+  it stayed off. No routine ran and no Telegram report went out until it was
+  switched back on the next evening. The reports due in that window were
+  skipped, not queued, which is what the runner promises (a run that does not
+  happen is never doubled), so they will not arrive late; they will not
+  arrive at all.
+- **Why nothing caught it.** The timer existed only in the production
+  database. It had been created by hand, its password typed into the command
+  text, and no file in this repository said it was there. A thing the code
+  depends on and the code does not describe can vanish without a diff, a
+  review, or a search showing it. The developer's word for this was
+  "clickops", and they were right.
+- **Fixed: the schedule is a migration.** Migration 049 creates the job. Its
+  command is one line that calls a database function; the function reads the
+  password from the database's own vault at run time and posts the tick. The
+  password is in exactly two places, the hosting environment and that vault,
+  and in no file. If the vault entry is ever missing the function raises, so
+  the timer's own log shows a failed run, where before a missing header would
+  have been refused by the route and still logged as a success. The function
+  lives in a schema the API does not expose; anon, authenticated and service
+  roles were checked and none can reach it.
+- **Verified live.** The job kept its id and its five-minute schedule. A tick
+  fired through the new function answered 200 with nothing due, and the
+  timer's next scheduled run went through the new command on its own. One
+  branch is unexercised: the "vault entry missing" raise, because the
+  database role the tools use may not edit vault entries, even inside a
+  rolled-back transaction. It is a plain null check, noted rather than
+  vouched for.
+- **Audited before shipping, and the audit found one more thing.** The
+  security advisor flagged the new function for an unpinned search path,
+  which matters because it runs as the database owner from the timer;
+  migration 050 pins it, and a tick through the pinned function still
+  answered 200. Every other probe held: no API role can see the schema or
+  the function, an unrelated signed-in user reads zero rows from every
+  private table, the tick route answers 401 without a token and 405 to a
+  GET, and the standing speed gate against the live site is green. Reading
+  the password from the vault costs the timer about a millisecond and a
+  half per tick. Three skills (security, speed, database) now carry the
+  probes so the next sweep repeats them.
+- **The developer's other questions, answered against the code.** Where does
+  an uploaded file live? Nowhere. A document is turned into text and an image
+  into a resized copy inside the request that receives it; the result waits
+  in one column on the thread and is consumed by the next message, which
+  keeps only the name, size and a thumbnail. There is no bucket, no signed
+  upload link, and nothing to clean up. Sizes: 15 MB for documents, 10 MB for
+  images, 2 MB for avatars, all multipart through the app's own routes. What
+  does a chat turn cost the database? About nine calls before the first byte,
+  the same 1.1 seconds measured on 2026-08-21, still the largest open item in
+  felt speed. Their worry that uploads were the expensive route on hosting
+  does not survive the code; the five-minute timer alone is 8,640 calls a
+  month and is the one to watch on the free plan's request cap.
+- **Decided, and parked on purpose.** No queue and no retry: a routine that
+  reads inboxes should skip a run rather than repeat one, and that stays.
+  The cost audit with real per-route numbers, a queue spike, PDF export of
+  documents, and the chat's pre-stream database chain are all written down
+  and not started.
+- **Recorded for good.** The hard lessons from this and earlier sessions now
+  live in one internal ledger, so the next person who asks "who runs it" or
+  "where is the file" finds the answer, and the mistake that taught it.
 
 ## 2026-08-28: The door shows the product
 

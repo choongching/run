@@ -117,8 +117,10 @@ user_telegram must all be 0.
   present (git-ignored; recreate from private memory on a fresh clone).
   Server-only keys now include `BRAVE_API_KEY` (the platform search key;
   a missing key throws SearchUnavailableError, it never falls back),
-  `ROUTINES_CRON_SECRET` (lives in the Vercel env and the cron job body
-  ONLY, never the repo), `TELEGRAM_BOT_TOKEN` (send-only: a leak lets
+  `ROUTINES_CRON_SECRET` (lives in the Vercel env and in Supabase Vault as
+  `routines_cron_secret` ONLY, never the repo; migration 049 schedules the
+  tick and reads it from Vault at run time, so `cron.job` carries no value),
+  `TELEGRAM_BOT_TOKEN` (send-only: a leak lets
   someone send as us and read nothing), `TELEGRAM_WEBHOOK_SECRET` (SHARED
   WITH TELEGRAM by design, so treat it as a value a third party holds) and
   `TELEGRAM_PAIRING_SECRET` (ours alone, signs pairing tokens, must never
@@ -126,7 +128,55 @@ user_telegram must all be 0.
   Telegram values, nor the Brave key, appear anywhere in `.next/static`.
 - Full CSP is deliberately deploy-day work; do not bolt one on quickly.
 
+## 5. Unattended jobs (added 2026-08-28, after a 28-hour silent outage)
+
+The routine heartbeat is a pg_cron job (`routines-tick`) calling
+`internal.routines_tick()`, which reads the bearer token from Vault
+(`routines_cron_secret`) and POSTs the tick route. Migrations 049 and 050
+own all of it. Check, every sweep, by behavior:
+
+- `select jobname, active, command from cron.job` shows exactly ONE job,
+  active, with the one-line command and NO literal token. The old job had
+  the token pasted into its text and lived only in the dashboard; a
+  developer switched it off there on 2026-08-27 and nothing in the repo
+  could show it. Anything the app depends on that exists only in a dashboard
+  is a finding, not a configuration.
+- `has_schema_privilege(r, 'internal', 'usage')` and
+  `has_function_privilege(r, 'internal.routines_tick()', 'execute')` are
+  false for anon, authenticated AND service_role, and a PostgREST call to
+  `/rest/v1/rpc/routines_tick` as anon answers 404 (the schema is not
+  exposed). Do NOT pass a single-argument form of these functions and read
+  the result as PUBLIC: it reports the CURRENT role, which is postgres.
+- `pg_proc.proconfig` on the function carries `search_path=""`. The
+  advisor flags any unpinned function, and this one runs as postgres from
+  cron, which is the shape where an unpinned path is a privilege ladder.
+  Every new function that cron or a trigger runs gets `set search_path = ''`
+  and fully qualified references, in the same migration that creates it.
+- The function RAISES when the Vault entry is missing, so a misconfiguration
+  is a failed row in `cron.job_run_details`, not a 401 logged as success.
+  The raise branch itself cannot be exercised through the MCP role (no
+  write on `vault.secrets`, even inside a rollback); it is a null check,
+  read it rather than claim it tested.
+- Live tick route: unauthenticated POST 401, wrong bearer 401, GET 405
+  (verified against tryrun.today 2026-08-28). A hand-fired
+  `select internal.routines_tick()` followed by a read of
+  `net._http_response` for the returned id must show 200 and
+  `{ran, failed, skipped}`.
+- `service_role` CAN read `vault.decrypted_secrets`. That is Supabase's
+  default and the role never leaves the server; note it, do not "fix" it.
+- `pg_net` in `public` is a pre-existing advisor WARN older than 049
+  (`create extension if not exists` was a no-op); moving it is its own
+  migration and its own decision.
+
 ## Open items ledger (update as they close)
+
+- Cron job existed only in the dashboard with its token inline: **FIXED
+  2026-08-28** (migrations 049 + 050, Vault, pinned search_path). Cost: no
+  routine ran from 2026-08-27 15:55 to 2026-08-28 ~20:30 SGT after a
+  developer switched it off during a walkthrough. THE RULE: no clickops;
+  the repo describes every job, bucket, policy and webhook the app relies
+  on, and the first query of any routines session is `select active from
+  cron.job`.
 
 - Telegram pairing signed with a key Telegram holds: **FIXED 2026-08-21**,
   found by this sweep. `mintPairingToken` used `TELEGRAM_WEBHOOK_SECRET` as

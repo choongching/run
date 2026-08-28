@@ -1,0 +1,11 @@
+-- Pin the tick function's search_path.
+--
+-- The security advisor flagged internal.routines_tick() for a mutable
+-- search_path the moment 049 landed. The function runs as postgres from
+-- pg_cron, which is exactly the shape where an unpinned path matters: any
+-- object created earlier on the path could stand in for one the function
+-- names. Every reference inside it is already schema-qualified
+-- (vault.decrypted_secrets, net.http_post), so an empty path changes nothing
+-- about what it does and removes the way it could be made to do something
+-- else.
+alter function internal.routines_tick() set search_path = '';
