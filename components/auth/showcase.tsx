@@ -40,6 +40,8 @@ type Scene = {
   thinking: string
   reply: React.ReactNode
   card: React.ReactNode
+  // The composer's resting line: the next natural thing to say.
+  hint: string
 }
 
 const SCENES: readonly Scene[] = [
@@ -50,6 +52,7 @@ const SCENES: readonly Scene[] = [
     agent: 'Inbox Assistant',
     ask: 'Draft a reply to Acme. Invoice 1042 goes out Friday.',
     thinking: 'Reading the thread',
+    hint: 'Change anything before it goes out',
     reply: <>Priya has asked twice, so I kept it short and led with the date.</>,
     card: (
       <div className="rounded-xl border border-ring/60 bg-card p-4">
@@ -81,6 +84,7 @@ const SCENES: readonly Scene[] = [
     agent: 'Docs Q&A Agent',
     ask: 'What did the Q2 board deck say about churn?',
     thinking: 'Reading two documents',
+    hint: 'Ask a follow-up question',
     reply: (
       <>
         Churn fell to 2.1% after the onboarding change, page 4. The board asked
@@ -101,6 +105,7 @@ const SCENES: readonly Scene[] = [
     agent: 'Industry News Tracker',
     ask: <Divider>Routine ran, Monday 08:00</Divider>,
     thinking: 'Reading 14 pages',
+    hint: 'Ask about anything in this week’s brief',
     reply: (
       <>
         Two things worth your Monday. Northwind moved its Team plan to $18 a
@@ -283,7 +288,7 @@ export function Showcase({
 
             {/* The composer, resting. */}
             <div className="run-scene-words flex items-center justify-between border-t border-border px-5 py-3">
-              <span className="text-sm text-muted-foreground">Message {s.agent}</span>
+              <span className="text-sm text-muted-foreground">{s.hint}</span>
               <span className="flex size-7 items-center justify-center rounded-full bg-muted text-muted-foreground">
                 <ArrowUp className="size-3.5" />
               </span>
