@@ -82,3 +82,32 @@ A schema or policy change is not done until: the migration is applied, the
 `Database` type compiles, an RLS probe passes for each affected role, and the
 member 403 sweep still passes for any touched API route (see the phase-gate
 skill).
+
+## Scheduled jobs and secrets (added 2026-08-28)
+
+- **A pg_cron job is a migration**, never a dashboard action. The routine
+  heartbeat was created by hand on 2026-08-01 and switched off by hand on
+  2026-08-27; nothing in the repo could show either. Migration 049 is the
+  shape: `cron.schedule(name, schedule, 'select internal.fn()')`, which
+  UPDATES an existing job of the same name (jobid preserved), so the
+  migration is safe to re-apply.
+- **The secret goes in Vault, read at run time.** `select
+  vault.create_secret('<value>', 'name')` once, out of band, never in a
+  migration; the function reads `vault.decrypted_secrets` by name and RAISES
+  if the row is missing. Copy the value from wherever it already lives
+  (`substring(command from 'Bearer ([0-9a-f]+)')` pulled it out of the old
+  job) rather than retyping it. The MCP role cannot UPDATE `vault.secrets`,
+  so a "secret missing" branch cannot be probed in a rollback; say so.
+- **Functions cron runs live in `internal`**, a schema PostgREST does not
+  expose, with `set search_path = ''` and fully qualified references. Check
+  privileges with the TWO-argument `has_schema_privilege(role, ...)` form;
+  the one-argument form reports the current role and reads as a false alarm.
+- **`cron.schedule` inside `apply_migration` is blocked by the auto-mode
+  classifier** (2026-08-01 and again 2026-08-28). Do not split the statement
+  to slip past it. Write the file, ask the founder to press Shift+Tab out of
+  auto mode and say retry, then apply the identical call. `alter function
+  ... set search_path` was NOT blocked.
+- Verify a job end to end with `select internal.fn()` (returns a pg_net
+  request id), then `select status_code, content from net._http_response
+  where id = <id>`; then wait for `cron.job_run_details` to show a
+  `succeeded` row with the new command before calling it done.
