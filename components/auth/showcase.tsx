@@ -60,10 +60,20 @@ const SCENES: readonly Scene[] = [
           <ShieldQuestion className="size-4 text-muted-foreground" />
           Approve this action?
         </div>
-        <div className="mt-3 rounded-lg border border-border bg-background p-3">
-          <p className="text-sm font-medium">Create a draft in Gmail</p>
-          <p className="mt-1.5 text-xs text-muted-foreground">
-            To priya@acme.com. Re: Invoice 1042, second reminder
+        <div className="mt-3 rounded-lg border border-border bg-background">
+          <div className="flex items-center gap-2 px-3 py-2.5">
+            <GmailIcon className="h-3 w-4" />
+            <span className="text-sm font-medium">Create a draft in Gmail</span>
+          </div>
+          <div className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 border-t border-border px-3 py-2.5 text-xs">
+            <span className="text-muted-foreground">To</span>
+            <span>Priya Nair &lt;priya@acme.com&gt;</span>
+            <span className="text-muted-foreground">Subject</span>
+            <span>Re: Invoice 1042, second reminder</span>
+          </div>
+          <p className="border-t border-border px-3 py-2.5 text-xs/[18px] text-muted-foreground">
+            Hi Priya, thanks for your patience. Payment for invoice 1042 goes
+            out on Friday…
           </p>
         </div>
         <div className="mt-4 flex justify-end gap-2" aria-hidden>
