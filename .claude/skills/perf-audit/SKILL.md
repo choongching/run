@@ -156,6 +156,42 @@ Second thing worth carrying: **run the gate with the dev server stopped.**
 Leaving `next dev` running beside `next start` added roughly 10ms to the first
 chunk of every route, uniformly, which is enough to look like a regression.
 
+## Baselines, the auth pages (2026-08-28, production build, dev server stopped)
+
+Measured after the two-column sign-in shipped (form left, a chat-story panel
+right, a page-load reveal). Public pages, so measured from a SIGNED-OUT tab at
+`127.0.0.1:3000` (cookies are per host; see the verify-in-browser skill for
+why that needs a production build). 16 samples each, cold run discarded:
+
+| Route | First chunk (median / p90) | Full stream (median / p90) |
+| --- | --- | --- |
+| `/login` | 8 / 10ms | 9 / 10ms |
+| `/register` | 4 / 5ms | 5 / 6ms |
+| `/forgot-password` | 4 / 5ms | 4 / 6ms |
+
+First chunk equals full stream because these pages make no Supabase call on
+render; the proxy's local getClaims is the only server work. Keep it that
+way: the redesign added zero server-side calls, and that is the number to
+defend if anyone proposes a "recent activity" or "who else is here" widget
+on the door.
+
+Page weight on `/login`: document 8KB, CSS 25KB, 13 scripts 190KB transfer,
+fonts 53KB, backdrop 70KB (the 2200px WebP, chosen by `sizes` at this width;
+a phone would get the 18KB one but has no panel at all). DOMContentLoaded
+55ms, load 127ms, zero long tasks during load. Gate: TTFB 5 to 7ms, biggest
+chunk 275KB (was 273 before the branch), total client JS 1.9MB.
+
+The showcase is one client island of about 11KB gzipped, with two timers,
+both owned by effects and cleared on unmount. Idle check at 25s with the tab
+VISIBLE: our running animations 0, infinite animations 0. The one entry
+`document.getAnimations()` returns forever is `claude-pulse`, which is the
+Claude in Chrome extension's own and not on the page; filter it out before
+reading the count, or the audit fails on a tool artefact.
+
+**Read the infinite-animation check from a visible tab.** A hidden tab
+freezes every CSS animation at `currentTime 0` and reports it `running`, so
+the same probe on a hidden tab says everything is running forever.
+
 ## The chat turn, measured (production, 2026-08-21)
 
 Page timings say nothing about a chat turn. Measure it by wrapping `fetch` and

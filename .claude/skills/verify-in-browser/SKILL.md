@@ -73,6 +73,43 @@ work". `read_page` with `filter: "interactive"` then `computer` with
 listing doubles as an a11y check: an unnamed `radio` in the tree is a real
 defect, not a tooling artefact.
 
+## Signed-out pages without signing the founder out (2026-08-27)
+
+Cookies are per host, not per port, so `http://127.0.0.1:3000` is a clean
+signed-out visit while `localhost:3000` keeps the founder's session. Use it
+for /login, /register and /forgot-password. Two traps found the slow way:
+
+- **The dev server blocks it.** `next dev` refuses cross-origin dev resources
+  from 127.0.0.1 (`allowedDevOrigins`), so the HTML renders but NOTHING
+  hydrates: no click works, no effect runs, and there is no console error.
+  Use a production build (`npm run build && npm run start`) for any
+  behavioural check at 127.0.0.1; the perf gate wants one anyway.
+- **`document.write` of fetched HTML does not hydrate either.** It shows the
+  markup and nothing else; do not read behaviour off it.
+
+## The automation tab can be hidden (2026-08-27)
+
+Check `document.hidden` before trusting anything about motion or pointer
+events. When the founder has another window in front, the tab reports
+`hidden: true`: CSS animations and transitions freeze at `currentTime 0` and
+report `running` forever, hover and click from the `computer` tool are not
+delivered, but plain `setTimeout` timers still fire. Three symptoms that
+each looked like a bug in the code and were not.
+
+What still works from a hidden tab: dispatching DOM events from the
+javascript tool (`el.click()`, `el.dispatchEvent(new MouseEvent('mouseover',
+{bubbles: true}))`) reaches React's handlers, so handlers can be proven that
+way. Read state one call LATER than the dispatch: React flushes after the
+event, so a read in the same script returns the previous state.
+
+Also: the tab's viewport can change size between batches (a 1456-wide
+screenshot became 1512 mid-session). Coordinates from an older screenshot
+miss small targets; click by `ref` from `find` for anything under 20px.
+
+Before any of this, check what is on :3000. A `next start` left over from a
+previous day's perf gate serves the OLD build and will not pick up edits;
+`lsof -t -i :3000 | xargs ps -o command=` tells you which it is.
+
 ## Narrow-width (mobile) checks
 
 - `resize_window` LIES in macOS fullscreen: it reports success while the

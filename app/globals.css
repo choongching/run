@@ -672,6 +672,191 @@
     border-radius: 1px;
     animation: run-caret 1s step-end infinite;
   }
+
+  /* The sign-in showcase (components/auth/showcase.tsx). One card, kept
+     through every switch, with a short story played into it: the message
+     arrives, the agent thinks for a beat, the reply lands where the
+     thinking line was, then the card. About 2.8s, and after that nothing
+     on the page animates. The spinner is the one thing that turns, and it
+     turns three times and stops: no infinite animation anywhere in the app.
+
+     The story's body is keyed on the scene, so a new story is a new element
+     and its animations play from the start on mount. Leaving is the same
+     body with data-leaving set: its rows close and its words fade over
+     300ms, then the next body mounts into the same card. The card itself
+     is never replaced, which is what keeps a switch from reading as a
+     re-render. */
+  .run-scene-row {
+    display: grid;
+    /* Rest state is open (1fr), so reduced motion, which removes the
+       animations, shows the finished story. */
+    grid-template-rows: 1fr;
+  }
+  /* The thinking row is the exception: its rest state is closed, because
+     the reply takes its place. */
+  .run-scene-think-row {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+  /* Every word in a freshly filled card fades in. Stated first so the
+     story's own beats below, at the same specificity, win by source order
+     for the ask, the reply and the card. */
+  .run-scene-body .run-scene-words {
+    animation: run-scene-rise 320ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    animation-delay: var(--story-delay, 0ms);
+  }
+  .run-scene-body .run-scene-ask {
+    animation: run-scene-rise 420ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    animation-delay: var(--story-delay, 0ms);
+  }
+  .run-scene-body .run-scene-think-row {
+    animation: run-scene-think 1500ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    animation-delay: calc(450ms + var(--story-delay, 0ms));
+  }
+  .run-scene-body .run-scene-spin {
+    animation: run-scene-spin 1400ms linear both;
+    animation-delay: calc(550ms + var(--story-delay, 0ms));
+  }
+  .run-scene-body .run-scene-reply-row {
+    animation: run-scene-open 420ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    animation-delay: calc(1750ms + var(--story-delay, 0ms));
+  }
+  .run-scene-body .run-scene-reply {
+    animation: run-scene-rise 420ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    animation-delay: calc(1800ms + var(--story-delay, 0ms));
+  }
+  .run-scene-body .run-scene-card-row {
+    animation: run-scene-open 480ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    animation-delay: calc(2250ms + var(--story-delay, 0ms));
+  }
+  .run-scene-body .run-scene-card {
+    animation: run-scene-land 520ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    animation-delay: calc(2350ms + var(--story-delay, 0ms));
+  }
+  /* Leaving: every row closes and every word fades, together, 300ms. These
+     come after the story rules so they win on the same properties whatever
+     beat the story was at. */
+  .run-scene-body[data-leaving] .run-scene-row {
+    animation: run-scene-close 300ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  }
+  .run-scene-body[data-leaving] .run-scene-think-row {
+    animation: run-scene-close 300ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  }
+  .run-scene-body[data-leaving] .run-scene-words,
+  .run-scene-body[data-leaving] .run-scene-spin {
+    animation: run-scene-fade 220ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  }
+  /* The card's own entrance on page load: up and in with a touch of scale,
+     after the form column and the pills, before the first story. Once. */
+  .run-scene-enter {
+    animation: run-scene-enter 520ms cubic-bezier(0.22, 0.61, 0.36, 1) 600ms both;
+  }
+  @keyframes run-scene-enter {
+    from {
+      opacity: 0;
+      transform: translateY(10px) scale(0.985);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  @keyframes run-scene-open {
+    from {
+      grid-template-rows: 0fr;
+    }
+    to {
+      grid-template-rows: 1fr;
+    }
+  }
+  @keyframes run-scene-close {
+    from {
+      grid-template-rows: 1fr;
+    }
+    to {
+      grid-template-rows: 0fr;
+    }
+  }
+  @keyframes run-scene-fade {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes run-scene-rise {
+    from {
+      opacity: 0;
+      transform: translateY(6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  /* Opens, holds while the spinner turns, closes as the reply opens. The
+     text is fully visible before the row has finished opening, so the row
+     never reads as a blank strip on its way in. */
+  @keyframes run-scene-think {
+    0% {
+      grid-template-rows: 0fr;
+      opacity: 0;
+    }
+    8% {
+      opacity: 1;
+    }
+    20% {
+      grid-template-rows: 1fr;
+      opacity: 1;
+    }
+    75% {
+      grid-template-rows: 1fr;
+      opacity: 1;
+    }
+    100% {
+      grid-template-rows: 0fr;
+      opacity: 0;
+    }
+  }
+  @keyframes run-scene-spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(1080deg);
+    }
+  }
+  @keyframes run-scene-land {
+    from {
+      opacity: 0;
+      transform: scale(0.985);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    /* Every arrival becomes a cut. The stories still hand over once,
+       because a finite, stoppable change of picture is not the thing that
+       makes people unwell; travelling to get there is. */
+    .run-scene-enter,
+    .run-scene-body .run-scene-words,
+    .run-scene-body .run-scene-ask,
+    .run-scene-body .run-scene-think-row,
+    .run-scene-body .run-scene-spin,
+    .run-scene-body .run-scene-reply-row,
+    .run-scene-body .run-scene-reply,
+    .run-scene-body .run-scene-card-row,
+    .run-scene-body .run-scene-card,
+    .run-scene-body[data-leaving] .run-scene-row,
+    .run-scene-body[data-leaving] .run-scene-think-row,
+    .run-scene-body[data-leaving] .run-scene-words,
+    .run-scene-body[data-leaving] .run-scene-spin {
+      animation: none;
+    }
+  }
 }
 
 /* Anything in the rail that disappears when it collapses.

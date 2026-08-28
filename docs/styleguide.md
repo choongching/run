@@ -468,6 +468,64 @@ The one hero on the product, and the only place these recipes apply.
   read it in the pill's click handler, or pushing the rail chooses whatever
   was under the finger.
 
+### 7d. The auth door (`components/auth/auth-shell.tsx`)
+
+The four auth pages (sign in, register, forgot, reset) share one shell and
+none of them has a card any more: the form lives on the page.
+
+- **Two columns from `md`.** Left half: the mark top-left (28px, wordmark
+  `text-base font-semibold`), the form vertically centred in a `max-w-sm`
+  column, the maker's mark at the foot. Right half: the showcase panel, inset
+  `p-3` with no left padding so it sits 12px from the viewport edge, `rounded-
+  shell` (14px) with a 1px border and `bg-sidebar`, the home screen's
+  photograph behind it at the home screen's numbers. The inset is what makes
+  it read as a card the page holds rather than a split screen.
+- **Below `md` there is no panel.** A phone gets the form and nothing beside
+  it; the references this was drawn from do the same.
+- **Form copy.** Title `text-2xl font-semibold`, subtitle `text-base
+  text-muted-foreground`, `gap-7` between the two and the form, `gap-4`
+  between fields. Errors and messages stay as one `text-sm` line between the
+  last field and the submit, unchanged.
+- **The showcase** (`components/auth/showcase.tsx`) is Run's own chat
+  surface, centred in the panel at `max-w-[580px]`, drawn with the chat's real
+  parts: the header with the bot glyph and the agent's name, the user bubble
+  (`rounded-xl bg-muted px-3.5 py-2.5 text-sm`), the reply as plain 15px
+  prose, the approval card as `ApprovalCard` draws it, the mono citation
+  pills, the resting composer line. It is the one surface on the page allowed
+  a shadow, because it is the one thing that is not part of the page.
+- **Three scenes, switched by pills** at the top (`role="tablist"`, `h-9`,
+  full pill, the product's own marks at `size-4`; active `bg-card` with a
+  border, inactive `bg-card/55`). **One card, never replaced.** A switch
+  closes the rows and fades every word (300ms), then the next story mounts
+  into the same box (the body is keyed on the scene) and plays from the top.
+  Three stacked cards swapped by opacity was the first cut, and the seam
+  showed: different heights, a jump, a re-render you could see. Gmail draft waiting for approval, a Drive
+  answer with its sources, a routine's report sent to Telegram. Every scene
+  is something the code does today, checked against
+  `lib/tools/definitions.ts`; a fourth needs the tool first.
+- **The page opens in order, once.** The form column rises first (`run-rise`
+  with an 80ms and a 300ms stagger: mark, form, maker's mark; the form takes
+  input from the first frame, an opacity animation blocks nothing), the wall
+  fades up under `run-wash-layer`, the pills rise at 400ms, the empty card
+  enters at 600ms (`run-scene-enter`, up and in with a touch of scale), and
+  the first story starts at 900ms. Every beat of a story reads its delay
+  through `--story-delay`, which the opening story sets to 900ms and every
+  later story sets to 0, so a switch never waits. Idle by about four
+  seconds, and the first hand-over waits the extra 900ms too.
+- **Each scene is a story that plays once, and the surface grows with it**:
+  the message rises (0ms), the thinking row opens with a spinner that turns
+  exactly three times, then closes as the reply row opens under it, then the
+  card row opens and the card lands. About 2.8s. The surface stays centred
+  while it grows, so it expands from its middle, not its top. Each row is a grid going
+  `0fr` to `1fr` (`run-scene-open`), the one height animation in the app: it
+  runs once on one small card, and it exists because the founder saw the card
+  sit half empty while the agent thought. Rows are open at rest, so reduced
+  motion shows the finished story. Sign-in hands over to
+  the next scene after 7s and stops after the third; register, forgot and
+  reset play the first story and never hand over. Picking a pill cancels the
+  timer for good; hovering the panel holds the scene; reduced motion turns
+  every beat into a cut and leaves the finite hand-over in place.
+
 ## 8. Motion
 
 The vocabulary as built. All of it lives in `@layer utilities` in
@@ -484,6 +542,8 @@ question, not this file's.
 | `run-sheen` | one sweep of the composer's border on the click that focuses it |
 | `run-wash-layer` | the home backdrop arriving, once, like the light coming on |
 | `run-hero-dim` | the hero standing down while an agent builds |
+| `run-scene` | a sign-in story playing: ask, think, reply, card, once, then still |
+| `run-scene-enter` | the sign-in card arriving on page load, after the form and the pills |
 
 - **Composite-only properties.** `transform`, `opacity`, `filter`. A keyframe
   on width, height, top or left reflows the page every frame. A registered
