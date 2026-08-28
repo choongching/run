@@ -127,11 +127,12 @@ function Divider({ children }: { children: React.ReactNode }) {
   )
 }
 
-// The chat's citation pill, as it is in components/chat/source-chip.tsx.
+// The chat's citation pill, as it is in components/chat/source-chip.tsx,
+// with the Drive mark where a web source would carry its favicon.
 function SourceChip({ children }: { children: React.ReactNode }) {
   return (
     <span className="inline-flex h-[19px] items-center gap-[5px] rounded-full bg-muted/70 pr-[9px] pl-1 font-mono text-[10px] text-muted-foreground">
-      <span className="size-3.5 rounded-full bg-chart-2/70" />
+      <GoogleDriveIcon className="size-3.5" />
       {children}
     </span>
   )
