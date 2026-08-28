@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { ArrowUp, Bot, ShieldQuestion } from 'lucide-react'
+import { ArrowUp, Bot } from 'lucide-react'
 
 import { GmailIcon } from '@/components/icons/gmail'
 import { GoogleDriveIcon } from '@/components/icons/google-drive'
@@ -55,12 +55,9 @@ const SCENES: readonly Scene[] = [
     hint: 'Change anything before it goes out',
     reply: <>Priya has asked twice, so I kept it short and led with the date.</>,
     card: (
-      <div className="rounded-xl border border-ring/60 bg-card p-4">
-        <div className="flex items-center gap-2 text-sm font-medium">
-          <ShieldQuestion className="size-4 text-muted-foreground" />
-          Approve this action?
-        </div>
-        <div className="mt-3 rounded-lg border border-border bg-background">
+      <div className="flex flex-col gap-3">
+        {/* The green edge is the whole signal: this is waiting on you. */}
+        <div className="rounded-lg border border-ring/60 bg-background">
           <div className="flex items-center gap-2 px-3 py-2.5">
             <GmailIcon className="h-3 w-4" />
             <span className="text-sm font-medium">Create a draft in Gmail</span>
@@ -76,7 +73,7 @@ const SCENES: readonly Scene[] = [
             out on Friday…
           </p>
         </div>
-        <div className="mt-4 flex justify-end gap-2" aria-hidden>
+        <div className="flex justify-end gap-2" aria-hidden>
           <span className="flex h-8 items-center rounded-lg border border-border bg-card px-3 text-sm font-medium">
             Cancel
           </span>
