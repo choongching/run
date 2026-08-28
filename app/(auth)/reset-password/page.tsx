@@ -1,8 +1,15 @@
+import type { Metadata } from 'next'
 import { updatePassword } from '@/app/actions/auth'
 import { AuthShell } from '@/components/auth/auth-shell'
 import { PasswordInput } from '@/components/auth/password-input'
 import { SubmitButton } from '@/components/auth/submit-button'
 import { Label } from '@/components/ui/label'
+
+// Reached only from the email link, already signed in; nothing to index.
+export const metadata: Metadata = {
+  title: 'Set a new password',
+  robots: { index: false, follow: false },
+}
 
 // Where the email link ends up, already signed in by /auth/confirm. A cold
 // visit with no session never reaches here; the proxy sends it to /login.

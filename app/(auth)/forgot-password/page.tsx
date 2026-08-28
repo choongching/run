@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 
 import { requestReset } from '@/app/actions/auth'
@@ -5,6 +6,14 @@ import { AuthShell } from '@/components/auth/auth-shell'
 import { SubmitButton } from '@/components/auth/submit-button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+
+export const metadata: Metadata = {
+  title: 'Reset your password',
+  description:
+    'Type the email you sign in with and Run sends you a link to set a new password.',
+  alternates: { canonical: '/forgot-password' },
+  openGraph: { title: 'Reset your password · Run', description: 'Type the email you sign in with and Run sends you a link to set a new password.', url: '/forgot-password', images: ['/og.png'] },
+}
 
 // The way back in. Server-rendered, one form, one action; the sent state is a
 // message in the URL rather than client state, so this page ships no extra

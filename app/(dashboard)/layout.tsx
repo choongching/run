@@ -1,3 +1,4 @@
+import type { Metadata } from 'next'
 import { Suspense } from 'react'
 import { cookies } from 'next/headers'
 import Image from 'next/image'
@@ -14,6 +15,12 @@ import {
   RoutinesBadgeSection,
 } from '@/components/sidebar/sections'
 import { SidebarInset, SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar'
+
+// Everything behind the door is a person's own workspace: never indexed. A
+// signed-out crawler is redirected to /login before it gets here anyway.
+export const metadata: Metadata = {
+  robots: { index: false, follow: false },
+}
 
 // This layout awaits nothing.
 //
