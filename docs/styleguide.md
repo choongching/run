@@ -499,10 +499,14 @@ none of them has a card any more: the form lives on the page.
   answer with its sources, a routine's report sent to Telegram. Every scene
   is something the code does today, checked against
   `lib/tools/definitions.ts`; a fourth needs the tool first.
-- **Each scene is a story that plays once**: the message rises (0ms), the
-  agent thinks for 1.4s with a spinner that turns exactly three times, the
-  reply rises where the thinking line was (the two share a grid cell so
-  nothing reflows), then the card lands. About 2.5s. Sign-in hands over to
+- **Each scene is a story that plays once, and the surface grows with it**:
+  the message rises (0ms), the thinking row opens with a spinner that turns
+  exactly three times, then closes as the reply row opens under it, then the
+  card row opens and the card lands. About 2.8s. Each row is a grid going
+  `0fr` to `1fr` (`run-scene-open`), the one height animation in the app: it
+  runs once on one small card, and it exists because the founder saw the card
+  sit half empty while the agent thought. Rows are open at rest, so reduced
+  motion shows the finished story. Sign-in hands over to
   the next scene after 7s and stops after the third; register, forgot and
   reset play the first story and never hand over. Picking a pill cancels the
   timer for good; hovering the panel holds the scene; reduced motion turns

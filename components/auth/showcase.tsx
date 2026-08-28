@@ -204,7 +204,7 @@ export function Showcase({
 
       {/* One surface, centred. Every scene is in the tree so the panel never
           changes size; only the active one is visible and plays. */}
-      <div className="relative z-10 flex flex-1 items-center justify-center px-5 pb-5 md:px-12 md:pb-12">
+      <div className="relative z-10 flex flex-1 items-start justify-center px-5 pb-5 md:px-12 md:pt-24 md:pb-12">
         <div className="relative w-full max-w-[580px]">
           {SCENES.map((s, i) => (
             <div
@@ -224,7 +224,10 @@ export function Showcase({
                 <span className="text-[15px] font-semibold">{s.agent}</span>
               </div>
 
-              <div className="flex flex-col gap-4 px-5 py-5">
+              {/* The body grows as the story does: each row below opens
+                  from zero height when its beat arrives, so the surface is
+                  never taller than what it has said so far. */}
+              <div className="flex flex-col px-5 py-5">
                 {/* What was asked, or what the clock did. */}
                 <div className="run-scene-ask flex flex-col items-end">
                   {typeof s.ask === 'string' ? (
@@ -236,19 +239,26 @@ export function Showcase({
                   )}
                 </div>
 
-                {/* Thinking and the reply share one cell: the line fades out
-                    as the reply fades in, so nothing in the surface reflows. */}
-                <div className="grid">
-                  <div className="run-scene-think col-start-1 row-start-1 flex items-center gap-2 text-sm text-muted-foreground">
-                    <span className="run-scene-spin size-3.5 rounded-full border-[1.5px] border-muted-foreground/30 border-t-muted-foreground" />
-                    {s.thinking}
+                <div className="run-scene-row run-scene-think-row">
+                  <div className="min-h-0 overflow-hidden">
+                    <div className="flex items-center gap-2 pt-4 text-sm text-muted-foreground">
+                      <span className="run-scene-spin size-3.5 rounded-full border-[1.5px] border-muted-foreground/30 border-t-muted-foreground" />
+                      {s.thinking}
+                    </div>
                   </div>
-                  <p className="run-scene-reply col-start-1 row-start-1 text-[15px]/[22px] text-pretty">
-                    {s.reply}
-                  </p>
                 </div>
 
-                <div className="run-scene-card">{s.card}</div>
+                <div className="run-scene-row run-scene-reply-row">
+                  <div className="min-h-0 overflow-hidden">
+                    <p className="run-scene-reply pt-4 text-[15px]/[22px] text-pretty">{s.reply}</p>
+                  </div>
+                </div>
+
+                <div className="run-scene-row run-scene-card-row">
+                  <div className="min-h-0 overflow-hidden">
+                    <div className="run-scene-card pt-4">{s.card}</div>
+                  </div>
+                </div>
               </div>
 
               {/* The composer, resting. */}
