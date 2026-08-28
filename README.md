@@ -400,6 +400,38 @@ and what needs you. Open one and you can change its schedule there: how
 often, which days, what time, and the date it counts from. It shows you the
 next three real run dates before you save.
 
+**What actually runs a routine when nobody is signed in?**
+
+A timer inside the database. Every five minutes it wakes up and calls the
+app, the app looks for routines whose time has come and runs them one after
+another, and then everything goes quiet again until the next call. There is
+no machine sitting awake waiting for your Monday morning. The timer is
+created by the same files that create the tables, so it exists wherever the
+app is deployed and nobody has to remember to switch it on.
+
+One rule is worth knowing. Each routine is claimed before it runs, so two
+timers can never run the same routine twice. The cost of that is the
+opposite case: a run that breaks halfway is skipped, not tried again, and the
+next real run is the next one on the schedule. For an agent that reads your
+inbox, one missed report is a smaller mistake than the same report twice,
+which is why it is built that way round. A routine that fails three times in
+a row pauses itself and tells you.
+
+**Where do the files I attach go?**
+
+Nowhere, and that is the answer rather than an evasion. When you attach a
+document, the app reads the text out of it on the spot and throws the file
+away. A screenshot is shrunk to the size the model can see and kept only as
+that. What survives goes into the message you send, the same way your typed
+words do, and the chat keeps the file's name, its size and a thumbnail so
+you can see what you sent. There is no folder of uploads anywhere, nothing to
+clean up, and nothing to leak. Documents can be up to 15 MB and images up to
+10 MB.
+
+The one exception is knowledge. A file you give an agent as something it
+should always know is kept as text, because the agent needs to read it again
+next week.
+
 **If reports come to Telegram, what can that bot do, and what does Telegram see?**
 
 The agent gained nothing. There is no Telegram tool in its toolbox, so
@@ -523,6 +555,7 @@ handled.
 flowchart LR
     U["You"] --> W["Run web app<br/>Next.js 16, React 19"]
     W --> DB[("Supabase<br/>auth, agents, chats, RLS")]
+    DB -. "timer, every five minutes:<br/>run what is due" .-> W
     W --> MA["Anthropic<br/>Managed Agents sessions"]
     MA -. custom tools .-> PD["Pipedream Connect"]
     PD --> GM["Your Gmail"]
@@ -549,6 +582,13 @@ flowchart LR
   account through the same proxy. Anthropic's built-in search is switched off
   whenever ours is available, because attaching both leaves the model to choose
   and it chooses the one it was trained on.
+- **Routines:** a timer inside Supabase (pg_cron) calls one route every five
+  minutes with a secret it reads from the database's own vault; the route
+  claims each routine that is due and runs it. No queue and no always-on
+  worker, and the timer is a migration like everything else, so it cannot
+  quietly go missing.
+- **Files:** never stored. Attachments are turned into text or a resized image
+  inside the request that receives them and travel with the message.
 
 ## Project status
 
@@ -662,6 +702,20 @@ The app is a standard Next.js project and deploys cleanly to Vercel:
 1. **Supabase:** create a project and apply every migration in
    `supabase/migrations/` in filename order (SQL editor or CLI). Turn email
    confirmation on or off to taste under Auth settings.
+
+   The migrations also create the timer that runs routines. It needs one
+   secret to call the app with, and that value is deliberately not in any
+   file: generate a long random string, set it as `ROUTINES_CRON_SECRET` in
+   Vercel, and store the same value in the project's Vault once:
+
+   ```sql
+   select vault.create_secret('<the same value>', 'routines_cron_secret');
+   ```
+
+   Until it is there, every tick fails in the timer's own log
+   (`cron.job_run_details`) rather than quietly doing nothing, which is the
+   point. The address the timer calls is written in migration 049; change
+   it to your own domain before applying if you are not us.
 2. **Vercel:** import the repo and set the environment variables from
    `.env.local.example`. `NEXT_PUBLIC_APP_URL` must be the deployed URL (it is
    used for the OAuth redirects).
