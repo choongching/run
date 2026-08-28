@@ -25,14 +25,18 @@ export function AuthShell({
 }) {
   return (
     <div className="flex min-h-svh flex-col bg-background md:flex-row">
+      {/* The opening: mark, form, maker's mark rise in over 400ms, then the
+          panel takes its turn (see Showcase). All opacity and transform, once,
+          then still. The form takes input from the first frame: an opacity
+          animation blocks nothing. */}
       <div className="flex flex-1 flex-col justify-between gap-8 px-4 pt-4 pb-6 md:w-1/2 md:px-12 md:py-10">
-        <div className="flex items-center gap-2.5">
+        <div className="run-rise flex items-center gap-2.5">
           <Image src="/run-icon.png" alt="" width={28} height={28} priority />
           <span className="text-base font-semibold">Run</span>
         </div>
-        <div className="mx-auto w-full max-w-sm">{children}</div>
+        <div className="run-rise mx-auto w-full max-w-sm [--rise-delay:80ms]">{children}</div>
         {/* The maker's mark: quiet, present on every door. */}
-        <p className="text-xs text-muted-foreground/70 max-md:text-center">
+        <p className="run-rise text-xs text-muted-foreground/70 max-md:text-center [--rise-delay:300ms]">
           Designed and built by CC Teo
         </p>
       </div>

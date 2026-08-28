@@ -165,11 +165,15 @@ export function Showcase({
   // Once a person has picked a scene, or the run has finished, the timer
   // never starts again. A ref rather than state because nothing renders it.
   const stopped = useRef(mode === 'still')
+  // True until the first hand-over or pick: the opening story waits for the
+  // page's reveal, later ones do not.
+  const [opening, setOpening] = useState(true)
 
   // The hand-over: close the current story, then mount the next one.
   useEffect(() => {
     if (next === null) return
     const id = setTimeout(() => {
+      setOpening(false)
       setShown(next)
       setNext(null)
     }, LEAVE_MS)
@@ -180,9 +184,10 @@ export function Showcase({
   // wraps: after the last one there is nothing left to schedule.
   useEffect(() => {
     if (stopped.current || paused || next !== null || shown >= SCENES.length - 1) return
-    const id = setTimeout(() => setNext(shown + 1), dwellMs)
+    const wait = dwellMs + (opening ? OPENING_MS : 0)
+    const id = setTimeout(() => setNext(shown + 1), wait)
     return () => clearTimeout(id)
-  }, [shown, paused, next, dwellMs])
+  }, [shown, paused, next, dwellMs, opening])
 
   function pick(i: number) {
     stopped.current = true
@@ -207,7 +212,7 @@ export function Showcase({
       <div
         role="tablist"
         aria-label="What an agent can do"
-        className="relative z-10 flex flex-wrap justify-center gap-2 px-5 pt-5 md:px-10 md:pt-10"
+        className="run-rise relative z-10 flex flex-wrap justify-center gap-2 px-5 pt-5 md:px-10 md:pt-10 [--rise-delay:400ms]"
       >
         {SCENES.map((sc, i) => (
           <button
@@ -240,12 +245,16 @@ export function Showcase({
         <div
           // It floats: the one surface on the page allowed a shadow,
           // because it is the one thing that is not part of the page.
-          className="run-scene w-full max-w-[580px] rounded-[calc(var(--radius-shell)-1px)] border border-border/70 bg-card shadow-[0_24px_60px_-24px_oklch(0.235_0.006_95/0.28),0_2px_6px_-2px_oklch(0.235_0.006_95/0.08)]"
+          className="run-scene run-scene-enter w-full max-w-[580px] rounded-[calc(var(--radius-shell)-1px)] border border-border/70 bg-card shadow-[0_24px_60px_-24px_oklch(0.235_0.006_95/0.28),0_2px_6px_-2px_oklch(0.235_0.006_95/0.08)]"
         >
+          {/* The first story waits for the card to be there (--story-delay
+              is what every beat's delay is offset by); later ones start at
+              once, because the card is already on screen. */}
           <div
             key={shown}
             data-leaving={leaving || undefined}
             className="run-scene-body"
+            style={{ '--story-delay': opening ? `${OPENING_MS}ms` : '0ms' } as React.CSSProperties}
             aria-live="polite"
           >
             {/* The chat header, as it is. */}
@@ -310,6 +319,9 @@ export function Showcase({
 // How long a story takes to leave the card before the next one fills it.
 // Matches run-scene-close in globals.css.
 const LEAVE_MS = 300
+// How long the opening story waits for the page to reveal the card first.
+// Matches the card's entrance in globals.css (run-scene-enter at 600ms).
+const OPENING_MS = 900
 
 // The home screen's wall, at the home screen's settings. Same picture, same
 // veil, so the door and the room behind it are visibly the same place.
@@ -317,7 +329,7 @@ function Backdrop() {
   return (
     <div
       aria-hidden
-      className="pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[calc(var(--radius-shell)-1px)]"
+      className="run-wash-layer pointer-events-none absolute inset-0 z-0 overflow-hidden rounded-[calc(var(--radius-shell)-1px)]"
     >
       {/* eslint-disable-next-line @next/next/no-img-element -- hand-tuned sizes, see components/home/ambient-backdrop.tsx */}
       <img

@@ -503,6 +503,15 @@ none of them has a card any more: the form lives on the page.
   answer with its sources, a routine's report sent to Telegram. Every scene
   is something the code does today, checked against
   `lib/tools/definitions.ts`; a fourth needs the tool first.
+- **The page opens in order, once.** The form column rises first (`run-rise`
+  with an 80ms and a 300ms stagger: mark, form, maker's mark; the form takes
+  input from the first frame, an opacity animation blocks nothing), the wall
+  fades up under `run-wash-layer`, the pills rise at 400ms, the empty card
+  enters at 600ms (`run-scene-enter`, up and in with a touch of scale), and
+  the first story starts at 900ms. Every beat of a story reads its delay
+  through `--story-delay`, which the opening story sets to 900ms and every
+  later story sets to 0, so a switch never waits. Idle by about four
+  seconds, and the first hand-over waits the extra 900ms too.
 - **Each scene is a story that plays once, and the surface grows with it**:
   the message rises (0ms), the thinking row opens with a spinner that turns
   exactly three times, then closes as the reply row opens under it, then the
@@ -533,7 +542,8 @@ question, not this file's.
 | `run-sheen` | one sweep of the composer's border on the click that focuses it |
 | `run-wash-layer` | the home backdrop arriving, once, like the light coming on |
 | `run-hero-dim` | the hero standing down while an agent builds |
-| `run-scene` | a sign-in scene playing: ask, think, reply, card, once, then still |
+| `run-scene` | a sign-in story playing: ask, think, reply, card, once, then still |
+| `run-scene-enter` | the sign-in card arriving on page load, after the form and the pills |
 
 - **Composite-only properties.** `transform`, `opacity`, `filter`. A keyframe
   on width, height, top or left reflows the page every frame. A registered

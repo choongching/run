@@ -703,27 +703,35 @@
      for the ask, the reply and the card. */
   .run-scene-body .run-scene-words {
     animation: run-scene-rise 320ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    animation-delay: var(--story-delay, 0ms);
   }
   .run-scene-body .run-scene-ask {
     animation: run-scene-rise 420ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    animation-delay: var(--story-delay, 0ms);
   }
   .run-scene-body .run-scene-think-row {
-    animation: run-scene-think 1500ms cubic-bezier(0.22, 0.61, 0.36, 1) 450ms both;
+    animation: run-scene-think 1500ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    animation-delay: calc(450ms + var(--story-delay, 0ms));
   }
   .run-scene-body .run-scene-spin {
-    animation: run-scene-spin 1400ms linear 550ms both;
+    animation: run-scene-spin 1400ms linear both;
+    animation-delay: calc(550ms + var(--story-delay, 0ms));
   }
   .run-scene-body .run-scene-reply-row {
-    animation: run-scene-open 420ms cubic-bezier(0.22, 0.61, 0.36, 1) 1750ms both;
+    animation: run-scene-open 420ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    animation-delay: calc(1750ms + var(--story-delay, 0ms));
   }
   .run-scene-body .run-scene-reply {
-    animation: run-scene-rise 420ms cubic-bezier(0.22, 0.61, 0.36, 1) 1800ms both;
+    animation: run-scene-rise 420ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    animation-delay: calc(1800ms + var(--story-delay, 0ms));
   }
   .run-scene-body .run-scene-card-row {
-    animation: run-scene-open 480ms cubic-bezier(0.22, 0.61, 0.36, 1) 2250ms both;
+    animation: run-scene-open 480ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    animation-delay: calc(2250ms + var(--story-delay, 0ms));
   }
   .run-scene-body .run-scene-card {
-    animation: run-scene-land 520ms cubic-bezier(0.22, 0.61, 0.36, 1) 2350ms both;
+    animation: run-scene-land 520ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+    animation-delay: calc(2350ms + var(--story-delay, 0ms));
   }
   /* Leaving: every row closes and every word fades, together, 300ms. These
      come after the story rules so they win on the same properties whatever
@@ -737,6 +745,21 @@
   .run-scene-body[data-leaving] .run-scene-words,
   .run-scene-body[data-leaving] .run-scene-spin {
     animation: run-scene-fade 220ms cubic-bezier(0.22, 0.61, 0.36, 1) both;
+  }
+  /* The card's own entrance on page load: up and in with a touch of scale,
+     after the form column and the pills, before the first story. Once. */
+  .run-scene-enter {
+    animation: run-scene-enter 520ms cubic-bezier(0.22, 0.61, 0.36, 1) 600ms both;
+  }
+  @keyframes run-scene-enter {
+    from {
+      opacity: 0;
+      transform: translateY(10px) scale(0.985);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
   }
   @keyframes run-scene-open {
     from {
@@ -818,6 +841,7 @@
     /* Every arrival becomes a cut. The stories still hand over once,
        because a finite, stoppable change of picture is not the thing that
        makes people unwell; travelling to get there is. */
+    .run-scene-enter,
     .run-scene-body .run-scene-words,
     .run-scene-body .run-scene-ask,
     .run-scene-body .run-scene-think-row,
