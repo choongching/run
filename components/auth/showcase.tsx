@@ -104,19 +104,19 @@ const SCENES: readonly Scene[] = [
     where: 'Telegram',
     icon: TelegramIcon,
     agent: 'Industry News Tracker',
-    ask: <Divider>Monday, 08:00. Ran on its own.</Divider>,
-    thinking: 'Reading this week’s sources',
+    ask: <Divider>Routine ran, Monday 08:00</Divider>,
+    thinking: 'Reading 14 pages',
     reply: (
       <>
-        Three things moved this week. One of them is worth a call: Northwind
-        changed pricing on Friday, and two of your accounts are on the old
-        plan.
+        Two things worth your Monday. Northwind moved its Team plan to $18 a
+        seat, up from $12, and Acme’s CTO said in an interview that she leaves
+        in Q4. The rest of the week was quiet. Full notes are in the thread.
       </>
     ),
     card: (
       <div className="flex items-center gap-2 text-xs text-muted-foreground">
         <TelegramIcon className="size-4" />
-        Sent to your phone
+        Sent to Telegram, 08:02
       </div>
     ),
   },
