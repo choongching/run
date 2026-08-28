@@ -219,10 +219,19 @@ and backups.
   animation and drops clicks, which made three real features look broken in
   turn. A production server left over from the previous day served the old
   page for ten minutes. All three are in the verify-in-browser skill now.
-- **Two small things noticed and left for the founder.** Visiting the sign-in
+- **Search engines can find the door now, and it tells them the truth.** The
+  site's description still said "Brief your AI squad", a thing deleted weeks
+  ago, so a search result described a product that no longer existed. It now
+  carries the README's own first claim, a proper title on every public page,
+  the cards that make a shared link show a picture, a robots file that allows
+  the three doors and nothing else, and a sitemap of the three. Two things
+  had to be fixed on the way: the proxy was sending crawlers who asked for
+  those files to the sign-in page, and a page's own link card silently
+  replaced the site's picture instead of adding to it.
+- **One small thing noticed and left for the founder.** Visiting the sign-in
   page with an error in the address while already signed in bounces home and
-  paints the error there. And the real approval card and composer in the chat
-  still carry the two lines the mock dropped.
+  paints the error there. (The approval card in the panel is a demo, and says
+  nothing about the real one.)
 
 ## 2026-08-26 (evening): A wall behind the box, and nothing that moves on its own
 
