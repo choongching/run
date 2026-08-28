@@ -50,12 +50,7 @@ const SCENES: readonly Scene[] = [
     agent: 'Inbox Assistant',
     ask: 'Draft a reply to Acme. Invoice 1042 goes out Friday.',
     thinking: 'Reading the thread',
-    reply: (
-      <>
-        Priya has asked twice, so I kept it short and put the date in the first
-        line. The draft is ready to go into your Gmail.
-      </>
-    ),
+    reply: <>Priya has asked twice, so I kept it short and led with the date.</>,
     card: (
       <div className="rounded-xl border border-ring/60 bg-card p-4">
         <div className="flex items-center gap-2 text-sm font-medium">
