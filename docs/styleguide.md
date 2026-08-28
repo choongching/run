@@ -520,9 +520,9 @@ none of them has a card any more: the form lives on the page.
   `0fr` to `1fr` (`run-scene-open`), the one height animation in the app: it
   runs once on one small card, and it exists because the founder saw the card
   sit half empty while the agent thought. Rows are open at rest, so reduced
-  motion shows the finished story. Sign-in hands over to
-  the next scene after 7s and stops after the third; register, forgot and
-  reset play the first story and never hand over. Picking a pill cancels the
+  motion shows the finished story. Sign-in, register and forgot hand over
+  to the next scene after 7s and stop after the third; reset plays the first
+  story and never hands over. Picking a pill cancels the
   timer for good; hovering the panel holds the scene; reduced motion turns
   every beat into a cut and leaves the finite hand-over in place.
 

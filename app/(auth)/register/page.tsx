@@ -17,7 +17,7 @@ export default async function RegisterPage({
 }) {
   const { error } = await searchParams
   return (
-    <AuthShell showcase="still">
+    <AuthShell showcase="play">
       <AuthForm mode="register" error={error} />
     </AuthShell>
   )
