@@ -495,7 +495,11 @@ none of them has a card any more: the form lives on the page.
   a shadow, because it is the one thing that is not part of the page.
 - **Three scenes, switched by pills** at the top (`role="tablist"`, `h-9`,
   full pill, the product's own marks at `size-4`; active `bg-card` with a
-  border, inactive `bg-card/55`). Gmail draft waiting for approval, a Drive
+  border, inactive `bg-card/55`). **One card, never replaced.** A switch
+  closes the rows and fades every word (300ms), then the next story mounts
+  into the same box (the body is keyed on the scene) and plays from the top.
+  Three stacked cards swapped by opacity was the first cut, and the seam
+  showed: different heights, a jump, a re-render you could see. Gmail draft waiting for approval, a Drive
   answer with its sources, a routine's report sent to Telegram. Every scene
   is something the code does today, checked against
   `lib/tools/definitions.ts`; a fourth needs the tool first.

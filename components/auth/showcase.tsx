@@ -48,7 +48,7 @@ const SCENES: readonly Scene[] = [
     where: 'Gmail',
     icon: GmailIcon,
     agent: 'Inbox Assistant',
-    ask: 'Draft a reply to Acme about invoice 1042. Polite, and say it goes out Friday.',
+    ask: 'Draft a reply to Acme. Invoice 1042 goes out Friday.',
     thinking: 'Reading the thread',
     reply: (
       <>
@@ -149,22 +149,42 @@ export function Showcase({
   mode?: 'play' | 'still'
   dwellMs?: number
 }) {
-  const [scene, setScene] = useState(0)
+  // `shown` is the story in the card; `leaving` is the 300ms during which
+  // its rows close and its words fade before the next one fills the card.
+  const [shown, setShown] = useState(0)
+  const [next, setNext] = useState<number | null>(null)
+  const [paused, setPaused] = useState(false)
   // Once a person has picked a scene, or the run has finished, the timer
   // never starts again. A ref rather than state because nothing renders it.
   const stopped = useRef(mode === 'still')
-  const [paused, setPaused] = useState(false)
 
+  // The hand-over: close the current story, then mount the next one.
   useEffect(() => {
-    if (stopped.current || paused || scene >= SCENES.length - 1) return
-    const id = setTimeout(() => setScene((n) => n + 1), dwellMs)
+    if (next === null) return
+    const id = setTimeout(() => {
+      setShown(next)
+      setNext(null)
+    }, LEAVE_MS)
     return () => clearTimeout(id)
-  }, [scene, paused, dwellMs])
+  }, [next])
+
+  // The dwell: once a story has played and sat for a while, move on. Never
+  // wraps: after the last one there is nothing left to schedule.
+  useEffect(() => {
+    if (stopped.current || paused || next !== null || shown >= SCENES.length - 1) return
+    const id = setTimeout(() => setNext(shown + 1), dwellMs)
+    return () => clearTimeout(id)
+  }, [shown, paused, next, dwellMs])
 
   function pick(i: number) {
     stopped.current = true
-    setScene(i)
+    if (i === shown || i === next) return
+    setNext(i)
   }
+
+  const current = next ?? shown
+  const s = SCENES[shown]
+  const leaving = next !== null
 
   return (
     <div
@@ -181,103 +201,107 @@ export function Showcase({
         aria-label="What an agent can do"
         className="relative z-10 flex flex-wrap justify-center gap-2 px-5 pt-5 md:px-10 md:pt-10"
       >
-        {SCENES.map((s, i) => (
+        {SCENES.map((sc, i) => (
           <button
-            key={s.key}
+            key={sc.key}
             type="button"
             role="tab"
-            aria-selected={i === scene}
+            aria-selected={i === current}
             onClick={() => pick(i)}
             className={cn(
               'flex h-9 cursor-pointer items-center gap-2 rounded-full border px-3.5 text-sm font-medium outline-none select-none',
               'run-focus-fade focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/10',
-              i === scene
+              i === current
                 ? 'border-border bg-card text-foreground shadow-[0_1px_2px_oklch(0_0_0/0.05)]'
                 : 'border-transparent bg-card/55 text-foreground/70 hover:bg-card/80 hover:text-foreground'
             )}
           >
-            <s.icon className="size-4" />
-            {s.where}
+            <sc.icon className="size-4" />
+            {sc.where}
           </button>
         ))}
       </div>
 
-      {/* One surface, centred, and it stays centred as it grows: the flex
-          centring re-settles every frame, so each row that opens pushes the
-          top edge up as much as the bottom edge down. Every scene is in the
-          tree so the panel never changes size; only the active one is
-          visible and plays. */}
+      {/* One surface, one card, kept through every switch. It is centred and
+          stays centred as it grows: the flex centring re-settles every
+          frame, so each row that opens pushes the top edge up as much as
+          the bottom edge down. Switching a story never replaces the card,
+          only what is written in it: the rows close and the words fade,
+          then the next story mounts into the same box and plays. */}
       <div className="relative z-10 flex flex-1 items-center justify-center px-5 pb-5 md:px-12 md:pb-12">
-        <div className="relative w-full max-w-[580px]">
-          {SCENES.map((s, i) => (
-            <div
-              key={s.key}
-              data-active={i === scene || undefined}
-              aria-hidden={i !== scene}
-              className={cn(
-                // It floats: the one surface on the page allowed a shadow,
-                // because it is the one thing that is not part of the page.
-                'run-scene rounded-[calc(var(--radius-shell)-1px)] border border-border/70 bg-card shadow-[0_24px_60px_-24px_oklch(0.235_0.006_95/0.28),0_2px_6px_-2px_oklch(0.235_0.006_95/0.08)]',
-                i !== scene && 'absolute inset-0'
-              )}
-            >
-              {/* The chat header, as it is. */}
-              <div className="flex items-center gap-2.5 border-b border-border px-5 py-3.5">
-                <Bot className="size-4.5 stroke-[1.75] text-muted-foreground" />
-                <span className="text-[15px] font-semibold">{s.agent}</span>
+        <div
+          // It floats: the one surface on the page allowed a shadow,
+          // because it is the one thing that is not part of the page.
+          className="run-scene w-full max-w-[580px] rounded-[calc(var(--radius-shell)-1px)] border border-border/70 bg-card shadow-[0_24px_60px_-24px_oklch(0.235_0.006_95/0.28),0_2px_6px_-2px_oklch(0.235_0.006_95/0.08)]"
+        >
+          <div
+            key={shown}
+            data-leaving={leaving || undefined}
+            className="run-scene-body"
+            aria-live="polite"
+          >
+            {/* The chat header, as it is. */}
+            <div className="run-scene-words flex items-center gap-2.5 border-b border-border px-5 py-3.5">
+              <Bot className="size-4.5 stroke-[1.75] text-muted-foreground" />
+              <span className="text-[15px] font-semibold">{s.agent}</span>
+            </div>
+
+            {/* The body grows as the story does: each row below opens from
+                zero height when its beat arrives, so the surface is never
+                taller than what it has said so far. */}
+            <div className="flex flex-col px-5 py-5">
+              {/* What was asked, or what the clock did. */}
+              <div className="run-scene-ask run-scene-words flex flex-col items-end">
+                {typeof s.ask === 'string' ? (
+                  <div className="max-w-[85%] rounded-xl bg-muted px-3.5 py-2.5 text-sm">
+                    {s.ask}
+                  </div>
+                ) : (
+                  <div className="w-full">{s.ask}</div>
+                )}
               </div>
 
-              {/* The body grows as the story does: each row below opens
-                  from zero height when its beat arrives, so the surface is
-                  never taller than what it has said so far. */}
-              <div className="flex flex-col px-5 py-5">
-                {/* What was asked, or what the clock did. */}
-                <div className="run-scene-ask flex flex-col items-end">
-                  {typeof s.ask === 'string' ? (
-                    <div className="max-w-[85%] rounded-xl bg-muted px-3.5 py-2.5 text-sm">
-                      {s.ask}
-                    </div>
-                  ) : (
-                    <div className="w-full">{s.ask}</div>
-                  )}
-                </div>
-
-                <div className="run-scene-row run-scene-think-row">
-                  <div className="min-h-0 overflow-hidden">
-                    <div className="flex items-center gap-2 pt-4 text-sm text-muted-foreground">
-                      <span className="run-scene-spin size-3.5 rounded-full border-[1.5px] border-muted-foreground/30 border-t-muted-foreground" />
-                      {s.thinking}
-                    </div>
-                  </div>
-                </div>
-
-                <div className="run-scene-row run-scene-reply-row">
-                  <div className="min-h-0 overflow-hidden">
-                    <p className="run-scene-reply pt-4 text-[15px]/[22px] text-pretty">{s.reply}</p>
-                  </div>
-                </div>
-
-                <div className="run-scene-row run-scene-card-row">
-                  <div className="min-h-0 overflow-hidden">
-                    <div className="run-scene-card pt-4">{s.card}</div>
+              <div className="run-scene-row run-scene-think-row">
+                <div className="min-h-0 overflow-hidden">
+                  <div className="flex items-center gap-2 pt-4 text-sm text-muted-foreground">
+                    <span className="run-scene-spin size-3.5 rounded-full border-[1.5px] border-muted-foreground/30 border-t-muted-foreground" />
+                    {s.thinking}
                   </div>
                 </div>
               </div>
 
-              {/* The composer, resting. */}
-              <div className="flex items-center justify-between border-t border-border px-5 py-3">
-                <span className="text-sm text-muted-foreground">Message {s.agent}</span>
-                <span className="flex size-7 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                  <ArrowUp className="size-3.5" />
-                </span>
+              <div className="run-scene-row run-scene-reply-row">
+                <div className="min-h-0 overflow-hidden">
+                  <p className="run-scene-reply run-scene-words pt-4 text-[15px]/[22px] text-pretty">
+                    {s.reply}
+                  </p>
+                </div>
+              </div>
+
+              <div className="run-scene-row run-scene-card-row">
+                <div className="min-h-0 overflow-hidden">
+                  <div className="run-scene-card run-scene-words pt-4">{s.card}</div>
+                </div>
               </div>
             </div>
-          ))}
+
+            {/* The composer, resting. */}
+            <div className="run-scene-words flex items-center justify-between border-t border-border px-5 py-3">
+              <span className="text-sm text-muted-foreground">Message {s.agent}</span>
+              <span className="flex size-7 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                <ArrowUp className="size-3.5" />
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   )
 }
+
+// How long a story takes to leave the card before the next one fills it.
+// Matches run-scene-close in globals.css.
+const LEAVE_MS = 300
 
 // The home screen's wall, at the home screen's settings. Same picture, same
 // veil, so the door and the room behind it are visibly the same place.
