@@ -13,9 +13,9 @@ import { Showcase } from '@/components/auth/showcase'
 // three scenes while typing, and `still` everywhere else: register, forgot
 // and reset are for doing one thing, so the panel rests on the first scene.
 //
-// Below md the panel folds to a short banner above the form (styleguide 5b:
-// the form lives on the page, the card is gone), and the desktop shape starts
-// at md so a tablet gets the two columns.
+// Below md there is no panel: a phone gets the form and nothing competing
+// with it (styleguide 5b: the form lives on the page, the card is gone). The
+// two columns start at md so a tablet gets the whole door.
 export function AuthShell({
   showcase,
   children,
@@ -36,8 +36,7 @@ export function AuthShell({
           Designed and built by CC Teo
         </p>
       </div>
-      {/* Above the form on a phone, beside it from md up. */}
-      <div className="order-first h-44 shrink-0 px-4 pt-4 md:order-last md:h-auto md:w-1/2 md:px-3 md:py-3 md:pl-0">
+      <div className="hidden md:block md:w-1/2 md:p-3 md:pl-0">
         <Showcase mode={showcase} />
       </div>
     </div>

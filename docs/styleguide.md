@@ -477,31 +477,36 @@ none of them has a card any more: the form lives on the page.
   `text-base font-semibold`), the form vertically centred in a `max-w-sm`
   column, the maker's mark at the foot. Right half: the showcase panel, inset
   `p-3` with no left padding so it sits 12px from the viewport edge, `rounded-
-  shell` (14px) with a 1px border and `bg-sidebar`. The inset is what makes it
-  read as a card the page holds rather than a split screen.
-- **Below `md`** the panel becomes a 176px banner ABOVE the form (`order-first`)
-  showing only the pill and the claim; the agent line and the artefact card
-  are `hidden md:flex`.
+  shell` (14px) with a 1px border and `bg-sidebar`, the home screen's
+  photograph behind it at the home screen's numbers. The inset is what makes
+  it read as a card the page holds rather than a split screen.
+- **Below `md` there is no panel.** A phone gets the form and nothing beside
+  it; the references this was drawn from do the same.
 - **Form copy.** Title `text-2xl font-semibold`, subtitle `text-base
   text-muted-foreground`, `gap-7` between the two and the form, `gap-4`
   between fields. Errors and messages stay as one `text-sm` line between the
   last field and the submit, unchanged.
-- **The showcase** (`components/auth/showcase.tsx`) is three scenes of the
-  same four-part sentence: the agent says what it did (22px prose), the
-  thing it made floats below in a `bg-card` box at `radius-shell - 1px` with
-  the composer's `--shadow-focus` lift, then a pill (`bg-primary/12
-  text-primary`, uppercase, `tracking-wider`) naming where, and one claim at
-  `text-xl font-medium`. Every scene is something the code does today,
-  checked against `lib/tools/definitions.ts`; a fourth needs the tool first.
-- **Play or still.** Sign-in plays: each scene holds 6s and hands over once,
-  three scenes, then the panel is idle for good. Register, forgot and reset
-  are `still`: scene one, no dots, nothing moves after the arrival.
-- **The dots are the control** (`role="tablist"`, 6px visual in a 24px hit
-  area, the active one 20px wide). Picking one cancels the auto-advance;
-  hovering the panel holds the current scene. Reduced motion turns every
-  arrival into a cut and leaves the finite hand-over in place.
-- Backdrop is the home screen's photograph at the home screen's numbers,
-  `sizes="(min-width: 768px) 50vw, 100vw"` so the phone gets the 18KB file.
+- **The showcase** (`components/auth/showcase.tsx`) is Run's own chat
+  surface, centred in the panel at `max-w-[580px]`, drawn with the chat's real
+  parts: the header with the bot glyph and the agent's name, the user bubble
+  (`rounded-xl bg-muted px-3.5 py-2.5 text-sm`), the reply as plain 15px
+  prose, the approval card as `ApprovalCard` draws it, the mono citation
+  pills, the resting composer line. It is the one surface on the page allowed
+  a shadow, because it is the one thing that is not part of the page.
+- **Three scenes, switched by pills** at the top (`role="tablist"`, `h-9`,
+  full pill, the product's own marks at `size-4`; active `bg-card` with a
+  border, inactive `bg-card/55`). Gmail draft waiting for approval, a Drive
+  answer with its sources, a routine's report sent to Telegram. Every scene
+  is something the code does today, checked against
+  `lib/tools/definitions.ts`; a fourth needs the tool first.
+- **Each scene is a story that plays once**: the message rises (0ms), the
+  agent thinks for 1.4s with a spinner that turns exactly three times, the
+  reply rises where the thinking line was (the two share a grid cell so
+  nothing reflows), then the card lands. About 2.5s. Sign-in hands over to
+  the next scene after 7s and stops after the third; register, forgot and
+  reset play the first story and never hand over. Picking a pill cancels the
+  timer for good; hovering the panel holds the scene; reduced motion turns
+  every beat into a cut and leaves the finite hand-over in place.
 
 ## 8. Motion
 
@@ -519,7 +524,7 @@ question, not this file's.
 | `run-sheen` | one sweep of the composer's border on the click that focuses it |
 | `run-wash-layer` | the home backdrop arriving, once, like the light coming on |
 | `run-hero-dim` | the hero standing down while an agent builds |
-| `run-scene` | a sign-in scene arriving: line, card, pill, claim, once, then still |
+| `run-scene` | a sign-in scene playing: ask, think, reply, card, once, then still |
 
 - **Composite-only properties.** `transform`, `opacity`, `filter`. A keyframe
   on width, height, top or left reflows the page every frame. A registered

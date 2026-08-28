@@ -1,147 +1,142 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
+import { ArrowUp, Bot, ShieldQuestion } from 'lucide-react'
 
+import { GmailIcon } from '@/components/icons/gmail'
+import { GoogleDriveIcon } from '@/components/icons/google-drive'
+import { TelegramIcon } from '@/components/icons/telegram'
 import { cn } from '@/lib/utils'
 
-// The other half of the sign-in page: an agent at work, shown rather than
-// described.
+// The other half of the sign-in page: Run's own chat, doing one job, shown
+// rather than described.
 //
-// Three scenes, each the same sentence in four parts: the agent says what it
-// did, the thing it made floats below, then a pill for where and one claim.
-// Every scene is something the product does today and nothing more, checked
-// against the tools in lib/tools/definitions.ts: a Gmail draft that waits for
-// approval, an answer from Drive with its sources, a routine's report on the
-// phone. A fourth scene is a promise the code would have to keep first.
+// One surface in the middle of the panel, the way a product is shown rather
+// than a feature list: the chat a new person will be sitting in a minute
+// from now. Each scene is a short story told in that surface, and every
+// story is something the code does today, checked against the tools in
+// lib/tools/definitions.ts: a Gmail draft that waits for approval, an answer
+// from Drive with its sources, a routine's report on the phone. A fourth
+// scene is a promise the code would have to keep first.
 //
-// Motion: runs once, then rests. Each scene arrives (line, card, pill, claim,
-// about 900ms), holds for `dwellMs`, and hands over to the next. After the
-// third there is nothing left to do and the page goes idle, which is the
-// whole point: a sign-in tab is the one people leave open, and an animation
-// that never ends keeps the compositor awake for as long as it is open (the
-// home screen's drift did exactly that, and the founder's fans found it).
-// WCAG 2.2.2 reads the same way: content that moves on its own for over five
-// seconds needs a way to stop, or has to stop on its own. This does both.
+// Motion: the story plays once, then rests. The message arrives, the agent
+// thinks for a beat (the real chat shows the same line), the reply lands,
+// then the card. About 2.5 seconds, once per scene, three scenes handed over
+// on a timer, and after the third the page is idle for good: a sign-in tab
+// is the one people leave open, and an animation that never ends keeps the
+// compositor awake for as long as it is (the home screen's drift did exactly
+// that, and the founder's fans found it). The thinking spinner is the one
+// thing here that spins, and it spins a fixed three turns and stops.
 //
-// The dots are the control. Picking one cancels the auto-advance for good;
-// hovering the panel holds the current scene. In `still` mode (register,
-// forgot, reset) the first scene simply sits there, because those pages are
-// for doing one thing.
+// The pills at the top are the control. Picking one cancels the auto-advance
+// for good; hovering the panel holds the current scene. In `still` mode
+// (register, forgot, reset) the first story plays and nothing hands over.
 type Scene = {
+  key: string
   where: string
-  claim: string
-  line: React.ReactNode
+  icon: React.ComponentType<{ className?: string }>
+  agent: string
+  ask: React.ReactNode
+  thinking: string
+  reply: React.ReactNode
   card: React.ReactNode
 }
 
 const SCENES: readonly Scene[] = [
   {
-    where: 'In your Gmail',
-    claim: 'Drafts the reply. Sends nothing without you.',
-    line: (
+    key: 'gmail',
+    where: 'Gmail',
+    icon: GmailIcon,
+    agent: 'Inbox Assistant',
+    ask: 'Draft a reply to Acme about invoice 1042. Polite, and say it goes out Friday.',
+    thinking: 'Reading the thread',
+    reply: (
       <>
-        I read the thread with <strong className="font-semibold">Acme</strong>{' '}
-        and drafted a reply. It is in your drafts, waiting on you.
+        Priya has asked twice, so I kept it short and put the date in the first
+        line. The draft is ready to go into your Gmail.
       </>
     ),
     card: (
-      <div className="flex w-full max-w-[500px] flex-col gap-3.5 p-5">
-        <div className="flex items-center gap-2.5">
-          <span className="flex size-7 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground">
-            Ac
-          </span>
-          <span className="text-[15px] font-semibold">Re: Invoice 1042, second reminder</span>
+      <div className="rounded-xl border border-ring/60 bg-card p-4">
+        <div className="flex items-center gap-2 text-sm font-medium">
+          <ShieldQuestion className="size-4 text-muted-foreground" />
+          Approve this action?
         </div>
-        <p className="text-sm">Hi Priya,</p>
-        <Skeleton widths={['92%', '100%', '64%']} />
-        <div className="flex items-center gap-2 pt-1" aria-hidden>
-          <span className="flex h-8 items-center rounded-lg bg-primary px-3.5 text-sm font-medium text-primary-foreground">
+        <div className="mt-3 rounded-lg border border-border bg-background p-3">
+          <p className="text-sm font-medium">Create a draft in Gmail</p>
+          <p className="mt-1.5 text-xs text-muted-foreground">
+            To priya@acme.com. Re: Invoice 1042, second reminder
+          </p>
+        </div>
+        <div className="mt-4 flex justify-end gap-2" aria-hidden>
+          <span className="flex h-8 items-center rounded-lg border border-border bg-card px-3 text-sm font-medium">
+            Cancel
+          </span>
+          <span className="flex h-8 items-center rounded-lg bg-primary px-3 text-sm font-medium text-primary-foreground">
             Approve
           </span>
-          <span className="flex h-8 items-center rounded-lg border border-border px-3.5 text-sm font-medium">
-            Not now
-          </span>
         </div>
       </div>
     ),
   },
   {
-    where: 'In your Drive',
-    claim: 'Answers from your documents, and shows you which.',
-    line: (
+    key: 'drive',
+    where: 'Google Drive',
+    icon: GoogleDriveIcon,
+    agent: 'Docs Q&A Agent',
+    ask: 'What did the Q2 board deck say about churn?',
+    thinking: 'Reading two documents',
+    reply: (
       <>
-        The answer is in the <strong className="font-semibold">Q2 board deck</strong>,
-        page 4. Here is the short version.
+        Churn fell to 2.1% after the onboarding change, page 4. The board asked
+        for the same read in Q3 before deciding on the second hire.
       </>
     ),
     card: (
-      <div className="flex w-full max-w-[500px] flex-col gap-3.5 p-5">
-        <p className="text-[15px]/[22px]">
-          Churn fell to 2.1% after the onboarding change. The board asked for
-          the same read in Q3 before deciding on the second hire.
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <SourceChip>Q2 board deck</SourceChip>
-          <SourceChip>Retention, weekly</SourceChip>
-        </div>
+      <div className="flex flex-wrap gap-1.5">
+        <SourceChip>Q2 board deck.pdf</SourceChip>
+        <SourceChip>Retention, weekly</SourceChip>
       </div>
     ),
   },
   {
-    where: 'On a schedule',
-    claim: 'Runs while you sleep. Reports to your phone.',
-    line: (
+    key: 'telegram',
+    where: 'Telegram',
+    icon: TelegramIcon,
+    agent: 'Industry News Tracker',
+    ask: <Divider>Monday, 08:00. Ran on its own.</Divider>,
+    thinking: 'Reading this week’s sources',
+    reply: (
       <>
-        Monday, 08:00. <strong className="font-semibold">Industry News Tracker</strong>{' '}
-        ran while you slept and sent the short version to your phone.
+        Three things moved this week. One of them is worth a call: Northwind
+        changed pricing on Friday, and two of your accounts are on the old
+        plan.
       </>
     ),
     card: (
-      <div className="flex w-full max-w-[380px] flex-col gap-2.5 px-4.5 py-4">
-        <div className="flex items-center justify-between">
-          <span className="flex items-center gap-2 text-[13px] font-semibold">
-            <span className="size-5.5 rounded-full bg-primary" />
-            Run
-          </span>
-          <span className="text-xs text-muted-foreground">08:00</span>
-        </div>
-        <p className="text-sm">
-          Three things moved this week. One of them is worth a call: Northwind
-          changed pricing on Friday.
-        </p>
-        <Skeleton widths={['70%']} />
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <TelegramIcon className="size-4" />
+        Sent to your phone
       </div>
     ),
   },
 ]
 
-function Skeleton({ widths }: { widths: string[] }) {
+function Divider({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-col gap-2" aria-hidden>
-      {widths.map((w) => (
-        <span key={w} className="block h-2.5 rounded-full bg-accent" style={{ width: w }} />
-      ))}
+    <div className="flex items-center gap-3 py-1">
+      <span className="h-px flex-1 bg-border" />
+      <span className="text-xs font-medium text-muted-foreground">{children}</span>
+      <span className="h-px flex-1 bg-border" />
     </div>
   )
 }
 
+// The chat's citation pill, as it is in components/chat/source-chip.tsx.
 function SourceChip({ children }: { children: React.ReactNode }) {
   return (
-    <span className="flex h-6.5 items-center gap-1.5 rounded-full border border-border px-2.5 text-xs font-medium">
-      <svg
-        width="12"
-        height="12"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        aria-hidden
-      >
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-        <path d="M14 2v6h6" />
-      </svg>
+    <span className="inline-flex h-[19px] items-center gap-[5px] rounded-full bg-muted/70 pr-[9px] pl-1 font-mono text-[10px] text-muted-foreground">
+      <span className="size-3.5 rounded-full bg-chart-2/70" />
       {children}
     </span>
   )
@@ -149,7 +144,7 @@ function SourceChip({ children }: { children: React.ReactNode }) {
 
 export function Showcase({
   mode = 'play',
-  dwellMs = 6000,
+  dwellMs = 7000,
 }: {
   mode?: 'play' | 'still'
   dwellMs?: number
@@ -178,64 +173,95 @@ export function Showcase({
       onMouseLeave={() => setPaused(false)}
     >
       <Backdrop />
-      {SCENES.map((s, i) => (
-        <div
-          key={s.where}
-          // Every scene is in the tree so the panel's height never changes;
-          // only the active one is visible and animates. Inactive scenes are
-          // taken out of the accessibility tree so a reader hears one story.
-          data-active={i === scene || undefined}
-          aria-hidden={i !== scene}
-          className="run-scene absolute inset-0 flex flex-col justify-between p-6 md:px-16 md:pt-[72px] md:pb-12"
-        >
-          <div className="hidden flex-col gap-6 md:flex">
-            <p className="run-scene-line max-w-[520px] text-[22px]/8 text-pretty">{s.line}</p>
-            <div className="run-scene-card flex w-fit rounded-[calc(var(--radius-shell)-1px)] bg-card">
-              {s.card}
-            </div>
-          </div>
-          <div className="flex flex-col items-start gap-3 md:pr-20">
-            <span className="run-scene-pill inline-flex h-6 items-center rounded-full bg-primary/12 px-2.5 text-xs font-medium tracking-wider text-primary uppercase">
-              {s.where}
-            </span>
-            <p className="run-scene-claim max-w-[440px] text-[19px]/[26px] font-medium text-balance md:text-xl/7">
-              {s.claim}
-            </p>
-          </div>
-        </div>
-      ))}
-      {mode === 'play' && (
-        <div
-          role="tablist"
-          aria-label="Scenes"
-          className="absolute right-6 bottom-4 z-10 hidden items-center md:right-[58px] md:bottom-[45px] md:flex"
-        >
+
+      {/* The switcher. Named, with the product's own marks, because "where"
+          is the whole question a new person has, and a dot answers nothing. */}
+      <div
+        role="tablist"
+        aria-label="What an agent can do"
+        className="relative z-10 flex flex-wrap justify-center gap-2 px-5 pt-5 md:px-10 md:pt-10"
+      >
+        {SCENES.map((s, i) => (
+          <button
+            key={s.key}
+            type="button"
+            role="tab"
+            aria-selected={i === scene}
+            onClick={() => pick(i)}
+            className={cn(
+              'flex h-9 cursor-pointer items-center gap-2 rounded-full border px-3.5 text-sm font-medium outline-none select-none',
+              'run-focus-fade focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/10',
+              i === scene
+                ? 'border-border bg-card text-foreground shadow-[0_1px_2px_oklch(0_0_0/0.05)]'
+                : 'border-transparent bg-card/55 text-foreground/70 hover:bg-card/80 hover:text-foreground'
+            )}
+          >
+            <s.icon className="size-4" />
+            {s.where}
+          </button>
+        ))}
+      </div>
+
+      {/* One surface, centred. Every scene is in the tree so the panel never
+          changes size; only the active one is visible and plays. */}
+      <div className="relative z-10 flex flex-1 items-center justify-center px-5 pb-5 md:px-12 md:pb-12">
+        <div className="relative w-full max-w-[580px]">
           {SCENES.map((s, i) => (
-            <button
-              key={s.where}
-              type="button"
-              role="tab"
-              aria-selected={i === scene}
-              aria-label={s.where}
-              onClick={() => pick(i)}
-              // A 6px dot with a 24px hand around it.
+            <div
+              key={s.key}
+              data-active={i === scene || undefined}
+              aria-hidden={i !== scene}
               className={cn(
-                'group relative h-6 w-4.5 cursor-pointer rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring/40',
-                'transition-[width] duration-[220ms] ease-[cubic-bezier(0.22,0.61,0.36,1)] motion-reduce:transition-none',
-                i === scene && 'w-8'
+                // It floats: the one surface on the page allowed a shadow,
+                // because it is the one thing that is not part of the page.
+                'run-scene rounded-[calc(var(--radius-shell)-1px)] border border-border/70 bg-card shadow-[0_24px_60px_-24px_oklch(0.235_0.006_95/0.28),0_2px_6px_-2px_oklch(0.235_0.006_95/0.08)]',
+                i !== scene && 'absolute inset-0'
               )}
             >
-              <span
-                className={cn(
-                  'absolute top-[9px] left-1.5 h-1.5 w-1.5 rounded-full bg-foreground/30',
-                  'transition-[width,background-color] duration-[220ms] ease-[cubic-bezier(0.22,0.61,0.36,1)] motion-reduce:transition-none',
-                  i === scene && 'w-5 bg-foreground'
-                )}
-              />
-            </button>
+              {/* The chat header, as it is. */}
+              <div className="flex items-center gap-2.5 border-b border-border px-5 py-3.5">
+                <Bot className="size-4.5 stroke-[1.75] text-muted-foreground" />
+                <span className="text-[15px] font-semibold">{s.agent}</span>
+              </div>
+
+              <div className="flex flex-col gap-4 px-5 py-5">
+                {/* What was asked, or what the clock did. */}
+                <div className="run-scene-ask flex flex-col items-end">
+                  {typeof s.ask === 'string' ? (
+                    <div className="max-w-[85%] rounded-xl bg-muted px-3.5 py-2.5 text-sm">
+                      {s.ask}
+                    </div>
+                  ) : (
+                    <div className="w-full">{s.ask}</div>
+                  )}
+                </div>
+
+                {/* Thinking and the reply share one cell: the line fades out
+                    as the reply fades in, so nothing in the surface reflows. */}
+                <div className="grid">
+                  <div className="run-scene-think col-start-1 row-start-1 flex items-center gap-2 text-sm text-muted-foreground">
+                    <span className="run-scene-spin size-3.5 rounded-full border-[1.5px] border-muted-foreground/30 border-t-muted-foreground" />
+                    {s.thinking}
+                  </div>
+                  <p className="run-scene-reply col-start-1 row-start-1 text-[15px]/[22px] text-pretty">
+                    {s.reply}
+                  </p>
+                </div>
+
+                <div className="run-scene-card">{s.card}</div>
+              </div>
+
+              {/* The composer, resting. */}
+              <div className="flex items-center justify-between border-t border-border px-5 py-3">
+                <span className="text-sm text-muted-foreground">Message {s.agent}</span>
+                <span className="flex size-7 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                  <ArrowUp className="size-3.5" />
+                </span>
+              </div>
+            </div>
           ))}
         </div>
-      )}
+      </div>
     </div>
   )
 }
