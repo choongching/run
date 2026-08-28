@@ -502,7 +502,8 @@ none of them has a card any more: the form lives on the page.
 - **Each scene is a story that plays once, and the surface grows with it**:
   the message rises (0ms), the thinking row opens with a spinner that turns
   exactly three times, then closes as the reply row opens under it, then the
-  card row opens and the card lands. About 2.8s. Each row is a grid going
+  card row opens and the card lands. About 2.8s. The surface stays centred
+  while it grows, so it expands from its middle, not its top. Each row is a grid going
   `0fr` to `1fr` (`run-scene-open`), the one height animation in the app: it
   runs once on one small card, and it exists because the founder saw the card
   sit half empty while the agent thought. Rows are open at rest, so reduced

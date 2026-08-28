@@ -747,11 +747,16 @@
       transform: translateY(0);
     }
   }
-  /* Opens, holds while the spinner turns, closes as the reply opens. */
+  /* Opens, holds while the spinner turns, closes as the reply opens. The
+     text is fully visible before the row has finished opening, so the row
+     never reads as a blank strip on its way in. */
   @keyframes run-scene-think {
     0% {
       grid-template-rows: 0fr;
       opacity: 0;
+    }
+    8% {
+      opacity: 1;
     }
     20% {
       grid-template-rows: 1fr;

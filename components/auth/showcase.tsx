@@ -202,9 +202,12 @@ export function Showcase({
         ))}
       </div>
 
-      {/* One surface, centred. Every scene is in the tree so the panel never
-          changes size; only the active one is visible and plays. */}
-      <div className="relative z-10 flex flex-1 items-start justify-center px-5 pb-5 md:px-12 md:pt-24 md:pb-12">
+      {/* One surface, centred, and it stays centred as it grows: the flex
+          centring re-settles every frame, so each row that opens pushes the
+          top edge up as much as the bottom edge down. Every scene is in the
+          tree so the panel never changes size; only the active one is
+          visible and plays. */}
+      <div className="relative z-10 flex flex-1 items-center justify-center px-5 pb-5 md:px-12 md:pb-12">
         <div className="relative w-full max-w-[580px]">
           {SCENES.map((s, i) => (
             <div
