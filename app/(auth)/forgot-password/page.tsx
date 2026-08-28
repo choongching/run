@@ -25,7 +25,7 @@ export default async function ForgotPasswordPage({
 }) {
   const { error, message } = await searchParams
   return (
-    <AuthShell showcase="still">
+    <AuthShell showcase="play">
       <div className="flex flex-col gap-7">
         <div className="flex flex-col gap-1.5">
           <h1 className="text-2xl font-semibold">Reset your password</h1>

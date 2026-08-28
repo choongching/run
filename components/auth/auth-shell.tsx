@@ -9,9 +9,10 @@ import { Showcase } from '@/components/auth/showcase'
 // the password grant happens on submit), and this keeps it that way. The one
 // client island is the scene timer inside Showcase.
 //
-// `showcase` is `play` on sign-in, where a returning person can watch the
-// three scenes while typing, and `still` everywhere else: register, forgot
-// and reset are for doing one thing, so the panel rests on the first scene.
+// `showcase` is `play` on every public door (sign in, register, forgot): a
+// new person on register is the one who most needs to see all three stories.
+// Reset is `still`: it is reached from an email link, mid-task, and the panel
+// rests on the first story.
 //
 // Below md there is no panel: a phone gets the form and nothing competing
 // with it (styleguide 5b: the form lives on the page, the card is gone). The
