@@ -603,6 +603,12 @@ Around that loop, the product has filled out:
 - **It is consistent.** Every screen shares the chat's centered column,
   buttons explain themselves when you hover, and empty pages say in one quiet
   line what will live there.
+- **The door shows the product.** You sign in beside a working example rather
+  than beside a blank wall. On the right of the form, Run's own chat plays
+  three short stories: a Gmail draft waiting for your approval, an answer from
+  your Drive with the documents it came from, and a routine's weekly brief on
+  its way to your phone. Each one plays once and then holds still, nothing on
+  the page moves forever, and the form takes your typing from the first frame.
 
 - **Agents can keep a schedule, and it runs for real.** Setup ends by asking
   what starts the agent off, you or the clock, and after the first piece of
