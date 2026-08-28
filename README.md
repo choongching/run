@@ -402,20 +402,10 @@ next three real run dates before you save.
 
 **What actually runs a routine when nobody is signed in?**
 
-A timer inside the database. Every five minutes it wakes up and calls the
-app, the app looks for routines whose time has come and runs them one after
-another, and then everything goes quiet again until the next call. There is
-no machine sitting awake waiting for your Monday morning. The timer is
-created by the same files that create the tables, so it exists wherever the
-app is deployed and nobody has to remember to switch it on.
-
-One rule is worth knowing. Each routine is claimed before it runs, so two
-timers can never run the same routine twice. The cost of that is the
-opposite case: a run that breaks halfway is skipped, not tried again, and the
-next real run is the next one on the schedule. For an agent that reads your
-inbox, one missed report is a smaller mistake than the same report twice,
-which is why it is built that way round. A routine that fails three times in
-a row pauses itself and tells you.
+A timer inside the database, not a worker and not a queue. It rings every
+five minutes, the app runs whatever is due, and nothing is awake in between.
+The whole argument, with what it costs and when it would change, is in
+[How routines run, and why a timer](#how-routines-run-and-why-a-timer).
 
 **Where do the files I attach go?**
 
@@ -524,6 +514,99 @@ Why it is built this way:
   a news question and ruins a product comparison, so it is a decision the agent
   makes each time rather than a setting you have to understand.
 
+## How routines run, and why a timer
+
+Routines run on a clock. Every engineer who looks at that asks the same
+question, usually within a minute: where is the worker, and why is there no
+queue? This is the one place in this document that answers it, in full and
+with the numbers, so the debate can start from what is true rather than from
+the shape people expect.
+
+```mermaid
+flowchart LR
+    T["Timer inside the database<br/>(pg_cron), every five minutes"] -->|"one HTTP call,<br/>secret from Vault"| F["Vercel function:<br/>/api/routines/tick"]
+    F --> Q{"Any routine whose<br/>time has passed?"}
+    Q -->|No| Z["Answers {ran: 0}<br/>and is gone in ~10ms"]
+    Q -->|Yes| C["Claims it: moves next_run_at<br/>forward BEFORE running"]
+    C --> R["Runs the agent, writes the report,<br/>sends it to Telegram if asked"]
+    R --> Q
+```
+
+**What is actually there.** A timer in Supabase fires every five minutes and
+makes one call to the app. The app looks for routines whose time has passed,
+runs them one after another, and stops. Between calls nothing is running
+anywhere: no process waiting, no machine awake for your Monday morning. The
+timer is created by a migration, the same way the tables are, and the secret
+it presents is read from the database's own vault at the moment of the call,
+so neither exists only in a dashboard where a click can remove it.
+
+**The rule that decides everything else.** Before a routine runs, the timer
+claims it by moving its next run date forward, and only the caller that wins
+that update runs it. Two overlapping ticks can never run the same routine
+twice. The cost of that promise is its mirror image: a run that breaks
+halfway is skipped, not retried, and the next run is the next one on the
+schedule. This is chosen, not accidental. A routine that reads your inbox and
+reports on it does less damage by missing one report than by sending the same
+one twice, and a routine that fails three times running pauses itself and
+says so. "At most once" is the promise; a queue's "at least once" is the
+opposite promise, and adding a queue only to switch its retries off buys
+nothing.
+
+**What it costs, measured rather than guessed.** 27 days of the timer, read
+from its own log:
+
+- Database time: 122 seconds in the month, in total. Supabase bills a flat
+  compute instance, not queries, so that is 0.005% of the instance.
+- Traffic: one call of about a kilobyte, 8,640 times a month. Under 10 MB
+  against a free allowance of 5 GB.
+- Storage: the timer logs one row per tick, about 3 MB a month. This is the
+  only thing that grows, and a weekly cleanup of old rows keeps it flat.
+- Hosting: 8,640 function calls a month, 0.9% of a free plan's request cap,
+  almost all of them the empty ten-millisecond kind.
+
+None of these move with the number of routines. The clock rings the same
+8,640 times whether there are none or three hundred.
+
+**Where the money is, and why no architecture changes it.** A routine run
+costs what the agent reads and writes: about $0.05 on average and $0.08 at
+the 90th percentile in our ledger, roughly twice a chat turn, because it
+reads its last report and the inbox before it writes. That is paid to the
+model, per run, and it is identical under a timer, a queue, or a worker.
+Three users with two weekday routines each is about 130 runs and $6 a month.
+The ceiling is the monthly run allowance every user already has and that
+routines share with chats: a routine that exhausts it pauses itself, so one
+user cannot cost more than about $8 a month at the 90th percentile however
+many routines they make. Costs add across users. They do not compound.
+
+**What a queue would actually give you.** Two things: retries after a failed
+run, and a way to spread out many routines that fall due in the same minute.
+The first we decline on purpose. The second is real, and it is a latency
+problem, not a cost one: a tick runs five routines per pass inside a
+four-minute budget, so if a hundred routines all come due at 9:00 the last
+ones start late. On a platform with no always-on process, a queue would still
+need something to wake up and drain it, which is this same timer calling a
+function with a table in between. So the honest description of a queue here
+is an extra moving part that reorganises work we are not yet doing.
+
+**When this decision gets revisited.** Two numbers, both one query away:
+
+1. A routine's actual start regularly lands more than five minutes after its
+   scheduled time (compare `routine_runs.started_at` with what the schedule
+   said).
+2. A tick ends its budget with routines still due.
+
+In the first 530 ticks neither happened once. When either does, the answer
+is a queue with more than one consumer, and this section will say so.
+
+**The one thing the question got right.** The timer used to exist only in the
+production database, made by hand, with its secret pasted into its command.
+Nothing in this repository described it, so when someone switched it off in
+the dashboard while trying to understand it, routines went silent for a day
+and no diff or review could have shown why. That was the real fault, and it
+was in the placement, not the shape: the timer is now a migration, the secret
+is in Vault, and a missing secret fails loudly in the timer's own log instead
+of posting an empty header and counting as success.
+
 ## When something goes wrong
 
 Agent products fail differently from ordinary software. Models are
@@ -583,10 +666,8 @@ flowchart LR
   whenever ours is available, because attaching both leaves the model to choose
   and it chooses the one it was trained on.
 - **Routines:** a timer inside Supabase (pg_cron) calls one route every five
-  minutes with a secret it reads from the database's own vault; the route
-  claims each routine that is due and runs it. No queue and no always-on
-  worker, and the timer is a migration like everything else, so it cannot
-  quietly go missing.
+  minutes; no queue, no always-on worker. Why, and what it costs, is its own
+  section: [How routines run, and why a timer](#how-routines-run-and-why-a-timer).
 - **Files:** never stored. Attachments are turned into text or a resized image
   inside the request that receives them and travel with the message.
 
