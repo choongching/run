@@ -16,10 +16,11 @@ to the pixel in every state; each chapter heading comes up out of the
 distance; the deck's cards each play a short story and fade out as they
 leave; the three How-it-works pictures play theirs too; the FAQ and the
 How-it-works copy are shorter and asked the way a person would; the
-footer and closing curtain match the reference. Merged to `main`. Next: a
-look on an actual phone and at tablet width, a Lighthouse pass, and the
-remaining sections in the same manner (Safety, Capabilities) if the
-founder wants them touched.
+footer and closing curtain match the reference, and the copy in every
+section was read aloud and cut until it sounded like a person (Safety:
+"It reads. You decide."; Capabilities: "Everything it can do."). All of
+it is on `main`, eleven small pull requests after the big one. Next: a
+look on an actual phone and at tablet width, then a Lighthouse pass.
 
 Before that, the clock that runs routines went into the repo, and the
 README explains in one place why it is a timer and not a queue, decided with
