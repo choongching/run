@@ -19,7 +19,6 @@ const ITEMS = [
 // around the line does not make it flicker.
 const COLLAPSE_AT = 400
 const EXPAND_AT = 360
-const WORDMARK_WIDTH = 53
 
 // The fixed pill nav. Three things move here, and each answers something:
 //
@@ -39,6 +38,9 @@ export function LandingNav() {
   const [hovered, setHovered] = useState(false)
   const [overHero, setOverHero] = useState(true)
   const [overFaq, setOverFaq] = useState(false)
+  // The wordmark's natural width, read once before any tween touches it,
+  // so folding to 0 and back lands on the real number for the face in use.
+  const wordmarkWidth = useRef(0)
 
   useEffect(() => {
     // Hysteresis: two thresholds, so the state only changes once the scroll
@@ -82,7 +84,8 @@ export function LandingNav() {
     () => {
       const el = wordmarkRef.current
       if (!el) return
-      const width = collapsed ? 0 : WORDMARK_WIDTH
+      if (!wordmarkWidth.current) wordmarkWidth.current = el.scrollWidth
+      const width = collapsed ? 0 : wordmarkWidth.current
       if (prefersReducedMotion()) {
         gsap.set(el, { width })
         return
@@ -121,7 +124,7 @@ export function LandingNav() {
 
   const theme = overFaq ? 'light' : overHero ? 'dark' : 'light'
   const itemClass =
-    'ld-nav-item relative z-1 flex h-11 items-center px-3.5 text-sm font-medium bg-card text-foreground outline-none'
+    'ld-nav-item relative z-1 flex h-11 items-center px-5 text-[15px] bg-card text-foreground outline-none'
 
   return (
     <nav
@@ -146,12 +149,12 @@ export function LandingNav() {
         <Link
           href="/"
           aria-label="Run home"
-          className={cn(itemClass, 'gap-2 font-semibold')}
+          className={cn(itemClass, 'gap-2.5 pl-4')}
           onPointerEnter={(e) => { if (e.pointerType !== 'touch' && canHover()) moveTo(e.currentTarget) }}
           onFocus={(e) => moveTo(e.currentTarget)}
         >
-          <Image src="/run-icon.png" alt="" width={22} height={22} className="rounded-sm" priority />
-          <span ref={wordmarkRef} className="inline-block w-[53px] overflow-hidden whitespace-nowrap">
+          <Image src="/run-icon.png" alt="" width={22} height={22} className="ld-nav-mark rounded-sm" priority />
+          <span ref={wordmarkRef} className="ld-nav-wordmark inline-block overflow-hidden whitespace-nowrap">
             Run
           </span>
         </Link>

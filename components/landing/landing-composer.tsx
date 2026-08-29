@@ -1,8 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { ArrowUp } from 'lucide-react'
-
 import { useTypedPlaceholder } from '@/lib/use-typed-placeholder'
 import { cn } from '@/lib/utils'
 
@@ -45,8 +43,11 @@ export function LandingComposer({
   })
 
   return (
-    <form action="/register" method="get" className={cn('flex w-full max-w-[620px] flex-col items-center gap-3.5', className)}>
-      <div className="flex h-14 w-full items-center gap-3 rounded-lg border border-white/40 bg-card pl-5 pr-2 shadow-[0_12px_40px_-18px_rgba(0,0,0,0.5)] md:h-[60px]">
+    <form action="/register" method="get" className={cn('flex w-full flex-col items-center gap-3.5', className)}>
+      {/* A glass bar over the photograph, the reference's shape: the box
+          is see-through, the button is the one solid thing. It widens a
+          little when you are in it. */}
+      <div className="flex h-[54px] w-full max-w-[420px] items-center gap-2 rounded-lg border border-white/10 bg-white/10 p-1.5 backdrop-blur-lg transition-[max-width] duration-300 ease-out focus-within:max-w-[520px]">
         <input
           name="prompt"
           type="text"
@@ -57,14 +58,13 @@ export function LandingComposer({
           aria-label="What should your first agent do?"
           placeholder={jobs ? typed : placeholder}
           autoComplete="off"
-          className="min-w-0 flex-1 bg-transparent text-base text-foreground outline-none placeholder:text-muted-foreground"
+          className="min-w-0 flex-1 bg-transparent px-3 text-base text-white outline-none placeholder:text-white/80"
         />
         <button
           type="submit"
-          aria-label="Get started"
-          className="flex size-11 items-center justify-center rounded-lg bg-primary text-primary-foreground transition-colors hover:bg-primary/90"
+          className="flex h-[42px] shrink-0 items-center rounded-lg bg-card px-4 text-[15px] font-medium text-foreground transition-colors hover:bg-white/90"
         >
-          <ArrowUp className="size-[18px]" strokeWidth={2} />
+          Get started
         </button>
       </div>
       {jobs && (
@@ -74,7 +74,7 @@ export function LandingComposer({
               key={job.label}
               type="button"
               onClick={() => setValue(job.prompt)}
-              className="flex h-8 shrink-0 items-center rounded-lg border border-white/22 bg-white/14 px-3 text-sm font-medium text-white transition-colors hover:bg-white/24"
+              className="flex h-8 shrink-0 items-center rounded-lg bg-white/12 px-3 text-sm font-medium text-white transition-colors hover:bg-white/22"
             >
               {job.label}
             </button>

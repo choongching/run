@@ -39,25 +39,29 @@
 
 /* ---------- type ramp ---------- */
 
-.run-landing .ld-display {
-  font-size: clamp(46px, 5.9vw, 84px);
-  line-height: 0.98;
-  letter-spacing: -0.03em;
-  font-weight: 600;
+/* Headings are the serif at the reference's measured sizes (86.5 / 58 / 33
+   / 25px at 1440). Weight 400 only: the face has one weight and its italic
+   is the turn in a two-line headline. */
+.run-landing .ld-display,
+.run-landing .ld-heading,
+.run-landing .ld-subheading {
+  font-family: var(--font-landing-serif), Georgia, 'Times New Roman', serif;
+  font-weight: 400;
   text-wrap: balance;
+}
+.run-landing .ld-display {
+  font-size: clamp(50px, 6.01vw, 104px);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
 }
 .run-landing .ld-heading {
-  font-size: clamp(34px, 3.6vw, 52px);
-  line-height: 1.02;
-  letter-spacing: -0.025em;
-  font-weight: 600;
-  text-wrap: balance;
+  font-size: clamp(36px, 4.05vw, 70px);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
 }
 .run-landing .ld-subheading {
-  font-size: clamp(22px, 2.1vw, 30px);
-  line-height: 1.12;
-  letter-spacing: -0.015em;
-  font-weight: 600;
+  font-size: clamp(24px, 2.31vw, 40px);
+  line-height: 1.1;
 }
 .run-landing .ld-lead {
   font-size: clamp(17px, 1.3vw, 19px);
@@ -99,9 +103,37 @@
   color: var(--foreground);
 }
 /* While a pointer is inside the nav, the shared white pill is the only
-   background; each item's own goes transparent so they never double up. */
+   background: every item goes clear, and over the photograph their text
+   turns white (the mark with it), except the one under the pill, which
+   reads dark on white. That is the reference's hover state exactly. */
 .run-landing [data-nav-hover='true'] .ld-nav-item {
   background: transparent;
+}
+.run-landing [data-nav-hover='true'][data-nav-theme='dark'] .ld-nav-item {
+  color: #fff;
+}
+.run-landing [data-nav-hover='true'][data-nav-theme='dark'] .ld-nav-mark {
+  filter: invert(1);
+}
+.run-landing [data-nav-hover='true'] .ld-nav-item:hover,
+.run-landing [data-nav-hover='true'] .ld-nav-item:focus-visible {
+  color: var(--foreground);
+}
+.run-landing [data-nav-hover='true'][data-nav-theme='dark'] .ld-nav-item:hover .ld-nav-mark,
+.run-landing [data-nav-hover='true'][data-nav-theme='dark'] .ld-nav-item:focus-visible .ld-nav-mark {
+  filter: none;
+}
+.run-landing .ld-nav-mark {
+  transition: filter 300ms ease;
+}
+.run-landing .ld-nav-wordmark {
+  font-family: var(--font-landing-serif), Georgia, serif;
+  font-size: 21px;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+.run-landing .ld-nav-ring {
+  padding: 6px;
 }
 
 /* ---------- hero ---------- */
