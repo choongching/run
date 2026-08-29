@@ -122,8 +122,14 @@ export function Hero() {
           <Ticker />
         </div>
       </div>
-      <div className="ld-hero-form absolute inset-x-4 bottom-4 z-1 flex justify-center [--rise-delay:270ms] run-rise">
-        <SignUpBar />
+      {/* Two wrappers on purpose: the outer one lifts 50px when the hero
+          zooms (a transition), the inner one rises on load (an animation).
+          On one element the finished animation's fill would hold its
+          transform over the transition and the lift would never happen. */}
+      <div className="ld-hero-form absolute inset-x-4 bottom-4 z-1 flex justify-center">
+        <div className="flex w-full justify-center [--rise-delay:270ms] run-rise">
+          <SignUpBar />
+        </div>
       </div>
     </section>
   )
