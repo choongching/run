@@ -1,0 +1,135 @@
+'use client'
+
+import { useEffect, useRef, useState } from 'react'
+import Image from 'next/image'
+
+import { LandingComposer } from '@/components/landing/landing-composer'
+import { ScrollTrigger, useGSAP } from '@/lib/landing/gsap'
+import { prefersReducedMotion } from '@/lib/landing/motion'
+
+// Real step lines from Run's chat, in the order a first job tends to produce
+// them. The ticker shows them one at a time under the subhead. It runs ONCE
+// through the list and rests on the last line: an auto-starting loop beside
+// other content needs a pause control (WCAG 2.2.2), and Run's answer is to
+// stop rather than to add one. Same rule as the typed placeholder.
+const TICKER = [
+  'Searching your inbox from the last 2 days',
+  'Read an email',
+  'Read two documents in your Drive',
+  'Searched the web for "invoice terms"',
+  'Opened a page it found',
+  'Waiting for your approval',
+  'Created a draft in your Gmail',
+  'Routine ran, Monday 08:00',
+]
+const TICKER_MS = 2500
+
+function Ticker() {
+  const [index, setIndex] = useState(0)
+
+  useEffect(() => {
+    if (prefersReducedMotion()) return
+    let timer = 0
+    let cancelled = false
+    const step = () => {
+      if (cancelled) return
+      // A hidden tab throttles timers to about one a minute; rather than drip
+      // lines out while nobody is looking, wait for the tab to come back.
+      if (document.hidden) return
+      setIndex((i) => {
+        const next = i + 1
+        if (next < TICKER.length - 1) timer = window.setTimeout(step, TICKER_MS)
+        return Math.min(next, TICKER.length - 1)
+      })
+    }
+    const onVisible = () => {
+      if (!document.hidden && !cancelled) {
+        window.clearTimeout(timer)
+        timer = window.setTimeout(step, TICKER_MS)
+      }
+    }
+    timer = window.setTimeout(step, TICKER_MS)
+    document.addEventListener('visibilitychange', onVisible)
+    return () => {
+      cancelled = true
+      window.clearTimeout(timer)
+      document.removeEventListener('visibilitychange', onVisible)
+    }
+  }, [])
+
+  return (
+    <div
+      aria-live="polite"
+      className="flex h-6 items-center gap-2.5 overflow-hidden font-mono text-[13px] text-white/72"
+    >
+      <span aria-hidden className="size-1.5 rounded-full bg-chart-1" />
+      {/* key replays the slide on each line: the new one rises into place. */}
+      <span key={index} className="ld-ticker-line">
+        {TICKER[index]}
+      </span>
+    </div>
+  )
+}
+
+// Full-screen photo (the same wall the signed-in home uses) behind one
+// sentence and the box. After 100px of scroll the photo clips inward with big
+// rounded corners and the box lifts a little, which is the page saying "this
+// is a page, and you are on it now".
+export function Hero() {
+  const ref = useRef<HTMLElement>(null)
+
+  useGSAP(
+    () => {
+      // A scroll position, not a tween: the CSS transition does the moving,
+      // and under reduced motion that transition is switched off, so the
+      // same trigger gives an instant state change instead.
+      ScrollTrigger.create({
+        start: 100,
+        end: 'max',
+        onToggle: (self) => ref.current?.setAttribute('data-zoom', String(self.isActive)),
+      })
+    },
+    { scope: ref }
+  )
+
+  return (
+    <section
+      ref={ref}
+      data-landing-hero
+      data-zoom="false"
+      aria-label="Introduction"
+      className="relative flex h-svh w-full items-center justify-center"
+    >
+      <div className="ld-hero-media absolute inset-0 overflow-hidden bg-foreground">
+        <Image
+          src="/home-backdrop-2200.webp"
+          alt=""
+          fill
+          priority
+          fetchPriority="high"
+          sizes="100vw"
+          className="object-cover opacity-90"
+        />
+        <div
+          aria-hidden
+          className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,24,20,0.28)_0%,rgba(20,24,20,0.1)_45%,rgba(20,24,20,0.55)_100%)]"
+        />
+      </div>
+      <div className="relative z-1 flex flex-col items-center gap-5 px-5 text-center text-white md:gap-7">
+        <h1 className="ld-display max-w-[980px] [--rise-delay:0ms] run-rise">
+          Run turns a sentence into an assistant.
+        </h1>
+        <p className="ld-lead max-w-[640px] text-white/86 [--rise-delay:90ms] run-rise">
+          Tell it the job. It reads, sorts and drafts in your real Gmail and Google Drive, and
+          nothing goes out until you have seen it and said yes.
+        </p>
+        <div className="[--rise-delay:180ms] run-rise">
+          <Ticker />
+        </div>
+      </div>
+      <div className="ld-hero-form absolute inset-x-4 bottom-8 z-1 flex justify-center md:bottom-12">
+        <LandingComposer />
+      </div>
+    </section>
+  )
+}

@@ -52,13 +52,25 @@ export async function updateSession(request: NextRequest) {
     pathname.startsWith('/register') ||
     pathname.startsWith('/forgot-password') ||
     pathname.startsWith('/auth/confirm')
-  // '/' is the dashboard home (the agent builder), so it is gated like every
-  // other dashboard route. It used to be exempt, from the era when the root
-  // might have become a public landing page; the exemption meant a signed-out
-  // visit served the whole app shell and then bounced client-side, a flash of
-  // an empty app instead of a 3ms redirect. When a marketing site exists it
-  // will live on its own domain, not behind this exemption.
-  const isDashboardRoute = !isAuthRoute && !pathname.startsWith('/api')
+  // '/' is two pages. Signed in, it is the dashboard home (the agent
+  // builder), gated like every other dashboard route. Signed out, it is the
+  // public front page: the request is REWRITTEN to /landing, so the address
+  // bar keeps saying / and the app shell is never served to a visitor only
+  // to bounce them client-side. /landing itself is reachable signed out (it
+  // is where the rewrite lands) and bounces a signed-in person home, so the
+  // front page has one address.
+  const isLanding = pathname === '/landing'
+  if (!user && pathname === '/') {
+    const url = request.nextUrl.clone()
+    url.pathname = '/landing'
+    return NextResponse.rewrite(url, { request })
+  }
+  if (user && isLanding) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/'
+    return NextResponse.redirect(url)
+  }
+  const isDashboardRoute = !isAuthRoute && !isLanding && !pathname.startsWith('/api')
 
   if (!user && isDashboardRoute) {
     const url = request.nextUrl.clone()
