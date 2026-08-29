@@ -240,6 +240,17 @@ and backups.
 - **Footer and curtain.** White card with the serif line and a dark Get
   started, three link lists, the mark alone, then the pale blue curtain
   with the wordmark. The CTA banner above it plays the corridor clip.
+- **Then a run of small fixes, one pull request each (#299 to #309).**
+  Footer: line now "Hand off the small tasks. Take back the day.", button
+  "Try Run today" with its chevron tuck corrected, orphan mark removed.
+  Capabilities: "Everything it can do. If it is not on this list, Run
+  cannot do it." Safety: "It reads. You decide." then "You say no. It
+  stops.", with the lead "It can read your mail and your files any time.
+  It cannot send, move, or delete a thing without you." FAQ approval item
+  asked plainly. The curtain's big Run grows from 70% to full as the page
+  lifts away (trap: useGSAP's scope confines selector strings, so the
+  footer trigger is passed as an element). All three deck toasts share
+  one width.
 - **Verified in Chrome throughout** by reading computed styles rather than
   eyeballing: opacities and transforms at each scroll position, the idle
   check (`document.getAnimations()` shows nothing of ours once the stories
