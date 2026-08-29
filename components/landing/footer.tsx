@@ -2,74 +2,70 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 
-const PRODUCT = [
-  { href: '#how', label: 'How it works' },
-  { href: '#safety', label: 'Safety' },
-  { href: '#faq', label: 'FAQ' },
-  { href: '/login', label: 'Log in' },
-]
+// The reference's footer (spec 12.2): a full-width white card, 517px tall,
+// its bottom corners the page's last edge before the curtain. Left, the
+// page's line again as a two-line serif heading with the italic turn and
+// the one dark button on the page; right, three short link lists and, at
+// the bottom, the mark over a mono copyright.
+const LISTS = [
+  { title: 'Product', links: [['How it works', '#how'], ['Safety', '#safety'], ['FAQ', '#faq']] },
+  { title: 'Company', links: [['Contact', 'mailto:teo.choong.ching@gmail.com'], ['Source', 'https://github.com/choongching/run']] },
+  { title: 'Account', links: [['Log in', '/login'], ['Create an account', '/register']] },
+] as const
 
-// Sits on the page, above the curtain. Its bottom corners are the page's
-// last edge before the page lifts away.
 export function Footer() {
   return (
-    <footer className="px-4 md:px-8">
-      <div className="ld-card mx-auto flex max-w-[1376px] flex-col justify-between gap-10 rounded-b-[24px] xl:rounded-b-[64px] p-7 md:min-h-[517px] md:p-14 lg:px-16">
-        <div className="flex flex-col justify-between gap-10 md:flex-row md:gap-12">
-          <div className="flex max-w-[360px] flex-col gap-4">
-            <div className="flex items-center gap-2.5 text-lg font-semibold">
-              <Image src="/run-icon.png" alt="" width={26} height={26} className="rounded-md" />
-              Run
-            </div>
-            <p className="text-base leading-relaxed text-muted-foreground">
-              You provide the intent, it provides the labor, and everything with consequences passes
-              through your hands.
-            </p>
-            <Link
-              href="/register"
-              className="ld-btn flex h-11 w-fit items-center gap-2 overflow-hidden rounded-lg bg-primary px-4.5 text-[15px] font-medium text-primary-foreground hover:bg-primary/90"
-            >
-              <span>Get started</span>
-              <ArrowRight className="ld-btn-chevron size-4" strokeWidth={2} />
-            </Link>
-          </div>
-          <div className="flex gap-16 md:gap-24">
-            <div className="flex flex-col gap-3 text-[15px]">
-              <span className="font-semibold">Product</span>
-              {PRODUCT.map((l) => (
-                <a key={l.href} href={l.href} className="text-muted-foreground hover:text-foreground hover:underline">
-                  {l.label}
-                </a>
-              ))}
-            </div>
-            <div className="flex flex-col gap-3 text-[15px]">
-              <span className="font-semibold">Company</span>
-              <a href="mailto:teo.choong.ching@gmail.com" className="text-muted-foreground hover:text-foreground hover:underline">
-                Contact
-              </a>
-              <a href="https://github.com/choongching/run" className="text-muted-foreground hover:text-foreground hover:underline">
-                Source
-              </a>
-            </div>
-          </div>
+    <footer className="ld-footer relative z-1 w-full bg-card">
+      <div className="mx-auto flex min-h-[56svh] max-w-[2120px] flex-col px-4 pb-6 pt-8 md:h-[517px] md:flex-row md:justify-between md:px-8 xl:pt-20">
+        <div className="mb-8">
+          <p className="ld-heading mb-4 md:mb-6 xl:mb-8">
+            Say what you need.
+            <br />
+            <em>Run does the rest.</em>
+          </p>
+          <Link
+            href="/register"
+            className="ld-btn flex h-[42px] w-fit items-center gap-2 rounded-[12px] bg-[#120C08] px-4 text-[15px] font-medium text-white transition-colors hover:bg-[#473D37]"
+          >
+            <span>Get started</span>
+            <ArrowRight className="ld-btn-chevron size-4" strokeWidth={2} />
+          </Link>
         </div>
-        <div className="flex flex-col justify-between gap-2 text-[13px] text-muted-foreground md:flex-row">
-          <span>© 2026 Run · tryrun.today</span>
-          <span>Your Gmail and Drive are connected by you, and read only by your own agents.</span>
+        <div className="flex h-full flex-1 flex-col justify-between gap-16 md:flex-none md:gap-x-[100px] md:pr-[74px]">
+          <div className="flex w-full flex-wrap justify-between gap-y-1.5 md:gap-[74px] xl:gap-[150px]">
+            {LISTS.map((list) => (
+              <dl key={list.title} className="min-w-[49%] md:min-w-0">
+                <dt className="mb-2.5 text-[15px] text-muted-foreground">{list.title}</dt>
+                {list.links.map(([label, href]) => (
+                  <dd key={label} className="mb-[7px] text-[15px]">
+                    <a href={href} className="hover:underline">
+                      {label}
+                    </a>
+                  </dd>
+                ))}
+              </dl>
+            ))}
+          </div>
+          <div className="mt-auto flex flex-col items-start gap-2 md:mt-0">
+            <Image src="/run-icon.png" alt="" width={40} height={40} className="rounded-lg" />
+            <p className="font-mono text-sm leading-tight">
+              © 2026 Run. All rights reserved.
+              <br />
+              Made in Singapore.
+            </p>
+          </div>
         </div>
       </div>
     </footer>
   )
 }
 
-// The fixed layer under the page: the green and the wordmark. Plain text,
-// sized in viewport widths, so its height is a known fraction of the reveal
-// at every width. (An SVG was tried first; a CSS font variable does not
-// resolve inside an SVG presentation attribute, so it drew in the fallback
-// face and overflowed its box.)
+// The fixed layer under the page: the gradient and the wordmark. The page
+// (main + footer) sits above it and ends 29vw short of the bottom, so the
+// last stretch of scroll lifts the page away and reveals this. No JS.
 export function Curtain() {
   return (
-    <div aria-hidden className="ld-curtain flex items-end justify-center overflow-hidden">
+    <div aria-hidden className="ld-curtain">
       <span className="ld-wordmark">Run</span>
     </div>
   )

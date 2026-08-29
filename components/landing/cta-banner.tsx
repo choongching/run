@@ -5,7 +5,7 @@ import { LandingComposer } from '@/components/landing/landing-composer'
 // The wall again, the mark, and the same box as the top of the page.
 export function CtaBanner() {
   return (
-    <section aria-label="Get started" className="px-4 pb-4 md:px-8 md:pb-8">
+    <section aria-label="Get started" className="ld-cta-container px-4 py-4 md:px-6 md:py-6 xl:px-8 xl:py-5">
       <div className="ld-surface relative mx-auto h-[520px] max-w-[1376px] overflow-hidden bg-foreground md:h-[724px]">
         <Image src="/home-backdrop-2200.webp" alt="" fill sizes="(min-width: 1440px) 1376px, 100vw" className="object-cover opacity-90" />
         <div aria-hidden className="absolute inset-0 bg-[rgba(20,24,20,0.35)]" />

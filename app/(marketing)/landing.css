@@ -332,23 +332,41 @@
   }
 }
 
-/* ---------- curtain ---------- */
+/* ---------- footer and curtain ---------- */
+
+/* The footer's bottom corners frame the reveal (spec 12.2: 32 / 56 / 64px
+   by width). */
+.run-landing .ld-footer {
+  border-radius: 0 0 32px 32px;
+}
+@media (min-width: 768px) {
+  .run-landing .ld-footer {
+    border-radius: 0 0 56px 56px;
+  }
+}
+@media (min-width: 1280px) {
+  .run-landing .ld-footer {
+    border-radius: 0 0 64px 64px;
+  }
+}
 
 /* The page (main + footer) sits above a fixed layer and ends 29vw short of
    the bottom, so the last stretch of scroll lifts the page away and reveals
-   what is underneath: the green and the wordmark. No animation is involved;
-   it is the page's own height. */
+   what is underneath. No animation is involved; it is the page's own
+   height. */
 .run-landing .ld-page {
   position: relative;
   z-index: 1;
   background: var(--sidebar);
   margin-bottom: 30vw;
 }
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .run-landing .ld-page {
     margin-bottom: 29vw;
   }
 }
+/* The reference's gradient, stop for stop: white, its paper at 30%, then
+   its pale blue. Founder's call (2026-08-29): copy the footer exactly. */
 .run-landing .ld-curtain {
   position: fixed;
   left: 0;
@@ -356,24 +374,34 @@
   bottom: 0;
   z-index: 0;
   height: 480px;
-  background: linear-gradient(180deg, var(--primary) 0%, oklch(0.3 0.055 155) 100%);
+  background: linear-gradient(#ffffff 0%, #f9f8f5 30%, #c3eaf4 100%);
 }
 @media (min-width: 1280px) {
   .run-landing .ld-curtain {
     height: 900px;
   }
 }
+/* The serif wordmark in white, its baseline on the bottom edge and the
+   descender-less letters clipped a little by the viewport, as the
+   reference's are. Sized in viewport widths so it sits inside the reveal at
+   every width. */
 .run-landing .ld-wordmark {
-  /* Cap height is about 0.72em, so 26vw of type stands about 19vw tall,
-     inside the 29vw (30vw on a phone) the footer's margin reveals. The
-     reference wordmark is six letters at 96% of the width; three letters at
-     that width would stand taller than the reveal. */
-  font-size: 26vw;
-  line-height: 0.74;
-  letter-spacing: -0.05em;
-  font-weight: 600;
+  position: absolute;
+  left: 50%;
+  bottom: -0.06em;
+  transform: translateX(-50%);
+  font-family: var(--font-landing-serif), Georgia, serif;
+  font-size: 35vw;
+  line-height: 0.8;
+  letter-spacing: -0.02em;
   color: #fff;
-  transform: translateY(0.02em);
+  white-space: nowrap;
+}
+/* The page goes white behind the CTA banner, so the white footer under it
+   has no visible top edge and only its bottom corners show, over the
+   curtain (spec 12.1's .lassie-cta-container). */
+.run-landing .ld-cta-container {
+  background: linear-gradient(180deg, var(--sidebar) 0%, #ffffff 100%);
 }
 
 /* ---------- reduced motion ---------- */
