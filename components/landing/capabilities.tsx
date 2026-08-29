@@ -8,17 +8,17 @@ import { GoogleDriveIcon } from '@/components/icons/google-drive'
 // a list that says "this is everything" is the honest proof.
 const GROUPS = [
   {
-    title: 'In your Gmail',
+    title: 'Gmail',
     icon: <GmailIcon className="h-4 w-5" />,
     rows: [
       ['Search your inbox'],
       ['Read an email'],
       ['Write a draft', 'Asks first'],
     ],
-    note: 'There is no send. A draft sits in your drafts folder and the only finger that can press Send is yours.',
+    note: 'It cannot send. A draft waits in your drafts folder until you press Send.',
   },
   {
-    title: 'In your Google Drive',
+    title: 'Google Drive',
     icon: <GoogleDriveIcon className="size-5" />,
     rows: [
       ['List your files'],
@@ -27,19 +27,19 @@ const GROUPS = [
       ['Move a file', 'Asks first'],
       ['Rename a file', 'Asks first'],
     ],
-    note: 'There is no delete and no trash. You see the file name and where it is going before anything happens.',
+    note: 'It cannot delete. You see the file and where it is going before anything moves.',
   },
   {
-    title: 'On the web, and in the chat',
+    title: 'The web and the chat',
     icon: <Globe className="size-5" strokeWidth={1.75} />,
     rows: [
-      ['Search the web, and read a page it found'],
-      ['Read a link you paste'],
+      ['Search the web'],
+      ['Read a page, or a link you paste'],
       ['Write you a document'],
-      ['Ask you a round of questions'],
-      ['Report on a schedule, to the chat or your phone'],
+      ['Ask you a question'],
+      ['Send a report on a schedule, here or to your phone'],
     ],
-    note: 'A run with nobody watching cannot write at all. Anything it would normally ask about, it describes and leaves for you.',
+    note: 'On a schedule it can only read and report. Anything it would ask about waits for you.',
   },
 ] as const
 
@@ -47,10 +47,9 @@ export function Capabilities() {
   return (
     <section aria-label="What it can do" className="flex flex-col items-center gap-10 px-4 py-16 md:px-8 md:py-28 lg:gap-12">
       <div data-depth className="flex max-w-[800px] flex-col items-center gap-4 text-center">
-        <h2 className="ld-heading">This is the whole list.</h2>
+        <h2 className="ld-heading">Everything it can do.</h2>
         <p className="ld-lead max-w-[600px] text-muted-foreground">
-          Not what it is allowed to do today, but what it is able to do at all. There is no tool
-          outside this list for an agent to reach for.
+          If it is not on this list, Run cannot do it.
         </p>
       </div>
       {/* A phone pushes these sideways; a tablet and up sees all three. */}
