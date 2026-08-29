@@ -83,59 +83,43 @@
 
 /* ---------- the pill nav ---------- */
 
-/* The ring around the items and the wash it sits on. The wash borrows the
-   wall's colour by being translucent over it, the same trick the home rail's
-   pills use. */
+/* Ported from the reference's DOM outline (spec 4). Every value here is
+   theirs: the ring's 16px radius, white/10 border, stone-40 fill and 13px
+   blur; the items' 12px radius and 14px text; 300ms fades on both the
+   background layer and the text; Login's glass; the pressed brown; the
+   blue focus ring. */
 .run-landing .ld-nav-ring {
   border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(227, 221, 207, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(13px);
   -webkit-backdrop-filter: blur(13px);
+  backdrop-filter: blur(13px);
 }
-.run-landing .ld-nav-item {
+.run-landing .ld-nav-a {
+  text-decoration: none;
+}
+/* Each item's own background layer. */
+.run-landing .ld-nav-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
   border-radius: 12px;
-  transition: background-color 300ms ease, color 300ms ease;
+  background: #fff;
+  transition: background-color 300ms ease;
 }
-/* Over the hero the nav reads dark: white text, the Log in item on a grey
-   wash. Anywhere else it reads light. The attribute is set by a ScrollTrigger
-   on the hero and forced to light while the FAQ is on screen. */
-.run-landing [data-nav-theme='dark'] .ld-nav-login {
-  background: rgba(229, 229, 229, 0.3);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  color: #fff;
-}
-.run-landing [data-nav-theme='light'] .ld-nav-login {
-  background: rgba(227, 221, 207, 0.4);
+/* The text layer: 14px, line-height 1, 14px side padding. */
+.run-landing .ld-nav-text {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 0 14px;
+  font-size: 14px;
+  line-height: 1;
   color: var(--foreground);
-}
-/* While a pointer is inside the nav, the shared white pill is the only
-   background: every item goes clear, and over the photograph their text
-   turns white (the mark with it), except the one under the pill, which
-   reads dark on white. That is the reference's hover state exactly. */
-.run-landing [data-nav-hover='true'] .ld-nav-item,
-.run-landing [data-nav-hover='true'] .ld-nav-item.ld-nav-login {
-  background: transparent;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
-.run-landing [data-nav-hover='true'][data-nav-theme='dark'] .ld-nav-item {
-  color: #fff;
-}
-.run-landing [data-nav-hover='true'][data-nav-theme='dark'] .ld-nav-mark {
-  filter: invert(1);
-}
-.run-landing [data-nav-hover='true'] .ld-nav-item:hover,
-.run-landing [data-nav-hover='true'] .ld-nav-item:focus-visible {
-  color: var(--foreground);
-}
-.run-landing [data-nav-hover='true'][data-nav-theme='dark'] .ld-nav-item:hover .ld-nav-mark,
-.run-landing [data-nav-hover='true'][data-nav-theme='dark'] .ld-nav-item:focus-visible .ld-nav-mark {
-  filter: none;
-}
-.run-landing .ld-nav-mark {
-  transition: filter 300ms ease;
+  transition: color 300ms ease;
 }
 .run-landing .ld-nav-wordmark {
   font-family: var(--font-landing-serif), Georgia, serif;
@@ -143,8 +127,62 @@
   line-height: 1;
   letter-spacing: -0.01em;
 }
-.run-landing .ld-nav-ring {
-  padding: 6px;
+.run-landing .ld-nav-mark {
+  transition: filter 300ms ease;
+}
+/* Login: a translucent wash rather than white. Grey glass with white text
+   over the photograph; the ring's stone with dark text elsewhere. */
+.run-landing [data-nav-theme='dark'] .ld-nav-login .ld-nav-bg {
+  background: rgba(229, 229, 229, 0.3);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+}
+.run-landing [data-nav-theme='dark'] .ld-nav-login .ld-nav-text {
+  color: #fff;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.15);
+}
+.run-landing [data-nav-theme='light'] .ld-nav-login .ld-nav-bg {
+  background: rgba(227, 221, 207, 0.4);
+}
+/* While a pointer is inside the nav: every background layer fades to
+   clear, the shared pill is the only white; over the photograph the text
+   and the mark turn white, and the item under the pill reads dark. */
+.run-landing [data-nav-hover='true'] .ld-nav-bg {
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.run-landing [data-nav-hover='true'][data-nav-theme='dark'] .ld-nav-text {
+  color: #fff;
+}
+.run-landing [data-nav-hover='true'][data-nav-theme='dark'] .ld-nav-mark {
+  filter: invert(1);
+}
+.run-landing [data-nav-hover='true'] .ld-nav-a:hover .ld-nav-text {
+  color: var(--foreground);
+}
+.run-landing [data-nav-hover='true'][data-nav-theme='dark'] .ld-nav-a:hover .ld-nav-mark {
+  filter: none;
+}
+/* Pressed: surface-pressed, white text. */
+.run-landing .ld-nav-a:active .ld-nav-bg {
+  background: #473d37;
+}
+.run-landing .ld-nav-a:active .ld-nav-text {
+  color: #fff;
+}
+/* Keyboard focus: a 2px blue border and a 3px halo on the background layer. */
+.run-landing .ld-nav-a:focus-visible .ld-nav-bg {
+  border: 2px solid #3b82f6;
+  box-shadow: 0 0 0 3px rgba(66, 181, 220, 0.3);
+}
+.run-landing .ld-nav-a:focus-visible .ld-nav-text {
+  color: var(--foreground);
+}
+/* For 500ms after the pointer leaves, the backgrounds return without a
+   fade (spec 4.3). */
+.run-landing [data-nav-snap='true'] .ld-nav-bg {
+  transition-duration: 0s;
 }
 
 /* ---------- the sign-up bar ---------- */
