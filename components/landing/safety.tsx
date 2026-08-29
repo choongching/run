@@ -110,9 +110,9 @@ export function Safety() {
             only shows once the pin has carried the rule in. */}
         <div className="grid [&>*]:[grid-area:1/1]">
           <h2 className="ld-rule-a ld-heading">
-            It looks on its own.
+            It reads.
             <br />
-            It asks before it acts.
+            You decide.
           </h2>
           <h2 className="ld-rule-b ld-heading whitespace-nowrap opacity-0 max-lg:hidden" aria-hidden>
             When you say no,
@@ -121,8 +121,8 @@ export function Safety() {
           </h2>
         </div>
         <p className="ld-lead max-w-[560px] text-muted-foreground">
-          Reading changes nothing, so it just happens. Anything that would change something
-          stops, shows you, and waits for your yes.
+          Reading is free, so it just happens. Anything that would change something stops and
+          waits for your yes.
         </p>
       </div>
 
