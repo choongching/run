@@ -191,25 +191,39 @@
 
 /* ---------- feature deck ---------- */
 
-/* Below the tablet width the description sits above its card instead of
-   beside it; GSAP only ever moves transform and opacity, so the layout is
-   CSS's alone. */
+/* The description sits beside its card on desktop, its bottom edge 45px
+   below the card's vertical centre, hugging the viewport edge (spec 7.2:
+   text right edge 28px left of the card, or 30px right of it). Below the
+   tablet width it sits above the card, left-aligned to it. GSAP only ever
+   moves transform and opacity on it. */
 .run-landing .ld-deck-desc {
   position: absolute;
-  width: 257px;
+  top: -20px;
+  left: 0;
+  max-width: 500px;
+  transform: translateY(-100%);
   opacity: 0;
 }
-.run-landing .ld-deck-desc[data-side='left'] {
-  right: calc(50% + 411px + 28px);
-}
-.run-landing .ld-deck-desc[data-side='right'] {
-  left: calc(50% + 411px + 28px);
-}
-@media (max-width: 1023px) {
+@media (max-width: 767px) {
   .run-landing .ld-deck-desc {
-    position: static;
-    width: auto;
-    max-width: 480px;
+    top: -25px;
+    max-width: 90%;
+  }
+}
+@media (min-width: 1280px) {
+  .run-landing .ld-deck-desc {
+    top: calc(50% + 45px);
+    max-width: 257px;
+    transform: translateY(-100%);
+  }
+  .run-landing .ld-deck-desc[data-side='left'] {
+    left: 0;
+    transform: translate(calc(-100% - 28px), -100%);
+  }
+  .run-landing .ld-deck-desc[data-side='right'] {
+    left: auto;
+    right: 0;
+    transform: translate(calc(100% + 30px), -100%);
   }
 }
 
@@ -321,21 +335,28 @@
   }
   .run-landing .ld-deck {
     height: auto !important;
+    max-height: none !important;
     display: flex;
     flex-direction: column;
-    gap: 48px;
-    padding: 64px 0;
+    gap: 96px;
+    padding: 64px 16px;
   }
-  .run-landing .ld-deck-card {
+  .run-landing .ld-deck-frame {
     position: static !important;
-    transform: none !important;
-    opacity: 1 !important;
+    height: auto !important;
+    max-width: 823px !important;
+  }
+  .run-landing .ld-deck-frame > div {
+    height: auto !important;
+    width: 100% !important;
+    top: 0 !important;
   }
   .run-landing .ld-deck-desc {
     position: static;
-    width: auto;
     max-width: 480px;
+    transform: none;
     opacity: 1;
+    margin-bottom: 20px;
   }
   .run-landing .ld-fly {
     transform: none !important;
