@@ -8,8 +8,8 @@ import { prefersReducedMotion } from '@/lib/landing/motion'
 // Drop clips here and they play. Muted H.264 MP4, 10 to 20 seconds each,
 // a few megabytes at most: the first one is on the critical path of the
 // front page. Any that are missing are skipped; with none present the
-// photograph stands alone.
-const CLIPS = ['/landing/hero-1.mp4', '/landing/hero-2.mp4', '/landing/hero-3.mp4']
+// photograph stands alone; with one, it loops on its own.
+const CLIPS = ['/landing/hero-1.mp4']
 const CROSSFADE_MS = 900
 
 // The hero's background: a set of clips played one after another, each
@@ -101,7 +101,7 @@ export function HeroMedia() {
 
   return (
     <div ref={wrap} aria-hidden className="absolute inset-0">
-      {[0, 1].map((slot) => (
+      {(available.length === 1 ? [0] : [0, 1]).map((slot) => (
         <video
           key={slot}
           src={available[clips[slot] % available.length]}
@@ -109,6 +109,7 @@ export function HeroMedia() {
           playsInline
           preload={slot === front ? 'auto' : 'metadata'}
           autoPlay={slot === front}
+          loop={available.length === 1}
           onEnded={slot === front ? onEnded : undefined}
           className="absolute inset-0 h-full w-full object-cover transition-opacity ease-out"
           style={{ opacity: slot === front ? 1 : 0, transitionDuration: `${CROSSFADE_MS}ms` }}
@@ -122,7 +123,7 @@ export function HeroMedia() {
 export function HeroPoster() {
   return (
     <Image
-      src="/home-backdrop-2200.webp"
+      src="/landing/hero-poster.webp"
       alt=""
       fill
       priority
