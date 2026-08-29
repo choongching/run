@@ -7,28 +7,28 @@ import { ChevronDown } from 'lucide-react'
 // code rather than from memory.
 const QUESTIONS = [
   {
-    q: 'If a prompt injection tells the agent to send an email, what stops it?',
-    a: 'Nothing stops it, because there is nothing to stop: sending is not in the agent’s toolbox. An injected instruction cannot invoke a capability that does not exist, the same way your calculator cannot make phone calls.',
+    q: 'What if something tricks it into sending an email?',
+    a: 'It cannot send one. Sending is not a tool it has, so no instruction, from you or from a stray web page, can make it happen.',
   },
   {
-    q: 'What enforces the line between deciding and doing?',
-    a: 'The decision and the doing happen on different computers. The model only ever emits a request; Run’s own backend runs a short list of read-only tools freely and stops everything else at a card you see.',
+    q: 'What keeps deciding and doing apart?',
+    a: 'They happen on different computers. The model only asks; Run’s own server reads freely and stops anything else at a card you see first.',
   },
   {
-    q: 'Could an injection forge or alter the approval?',
-    a: 'The pending call is stored on the server, attached to your conversation, and Approve runs only what is stored there. Nothing said afterwards can substitute a different action for the one you were shown.',
+    q: 'Could the approval itself be faked?',
+    a: 'The action waits on the server, tied to your conversation, and Approve runs only that one. Nothing said later can swap it for something else.',
   },
   {
-    q: 'So the worst case is?',
-    a: 'An injection can, at most, make an agent ask your permission to write a draft. A draft is inert: it sits in your Gmail, and the only finger that can press Send is yours.',
+    q: 'So what is the worst that can happen?',
+    a: 'It asks your permission to write a draft. A draft sits in your Gmail until you press Send yourself.',
   },
   {
-    q: 'What happens when nobody is watching?',
-    a: 'A routine is the same agent doing the same work on a schedule, and it cannot write at all. Anything it would normally ask about, it describes in its report and leaves for you.',
+    q: 'What about when I am not there?',
+    a: 'A routine is the same agent on a schedule, and it cannot write at all. Anything it would have asked about goes in its report for you.',
   },
   {
     q: 'Who pays for the web searches?',
-    a: 'We do, up to a monthly limit shown on the Connectors page. Connect your own search account and the limit stops applying.',
+    a: 'We do, up to a monthly limit you can see on the Connectors page. Connect your own search account and the limit goes away.',
   },
 ]
 
