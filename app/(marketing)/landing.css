@@ -8,8 +8,9 @@
    1. Radii. The app clamps every corner to 4-6px. A marketing page is made of
       a few very large surfaces (a full-bleed photo, a 823px card, a 724px
       banner) and a 6px corner on something that size reads as square. The
-      page uses 24px on those surfaces and 14px on ordinary cards, and only
-      here. Controls keep the app's 6px.
+      page uses the reference's measured 64px on those surfaces at desktop
+      (24px below 1280), 16px on ordinary cards, 12px on the bar and the nav
+      items, and only here.
 
    2. Type size. The app caps a page at 24px. This page opens at 84px. Same
       reason the home hero is exempt: it is a headline, not a page title.
@@ -28,10 +29,15 @@
 .run-landing .ld-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 16px;
 }
 .run-landing .ld-surface {
   border-radius: 24px;
+}
+@media (min-width: 1280px) {
+  .run-landing .ld-surface {
+    border-radius: 64px;
+  }
 }
 .run-landing .ld-surface-sm {
   border-radius: 16px;
@@ -148,11 +154,11 @@
   will-change: clip-path;
 }
 .run-landing [data-zoom='true'] .ld-hero-media {
-  clip-path: inset(16px round 16px);
+  clip-path: inset(16px round 24px);
 }
 @media (min-width: 1024px) {
   .run-landing [data-zoom='true'] .ld-hero-media {
-    clip-path: inset(32px round 24px);
+    clip-path: inset(32px round 64px);
   }
 }
 .run-landing .ld-hero-form {

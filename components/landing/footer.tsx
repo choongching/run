@@ -14,7 +14,7 @@ const PRODUCT = [
 export function Footer() {
   return (
     <footer className="px-4 md:px-8">
-      <div className="ld-card mx-auto flex max-w-[1376px] flex-col justify-between gap-10 rounded-b-[24px] p-7 md:min-h-[517px] md:p-14 lg:px-16">
+      <div className="ld-card mx-auto flex max-w-[1376px] flex-col justify-between gap-10 rounded-b-[24px] xl:rounded-b-[64px] p-7 md:min-h-[517px] md:p-14 lg:px-16">
         <div className="flex flex-col justify-between gap-10 md:flex-row md:gap-12">
           <div className="flex max-w-[360px] flex-col gap-4">
             <div className="flex items-center gap-2.5 text-lg font-semibold">

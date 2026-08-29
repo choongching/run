@@ -47,7 +47,7 @@ export function LandingComposer({
       {/* A glass bar over the photograph, the reference's shape: the box
           is see-through, the button is the one solid thing. It widens a
           little when you are in it. */}
-      <div className="flex h-[54px] w-full max-w-[420px] items-center gap-2 rounded-lg border border-white/10 bg-white/10 p-1.5 backdrop-blur-lg transition-[max-width] duration-300 ease-out focus-within:max-w-[520px]">
+      <div className="flex h-[54px] w-full max-w-[420px] items-center gap-2 rounded-[12px] border border-white/10 bg-white/10 p-1.5 backdrop-blur-lg transition-[max-width] duration-300 ease-out focus-within:max-w-[520px]">
         <input
           name="prompt"
           type="text"
@@ -62,7 +62,7 @@ export function LandingComposer({
         />
         <button
           type="submit"
-          className="flex h-[42px] shrink-0 items-center rounded-lg bg-card px-4 text-[15px] font-medium text-foreground transition-colors hover:bg-white/90"
+          className="flex h-[42px] shrink-0 items-center rounded-[12px] bg-card px-4 text-[15px] font-medium text-foreground transition-colors hover:bg-white/90"
         >
           Get started
         </button>
