@@ -118,7 +118,7 @@ export function Hero() {
           <em>More of the day.</em>
         </h1>
         <div className="flex flex-col items-center gap-2 [--rise-delay:90ms] run-rise">
-          <p className="text-[17px] text-white">Run does the busywork, and asks before anything goes out.</p>
+          <p className="text-[17px] text-white">Run takes the small tasks. You take the day.</p>
           <Ticker />
         </div>
       </div>
