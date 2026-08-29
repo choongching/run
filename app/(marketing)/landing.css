@@ -147,13 +147,16 @@
 /* While a pointer is inside the nav: every background layer fades to
    clear, the shared pill is the only white; over the photograph the text
    and the mark turn white, and the item under the pill reads dark. */
-.run-landing [data-nav-hover='true'] .ld-nav-bg {
+.run-landing [data-nav-hover='true'] .ld-nav-bg,
+.run-landing [data-nav-hover='true'][data-nav-theme='dark'] .ld-nav-login .ld-nav-bg,
+.run-landing [data-nav-hover='true'][data-nav-theme='light'] .ld-nav-login .ld-nav-bg {
   background: transparent;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
 }
 .run-landing [data-nav-hover='true'][data-nav-theme='dark'] .ld-nav-text {
   color: #fff;
+  text-shadow: none;
 }
 .run-landing [data-nav-hover='true'][data-nav-theme='dark'] .ld-nav-mark {
   filter: invert(1);
