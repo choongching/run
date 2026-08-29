@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import Image from 'next/image'
 import { Check, FileText, Globe, Mail, Send } from 'lucide-react'
 
+import { HeroMedia, HeroPoster } from '@/components/landing/hero-media'
 import { SignUpBar } from '@/components/landing/sign-up-bar'
 import { ScrollTrigger, useGSAP } from '@/lib/landing/gsap'
 import { prefersReducedMotion } from '@/lib/landing/motion'
@@ -103,15 +103,8 @@ export function Hero() {
       className="relative flex h-svh w-full items-center justify-center"
     >
       <div className="ld-hero-media absolute inset-0 overflow-hidden bg-foreground">
-        <Image
-          src="/home-backdrop-2200.webp"
-          alt=""
-          fill
-          priority
-          fetchPriority="high"
-          sizes="100vw"
-          className="object-cover opacity-90"
-        />
+        <HeroPoster />
+        <HeroMedia />
         <div
           aria-hidden
           className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,24,20,0.28)_0%,rgba(20,24,20,0.1)_45%,rgba(20,24,20,0.55)_100%)]"
