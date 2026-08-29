@@ -48,11 +48,6 @@ export function Footer() {
           </div>
           <div className="mt-auto flex flex-col items-start gap-2 md:mt-0">
             <Image src="/run-icon.png" alt="" width={40} height={40} className="rounded-lg" />
-            <p className="font-mono text-sm leading-tight">
-              © 2026 Run. All rights reserved.
-              <br />
-              Made in Singapore.
-            </p>
           </div>
         </div>
       </div>
