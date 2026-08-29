@@ -11,19 +11,19 @@ export function HowItWorks() {
   return (
     <section aria-label="How it works" className="flex flex-col items-center gap-10 px-4 pb-16 pt-6 md:px-8 md:pb-28 lg:gap-12">
       <div data-depth className="flex flex-col items-center gap-4 text-center">
-        <h2 className="ld-heading">Describing what you want is the setup.</h2>
+        <h2 className="ld-heading">The setup is one sentence.</h2>
       </div>
       <div className="flex w-full max-w-[1376px] snap-x snap-mandatory gap-4 overflow-x-auto no-scrollbar md:grid md:grid-cols-3 md:gap-6 md:overflow-visible">
         <Card
-          title="You state the intent."
-          body="One box, one sentence. The box types real examples while it waits."
+          title="You say what you need."
+          body="One box, one line, in your own words. That is the whole form."
         >
           <Typed words="Summarize my inbox each morning and flag anything that needs a reply" />
         </Card>
         <Card
           delay={90}
-          title="It writes its own job description."
-          body="A few quick questions on one card, ending with what starts it off: you, or the clock. Nothing runs before your yes."
+          title="Run writes the job."
+          body="It asks a question or two and shows you the job on one card. Nothing starts until you say so."
         >
           <div className="flex w-full flex-col gap-2 rounded-lg border border-border bg-card p-3.5 text-[13px]">
             <span className="ld-t text-muted-foreground" style={at(0.2)}>Name</span>
@@ -42,8 +42,8 @@ export function HowItWorks() {
         </Card>
         <Card
           delay={180}
-          title="It does the work, and asks when it matters."
-          body="Reading needs no permission and it narrates each step. Anything that changes something stops and shows you the whole thing."
+          title="Run does it, and asks first."
+          body="Reading happens on its own, step by step. Anything that changes something stops and waits for your yes."
         >
           <div className="flex w-full flex-col gap-2 rounded-lg border border-border bg-card p-3.5 text-[13px]">
             <span className="ld-t flex items-center gap-2 text-muted-foreground" style={at(0.2)}>
