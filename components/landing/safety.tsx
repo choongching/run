@@ -121,8 +121,7 @@ export function Safety() {
           </h2>
         </div>
         <p className="ld-lead max-w-[560px] text-muted-foreground">
-          Reading is free, so it just happens. Anything that would change something stops and
-          waits for your yes.
+          It reads on its own. It never sends, moves, or changes anything until you say yes.
         </p>
       </div>
 
