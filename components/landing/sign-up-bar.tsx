@@ -14,7 +14,7 @@ export function SignUpBar({ className = '' }: { className?: string }) {
           placeholder="Your email"
           autoComplete="email"
           aria-label="Your email"
-          className="min-w-0 flex-1 bg-transparent px-2 text-base text-white outline-none placeholder:text-white/80 md:px-4"
+          className="ld-autofill min-w-0 flex-1 bg-transparent px-2 text-base text-white outline-none placeholder:text-white/80 md:px-4"
         />
         <button
           type="submit"

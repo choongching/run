@@ -147,6 +147,20 @@
   padding: 6px;
 }
 
+/* ---------- the sign-up bar ---------- */
+
+/* Chrome paints an autofilled field with its own pale fill. The fill is a
+   background it will not let a stylesheet remove, but it will let one
+   delay: a transition that takes forever to start keeps the glass. The
+   text colour it would also override is pinned to white. */
+.run-landing .ld-autofill:-webkit-autofill,
+.run-landing .ld-autofill:-webkit-autofill:hover,
+.run-landing .ld-autofill:-webkit-autofill:focus {
+  -webkit-text-fill-color: #fff;
+  caret-color: #fff;
+  transition: background-color 600000s 0s, color 600000s 0s;
+}
+
 /* ---------- hero ---------- */
 
 /* The photo starts edge to edge and, after 100px of scroll, clips inward
