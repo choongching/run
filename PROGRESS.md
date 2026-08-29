@@ -8,7 +8,18 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** The clock that runs routines is in the repo now. It
+**Where we left off:** Run has a front page. A visitor who is not signed
+in now sees a marketing page at the root instead of being sent to the sign-in
+form, and a signed-in person still lands on their own home. It was designed
+first, on a canvas the founder approved, then built with every piece of motion
+in it: a pill of navigation that folds and slides, a photograph that clips
+inward as you scroll, a deck of three cards that peel off one by one, and a
+green curtain with the wordmark under the very end of the page. It was driven
+in a browser at desktop and phone widths, merged, and is live. Next: a look on
+an actual phone and at tablet width, a Lighthouse pass, and letting the
+sign-up page read the sentence the front page's box sends it.
+
+Before that, the clock that runs routines went into the repo. It
 had lived only in the production database, made by hand, with its password
 pasted into its own command, and during a call about how Run works somebody
 switched it off; nothing in the code could have shown that. Routines were
@@ -185,6 +196,70 @@ Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
 
 ---
+
+## 2026-08-29: A front page, designed first and built with everything moving
+
+- **Run has a landing page, live at the root.** A visit to `/` by someone
+  not signed in now serves a marketing page; the address stays `/`, because
+  the request is rewritten rather than redirected. A signed-in visit to `/`
+  is the dashboard home it always was. The page's internal address is kept
+  out of search engines and points its canonical at `/`, so the front page
+  has one address. Merged to `main` via pull request #297.
+- **Design first.** The founder brought a measured, section-by-section
+  study of another company's landing page as the reference for layout and
+  motion, and asked for the design before any code. The design was drawn on
+  a canvas: a desktop page, a phone page, the three feature cards side by
+  side, a sheet of tokens and parts, and seven notes carrying the motion
+  spec. It uses Run's own system and words throughout (Geist, the paper and
+  forest-green tokens, the founder's wall photograph, copy taken from the
+  README), not a copy of anyone else's page. Where the reference has a
+  number that counts up and quotes from customers, Run has neither yet, so
+  those two slots carry the trust story ("Reads are free. Writes ask
+  first.") and the complete list of what an agent can do. Inventing a
+  statistic or a testimonial would have been the first lie on the page.
+- **The call to action is the product's own box.** Instead of an email
+  field, the hero and the closing banner carry Run's composer: it types four
+  real jobs while it waits, four pills fill it, and submitting carries the
+  sentence to the sign-up page.
+- **Every piece of motion from the spec is in, and none of it loops.** The
+  navigation pill reads dark over the photograph and light after, folds its
+  wordmark away past 400px of scroll and back at 360, and slides one white
+  pill under whichever item the pointer is on (touch devices skip it, the
+  keyboard drives it on focus). The photograph clips inward with rounded
+  corners after 100px of scroll while the box lifts. A line under the
+  headline ticks through eight real step lines from the chat, once, every
+  2.5 seconds, then rests. The three feature cards stack like a deck and the
+  scroll peels them off one at a time while the section holds still. The
+  safety section holds still too while six pieces of the product fly in
+  from outside the window and settle around the rule, which then gives way
+  to its consequence. The FAQ opens one answer at a time and never jumps the
+  page. At the very end the page lifts away to reveal the wordmark on green.
+  Everything stands down under reduced motion, and the two held sections
+  simply lay themselves out flat.
+- **Verified in a browser, and six of my own defects caught by driving it.**
+  The sliding pill was invisible because it shared a class with the items it
+  slides under; the second safety heading was boxed to the first one's width
+  and wrapped over the paragraph; the FAQ chevron pointed the wrong way; the
+  footer button's label drew a darker block behind itself; the curtain
+  wordmark overflowed because a CSS font variable does not resolve inside an
+  SVG attribute (it is plain text now, sized from the viewport); and at phone
+  width the navigation wrapped and the held deck was taller than the screen.
+  A second pass over the code found two more: the ticker armed its next
+  timer inside a React state updater, which React runs twice in development,
+  and the FAQ's height lock was measured once and would have carried a
+  phone's number onto a desktop. All fixed before merge. Measured: the reveal
+  at the bottom is 417px at 1440 wide, the ticker steps at 2,500ms, no
+  console errors, the production build passes.
+- **Three decisions taken instead of following the reference's stack.** The
+  page sizes in pixels rather than changing the root font size, which cannot
+  be scoped and would have shrunk the whole app; it stays on npm; and it did
+  not add a second headless UI library for one accordion. Everything the
+  page needs is in its own stylesheet under one class, so the app's rules
+  do not apply to it and its two exceptions (large corners, an 84px
+  headline) do not leak out.
+- **Not yet checked.** The 1024 tablet width (the browser tool could not
+  resize that far), a real phone, a Lighthouse run, and the sign-up page
+  does not read the sentence the box sends it yet.
 
 ## 2026-08-28 (evening): The clock is in the repo, and a day of silence explained
 
