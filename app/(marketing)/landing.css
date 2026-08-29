@@ -56,7 +56,9 @@
   text-wrap: balance;
 }
 .run-landing .ld-display {
-  font-size: clamp(50px, 6.01vw, 104px);
+  /* A step above the reference's 86.5px at 1440 (founder's call, 2026-08-29):
+     about 100px there, capped at 120. */
+  font-size: clamp(52px, 7vw, 120px);
   line-height: 0.95;
   letter-spacing: -0.02em;
 }
