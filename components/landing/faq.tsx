@@ -61,7 +61,6 @@ export function Faq() {
   return (
     <section id="faq" aria-label="Questions people ask" className="flex flex-col gap-8 px-4 py-16 md:px-8 md:py-28 lg:flex-row lg:justify-center lg:gap-[120px]">
       <div className="flex flex-col gap-4 lg:w-[420px]">
-        <span className="ld-eyebrow">Questions people ask</span>
         <h2 className="ld-heading">Answered by reading the code, not from memory.</h2>
       </div>
       <div ref={groupRef} style={{ minHeight }} className="flex flex-col gap-3 lg:w-[640px]">

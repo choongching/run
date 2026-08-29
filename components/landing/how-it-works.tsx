@@ -6,12 +6,10 @@ export function HowItWorks() {
   return (
     <section aria-label="How it works" className="flex flex-col items-center gap-10 px-4 pb-16 pt-6 md:px-8 md:pb-28 lg:gap-12">
       <div className="flex flex-col items-center gap-4 text-center">
-        <span className="ld-eyebrow">How it works</span>
         <h2 className="ld-heading">Describing what you want is the setup.</h2>
       </div>
       <div className="flex w-full max-w-[1376px] snap-x snap-mandatory gap-4 overflow-x-auto no-scrollbar md:grid md:grid-cols-3 md:gap-6 md:overflow-visible">
         <Card
-          n="1"
           title="You state the intent."
           body="One box, one sentence. The box types real examples while it waits."
         >
@@ -21,7 +19,6 @@ export function HowItWorks() {
           </div>
         </Card>
         <Card
-          n="2"
           title="It writes its own job description."
           body="A few quick questions on one card, ending with what starts it off: you, or the clock. Nothing runs before your yes."
         >
@@ -33,7 +30,6 @@ export function HowItWorks() {
           </div>
         </Card>
         <Card
-          n="3"
           title="It does the work, and asks when it matters."
           body="Reading needs no permission and it narrates each step. Anything that changes something stops and shows you the whole thing."
         >
@@ -55,12 +51,10 @@ export function HowItWorks() {
 }
 
 function Card({
-  n,
   title,
   body,
   children,
 }: {
-  n: string
   title: string
   body: string
   children: React.ReactNode
@@ -68,7 +62,6 @@ function Card({
   return (
     <div className="ld-card flex w-[300px] shrink-0 snap-start flex-col gap-4 p-5 md:w-auto md:min-h-[420px] md:gap-5 md:p-7">
       <div className="flex h-[150px] items-center justify-center rounded-lg bg-muted p-5 md:h-[180px] md:p-6">{children}</div>
-      <span className="ld-eyebrow">{n}</span>
       <h3 className="text-xl font-semibold leading-tight tracking-tight md:text-2xl">{title}</h3>
       <p className="text-base leading-relaxed text-muted-foreground">{body}</p>
     </div>

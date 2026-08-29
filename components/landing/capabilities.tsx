@@ -47,7 +47,6 @@ export function Capabilities() {
   return (
     <section aria-label="What it can do" className="flex flex-col items-center gap-10 px-4 py-16 md:px-8 md:py-28 lg:gap-12">
       <div className="flex max-w-[800px] flex-col items-center gap-4 text-center">
-        <span className="ld-eyebrow">What it can do</span>
         <h2 className="ld-heading">This is the whole list.</h2>
         <p className="ld-lead max-w-[600px] text-muted-foreground">
           Not what it is allowed to do today, but what it is able to do at all. There is no tool

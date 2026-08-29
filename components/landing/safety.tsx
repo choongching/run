@@ -106,7 +106,6 @@ export function Safety() {
       className="relative flex flex-col items-center justify-center gap-10 px-4 py-16 md:px-8 lg:h-svh lg:gap-0 lg:py-0"
     >
       <div className="relative z-2 flex max-w-[720px] flex-col items-center gap-5 text-center">
-        <span className="ld-eyebrow">Safety</span>
         {/* Two headings in one slot: the second sits over the first and
             only shows once the pin has carried the rule in. */}
         <div className="grid [&>*]:[grid-area:1/1]">
