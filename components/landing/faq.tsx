@@ -62,10 +62,11 @@ export function Faq() {
 
   return (
     <section id="faq" aria-label="FAQ" className="flex w-full flex-col items-center px-4 pb-[100px] pt-[160px] md:px-0 xl:pb-[160px]">
-      <h2 className="ld-heading mb-8 leading-none">FAQ</h2>
+      <h2 data-reveal className="ld-heading mb-8 leading-none">FAQ</h2>
       <div
         ref={groupRef}
-        style={{ minHeight }}
+        data-reveal
+        style={{ minHeight, '--reveal-delay': '90ms' } as React.CSSProperties}
         className="isolate flex w-full max-w-[680px] flex-col md:w-1/2 md:max-w-none xl:w-[30%] xl:min-w-[540px]"
       >
         {QUESTIONS.map((item, i) => {

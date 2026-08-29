@@ -122,7 +122,7 @@ export function Hero() {
           <Ticker />
         </div>
       </div>
-      <div className="ld-hero-form absolute inset-x-4 bottom-4 z-1 flex justify-center">
+      <div className="ld-hero-form absolute inset-x-4 bottom-4 z-1 flex justify-center [--rise-delay:270ms] run-rise">
         <SignUpBar />
       </div>
     </section>

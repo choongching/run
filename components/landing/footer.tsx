@@ -17,7 +17,7 @@ export function Footer() {
   return (
     <footer className="ld-footer relative z-1 w-full bg-card">
       <div className="mx-auto flex min-h-[56svh] max-w-[2120px] flex-col px-4 pb-6 pt-8 md:h-[517px] md:flex-row md:justify-between md:px-8 xl:pt-20">
-        <div className="mb-8">
+        <div data-reveal className="mb-8">
           <p className="ld-heading mb-4 md:mb-6 xl:mb-8">
             Say what you need.
             <br />
@@ -31,7 +31,7 @@ export function Footer() {
             <ArrowRight className="ld-btn-chevron size-4" strokeWidth={2} />
           </Link>
         </div>
-        <div className="flex h-full flex-1 flex-col justify-between gap-16 md:flex-none md:gap-x-[100px] md:pr-[74px]">
+        <div data-reveal style={{ '--reveal-delay': '90ms' } as React.CSSProperties} className="flex h-full flex-1 flex-col justify-between gap-16 md:flex-none md:gap-x-[100px] md:pr-[74px]">
           <div className="flex w-full flex-wrap justify-between gap-y-1.5 md:gap-[74px] xl:gap-[150px]">
             {LISTS.map((list) => (
               <dl key={list.title} className="min-w-[49%] md:min-w-0">

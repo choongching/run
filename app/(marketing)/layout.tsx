@@ -2,6 +2,7 @@ import { Instrument_Serif } from 'next/font/google'
 
 import { Curtain } from '@/components/landing/footer'
 import { LandingNav } from '@/components/landing/nav'
+import { Reveal } from '@/components/landing/reveal'
 import { SmoothScroll } from '@/components/landing/smooth-scroll'
 import './landing.css'
 
@@ -25,6 +26,7 @@ export default function MarketingLayout({ children }: { children: React.ReactNod
   return (
     <div className={`run-landing flex-1 ${serif.variable}`}>
       <SmoothScroll />
+      <Reveal />
       <LandingNav />
       {children}
       <Curtain />

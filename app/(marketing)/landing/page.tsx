@@ -24,7 +24,7 @@ export default function LandingPage() {
     <div className="ld-page">
       <main>
         <Hero />
-        <section aria-label="An agent, not a chatbot" className="flex flex-col items-center gap-6 px-5 pb-16 pt-20 text-center md:gap-7 md:pb-28 md:pt-36">
+        <section data-reveal aria-label="An agent, not a chatbot" className="flex flex-col items-center gap-6 px-5 pb-16 pt-20 text-center md:gap-7 md:pb-28 md:pt-36">
           <Image src="/run-icon.png" alt="" width={64} height={64} className="size-12 rounded-lg md:size-16" />
           <h2 className="ld-heading max-w-[900px]">An agent, not a chatbot.</h2>
           <p className="ld-lead max-w-[620px] text-muted-foreground">
