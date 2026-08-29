@@ -45,7 +45,7 @@ const CARDS = [
   },
 ] as const
 
-type Part = { frame: HTMLElement; photo: HTMLElement; img: HTMLElement; desc: HTMLElement }
+type Part = { frame: HTMLElement; photo: HTMLElement; img: HTMLElement; desc: HTMLElement; toast: HTMLElement }
 
 export function FeatureStack() {
   const ref = useRef<HTMLElement>(null)
@@ -74,6 +74,7 @@ export function FeatureStack() {
               photo: frame.querySelector<HTMLElement>('.ld-deck-photo')!,
               img: frame.querySelector<HTMLElement>('.ld-deck-photo img')!,
               desc: frame.querySelector<HTMLElement>('.ld-deck-desc')!,
+              toast: frame.querySelector<HTMLElement>('.ld-deck-toast')!,
             }))
 
           // The deck's resting look, before any scroll: every photo a little
@@ -107,7 +108,24 @@ export function FeatureStack() {
           // entrance and pauses it below 50%; ours flips a data attribute the
           // toast's CSS story keys off, so it starts once the card has
           // arrived and resets when it goes.
-          const setActive = (p: Part, on: boolean) => p.frame.setAttribute('data-active', String(on))
+          //
+          // Turning a story off is deferred by a frame, and cancelled if it is
+          // turned on again first: a ScrollTrigger refresh re-renders the
+          // timelines through zero, and without this the story restarted
+          // from the top on every refresh while the card was still there.
+          const pending = new Map<Part, number>()
+          const setActive = (p: Part, on: boolean) => {
+            const raf = pending.get(p)
+            if (raf) { cancelAnimationFrame(raf); pending.delete(p) }
+            if (on) {
+              p.frame.setAttribute('data-active', 'true')
+              return
+            }
+            pending.set(p, requestAnimationFrame(() => {
+              pending.delete(p)
+              p.frame.setAttribute('data-active', 'false')
+            }))
+          }
           const enter = (p: Part) => {
             const tl = gsap.timeline({
               defaults: { ease: 'none' },
@@ -127,13 +145,17 @@ export function FeatureStack() {
             tl.to(p.photo, { scale: 1 - 0.15 * l, yPercent: (12 - position) * l, opacity: 1, duration: 2 }, 0)
             return tl
           }
+          // The toast fades with the scroll as its card leaves, on its own
+          // wrapper so the CSS story underneath is untouched; the story only
+          // resets once the wrapper is fully clear, so nothing ever blinks.
           const exit = (p: Part) => {
             const tl = gsap.timeline({
               defaults: { ease: 'none' },
-              onUpdate: () => { if (tl.progress() > 0.3) setActive(p, false) },
+              onUpdate: () => { if (tl.progress() > 0.5) setActive(p, false) },
             })
             const slow = desktop ? 3 : tablet ? 2 : 3
             tl.to(p.desc, { opacity: 0, yPercent: desktop ? -60 : -100, duration: desktop ? 0.5 : slow }, 0)
+            tl.to(p.toast, { opacity: 0, duration: slow * 0.4 }, 0)
             tl.to(p.photo, { scale: 1, y: -vh, duration: slow }, 0)
             return tl
           }
@@ -168,7 +190,7 @@ export function FeatureStack() {
             </article>
             <div className="ld-deck-photo ld-surface relative h-full w-full overflow-hidden bg-[#F9F8F5]">
               <Image src={card.photo} alt="" fill sizes="(min-width: 1280px) 823px, 100vw" className="object-cover" />
-              <div className="absolute inset-0 flex items-center justify-center p-6">
+              <div className="ld-deck-toast absolute inset-0 flex items-center justify-center p-6">
                 <card.Toast />
               </div>
             </div>

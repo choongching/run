@@ -94,7 +94,7 @@ function Card({
 }) {
   return (
     <div data-reveal style={{ '--reveal-delay': `${delay}ms` } as React.CSSProperties} className="ld-card flex w-[300px] shrink-0 snap-start flex-col gap-4 p-5 md:w-auto md:min-h-[420px] md:gap-5 md:p-7">
-      <Stage className="flex h-[150px] items-center justify-center rounded-lg bg-muted p-5 md:h-[180px] md:p-6">{children}</Stage>
+      <Stage className="flex h-[220px] items-center justify-center rounded-lg bg-muted p-5 md:h-[280px] md:p-6">{children}</Stage>
       <h3 className="text-xl font-semibold leading-tight tracking-tight md:text-2xl">{title}</h3>
       <p className="text-base leading-relaxed text-muted-foreground">{body}</p>
     </div>
