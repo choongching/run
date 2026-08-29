@@ -8,43 +8,45 @@ import { ChevronDown } from 'lucide-react'
 const QUESTIONS = [
   {
     q: 'If a prompt injection tells the agent to send an email, what stops it?',
-    a: 'Nothing stops it, because there is nothing to stop. Sending is not in the agent’s toolbox. The whole toolbox is: search inbox, read an email, create a draft, list and read and organize Drive files, write a document, ask you a question. An injected instruction cannot invoke a capability that does not exist, the same way your calculator cannot make phone calls.',
+    a: 'Nothing stops it, because there is nothing to stop: sending is not in the agent’s toolbox. An injected instruction cannot invoke a capability that does not exist, the same way your calculator cannot make phone calls.',
   },
   {
     q: 'What enforces the line between deciding and doing?',
-    a: 'The decision and the execution happen on different computers. The model runs on Anthropic’s servers, and when it decides to use a tool, all that physically happens is it emits a message and the session pauses. Execution only ever happens in Run’s backend, which auto-runs a short allowlist of read-only tools; every write, and anything unrecognized, stops there and becomes a card you see.',
+    a: 'The decision and the doing happen on different computers. The model only ever emits a request; Run’s own backend runs a short list of read-only tools freely and stops everything else at a card you see.',
   },
   {
     q: 'Could an injection forge or alter the approval?',
-    a: 'The pending call is written to the database on the server, attached to your own conversation. When you tap Approve, the server executes only what is stored in that row, and clears it so a double-tap cannot run it twice. Nothing the model says afterward can substitute a different action than the one you were shown.',
+    a: 'The pending call is stored on the server, attached to your conversation, and Approve runs only what is stored there. Nothing said afterwards can substitute a different action for the one you were shown.',
   },
   {
     q: 'So the worst case is?',
-    a: 'An injection can, at most, make an agent ask your permission to write a draft. A draft is inert: it sits in your Gmail drafts folder, and the only finger that can press Send is yours.',
+    a: 'An injection can, at most, make an agent ask your permission to write a draft. A draft is inert: it sits in your Gmail, and the only finger that can press Send is yours.',
   },
   {
     q: 'What happens when nobody is watching?',
-    a: 'A routine is the same agent doing the same work on a schedule. Each run starts with a blank memory and reads only its last report. And it cannot write: anything it would normally ask about, it describes in its reply and leaves for you, so an unattended run never becomes an unattended action.',
+    a: 'A routine is the same agent doing the same work on a schedule, and it cannot write at all. Anything it would normally ask about, it describes in its report and leaves for you.',
   },
   {
     q: 'Who pays for the web searches?',
-    a: 'We do, by default, up to a monthly limit shown on the Connectors page next to the name of the search engine actually answering. Connect your own Jina account and the limit stops applying: your key stays with Pipedream and never reaches us, exactly like Gmail and Drive.',
+    a: 'We do, up to a monthly limit shown on the Connectors page. Connect your own search account and the limit stops applying.',
   },
 ]
 
-// A single-open accordion. Clicking anywhere on a card toggles it; the
-// height animates through a grid row (landing.css) so no number has to be
-// measured. The group locks its own minimum height on mount, so opening
-// the last item never makes the page jump under the pointer.
+// A single-open accordion built to the reference (spec 11): one centred
+// column of white cards with no gap between them, every item closed to
+// start, clicking anywhere on the card toggles it, the chevron sits in a
+// pill that tints on hover and while open, and the height animates through
+// a grid row over 200ms (landing.css). The group locks its own minimum
+// height on mount, so opening the last item never makes the page jump
+// under the pointer.
 export function Faq() {
-  const [open, setOpen] = useState(0)
+  const [open, setOpen] = useState(-1)
   const groupRef = useRef<HTMLDivElement>(null)
   const [minHeight, setMinHeight] = useState<number>()
 
   useEffect(() => {
-    // Measured with the first item open (the initial state), and again on
-    // resize, because the number belongs to a width: the phone's taller
-    // list locked onto the desktop layout would leave a blank band.
+    // Measured with everything closed (the initial state), and again on
+    // resize, because the number belongs to a width.
     const measure = () => {
       const el = groupRef.current
       if (!el) return
@@ -59,36 +61,40 @@ export function Faq() {
   }, [])
 
   return (
-    <section id="faq" aria-label="Questions people ask" className="flex flex-col gap-8 px-4 py-16 md:px-8 md:py-28 lg:flex-row lg:justify-center lg:gap-[120px]">
-      <div className="flex flex-col gap-4 lg:w-[420px]">
-        <h2 className="ld-heading">Answered by reading the code, not from memory.</h2>
-      </div>
-      <div ref={groupRef} style={{ minHeight }} className="flex flex-col gap-3 lg:w-[640px]">
+    <section id="faq" aria-label="FAQ" className="flex w-full flex-col items-center px-4 pb-[100px] pt-[160px] md:px-0 xl:pb-[160px]">
+      <h2 className="ld-heading mb-8 leading-none">FAQ</h2>
+      <div
+        ref={groupRef}
+        style={{ minHeight }}
+        className="isolate flex w-full max-w-[680px] flex-col md:w-1/2 md:max-w-none xl:w-[30%] xl:min-w-[540px]"
+      >
         {QUESTIONS.map((item, i) => {
           const expanded = open === i
           const id = `faq-${i}`
           return (
             <div
               key={item.q}
-              className="ld-faq-item ld-card cursor-pointer p-5 md:px-7 md:py-6"
+              className="ld-faq-item group relative z-0 flex w-full cursor-pointer items-start justify-between gap-8 rounded-[16px] border-2 border-transparent bg-card p-4 md:p-6"
               onClick={() => setOpen(expanded ? -1 : i)}
             >
-              <button
-                type="button"
-                aria-expanded={expanded}
-                aria-controls={id}
-                className="flex w-full items-center justify-between gap-4 text-left outline-none md:gap-6"
-              >
-                <span className="text-base font-medium md:text-xl md:tracking-tight">{item.q}</span>
-                <span className="ld-faq-chevron flex size-9 shrink-0 items-center justify-center rounded-full border border-border">
-                  <ChevronDown className="size-4" strokeWidth={2} />
-                </span>
-              </button>
-              <div id={id} className="ld-faq-panel">
-                <div>
-                  <p className="pt-3.5 text-base leading-relaxed text-muted-foreground">{item.a}</p>
+              <div className="min-w-0 flex-1">
+                <button
+                  type="button"
+                  aria-expanded={expanded}
+                  aria-controls={id}
+                  className="relative z-10 flex min-h-[30px] w-full items-center justify-between gap-4 text-left text-base outline-none xl:gap-8"
+                >
+                  {item.q}
+                </button>
+                <div id={id} className="ld-faq-panel">
+                  <div>
+                    <p className="pt-1 text-[15px] leading-normal text-muted-foreground xl:pt-2">{item.a}</p>
+                  </div>
                 </div>
               </div>
+              <span aria-hidden className="ld-faq-chevron flex h-8 w-[42px] shrink-0 items-center justify-center rounded-[18px]">
+                <ChevronDown className="ld-faq-chevron-icon size-4" strokeWidth={2} />
+              </span>
             </div>
           )
         })}

@@ -291,28 +291,43 @@
 /* ---------- FAQ ---------- */
 
 /* Height animates through a grid row, which is the one way a height can
-   animate without knowing the number: 0fr to 1fr over the spec's 200ms. The
-   same recipe the sign-in showcase uses for its card rows. */
+   animate without knowing the number: 0fr to 1fr over the spec's 200ms. */
 .run-landing .ld-faq-panel {
   display: grid;
   grid-template-rows: 0fr;
   transition: grid-template-rows 200ms ease;
 }
 .run-landing .ld-faq-panel > div {
+  /* hidden, not clip: only a non-visible overflow lets the grid row shrink
+     the item below its content height. */
   overflow: hidden;
+  min-height: 0;
 }
-.run-landing [aria-expanded='true'] + .ld-faq-panel {
+.run-landing .ld-faq-item:has([aria-expanded='true']) .ld-faq-panel {
   grid-template-rows: 1fr;
 }
+/* The chevron's pill: 42 x 32, tinted on hover and while open, blue on
+   keyboard focus; the chevron itself points down closed and up open. */
 .run-landing .ld-faq-chevron {
-  transition: transform 200ms ease, background-color 200ms ease;
+  transition: background-color 200ms ease-out;
 }
-.run-landing [aria-expanded='true'] .ld-faq-chevron {
+.run-landing .ld-faq-item:hover .ld-faq-chevron,
+.run-landing .ld-faq-item:has([aria-expanded='true']) .ld-faq-chevron {
+  background: var(--sidebar);
+}
+.run-landing .ld-faq-chevron-icon {
+  transition: transform 200ms ease-out;
+}
+.run-landing .ld-faq-item:has([aria-expanded='true']) .ld-faq-chevron-icon {
   transform: rotate(180deg);
-  background: var(--muted);
 }
-.run-landing .ld-faq-item:hover .ld-faq-chevron {
-  background: var(--muted);
+.run-landing .ld-faq-item:has(:focus-visible) {
+  z-index: 10;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(66, 181, 220, 0.3);
+}
+.run-landing .ld-faq-item:has(:focus-visible) .ld-faq-chevron {
+  background: #c3eaf4;
 }
 
 /* ---------- footer button ---------- */
