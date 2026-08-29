@@ -27,7 +27,7 @@ const CROSSFADE_MS = 900
 //
 // Two <video> elements take turns: while one plays, the next clip is
 // loaded behind it, and at the end the other fades in over it.
-export function HeroMedia() {
+export function HeroMedia({ sources = CLIPS }: { sources?: string[] }) {
   const wrap = useRef<HTMLDivElement>(null)
   const [available, setAvailable] = useState<string[] | null>(() =>
     typeof window !== 'undefined' && prefersReducedMotion() ? [] : null
@@ -41,7 +41,7 @@ export function HeroMedia() {
     if (available !== null) return
     let cancelled = false
     Promise.all(
-      CLIPS.map((src) =>
+      sources.map((src) =>
         fetch(src, { method: 'HEAD' })
           .then((r) => (r.ok && (r.headers.get('content-type') ?? '').startsWith('video') ? src : null))
           .catch(() => null)
@@ -52,7 +52,7 @@ export function HeroMedia() {
     return () => {
       cancelled = true
     }
-  }, [available])
+  }, [available, sources])
 
   // The front video plays while the hero is on screen and the tab is
   // visible, and pauses otherwise: the hero scrolls away under the rest
@@ -120,14 +120,14 @@ export function HeroMedia() {
 }
 
 // The still that is there before, under, and instead of the video.
-export function HeroPoster() {
+export function HeroPoster({ src = '/landing/hero-poster.webp', priority = true }: { src?: string; priority?: boolean }) {
   return (
     <Image
-      src="/landing/hero-poster.webp"
+      src={src}
       alt=""
       fill
-      priority
-      fetchPriority="high"
+      priority={priority}
+      fetchPriority={priority ? 'high' : undefined}
       sizes="100vw"
       className="object-cover opacity-90"
     />
