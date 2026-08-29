@@ -189,36 +189,41 @@ export function FeatureStack() {
 // The toast is itself the first staged element: until its card is the
 // active one, the photo stands alone, the way a paused video shows its
 // poster.
-const toast = 'ld-t w-full max-w-[600px] rounded-xl bg-white/96 p-3 shadow-[0_18px_60px_-24px_rgba(0,0,0,0.35)] backdrop-blur-sm'
+const toast = 'ld-t w-full max-w-[440px] rounded-xl bg-white/96 p-3 shadow-[0_18px_60px_-24px_rgba(0,0,0,0.35)] backdrop-blur-sm'
 
 function WorkingToast() {
   return (
     <div className={toast}>
       <div className="flex items-center gap-2 px-2 pb-3 pt-1 text-[15px]">
         <Image src="/run-icon.png" alt="" width={18} height={18} className="rounded-sm" />
-        Run working…
+        <span className="relative">
+          <span className="ld-t-out" style={at(4.0)}>Run working…</span>
+          <span className="ld-t absolute left-0 top-0 whitespace-nowrap" style={at(4.0)}>Done</span>
+        </span>
       </div>
       <div className="flex flex-col gap-1.5">
-        <div className="ld-t flex items-center gap-2" style={at(0.2)}>
-          <Spinner start={0.2} spins={2} />
-          <div className="flex h-11 flex-1 items-center justify-between rounded-lg border border-border bg-card px-3 text-sm">
-            <span className="flex items-center gap-2"><Mail className="size-4 text-muted-foreground" strokeWidth={1.75} />Read the thread from Acme</span>
-            <span className="relative text-[13px] text-muted-foreground">
-              <span className="ld-t-out" style={at(2.0)}>Reading…</span>
-              <span className="ld-t absolute right-0 top-0" style={at(2.0)}>Done</span>
-            </span>
-          </div>
+        <div className="ld-t flex h-11 items-center justify-between gap-2 rounded-lg border border-border bg-card px-3 text-sm" style={at(0.2)}>
+          <span className="flex items-center gap-2">
+            <Spinner start={0.2} spins={2} />
+            <Mail className="size-4 text-muted-foreground" strokeWidth={1.75} />
+            Read the thread from Acme
+          </span>
+          <span className="relative text-[13px] text-muted-foreground">
+            <span className="ld-t-out" style={at(2.0)}>Reading…</span>
+            <span className="ld-t absolute right-0 top-0" style={at(2.0)}>Done</span>
+          </span>
         </div>
-        <div className="ld-t flex items-center gap-2" style={at(0.5)}>
-          <Spinner start={2.2} spins={2} />
-          <div className="flex h-11 flex-1 items-center justify-between rounded-lg border border-border bg-card px-3 text-sm">
-            <span className="flex items-center gap-2"><FileText className="size-4 text-muted-foreground" strokeWidth={1.75} />Draft the reply about invoice 1042</span>
-            <span className="relative text-[13px] text-muted-foreground">
-              <span className="ld-t-out" style={at(2.2)}>Up next</span>
-              <span className="ld-t ld-t-out absolute right-0 top-0" style={{ '--d': '2.2s', '--d2': '4.0s' } as React.CSSProperties}>Drafting…</span>
-              <span className="ld-t absolute right-0 top-0" style={at(4.0)}>Done</span>
-            </span>
-          </div>
+        <div className="ld-t flex h-11 items-center justify-between gap-2 rounded-lg border border-border bg-card px-3 text-sm" style={at(0.5)}>
+          <span className="flex items-center gap-2">
+            <Spinner start={2.2} spins={2} />
+            <FileText className="size-4 text-muted-foreground" strokeWidth={1.75} />
+            Draft the reply about invoice 1042
+          </span>
+          <span className="relative text-[13px] text-muted-foreground">
+            <span className="ld-t-out" style={at(2.2)}>Up next</span>
+            <span className="ld-t ld-t-out absolute right-0 top-0" style={{ '--d': '2.2s', '--d2': '4.0s' } as React.CSSProperties}>Drafting…</span>
+            <span className="ld-t absolute right-0 top-0" style={at(4.0)}>Done</span>
+          </span>
         </div>
       </div>
     </div>
