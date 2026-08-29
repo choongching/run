@@ -23,8 +23,8 @@ const QUESTIONS = [
     a: 'It asks your permission to write a draft. A draft sits in your Gmail until you press Send yourself.',
   },
   {
-    q: 'What about when I am not there?',
-    a: 'A routine is the same agent on a schedule, and it cannot write at all. Anything it would have asked about goes in its report for you.',
+    q: 'What does it do while I\'m away?',
+    a: 'On a schedule it can only read and report. Anything it would normally ask you about, it leaves in the report for when you\'re back.',
   },
   {
     q: 'Who pays for the web searches?',
