@@ -1,12 +1,10 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 
 // The reference's footer (spec 12.2): a full-width white card, 517px tall,
 // its bottom corners the page's last edge before the curtain. Left, the
 // page's line again as a two-line serif heading with the italic turn and
-// the one dark button on the page; right, three short link lists and, at
-// the bottom, the mark over a mono copyright.
+// the one dark button on the page; right, three short link lists.
 const LISTS = [
   { title: 'Product', links: [['How it works', '#how'], ['Safety', '#safety'], ['FAQ', '#faq']] },
   { title: 'Company', links: [['Contact', 'mailto:teo.choong.ching@gmail.com'], ['Source', 'https://github.com/choongching/run']] },
@@ -19,9 +17,9 @@ export function Footer() {
       <div className="mx-auto flex min-h-[56svh] max-w-[2120px] flex-col px-4 pb-6 pt-8 md:h-[517px] md:flex-row md:justify-between md:px-8 xl:pt-20">
         <div data-depth className="mb-8">
           <p className="ld-heading mb-4 md:mb-6 xl:mb-8">
-            Say what you need.
+            Hand off the small tasks.
             <br />
-            <em>Run does the rest.</em>
+            <em>Take back the day.</em>
           </p>
           <Link
             href="/register"
@@ -31,7 +29,7 @@ export function Footer() {
             <ArrowRight className="ld-btn-chevron size-4" strokeWidth={2} />
           </Link>
         </div>
-        <div data-reveal style={{ '--reveal-delay': '90ms' } as React.CSSProperties} className="flex h-full flex-1 flex-col justify-between gap-16 md:flex-none md:gap-x-[100px] md:pr-[74px]">
+        <div data-reveal style={{ '--reveal-delay': '90ms' } as React.CSSProperties} className="md:pr-[74px]">
           <div className="flex w-full flex-wrap justify-between gap-y-1.5 md:gap-[74px] xl:gap-[150px]">
             {LISTS.map((list) => (
               <dl key={list.title} className="min-w-[49%] md:min-w-0">
@@ -45,9 +43,6 @@ export function Footer() {
                 ))}
               </dl>
             ))}
-          </div>
-          <div className="mt-auto flex flex-col items-start gap-2 md:mt-0">
-            <Image src="/run-icon.png" alt="" width={40} height={40} className="rounded-lg" />
           </div>
         </div>
       </div>
