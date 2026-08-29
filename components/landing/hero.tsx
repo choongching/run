@@ -113,9 +113,9 @@ export function Hero() {
       <div className="relative z-1 flex flex-col items-center gap-8 px-5 text-center text-white md:gap-10 md:-translate-y-8">
         {/* Two short lines, the second the turn, in italic. */}
         <h1 className="ld-display [--rise-delay:0ms] run-rise">
-          Less admin.
+          Fewer small tasks.
           <br />
-          <em>More afternoon.</em>
+          <em>More of the day.</em>
         </h1>
         <div className="flex flex-col items-center gap-2 [--rise-delay:90ms] run-rise">
           <p className="text-[17px] text-white">Run does the busywork, and asks before anything goes out.</p>
