@@ -63,17 +63,10 @@ function Ticker() {
 
   const Icon = TICKER[index].icon
   return (
-    // A frosted status chip, the shape of a live activity toast: a green
-    // dot that says something is happening, the icon of the thing doing it,
-    // and the line sliding up into place.
-    <div
-      aria-live="polite"
-      className="flex h-10 items-center gap-2.5 overflow-hidden rounded-full border border-white/15 bg-white/12 pl-3.5 pr-4 text-[15px] text-white/90 shadow-[0_8px_30px_-12px_rgba(0,0,0,0.35)] backdrop-blur-md"
-    >
-      <span aria-hidden className="size-2 shrink-0 rounded-full bg-[#7fd1a0] shadow-[0_0_0_3px_rgba(127,209,160,0.25)]" />
+    <div aria-live="polite" className="flex h-[30px] items-center justify-center overflow-hidden text-[17px] text-white/70">
       {/* key replays the slide on each line: the new one rises into place. */}
-      <span key={index} className="ld-ticker-line flex items-center gap-2 whitespace-nowrap">
-        <Icon className="size-4 shrink-0 text-white/70" strokeWidth={1.75} />
+      <span key={index} className="ld-ticker-line flex items-center gap-2.5">
+        <Icon className="size-[18px] shrink-0" strokeWidth={1.75} />
         {TICKER[index].text}
       </span>
     </div>
@@ -131,8 +124,8 @@ export function Hero() {
           <br />
           <em>Run does the rest.</em>
         </h1>
-        <div className="flex flex-col items-center gap-3.5 [--rise-delay:90ms] run-rise">
-          <p className="text-[17px] font-medium text-white">Let Run do the busywork.</p>
+        <div className="flex flex-col items-center gap-2 [--rise-delay:90ms] run-rise">
+          <p className="text-[17px] text-white">Let Run do the busywork.</p>
           <Ticker />
         </div>
       </div>
