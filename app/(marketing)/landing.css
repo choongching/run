@@ -227,6 +227,67 @@
   }
 }
 
+/* ---------- the deck's toast stories ---------- */
+
+/* Every staged element starts hidden and arrives at its own --d once the
+   card is active; an --d2 sends it away again; a spinner turns --n times
+   from --d. Removing data-active resets all of it, so the story plays
+   again the next time the card arrives, and never on its own. */
+.run-landing .ld-t,
+.run-landing .ld-t-spin {
+  opacity: 0;
+}
+.run-landing [data-active='true'] .ld-t {
+  animation: ld-t-in 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--d, 0s);
+}
+.run-landing [data-active='true'] .ld-t-out {
+  animation: ld-t-in 400ms cubic-bezier(0.22, 1, 0.36, 1) both, ld-t-away 250ms ease both;
+  animation-delay: var(--d, 0s), var(--d2, var(--d, 0s));
+}
+.run-landing [data-active='true'] .ld-t-out:not(.ld-t) {
+  opacity: 1;
+  animation: ld-t-away 250ms ease both;
+  animation-delay: var(--d, 0s);
+}
+.run-landing [data-active='true'] .ld-t-spin {
+  animation: ld-t-in 300ms ease both, ld-t-spin 900ms linear var(--n, 1), ld-t-away 200ms ease both;
+  animation-delay: var(--d, 0s), var(--d, 0s), calc(var(--d, 0s) + var(--n, 1) * 900ms);
+}
+.run-landing [data-active='true'] .ld-t-press {
+  animation: ld-t-in 400ms cubic-bezier(0.22, 1, 0.36, 1) both, ld-t-press 220ms ease both, ld-t-away 250ms ease both;
+  animation-delay: var(--d, 0s), var(--p, 0s), var(--d2, 0s);
+}
+@keyframes ld-t-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes ld-t-away {
+  to { opacity: 0; }
+}
+@keyframes ld-t-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes ld-t-press {
+  50% { transform: scale(0.94); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .run-landing .ld-t,
+  .run-landing [data-active='true'] .ld-t,
+  .run-landing [data-active='true'] .ld-t-out,
+  .run-landing [data-active='true'] .ld-t-press {
+    animation: none;
+    opacity: 1;
+  }
+  .run-landing .ld-t-spin,
+  .run-landing [data-active='true'] .ld-t-spin,
+  .run-landing [data-active='true'] .ld-t-out:not(.ld-t) {
+    animation: none;
+    opacity: 0;
+  }
+}
+
 /* ---------- FAQ ---------- */
 
 /* Height animates through a grid row, which is the one way a height can

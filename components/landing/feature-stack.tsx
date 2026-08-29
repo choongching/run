@@ -102,8 +102,16 @@ export function FeatureStack() {
             },
           })
 
+          // The spec plays a card's video between 50% and 80% of its
+          // entrance and pauses it below 50%; ours flips a data attribute the
+          // toast's CSS story keys off, so it starts once the card has
+          // arrived and resets when it goes.
+          const setActive = (p: Part, on: boolean) => p.frame.setAttribute('data-active', String(on))
           const enter = (p: Part) => {
-            const tl = gsap.timeline({ defaults: { ease: 'none' } })
+            const tl = gsap.timeline({
+              defaults: { ease: 'none' },
+              onUpdate: () => setActive(p, tl.progress() >= 0.5),
+            })
             tl.to(p.desc, { opacity: 1, duration: desktop ? 1 : 0.5 }, desktop ? 0.1 : 0)
             tl.to(p.desc, { scale: 1, yPercent: 0, duration: desktop ? 1 : 2 }, desktop ? 0.1 : 0)
             tl.to(p.photo, { scale: 1, yPercent: 0, opacity: 1, duration: 2 }, 0)
@@ -119,7 +127,10 @@ export function FeatureStack() {
             return tl
           }
           const exit = (p: Part) => {
-            const tl = gsap.timeline({ defaults: { ease: 'none' } })
+            const tl = gsap.timeline({
+              defaults: { ease: 'none' },
+              onUpdate: () => { if (tl.progress() > 0.3) setActive(p, false) },
+            })
             const slow = desktop ? 3 : tablet ? 2 : 3
             tl.to(p.desc, { opacity: 0, yPercent: desktop ? -60 : -100, duration: desktop ? 0.5 : slow }, 0)
             tl.to(p.photo, { scale: 1, y: -vh, duration: slow }, 0)
@@ -168,16 +179,31 @@ export function FeatureStack() {
 }
 
 // ---- the three toasts: one small piece of the product on each photo ----
+//
+// Each one is a short story told once when its card is the active one
+// (data-active on the frame): elements arrive on a delay, a spinner turns
+// a fixed number of times and resolves to a check. Delays are in seconds
+// on --d; nothing here loops, and the story resets when the card leaves.
 
-const toast = 'w-full max-w-[600px] rounded-xl bg-white/96 p-3 shadow-[0_18px_60px_-24px_rgba(0,0,0,0.35)] backdrop-blur-sm'
+// The toast is itself the first staged element: until its card is the
+// active one, the photo stands alone, the way a paused video shows its
+// poster.
+const toast = 'ld-t w-full max-w-[600px] rounded-xl bg-white/96 p-3 shadow-[0_18px_60px_-24px_rgba(0,0,0,0.35)] backdrop-blur-sm'
 
-function Spinner({ done }: { done?: boolean }) {
-  return done ? (
-    <span className="flex size-6 items-center justify-center text-primary">
-      <Check className="size-3.5" strokeWidth={2} />
+function at(d: number) {
+  return { '--d': `${d}s` } as React.CSSProperties
+}
+
+// A step row: a spinner that turns `spins` times from `start`, then a check.
+function Spinner({ start, spins }: { start: number; spins: number }) {
+  return (
+    <span className="relative flex size-6 shrink-0 items-center justify-center">
+      <span
+        className="ld-t-spin absolute inset-0 rounded-full border border-dashed border-muted-foreground/60"
+        style={{ '--d': `${start}s`, '--n': spins } as React.CSSProperties}
+      />
+      <Check className="ld-t size-3.5 text-primary" strokeWidth={2} style={at(start + spins * 0.9)} />
     </span>
-  ) : (
-    <span className="size-6 rounded-full border border-dashed border-border" />
   )
 }
 
@@ -189,18 +215,25 @@ function WorkingToast() {
         Run working…
       </div>
       <div className="flex flex-col gap-1.5">
-        <div className="flex items-center gap-2">
-          <Spinner done />
+        <div className="ld-t flex items-center gap-2" style={at(0.2)}>
+          <Spinner start={0.2} spins={2} />
           <div className="flex h-11 flex-1 items-center justify-between rounded-lg border border-border bg-card px-3 text-sm">
             <span className="flex items-center gap-2"><Mail className="size-4 text-muted-foreground" strokeWidth={1.75} />Read the thread from Acme</span>
-            <span className="text-[13px] text-muted-foreground">Done</span>
+            <span className="relative text-[13px] text-muted-foreground">
+              <span className="ld-t-out" style={at(2.0)}>Reading…</span>
+              <span className="ld-t absolute right-0 top-0" style={at(2.0)}>Done</span>
+            </span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Spinner />
+        <div className="ld-t flex items-center gap-2" style={at(0.5)}>
+          <Spinner start={2.2} spins={2} />
           <div className="flex h-11 flex-1 items-center justify-between rounded-lg border border-border bg-card px-3 text-sm">
             <span className="flex items-center gap-2"><FileText className="size-4 text-muted-foreground" strokeWidth={1.75} />Draft the reply about invoice 1042</span>
-            <span className="text-[13px] text-muted-foreground">Up next</span>
+            <span className="relative text-[13px] text-muted-foreground">
+              <span className="ld-t-out" style={at(2.2)}>Up next</span>
+              <span className="ld-t ld-t-out absolute right-0 top-0" style={{ '--d': '2.2s', '--d2': '4.0s' } as React.CSSProperties}>Drafting…</span>
+              <span className="ld-t absolute right-0 top-0" style={at(4.0)}>Done</span>
+            </span>
           </div>
         </div>
       </div>
@@ -211,7 +244,7 @@ function WorkingToast() {
 function ApprovalToast() {
   return (
     <div className={cn(toast, 'max-w-[420px]')}>
-      <div className="overflow-hidden rounded-lg border border-ring/60 bg-card">
+      <div className="ld-t overflow-hidden rounded-lg border border-ring/60 bg-card" style={at(0.2)}>
         <div className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium">
           <GmailIcon className="h-3 w-4" />
           Create a draft in Gmail
@@ -223,9 +256,14 @@ function ApprovalToast() {
           <span>Re: Invoice 1042, second reminder</span>
         </div>
       </div>
-      <div aria-hidden className="flex justify-end gap-2 pt-3">
-        <span className="flex h-8 items-center rounded-lg border border-border bg-card px-3 text-[13px] font-medium">Cancel</span>
-        <span className="flex h-8 items-center rounded-lg bg-primary px-3 text-[13px] font-medium text-primary-foreground">Approve</span>
+      <div aria-hidden className="relative flex h-11 items-center justify-end gap-2">
+        <span className="ld-t ld-t-out flex h-8 items-center rounded-lg border border-border bg-card px-3 text-[13px] font-medium" style={{ '--d': '0.6s', '--d2': '2.6s' } as React.CSSProperties}>Cancel</span>
+        {/* The yes: the button presses at 2.4s, then gives way to the receipt. */}
+        <span className="ld-t ld-t-press ld-t-out flex h-8 items-center rounded-lg bg-primary px-3 text-[13px] font-medium text-primary-foreground" style={{ '--d': '0.6s', '--p': '2.4s', '--d2': '2.6s' } as React.CSSProperties}>Approve</span>
+        <span className="ld-t absolute right-0 flex items-center gap-2 text-[13px] text-muted-foreground" style={at(2.8)}>
+          <Check className="size-3.5 text-primary" strokeWidth={2} />
+          Draft created in your Gmail
+        </span>
       </div>
     </div>
   )
@@ -234,14 +272,14 @@ function ApprovalToast() {
 function AskToast() {
   return (
     <div className={cn(toast, 'max-w-[520px]')}>
-      <p className="px-2 pb-3 pt-1 text-sm leading-normal">
+      <p className="ld-t px-2 pb-3 pt-1 text-sm leading-normal" style={at(0.2)}>
         Churn fell to 2.1% after the onboarding change, page 4.
       </p>
       <div className="flex flex-wrap gap-1.5 px-2 pb-3">
-        <span className="flex h-6 items-center rounded-md border border-border bg-card px-2 text-xs">Q2 board deck.pdf</span>
-        <span className="flex h-6 items-center rounded-md border border-border bg-card px-2 text-xs">Retention, weekly</span>
+        <span className="ld-t flex h-6 items-center rounded-md border border-border bg-card px-2 text-xs" style={at(0.9)}>Q2 board deck.pdf</span>
+        <span className="ld-t flex h-6 items-center rounded-md border border-border bg-card px-2 text-xs" style={at(1.1)}>Retention, weekly</span>
       </div>
-      <div className="flex h-11 items-center rounded-lg border border-border bg-card px-3 text-sm text-muted-foreground">
+      <div className="ld-t flex h-11 items-center rounded-lg border border-border bg-card px-3 text-sm text-muted-foreground" style={at(1.6)}>
         Ask Run anything
       </div>
     </div>
