@@ -6,7 +6,7 @@
 export function SignUpBar({ className = '' }: { className?: string }) {
   return (
     <form action="/register" method="get" className={`flex w-full justify-center ${className}`}>
-      <div className="flex h-[54px] w-full max-w-[275px] items-center rounded-[12px] border border-white/10 bg-white/10 p-1.5 backdrop-blur-lg transition-[max-width] duration-300 ease-out md:focus-within:max-w-[360px]">
+      <div className="flex h-[56px] w-full max-w-[275px] items-center justify-between rounded-[16px] border border-white/10 bg-[rgba(227,221,207,0.2)] p-1.5 backdrop-blur-[8px] transition-[max-width] duration-300 ease-out md:focus-within:max-w-[360px]">
         <input
           name="email"
           type="email"
@@ -18,7 +18,7 @@ export function SignUpBar({ className = '' }: { className?: string }) {
         />
         <button
           type="submit"
-          className="flex h-[42px] shrink-0 items-center rounded-[12px] bg-card px-4 text-[15px] font-medium text-foreground transition-colors hover:bg-white/90"
+          className="flex h-[42px] shrink-0 items-center rounded-[12px] border-2 border-transparent bg-white px-[14px] text-[15px] text-[#1a1613] transition-colors hover:bg-[#120c08] hover:text-white active:bg-[#473d37] active:text-white focus-visible:border-blue-500 focus-visible:shadow-[0_0_0_3px_rgba(66,181,220,0.3)]"
         >
           Get started
         </button>
