@@ -8,19 +8,31 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** The clock that runs routines is in the repo now, and
-the README explains it in one place. The clock had lived only in the
-production database, made by hand, with its password pasted into its own
-command, and during a call about how Run works somebody switched it off;
-nothing in the code could have shown that. Routines were silent for a day.
-The job is now created by a migration, reads its password from the
-database's own vault, and a missing password is a failed run rather than a
-quiet one. The founder then asked the question every engineer asks, timer or
-queue, and decided with the measured numbers in hand: the timer stays, no
-queue, and the README section "How routines run, and why a timer" carries
-the whole argument so the next developer can debate it from facts. Next
-step: the chat's pre-stream database chain, about nine calls and a second
-before the first byte on every turn, the one real speed item left.
+**Where we left off:** The front page has been through a second pass,
+section by section, against the site it takes its manner from. The hero
+says "Fewer small tasks. More of the day." over the founder's own clip and
+steps back as you scroll; the navigation pill is copied from the reference
+to the pixel in every state; each chapter heading comes up out of the
+distance; the deck's cards each play a short story and fade out as they
+leave; the three How-it-works pictures play theirs too; the FAQ and the
+How-it-works copy are shorter and asked the way a person would; the
+footer and closing curtain match the reference. Merged to `main`. Next: a
+look on an actual phone and at tablet width, a Lighthouse pass, and the
+remaining sections in the same manner (Safety, Capabilities) if the
+founder wants them touched.
+
+Before that, the clock that runs routines went into the repo, and the
+README explains in one place why it is a timer and not a queue, decided with
+measured numbers in hand. It
+had lived only in the production database, made by hand, with its password
+pasted into its own command, and during a call about how Run works somebody
+switched it off; nothing in the code could have shown that. Routines were
+silent for a day. The job is now created by a migration, reads its password
+from the database's own vault, and a missing password is a failed run rather
+than a quiet one. The same session answered a front-end developer's questions
+about where uploaded files go (nowhere: they become text or a resized image
+and are consumed by the message) and what a chat turn costs on the database
+(about nine calls before the first byte, still the open item).
 
 Before that, the sign-in page got a second column, and what is
 in it is the product itself: Run's own chat, told as a short story. A message
@@ -188,6 +200,114 @@ Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
 
 ---
+
+## 2026-08-29 (evening): The front page, section by section against the reference
+
+- **Every section was put next to the reference site and reworked to its
+  manner.** Short headings in a serif with an italic turn, one or two
+  sentences under each, whitespace as the layout, one call to action
+  repeated. Nothing from the reference was downloaded; the videos are the
+  founder's own clips and the photographs are ours.
+- **Hero.** The line is now "Fewer small tasks. More of the day." with the
+  subline "Run takes the small tasks. You take the day.", chosen from a set
+  of variations after two earlier tries were rejected as too SaaS or plain
+  odd. The words step back and fade as you scroll. The clip loops behind a
+  glass email bar; "Get started" takes the email to the sign-up page with
+  the field filled in, which is how the reference's pre-registration works.
+- **Navigation pill.** Ported one-to-one from the reference's DOM: ring,
+  sliding white pill, 300ms fades, hover, pressed and focus states, the
+  wordmark folding away after 400px of scroll and back at 360. A CSS
+  minifier trap cost an hour: it drops `backdrop-filter` when the prefixed
+  form comes after it, so the prefixed line is written first.
+- **Chapters open out of the distance.** The intro and every unpinned
+  section heading grow from 80% and clear to full size and full ink,
+  scrubbed by the scroll, one shared rule. Cards and lists keep a small
+  rise instead, so contents settle rather than zoom.
+- **Deck.** Three photo cards stacked front to back, each with one small
+  piece of the product floating on it that plays a short story once when
+  the card is the active one: two steps ticking off, a draft waiting for
+  Approve, an answer with its sources. The toast now fades with the scroll
+  as its card leaves, and a story can no longer restart mid-play when
+  ScrollTrigger refreshes (turning it off is deferred by a frame).
+- **How it works.** The three pictures play their beat once on arrival:
+  the sentence writes itself, the job card fills in and gets its yes, the
+  steps tick off and stop to ask. Boxes taller. Copy cut: "The setup is
+  one sentence." with three parallel titles.
+- **FAQ.** Rebuilt to the reference (one centred column, cards with no
+  gap, all closed to start, a tinted chevron pill) and rewritten: every
+  question fits one line and is asked plainly ("Can it send an email
+  without asking me?"), every answer is two sentences, facts unchanged.
+- **Footer and curtain.** White card with the serif line and a dark Get
+  started, three link lists, the mark alone, then the pale blue curtain
+  with the wordmark. The CTA banner above it plays the corridor clip.
+- **Verified in Chrome throughout** by reading computed styles rather than
+  eyeballing: opacities and transforms at each scroll position, the idle
+  check (`document.getAnimations()` shows nothing of ours once the stories
+  finish), and screenshots mid-story. Merged to `main` via pull request.
+
+## 2026-08-29: A front page, designed first and built with everything moving
+
+- **Run has a landing page, live at the root.** A visit to `/` by someone
+  not signed in now serves a marketing page; the address stays `/`, because
+  the request is rewritten rather than redirected. A signed-in visit to `/`
+  is the dashboard home it always was. The page's internal address is kept
+  out of search engines and points its canonical at `/`, so the front page
+  has one address. Merged to `main` via pull request #297.
+- **Design first.** The founder brought a measured, section-by-section
+  study of another company's landing page as the reference for layout and
+  motion, and asked for the design before any code. The design was drawn on
+  a canvas: a desktop page, a phone page, the three feature cards side by
+  side, a sheet of tokens and parts, and seven notes carrying the motion
+  spec. It uses Run's own system and words throughout (Geist, the paper and
+  forest-green tokens, the founder's wall photograph, copy taken from the
+  README), not a copy of anyone else's page. Where the reference has a
+  number that counts up and quotes from customers, Run has neither yet, so
+  those two slots carry the trust story ("Reads are free. Writes ask
+  first.") and the complete list of what an agent can do. Inventing a
+  statistic or a testimonial would have been the first lie on the page.
+- **The call to action is the product's own box.** Instead of an email
+  field, the hero and the closing banner carry Run's composer: it types four
+  real jobs while it waits, four pills fill it, and submitting carries the
+  sentence to the sign-up page.
+- **Every piece of motion from the spec is in, and none of it loops.** The
+  navigation pill reads dark over the photograph and light after, folds its
+  wordmark away past 400px of scroll and back at 360, and slides one white
+  pill under whichever item the pointer is on (touch devices skip it, the
+  keyboard drives it on focus). The photograph clips inward with rounded
+  corners after 100px of scroll while the box lifts. A line under the
+  headline ticks through eight real step lines from the chat, once, every
+  2.5 seconds, then rests. The three feature cards stack like a deck and the
+  scroll peels them off one at a time while the section holds still. The
+  safety section holds still too while six pieces of the product fly in
+  from outside the window and settle around the rule, which then gives way
+  to its consequence. The FAQ opens one answer at a time and never jumps the
+  page. At the very end the page lifts away to reveal the wordmark on green.
+  Everything stands down under reduced motion, and the two held sections
+  simply lay themselves out flat.
+- **Verified in a browser, and six of my own defects caught by driving it.**
+  The sliding pill was invisible because it shared a class with the items it
+  slides under; the second safety heading was boxed to the first one's width
+  and wrapped over the paragraph; the FAQ chevron pointed the wrong way; the
+  footer button's label drew a darker block behind itself; the curtain
+  wordmark overflowed because a CSS font variable does not resolve inside an
+  SVG attribute (it is plain text now, sized from the viewport); and at phone
+  width the navigation wrapped and the held deck was taller than the screen.
+  A second pass over the code found two more: the ticker armed its next
+  timer inside a React state updater, which React runs twice in development,
+  and the FAQ's height lock was measured once and would have carried a
+  phone's number onto a desktop. All fixed before merge. Measured: the reveal
+  at the bottom is 417px at 1440 wide, the ticker steps at 2,500ms, no
+  console errors, the production build passes.
+- **Three decisions taken instead of following the reference's stack.** The
+  page sizes in pixels rather than changing the root font size, which cannot
+  be scoped and would have shrunk the whole app; it stays on npm; and it did
+  not add a second headless UI library for one accordion. Everything the
+  page needs is in its own stylesheet under one class, so the app's rules
+  do not apply to it and its two exceptions (large corners, an 84px
+  headline) do not leak out.
+- **Not yet checked.** The 1024 tablet width (the browser tool could not
+  resize that far), a real phone, a Lighthouse run, and the sign-up page
+  does not read the sentence the box sends it yet.
 
 ## 2026-08-28 (evening): The clock is in the repo, and a day of silence explained
 

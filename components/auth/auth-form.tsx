@@ -9,11 +9,14 @@ type AuthFormProps = {
   mode: 'login' | 'register'
   error?: string
   message?: string
+  // An address already typed somewhere else (the front page's bar), so the
+  // person does not type it twice. Only ever a pre-fill, never trusted.
+  email?: string
 }
 
 // The form on its own, no card around it: the AuthShell it sits in is the
 // frame now, and a box inside the column read as a frame within a frame.
-export function AuthForm({ mode, error, message }: AuthFormProps) {
+export function AuthForm({ mode, error, message, email }: AuthFormProps) {
   const isLogin = mode === 'login'
   return (
     <div className="flex flex-col gap-7">
@@ -55,7 +58,8 @@ export function AuthForm({ mode, error, message }: AuthFormProps) {
             type="email"
             placeholder="you@company.com"
             autoComplete="email"
-            autoFocus
+            defaultValue={email}
+            autoFocus={!email}
             required
           />
         </div>

@@ -724,6 +724,11 @@ Around that loop, the product has filled out:
 - **It is consistent.** Every screen shares the chat's centered column,
   buttons explain themselves when you hover, and empty pages say in one quiet
   line what will live there.
+- **There is a front page.** A visitor who is not signed in sees what Run is
+  before being asked for anything: one sentence, the box itself ready to be
+  typed into, the three things an agent does drawn as the chat itself, the
+  rule that reads are free and writes ask first, and the whole list of what
+  an agent can do. Nothing on it is invented and nothing on it loops.
 - **The door shows the product.** You sign in beside a working example rather
   than beside a blank wall. On the right of the form, Run's own chat plays
   three short stories: a Gmail draft waiting for your approval, an answer from
