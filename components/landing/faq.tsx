@@ -7,8 +7,8 @@ import { ChevronDown } from 'lucide-react'
 // code rather than from memory.
 const QUESTIONS = [
   {
-    q: 'What if something tricks it into sending an email?',
-    a: 'It cannot send one. Sending is not a tool it has, so no instruction, from you or from a stray web page, can make it happen.',
+    q: 'Can it send an email without asking me?',
+    a: 'No. Sending is not a tool it has, so nothing it reads, and nothing anyone tells it, can make that happen.',
   },
   {
     q: 'What keeps deciding and doing apart?',
