@@ -19,7 +19,9 @@ in a browser at desktop and phone widths, merged, and is live. Next: a look on
 an actual phone and at tablet width, a Lighthouse pass, and letting the
 sign-up page read the sentence the front page's box sends it.
 
-Before that, the clock that runs routines went into the repo. It
+Before that, the clock that runs routines went into the repo, and the
+README explains in one place why it is a timer and not a queue, decided with
+measured numbers in hand. It
 had lived only in the production database, made by hand, with its password
 pasted into its own command, and during a call about how Run works somebody
 switched it off; nothing in the code could have shown that. Routines were
@@ -326,6 +328,28 @@ and backups.
 - **Recorded for good.** The hard lessons from this and earlier sessions now
   live in one internal ledger, so the next person who asks "who runs it" or
   "where is the file" finds the answer, and the mistake that taught it.
+  Merged to `main` via pull request #293.
+- **The README says it too.** Two answers a developer had to ask for in
+  person are now in the Security FAQ, what runs a routine when nobody is
+  signed in and where an attached file goes, the "Under the hood" picture
+  shows the timer, and the deploy steps say the timer's secret must be put
+  in the vault. Pull request #294.
+- **Timer or queue, decided with numbers.** The founder asked whether the
+  five-minute clock should give way to the queue the developer described.
+  Measured first: 27 days of the timer cost 122 seconds of database time in
+  total, under 10 MB of traffic, and about 3 MB a month of its own log, none
+  of it moving with the number of routines; a routine run costs about five
+  cents on average and eight at the 90th percentile, paid to the model and
+  the same under any design; three users with two weekday routines each is
+  about six dollars a month, and the run allowance caps any one person. So
+  costs add and never compound, the timer stays, and a queue is the answer
+  only when runs start landing late, which has not happened once in 530
+  ticks. All of it is one README section now, "How routines run, and why a
+  timer", written for the developers who will want to argue. Pull request
+  #295. The only thing that grows, the tick log, has a one-line weekly
+  cleanup offered and not yet built; the founder is fine with it as is.
+- **Telegram set aside.** The lost report from the call was almost certainly
+  the outage itself; the founder chose not to chase it further.
 
 ## 2026-08-28: The door shows the product
 
