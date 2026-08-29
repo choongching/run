@@ -1,5 +1,11 @@
+'use client'
+
+import { useRef } from 'react'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
+
+import { gsap, useGSAP } from '@/lib/landing/gsap'
+import { prefersReducedMotion } from '@/lib/landing/motion'
 
 // The reference's footer (spec 12.2): a full-width white card, 517px tall,
 // its bottom corners the page's last edge before the curtain. Left, the
@@ -52,10 +58,39 @@ export function Footer() {
 
 // The fixed layer under the page: the gradient and the wordmark. The page
 // (main + footer) sits above it and ends 29vw short of the bottom, so the
-// last stretch of scroll lifts the page away and reveals this. No JS.
+// last stretch of scroll lifts the page away and reveals this. The
+// wordmark grows in as the page rises, scrubbed by that same stretch, so
+// it is as slow as the hand on the wheel and shrinks back the same way.
 export function Curtain() {
+  const ref = useRef<HTMLDivElement>(null)
+
+  useGSAP(
+    () => {
+      if (prefersReducedMotion()) return
+      gsap.fromTo(
+        '.ld-wordmark',
+        { xPercent: -50, scale: 0.7, transformOrigin: '50% 100%' },
+        {
+          xPercent: -50,
+          scale: 1,
+          ease: 'none',
+          scrollTrigger: {
+            // Looked up on the document: the scope above confines selector
+            // strings to the curtain, and the footer is outside it.
+            trigger: document.querySelector('.ld-footer'),
+            start: 'bottom bottom',
+            end: 'max',
+            scrub: true,
+            invalidateOnRefresh: true,
+          },
+        }
+      )
+    },
+    { scope: ref }
+  )
+
   return (
-    <div aria-hidden className="ld-curtain">
+    <div ref={ref} aria-hidden className="ld-curtain">
       <span className="ld-wordmark">Run</span>
     </div>
   )
