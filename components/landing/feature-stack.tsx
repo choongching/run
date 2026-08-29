@@ -282,7 +282,7 @@ function ApprovalToast() {
 
 function AskToast() {
   return (
-    <div className={cn(toast, 'max-w-[520px]')}>
+    <div className={toast}>
       <p className="ld-t px-2 pb-3 pt-1 text-sm leading-normal" style={at(0.2)}>
         Churn fell to 2.1% after the onboarding change, page 4.
       </p>
