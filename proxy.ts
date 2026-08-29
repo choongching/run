@@ -15,6 +15,9 @@ export const config = {
   matcher: [
     // robots.txt and sitemap.xml are public by definition; gating them sent
     // every crawler to /login and the sitemap said "/login" in its body.
-    '/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    // Video joins the image list: the front page's hero clips are fetched
+    // signed out, and without this a clip request was answered with a
+    // redirect to /login.
+    '/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:svg|png|jpg|jpeg|gif|webp|mp4|webm|mov)$).*)',
   ],
 }
