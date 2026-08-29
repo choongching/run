@@ -127,7 +127,7 @@ export function LandingNav() {
 
   const theme = overFaq ? 'light' : overHero ? 'dark' : 'light'
   const itemClass =
-    'ld-nav-item relative z-1 flex h-11 items-center px-5 text-[15px] bg-card text-foreground outline-none'
+    'ld-nav-item relative z-1 flex h-11 items-center px-3.5 text-sm bg-card text-foreground outline-none'
 
   return (
     <nav
@@ -142,7 +142,7 @@ export function LandingNav() {
       }}
     >
       <div
-        className="ld-nav-ring relative flex items-center gap-0.5 p-1.5"
+        className="ld-nav-ring relative flex items-center p-1.5"
         // Delegated, and on every move rather than on enter: an enter event
         // can be skipped when the pointer crosses two items in one frame,
         // and then the pill sits under the wrong one. Checking which item is
@@ -163,7 +163,7 @@ export function LandingNav() {
         <Link
           href="/"
           aria-label="Run home"
-          className={cn(itemClass, 'gap-2.5 pl-4')}
+          className={cn(itemClass, 'gap-2')}
           onFocus={(e) => moveTo(e.currentTarget)}
         >
           <Image src="/run-icon.png" alt="" width={22} height={22} className="ld-nav-mark rounded-sm" priority />
