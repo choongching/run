@@ -100,9 +100,11 @@ export function LandingNav() {
   // state to keep in step.
   const canHover = () => window.matchMedia('(hover: hover)').matches
 
+  const current = useRef<HTMLElement | null>(null)
   const moveTo = (item: HTMLElement) => {
     const pill = pillRef.current
     if (!pill) return
+    current.current = item
     setHovered(true)
     const to = { x: item.offsetLeft, width: item.offsetWidth }
     if (prefersReducedMotion()) {
@@ -114,6 +116,7 @@ export function LandingNav() {
   const leave = () => {
     const pill = pillRef.current
     if (!pill) return
+    current.current = null
     setHovered(false)
     if (prefersReducedMotion()) {
       gsap.set(pill, { width: 0 })
@@ -138,7 +141,18 @@ export function LandingNav() {
         if (!navRef.current?.contains(e.relatedTarget as Node)) leave()
       }}
     >
-      <div className="ld-nav-ring relative flex items-center gap-0.5 p-1.5">
+      <div
+        className="ld-nav-ring relative flex items-center gap-0.5 p-1.5"
+        // Delegated, and on every move rather than on enter: an enter event
+        // can be skipped when the pointer crosses two items in one frame,
+        // and then the pill sits under the wrong one. Checking which item is
+        // under the pointer each move costs nothing and cannot miss.
+        onPointerMove={(e) => {
+          if (e.pointerType === 'touch' || !canHover()) return
+          const item = (e.target as Element).closest('a')
+          if (item && item !== current.current) moveTo(item)
+        }}
+      >
         {/* The shared pill. It only ever has a width while a pointer or focus
             is inside the nav, and it sits under the items. */}
         <span
@@ -150,7 +164,6 @@ export function LandingNav() {
           href="/"
           aria-label="Run home"
           className={cn(itemClass, 'gap-2.5 pl-4')}
-          onPointerEnter={(e) => { if (e.pointerType !== 'touch' && canHover()) moveTo(e.currentTarget) }}
           onFocus={(e) => moveTo(e.currentTarget)}
         >
           <Image src="/run-icon.png" alt="" width={22} height={22} className="ld-nav-mark rounded-sm" priority />
@@ -163,16 +176,14 @@ export function LandingNav() {
             key={item.href}
             href={item.href}
             className={cn(itemClass, 'max-md:hidden')}
-            onPointerEnter={(e) => { if (e.pointerType !== 'touch' && canHover()) moveTo(e.currentTarget) }}
-            onFocus={(e) => moveTo(e.currentTarget)}
+              onFocus={(e) => moveTo(e.currentTarget)}
           >
             {item.label}
           </a>
         ))}
         <Link
           href="/login"
-          className={cn(itemClass, 'ld-nav-login backdrop-blur-lg')}
-          onPointerEnter={(e) => { if (e.pointerType !== 'touch' && canHover()) moveTo(e.currentTarget) }}
+          className={cn(itemClass, 'ld-nav-login')}
           onFocus={(e) => moveTo(e.currentTarget)}
         >
           Log in

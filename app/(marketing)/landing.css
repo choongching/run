@@ -102,6 +102,8 @@
    on the hero and forced to light while the FAQ is on screen. */
 .run-landing [data-nav-theme='dark'] .ld-nav-login {
   background: rgba(229, 229, 229, 0.3);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   color: #fff;
 }
 .run-landing [data-nav-theme='light'] .ld-nav-login {
@@ -112,8 +114,11 @@
    background: every item goes clear, and over the photograph their text
    turns white (the mark with it), except the one under the pill, which
    reads dark on white. That is the reference's hover state exactly. */
-.run-landing [data-nav-hover='true'] .ld-nav-item {
+.run-landing [data-nav-hover='true'] .ld-nav-item,
+.run-landing [data-nav-hover='true'] .ld-nav-item.ld-nav-login {
   background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
 }
 .run-landing [data-nav-hover='true'][data-nav-theme='dark'] .ld-nav-item {
   color: #fff;
