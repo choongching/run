@@ -1,0 +1,301 @@
+/* The landing page's own stylesheet. Everything here is scoped under
+   .run-landing so nothing leaks into the app, and the app's globals do not
+   need to know this page exists.
+
+   Two deliberate departures from docs/styleguide.md, both settled on the
+   design canvas (2026-08-29):
+
+   1. Radii. The app clamps every corner to 4-6px. A marketing page is made of
+      a few very large surfaces (a full-bleed photo, a 823px card, a 724px
+      banner) and a 6px corner on something that size reads as square. The
+      page uses 24px on those surfaces and 14px on ordinary cards, and only
+      here. Controls keep the app's 6px.
+
+   2. Type size. The app caps a page at 24px. This page opens at 84px. Same
+      reason the home hero is exempt: it is a headline, not a page title.
+
+   Colour is the app's tokens throughout (paper, card, border, ink, green), so
+   a token change in globals.css lands here too. */
+
+.run-landing {
+  background: var(--sidebar);
+  color: var(--foreground);
+  overflow-x: clip;
+}
+
+/* ---------- surfaces ---------- */
+
+.run-landing .ld-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+.run-landing .ld-surface {
+  border-radius: 24px;
+}
+.run-landing .ld-surface-sm {
+  border-radius: 16px;
+}
+
+/* ---------- type ramp ---------- */
+
+.run-landing .ld-display {
+  font-size: clamp(46px, 5.9vw, 84px);
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  font-weight: 600;
+  text-wrap: balance;
+}
+.run-landing .ld-heading {
+  font-size: clamp(34px, 3.6vw, 52px);
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+  font-weight: 600;
+  text-wrap: balance;
+}
+.run-landing .ld-subheading {
+  font-size: clamp(22px, 2.1vw, 30px);
+  line-height: 1.12;
+  letter-spacing: -0.015em;
+  font-weight: 600;
+}
+.run-landing .ld-lead {
+  font-size: clamp(17px, 1.3vw, 19px);
+  line-height: 1.45;
+}
+.run-landing .ld-eyebrow {
+  font-family: var(--font-geist-mono);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+}
+
+/* ---------- the pill nav ---------- */
+
+/* The ring around the items and the wash it sits on. The wash borrows the
+   wall's colour by being translucent over it, the same trick the home rail's
+   pills use. */
+.run-landing .ld-nav-ring {
+  border-radius: 16px;
+  background: rgba(227, 221, 207, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(13px);
+  -webkit-backdrop-filter: blur(13px);
+}
+.run-landing .ld-nav-item {
+  border-radius: 12px;
+  transition: background-color 300ms ease, color 300ms ease;
+}
+/* Over the hero the nav reads dark: white text, the Log in item on a grey
+   wash. Anywhere else it reads light. The attribute is set by a ScrollTrigger
+   on the hero and forced to light while the FAQ is on screen. */
+.run-landing [data-nav-theme='dark'] .ld-nav-login {
+  background: rgba(229, 229, 229, 0.3);
+  color: #fff;
+}
+.run-landing [data-nav-theme='light'] .ld-nav-login {
+  background: rgba(227, 221, 207, 0.4);
+  color: var(--foreground);
+}
+/* While a pointer is inside the nav, the shared white pill is the only
+   background; each item's own goes transparent so they never double up. */
+.run-landing [data-nav-hover='true'] .ld-nav-item {
+  background: transparent;
+}
+
+/* ---------- hero ---------- */
+
+/* The photo starts edge to edge and, after 100px of scroll, clips inward
+   with big rounded corners. clip-path is a composite-friendly property, so
+   this is a transition and not a reflow. The transition is the spec's 1s
+   quint-out. */
+.run-landing .ld-hero-media {
+  clip-path: inset(0px round 0px);
+  transition: clip-path 1000ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: clip-path;
+}
+.run-landing [data-zoom='true'] .ld-hero-media {
+  clip-path: inset(16px round 16px);
+}
+@media (min-width: 1024px) {
+  .run-landing [data-zoom='true'] .ld-hero-media {
+    clip-path: inset(32px round 24px);
+  }
+}
+.run-landing .ld-hero-form {
+  transition: transform 1000ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.run-landing [data-zoom='true'] .ld-hero-form {
+  transform: translateY(-50px);
+}
+
+/* The ticker: one line visible, each new one slides up into place. Slide is
+   a transform, so it composites. */
+.run-landing .ld-ticker-line {
+  animation: ld-ticker-in 1000ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes ld-ticker-in {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---------- feature deck ---------- */
+
+/* Below the tablet width the description sits above its card instead of
+   beside it; GSAP only ever moves transform and opacity, so the layout is
+   CSS's alone. */
+.run-landing .ld-deck-desc {
+  position: absolute;
+  width: 257px;
+  opacity: 0;
+}
+.run-landing .ld-deck-desc[data-side='left'] {
+  right: calc(50% + 411px + 28px);
+}
+.run-landing .ld-deck-desc[data-side='right'] {
+  left: calc(50% + 411px + 28px);
+}
+@media (max-width: 1023px) {
+  .run-landing .ld-deck-desc {
+    position: static;
+    width: auto;
+    max-width: 480px;
+  }
+}
+
+/* ---------- FAQ ---------- */
+
+/* Height animates through a grid row, which is the one way a height can
+   animate without knowing the number: 0fr to 1fr over the spec's 200ms. The
+   same recipe the sign-in showcase uses for its card rows. */
+.run-landing .ld-faq-panel {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 200ms ease;
+}
+.run-landing .ld-faq-panel > div {
+  overflow: hidden;
+}
+.run-landing [aria-expanded='true'] + .ld-faq-panel {
+  grid-template-rows: 1fr;
+}
+.run-landing .ld-faq-chevron {
+  transition: transform 200ms ease, background-color 200ms ease;
+}
+.run-landing [aria-expanded='true'] .ld-faq-chevron {
+  transform: rotate(180deg);
+  background: var(--muted);
+}
+.run-landing .ld-faq-item:hover .ld-faq-chevron {
+  background: var(--muted);
+}
+
+/* ---------- footer button ---------- */
+
+/* The chevron hides under the label on a mouse device and slides out on
+   hover. On touch there is no hover, so it is simply always there. */
+@media (hover: hover) {
+  .run-landing .ld-btn-chevron {
+    margin-left: -36px;
+    opacity: 0;
+    transition: margin-left 300ms cubic-bezier(0.22, 1, 0.36, 1), opacity 300ms ease;
+  }
+  .run-landing .ld-btn:hover .ld-btn-chevron,
+  .run-landing .ld-btn:focus-visible .ld-btn-chevron {
+    margin-left: 0;
+    opacity: 1;
+  }
+}
+
+/* ---------- curtain ---------- */
+
+/* The page (main + footer) sits above a fixed layer and ends 29vw short of
+   the bottom, so the last stretch of scroll lifts the page away and reveals
+   what is underneath: the green and the wordmark. No animation is involved;
+   it is the page's own height. */
+.run-landing .ld-page {
+  position: relative;
+  z-index: 1;
+  background: var(--sidebar);
+  margin-bottom: 30vw;
+}
+@media (min-width: 1024px) {
+  .run-landing .ld-page {
+    margin-bottom: 29vw;
+  }
+}
+.run-landing .ld-curtain {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  height: 480px;
+  background: linear-gradient(180deg, var(--primary) 0%, oklch(0.3 0.055 155) 100%);
+}
+@media (min-width: 1280px) {
+  .run-landing .ld-curtain {
+    height: 900px;
+  }
+}
+.run-landing .ld-wordmark {
+  /* Cap height is about 0.72em, so 26vw of type stands about 19vw tall,
+     inside the 29vw (30vw on a phone) the footer's margin reveals. The
+     reference wordmark is six letters at 96% of the width; three letters at
+     that width would stand taller than the reveal. */
+  font-size: 26vw;
+  line-height: 0.74;
+  letter-spacing: -0.05em;
+  font-weight: 600;
+  color: #fff;
+  transform: translateY(0.02em);
+}
+
+/* ---------- reduced motion ---------- */
+
+/* Nothing on the page starts under reduced motion: the JS side returns
+   early before creating a single tween or timer, and the CSS side below
+   turns every transition off and lays the two pinned sections out flat in
+   their end state, so the page still says everything it says. */
+@media (prefers-reduced-motion: reduce) {
+  .run-landing .ld-hero-media,
+  .run-landing .ld-hero-form,
+  .run-landing .ld-nav-item,
+  .run-landing .ld-faq-panel,
+  .run-landing .ld-faq-chevron,
+  .run-landing .ld-btn-chevron {
+    transition: none;
+  }
+  .run-landing .ld-ticker-line {
+    animation: none;
+  }
+  .run-landing .ld-deck {
+    height: auto !important;
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+    padding: 64px 0;
+  }
+  .run-landing .ld-deck-card {
+    position: static !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+  .run-landing .ld-deck-desc {
+    position: static;
+    width: auto;
+    max-width: 480px;
+    opacity: 1;
+  }
+  .run-landing .ld-fly {
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
