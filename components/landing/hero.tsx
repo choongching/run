@@ -5,7 +5,7 @@ import { Check, FileText, Globe, Mail, Send } from 'lucide-react'
 
 import { HeroMedia, HeroPoster } from '@/components/landing/hero-media'
 import { SignUpBar } from '@/components/landing/sign-up-bar'
-import { ScrollTrigger, useGSAP } from '@/lib/landing/gsap'
+import { gsap, ScrollTrigger, useGSAP } from '@/lib/landing/gsap'
 import { prefersReducedMotion } from '@/lib/landing/motion'
 
 // Real step lines from Run's chat, each with the mark of the thing that did
@@ -90,6 +90,22 @@ export function Hero() {
         end: 'max',
         onToggle: (self) => ref.current?.setAttribute('data-zoom', String(self.isActive)),
       })
+      if (prefersReducedMotion()) return
+      // The words step back as you leave: scrubbed by the scroll, so it is
+      // as slow as the hand on the wheel and comes back the same way. Scale
+      // and opacity only. Over the first 60% of a viewport of travel.
+      gsap.to('.ld-hero-words', {
+        scale: 0.86,
+        opacity: 0,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: ref.current,
+          start: 'top top',
+          end: () => `+=${window.innerHeight * 0.6}`,
+          scrub: true,
+          invalidateOnRefresh: true,
+        },
+      })
     },
     { scope: ref }
   )
@@ -110,7 +126,7 @@ export function Hero() {
           className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,24,20,0.28)_0%,rgba(20,24,20,0.1)_45%,rgba(20,24,20,0.55)_100%)]"
         />
       </div>
-      <div className="relative z-1 flex flex-col items-center gap-8 px-5 text-center text-white md:gap-10 md:-translate-y-8">
+      <div className="ld-hero-words relative z-1 flex flex-col items-center gap-8 px-5 text-center text-white md:gap-10 md:-translate-y-8">
         {/* Two short lines, the second the turn, in italic. */}
         <h1 className="ld-display [--rise-delay:0ms] run-rise">
           Fewer small tasks.
