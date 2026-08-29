@@ -13,12 +13,12 @@ export const metadata: Metadata = {
 export default async function RegisterPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>
+  searchParams: Promise<{ error?: string; email?: string }>
 }) {
-  const { error } = await searchParams
+  const { error, email } = await searchParams
   return (
     <AuthShell showcase="play">
-      <AuthForm mode="register" error={error} />
+      <AuthForm mode="register" error={error} email={email} />
     </AuthShell>
   )
 }

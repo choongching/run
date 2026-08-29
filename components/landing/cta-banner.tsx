@@ -1,6 +1,6 @@
 import Image from 'next/image'
 
-import { LandingComposer } from '@/components/landing/landing-composer'
+import { SignUpBar } from '@/components/landing/sign-up-bar'
 
 // The wall again, the mark, and the same box as the top of the page.
 export function CtaBanner() {
@@ -16,7 +16,7 @@ export function CtaBanner() {
             Say what you need and it exists. It asks a couple of questions to be sure, then starts
             working.
           </p>
-          <LandingComposer typing={false} placeholder="What should your first agent do?" className="mt-4" />
+          <SignUpBar className="mt-4" />
         </div>
       </div>
     </section>

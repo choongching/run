@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { Check, FileText, Globe, Mail, Send } from 'lucide-react'
 
-import { LandingComposer } from '@/components/landing/landing-composer'
+import { SignUpBar } from '@/components/landing/sign-up-bar'
 import { ScrollTrigger, useGSAP } from '@/lib/landing/gsap'
 import { prefersReducedMotion } from '@/lib/landing/motion'
 
@@ -130,7 +130,7 @@ export function Hero() {
         </div>
       </div>
       <div className="ld-hero-form absolute inset-x-4 bottom-4 z-1 flex justify-center">
-        <LandingComposer typing={false} placeholder="What should Run do?" />
+        <SignUpBar />
       </div>
     </section>
   )
