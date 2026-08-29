@@ -15,8 +15,8 @@ const QUESTIONS = [
     a: 'They happen on different computers. The model only asks; Run’s own server reads freely and stops anything else at a card you see first.',
   },
   {
-    q: 'Could the approval itself be faked?',
-    a: 'The action waits on the server, tied to your conversation, and Approve runs only that one. Nothing said later can swap it for something else.',
+    q: 'Could something trick it into approving for me?',
+    a: 'No. Only your click on Approve counts, and it approves exactly what was on the card, nothing else.',
   },
   {
     q: 'So what is the worst that can happen?',
