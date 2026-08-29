@@ -1,22 +1,29 @@
 import Image from 'next/image'
 
-import { LandingComposer } from '@/components/landing/landing-composer'
+import { HeroMedia, HeroPoster } from '@/components/landing/hero-media'
+import { SignUpBar } from '@/components/landing/sign-up-bar'
 
-// The wall again, the mark, and the same box as the top of the page.
+// The reference's closing banner (spec 12.1): a big rounded frame of
+// footage, the mark in white, a two-line serif heading, and the same
+// sign-up bar as the top of the page. The footage is the founder's clip,
+// on a loop, played only while the banner is on screen.
+const CTA_CLIPS = ['/landing/cta.mp4']
+
 export function CtaBanner() {
   return (
-    <section aria-label="Get started" className="px-4 pb-4 md:px-8 md:pb-8">
-      <div className="ld-surface relative mx-auto h-[520px] max-w-[1376px] overflow-hidden bg-foreground md:h-[724px]">
-        <Image src="/home-backdrop-2200.webp" alt="" fill sizes="(min-width: 1440px) 1376px, 100vw" className="object-cover opacity-90" />
-        <div aria-hidden className="absolute inset-0 bg-[rgba(20,24,20,0.35)]" />
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 px-5 text-center text-white md:gap-7 md:px-[120px]">
-          <Image src="/run-icon.png" alt="" width={56} height={56} className="size-11 rounded-lg md:size-14" />
-          <h2 className="ld-heading max-w-[760px] text-white">There is nothing to set up.</h2>
-          <p className="ld-lead max-w-[520px] text-white/85">
-            Say what you need and it exists. It asks a couple of questions to be sure, then starts
-            working.
-          </p>
-          <LandingComposer jobs={false} placeholder="What should your first agent do?" className="mt-2 max-w-[560px]" />
+    <section aria-label="Get started" className="ld-cta-container px-4 py-4 md:px-6 md:py-6 xl:px-8 xl:py-5">
+      <div className="ld-surface relative mx-auto aspect-[362/463] max-h-[465px] w-full max-w-[2056px] overflow-hidden bg-foreground md:aspect-auto md:h-[700px] md:max-h-[700px] xl:aspect-[1664/876] xl:h-auto xl:max-h-[876px]">
+        <HeroPoster src="/landing/cta-poster.webp" priority={false} />
+        <HeroMedia sources={CTA_CLIPS} />
+        <div aria-hidden className="absolute inset-0 bg-[rgba(20,24,20,0.3)]" />
+        <div data-depth className="absolute inset-0 flex flex-col items-center justify-center px-5 text-center text-white">
+          <Image src="/run-icon.png" alt="" width={120} height={120} className="mb-6 size-16 invert md:mb-8 md:size-[100px] xl:size-[120px]" />
+          <h2 className="ld-heading mb-4 text-white md:mb-6">
+            A little more room
+            <br />
+            in your day.
+          </h2>
+          <SignUpBar className="mt-4" />
         </div>
       </div>
     </section>

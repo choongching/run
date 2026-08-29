@@ -1,4 +1,5 @@
 import Image from 'next/image'
+import Link from 'next/link'
 
 import { Showcase } from '@/components/auth/showcase'
 
@@ -31,10 +32,12 @@ export function AuthShell({
           then still. The form takes input from the first frame: an opacity
           animation blocks nothing. */}
       <div className="flex flex-1 flex-col justify-between gap-8 px-4 pt-4 pb-6 md:w-1/2 md:px-12 md:py-10">
-        <div className="run-rise flex items-center gap-2.5">
+        {/* The mark is the way back to the front page. A signed-in person
+            landing on / gets their own home instead, which is also right. */}
+        <Link href="/" aria-label="Run home" className="run-rise flex w-fit items-center gap-2.5">
           <Image src="/run-icon.png" alt="" width={28} height={28} priority />
           <span className="text-base font-semibold">Run</span>
-        </div>
+        </Link>
         <div className="run-rise mx-auto w-full max-w-sm [--rise-delay:80ms]">{children}</div>
         {/* The maker's mark: quiet, present on every door. */}
         <p className="run-rise text-xs text-muted-foreground/70 max-md:text-center [--rise-delay:300ms]">

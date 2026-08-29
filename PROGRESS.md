@@ -8,16 +8,18 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** Run has a front page. A visitor who is not signed
-in now sees a marketing page at the root instead of being sent to the sign-in
-form, and a signed-in person still lands on their own home. It was designed
-first, on a canvas the founder approved, then built with every piece of motion
-in it: a pill of navigation that folds and slides, a photograph that clips
-inward as you scroll, a deck of three cards that peel off one by one, and a
-green curtain with the wordmark under the very end of the page. It was driven
-in a browser at desktop and phone widths, merged, and is live. Next: a look on
-an actual phone and at tablet width, a Lighthouse pass, and letting the
-sign-up page read the sentence the front page's box sends it.
+**Where we left off:** The front page has been through a second pass,
+section by section, against the site it takes its manner from. The hero
+says "Fewer small tasks. More of the day." over the founder's own clip and
+steps back as you scroll; the navigation pill is copied from the reference
+to the pixel in every state; each chapter heading comes up out of the
+distance; the deck's cards each play a short story and fade out as they
+leave; the three How-it-works pictures play theirs too; the FAQ and the
+How-it-works copy are shorter and asked the way a person would; the
+footer and closing curtain match the reference. Merged to `main`. Next: a
+look on an actual phone and at tablet width, a Lighthouse pass, and the
+remaining sections in the same manner (Safety, Capabilities) if the
+founder wants them touched.
 
 Before that, the clock that runs routines went into the repo, and the
 README explains in one place why it is a timer and not a queue, decided with
@@ -198,6 +200,50 @@ Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
 
 ---
+
+## 2026-08-29 (evening): The front page, section by section against the reference
+
+- **Every section was put next to the reference site and reworked to its
+  manner.** Short headings in a serif with an italic turn, one or two
+  sentences under each, whitespace as the layout, one call to action
+  repeated. Nothing from the reference was downloaded; the videos are the
+  founder's own clips and the photographs are ours.
+- **Hero.** The line is now "Fewer small tasks. More of the day." with the
+  subline "Run takes the small tasks. You take the day.", chosen from a set
+  of variations after two earlier tries were rejected as too SaaS or plain
+  odd. The words step back and fade as you scroll. The clip loops behind a
+  glass email bar; "Get started" takes the email to the sign-up page with
+  the field filled in, which is how the reference's pre-registration works.
+- **Navigation pill.** Ported one-to-one from the reference's DOM: ring,
+  sliding white pill, 300ms fades, hover, pressed and focus states, the
+  wordmark folding away after 400px of scroll and back at 360. A CSS
+  minifier trap cost an hour: it drops `backdrop-filter` when the prefixed
+  form comes after it, so the prefixed line is written first.
+- **Chapters open out of the distance.** The intro and every unpinned
+  section heading grow from 80% and clear to full size and full ink,
+  scrubbed by the scroll, one shared rule. Cards and lists keep a small
+  rise instead, so contents settle rather than zoom.
+- **Deck.** Three photo cards stacked front to back, each with one small
+  piece of the product floating on it that plays a short story once when
+  the card is the active one: two steps ticking off, a draft waiting for
+  Approve, an answer with its sources. The toast now fades with the scroll
+  as its card leaves, and a story can no longer restart mid-play when
+  ScrollTrigger refreshes (turning it off is deferred by a frame).
+- **How it works.** The three pictures play their beat once on arrival:
+  the sentence writes itself, the job card fills in and gets its yes, the
+  steps tick off and stop to ask. Boxes taller. Copy cut: "The setup is
+  one sentence." with three parallel titles.
+- **FAQ.** Rebuilt to the reference (one centred column, cards with no
+  gap, all closed to start, a tinted chevron pill) and rewritten: every
+  question fits one line and is asked plainly ("Can it send an email
+  without asking me?"), every answer is two sentences, facts unchanged.
+- **Footer and curtain.** White card with the serif line and a dark Get
+  started, three link lists, the mark alone, then the pale blue curtain
+  with the wordmark. The CTA banner above it plays the corridor clip.
+- **Verified in Chrome throughout** by reading computed styles rather than
+  eyeballing: opacities and transforms at each scroll position, the idle
+  check (`document.getAnimations()` shows nothing of ours once the stories
+  finish), and screenshots mid-story. Merged to `main` via pull request.
 
 ## 2026-08-29: A front page, designed first and built with everything moving
 

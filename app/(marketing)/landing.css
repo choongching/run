@@ -8,8 +8,9 @@
    1. Radii. The app clamps every corner to 4-6px. A marketing page is made of
       a few very large surfaces (a full-bleed photo, a 823px card, a 724px
       banner) and a 6px corner on something that size reads as square. The
-      page uses 24px on those surfaces and 14px on ordinary cards, and only
-      here. Controls keep the app's 6px.
+      page uses the reference's measured 64px on those surfaces at desktop
+      (24px below 1280), 16px on ordinary cards, 12px on the bar and the nav
+      items, and only here.
 
    2. Type size. The app caps a page at 24px. This page opens at 84px. Same
       reason the home hero is exempt: it is a headline, not a page title.
@@ -28,10 +29,15 @@
 .run-landing .ld-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 14px;
+  border-radius: 16px;
 }
 .run-landing .ld-surface {
   border-radius: 24px;
+}
+@media (min-width: 1280px) {
+  .run-landing .ld-surface {
+    border-radius: 64px;
+  }
 }
 .run-landing .ld-surface-sm {
   border-radius: 16px;
@@ -39,25 +45,31 @@
 
 /* ---------- type ramp ---------- */
 
-.run-landing .ld-display {
-  font-size: clamp(46px, 5.9vw, 84px);
-  line-height: 0.98;
-  letter-spacing: -0.03em;
-  font-weight: 600;
+/* Headings are the serif at the reference's measured sizes (86.5 / 58 / 33
+   / 25px at 1440). Weight 400 only: the face has one weight and its italic
+   is the turn in a two-line headline. */
+.run-landing .ld-display,
+.run-landing .ld-heading,
+.run-landing .ld-subheading {
+  font-family: var(--font-landing-serif), Georgia, 'Times New Roman', serif;
+  font-weight: 400;
   text-wrap: balance;
+}
+.run-landing .ld-display {
+  /* A step above the reference's 86.5px at 1440 (founder's call, 2026-08-29):
+     about 100px there, capped at 120. */
+  font-size: clamp(52px, 7vw, 120px);
+  line-height: 0.95;
+  letter-spacing: -0.02em;
 }
 .run-landing .ld-heading {
-  font-size: clamp(34px, 3.6vw, 52px);
-  line-height: 1.02;
-  letter-spacing: -0.025em;
-  font-weight: 600;
-  text-wrap: balance;
+  font-size: clamp(36px, 4.05vw, 70px);
+  line-height: 1.05;
+  letter-spacing: -0.01em;
 }
 .run-landing .ld-subheading {
-  font-size: clamp(22px, 2.1vw, 30px);
-  line-height: 1.12;
-  letter-spacing: -0.015em;
-  font-weight: 600;
+  font-size: clamp(24px, 2.31vw, 40px);
+  line-height: 1.1;
 }
 .run-landing .ld-lead {
   font-size: clamp(17px, 1.3vw, 19px);
@@ -73,35 +85,123 @@
 
 /* ---------- the pill nav ---------- */
 
-/* The ring around the items and the wash it sits on. The wash borrows the
-   wall's colour by being translucent over it, the same trick the home rail's
-   pills use. */
+/* Ported from the reference's DOM outline (spec 4). Every value here is
+   theirs: the ring's 16px radius, white/10 border, stone-40 fill and 13px
+   blur; the items' 12px radius and 14px text; 300ms fades on both the
+   background layer and the text; Login's glass; the pressed brown; the
+   blue focus ring. */
 .run-landing .ld-nav-ring {
   border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(227, 221, 207, 0.4);
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  backdrop-filter: blur(13px);
   -webkit-backdrop-filter: blur(13px);
+  backdrop-filter: blur(13px);
 }
-.run-landing .ld-nav-item {
+.run-landing .ld-nav-a {
+  text-decoration: none;
+}
+/* Each item's own background layer. */
+.run-landing .ld-nav-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
   border-radius: 12px;
-  transition: background-color 300ms ease, color 300ms ease;
+  background: #fff;
+  transition: background-color 300ms ease;
 }
-/* Over the hero the nav reads dark: white text, the Log in item on a grey
-   wash. Anywhere else it reads light. The attribute is set by a ScrollTrigger
-   on the hero and forced to light while the FAQ is on screen. */
-.run-landing [data-nav-theme='dark'] .ld-nav-login {
+/* The text layer: 14px, line-height 1, 14px side padding. */
+.run-landing .ld-nav-text {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  height: 100%;
+  padding: 0 14px;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--foreground);
+  transition: color 300ms ease;
+}
+.run-landing .ld-nav-wordmark {
+  font-family: var(--font-landing-serif), Georgia, serif;
+  font-size: 21px;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+.run-landing .ld-nav-mark {
+  transition: filter 300ms ease;
+}
+/* Login: a translucent wash rather than white. Grey glass with white text
+   over the photograph; the ring's stone with dark text elsewhere. */
+.run-landing [data-nav-theme='dark'] .ld-nav-login .ld-nav-bg {
   background: rgba(229, 229, 229, 0.3);
-  color: #fff;
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
 }
-.run-landing [data-nav-theme='light'] .ld-nav-login {
+.run-landing [data-nav-theme='dark'] .ld-nav-login .ld-nav-text {
+  color: #fff;
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.15);
+}
+.run-landing [data-nav-theme='light'] .ld-nav-login .ld-nav-bg {
   background: rgba(227, 221, 207, 0.4);
+}
+/* While a pointer is inside the nav: every background layer fades to
+   clear, the shared pill is the only white; over the photograph the text
+   and the mark turn white, and the item under the pill reads dark. */
+.run-landing [data-nav-hover='true'] .ld-nav-bg,
+.run-landing [data-nav-hover='true'][data-nav-theme='dark'] .ld-nav-login .ld-nav-bg,
+.run-landing [data-nav-hover='true'][data-nav-theme='light'] .ld-nav-login .ld-nav-bg {
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.run-landing [data-nav-hover='true'][data-nav-theme='dark'] .ld-nav-text {
+  color: #fff;
+  text-shadow: none;
+}
+.run-landing [data-nav-hover='true'][data-nav-theme='dark'] .ld-nav-mark {
+  filter: invert(1);
+}
+.run-landing [data-nav-hover='true'] .ld-nav-a:hover .ld-nav-text {
   color: var(--foreground);
 }
-/* While a pointer is inside the nav, the shared white pill is the only
-   background; each item's own goes transparent so they never double up. */
-.run-landing [data-nav-hover='true'] .ld-nav-item {
-  background: transparent;
+.run-landing [data-nav-hover='true'][data-nav-theme='dark'] .ld-nav-a:hover .ld-nav-mark {
+  filter: none;
+}
+/* Pressed: surface-pressed, white text. */
+.run-landing .ld-nav-a:active .ld-nav-bg {
+  background: #473d37;
+}
+.run-landing .ld-nav-a:active .ld-nav-text {
+  color: #fff;
+}
+/* Keyboard focus: a 2px blue border and a 3px halo on the background layer. */
+.run-landing .ld-nav-a:focus-visible .ld-nav-bg {
+  border: 2px solid #3b82f6;
+  box-shadow: 0 0 0 3px rgba(66, 181, 220, 0.3);
+}
+.run-landing .ld-nav-a:focus-visible .ld-nav-text {
+  color: var(--foreground);
+}
+/* For 500ms after the pointer leaves, the backgrounds return without a
+   fade (spec 4.3). */
+.run-landing [data-nav-snap='true'] .ld-nav-bg {
+  transition-duration: 0s;
+}
+
+/* ---------- the sign-up bar ---------- */
+
+/* Chrome paints an autofilled field with its own pale fill. The fill is a
+   background it will not let a stylesheet remove, but it will let one
+   delay: a transition that takes forever to start keeps the glass. The
+   text colour it would also override is pinned to white. */
+.run-landing .ld-autofill:-webkit-autofill,
+.run-landing .ld-autofill:-webkit-autofill:hover,
+.run-landing .ld-autofill:-webkit-autofill:focus {
+  -webkit-text-fill-color: #fff;
+  caret-color: #fff;
+  transition: background-color 600000s 0s, color 600000s 0s;
 }
 
 /* ---------- hero ---------- */
@@ -116,11 +216,11 @@
   will-change: clip-path;
 }
 .run-landing [data-zoom='true'] .ld-hero-media {
-  clip-path: inset(16px round 16px);
+  clip-path: inset(16px round 24px);
 }
 @media (min-width: 1024px) {
   .run-landing [data-zoom='true'] .ld-hero-media {
-    clip-path: inset(32px round 24px);
+    clip-path: inset(32px round 64px);
   }
 }
 .run-landing .ld-hero-form {
@@ -148,53 +248,148 @@
 
 /* ---------- feature deck ---------- */
 
-/* Below the tablet width the description sits above its card instead of
-   beside it; GSAP only ever moves transform and opacity, so the layout is
-   CSS's alone. */
+/* The description sits beside its card on desktop, its bottom edge 45px
+   below the card's vertical centre, hugging the viewport edge (spec 7.2:
+   text right edge 28px left of the card, or 30px right of it). Below the
+   tablet width it sits above the card, left-aligned to it. GSAP only ever
+   moves transform and opacity on it. */
 .run-landing .ld-deck-desc {
   position: absolute;
-  width: 257px;
+  top: -20px;
+  left: 0;
+  max-width: 500px;
+  transform: translateY(-100%);
   opacity: 0;
 }
-.run-landing .ld-deck-desc[data-side='left'] {
-  right: calc(50% + 411px + 28px);
-}
-.run-landing .ld-deck-desc[data-side='right'] {
-  left: calc(50% + 411px + 28px);
-}
-@media (max-width: 1023px) {
+@media (max-width: 767px) {
   .run-landing .ld-deck-desc {
-    position: static;
-    width: auto;
-    max-width: 480px;
+    top: -25px;
+    max-width: 90%;
+  }
+}
+@media (min-width: 1280px) {
+  .run-landing .ld-deck-desc {
+    top: calc(50% + 45px);
+    max-width: 257px;
+    transform: translateY(-100%);
+  }
+  .run-landing .ld-deck-desc[data-side='left'] {
+    left: 0;
+    transform: translate(calc(-100% - 28px), -100%);
+  }
+  .run-landing .ld-deck-desc[data-side='right'] {
+    left: auto;
+    right: 0;
+    transform: translate(calc(100% + 30px), -100%);
+  }
+}
+
+/* ---------- the deck's toast stories ---------- */
+
+/* Every staged element starts hidden and arrives at its own --d once the
+   card is active; an --d2 sends it away again; a spinner turns --n times
+   from --d. Removing data-active resets all of it, so the story plays
+   again the next time the card arrives, and never on its own. */
+.run-landing .ld-t,
+.run-landing .ld-t-spin {
+  opacity: 0;
+}
+.run-landing [data-active='true'] .ld-t {
+  animation: ld-t-in 400ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--d, 0s);
+}
+.run-landing [data-active='true'] .ld-t-out {
+  animation: ld-t-in 400ms cubic-bezier(0.22, 1, 0.36, 1) both, ld-t-away 250ms ease both;
+  animation-delay: var(--d, 0s), var(--d2, var(--d, 0s));
+}
+.run-landing [data-active='true'] .ld-t-out:not(.ld-t) {
+  opacity: 1;
+  animation: ld-t-away 250ms ease both;
+  animation-delay: var(--d, 0s);
+}
+.run-landing [data-active='true'] .ld-t-spin {
+  animation: ld-t-in 300ms ease both, ld-t-spin 900ms linear var(--n, 1), ld-t-away 200ms ease both;
+  animation-delay: var(--d, 0s), var(--d, 0s), calc(var(--d, 0s) + var(--n, 1) * 900ms);
+}
+.run-landing [data-active='true'] .ld-t-press {
+  animation: ld-t-in 400ms cubic-bezier(0.22, 1, 0.36, 1) both, ld-t-press 220ms ease both, ld-t-away 250ms ease both;
+  animation-delay: var(--d, 0s), var(--p, 0s), var(--d2, 0s);
+}
+/* A press that stays: the button is pressed at --p and remains. */
+.run-landing [data-active='true'] .ld-t-press.ld-t-stay {
+  animation: ld-t-in 400ms cubic-bezier(0.22, 1, 0.36, 1) both, ld-t-press 220ms ease both;
+  animation-delay: var(--d, 0s), var(--p, 0s);
+}
+@keyframes ld-t-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes ld-t-away {
+  to { opacity: 0; }
+}
+@keyframes ld-t-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+@keyframes ld-t-press {
+  50% { transform: scale(0.94); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .run-landing .ld-t,
+  .run-landing [data-active='true'] .ld-t,
+  .run-landing [data-active='true'] .ld-t-out,
+  .run-landing [data-active='true'] .ld-t-press {
+    animation: none;
+    opacity: 1;
+  }
+  .run-landing .ld-t-spin,
+  .run-landing [data-active='true'] .ld-t-spin,
+  .run-landing [data-active='true'] .ld-t-out:not(.ld-t) {
+    animation: none;
+    opacity: 0;
   }
 }
 
 /* ---------- FAQ ---------- */
 
 /* Height animates through a grid row, which is the one way a height can
-   animate without knowing the number: 0fr to 1fr over the spec's 200ms. The
-   same recipe the sign-in showcase uses for its card rows. */
+   animate without knowing the number: 0fr to 1fr over the spec's 200ms. */
 .run-landing .ld-faq-panel {
   display: grid;
   grid-template-rows: 0fr;
   transition: grid-template-rows 200ms ease;
 }
 .run-landing .ld-faq-panel > div {
+  /* hidden, not clip: only a non-visible overflow lets the grid row shrink
+     the item below its content height. */
   overflow: hidden;
+  min-height: 0;
 }
-.run-landing [aria-expanded='true'] + .ld-faq-panel {
+.run-landing .ld-faq-item:has([aria-expanded='true']) .ld-faq-panel {
   grid-template-rows: 1fr;
 }
+/* The chevron's pill: 42 x 32, tinted on hover and while open, blue on
+   keyboard focus; the chevron itself points down closed and up open. */
 .run-landing .ld-faq-chevron {
-  transition: transform 200ms ease, background-color 200ms ease;
+  transition: background-color 200ms ease-out;
 }
-.run-landing [aria-expanded='true'] .ld-faq-chevron {
+.run-landing .ld-faq-item:hover .ld-faq-chevron,
+.run-landing .ld-faq-item:has([aria-expanded='true']) .ld-faq-chevron {
+  background: var(--sidebar);
+}
+.run-landing .ld-faq-chevron-icon {
+  transition: transform 200ms ease-out;
+}
+.run-landing .ld-faq-item:has([aria-expanded='true']) .ld-faq-chevron-icon {
   transform: rotate(180deg);
-  background: var(--muted);
 }
-.run-landing .ld-faq-item:hover .ld-faq-chevron {
-  background: var(--muted);
+.run-landing .ld-faq-item:has(:focus-visible) {
+  z-index: 10;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(66, 181, 220, 0.3);
+}
+.run-landing .ld-faq-item:has(:focus-visible) .ld-faq-chevron {
+  background: #c3eaf4;
 }
 
 /* ---------- footer button ---------- */
@@ -214,23 +409,41 @@
   }
 }
 
-/* ---------- curtain ---------- */
+/* ---------- footer and curtain ---------- */
+
+/* The footer's bottom corners frame the reveal (spec 12.2: 32 / 56 / 64px
+   by width). */
+.run-landing .ld-footer {
+  border-radius: 0 0 32px 32px;
+}
+@media (min-width: 768px) {
+  .run-landing .ld-footer {
+    border-radius: 0 0 56px 56px;
+  }
+}
+@media (min-width: 1280px) {
+  .run-landing .ld-footer {
+    border-radius: 0 0 64px 64px;
+  }
+}
 
 /* The page (main + footer) sits above a fixed layer and ends 29vw short of
    the bottom, so the last stretch of scroll lifts the page away and reveals
-   what is underneath: the green and the wordmark. No animation is involved;
-   it is the page's own height. */
+   what is underneath. No animation is involved; it is the page's own
+   height. */
 .run-landing .ld-page {
   position: relative;
   z-index: 1;
   background: var(--sidebar);
   margin-bottom: 30vw;
 }
-@media (min-width: 1024px) {
+@media (min-width: 768px) {
   .run-landing .ld-page {
     margin-bottom: 29vw;
   }
 }
+/* The reference's gradient, stop for stop: white, its paper at 30%, then
+   its pale blue. Founder's call (2026-08-29): copy the footer exactly. */
 .run-landing .ld-curtain {
   position: fixed;
   left: 0;
@@ -238,24 +451,51 @@
   bottom: 0;
   z-index: 0;
   height: 480px;
-  background: linear-gradient(180deg, var(--primary) 0%, oklch(0.3 0.055 155) 100%);
+  background: linear-gradient(#ffffff 0%, #f9f8f5 30%, #c3eaf4 100%);
 }
 @media (min-width: 1280px) {
   .run-landing .ld-curtain {
     height: 900px;
   }
 }
+/* The serif wordmark in white, its baseline on the bottom edge and the
+   descender-less letters clipped a little by the viewport, as the
+   reference's are. Sized in viewport widths so it sits inside the reveal at
+   every width. */
 .run-landing .ld-wordmark {
-  /* Cap height is about 0.72em, so 26vw of type stands about 19vw tall,
-     inside the 29vw (30vw on a phone) the footer's margin reveals. The
-     reference wordmark is six letters at 96% of the width; three letters at
-     that width would stand taller than the reveal. */
-  font-size: 26vw;
-  line-height: 0.74;
-  letter-spacing: -0.05em;
-  font-weight: 600;
+  position: absolute;
+  left: 50%;
+  bottom: -0.06em;
+  transform: translateX(-50%);
+  font-family: var(--font-landing-serif), Georgia, serif;
+  font-size: 35vw;
+  line-height: 0.8;
+  letter-spacing: -0.02em;
   color: #fff;
-  transform: translateY(0.02em);
+  white-space: nowrap;
+}
+/* The page goes white behind the CTA banner, so the white footer under it
+   has no visible top edge and only its bottom corners show, over the
+   curtain (spec 12.1's .lassie-cta-container). */
+.run-landing .ld-cta-container {
+  background: linear-gradient(180deg, var(--sidebar) 0%, #ffffff 100%);
+}
+
+/* ---------- arrival ---------- */
+
+/* Sections rise into place once as they enter (components/landing/reveal).
+   Composite-only: opacity and transform, 640ms on the home page's curve,
+   staggered by --reveal-delay. The transform is cleared once it lands so
+   nothing inside is left with a transformed ancestor. */
+.run-landing [data-reveal] {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 640ms cubic-bezier(0.22, 0.61, 0.36, 1), transform 640ms cubic-bezier(0.22, 0.61, 0.36, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+.run-landing [data-reveal].is-in {
+  opacity: 1;
+  transform: none;
 }
 
 /* ---------- reduced motion ---------- */
@@ -265,6 +505,11 @@
    turns every transition off and lays the two pinned sections out flat in
    their end state, so the page still says everything it says. */
 @media (prefers-reduced-motion: reduce) {
+  .run-landing [data-reveal] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
   .run-landing .ld-hero-media,
   .run-landing .ld-hero-form,
   .run-landing .ld-nav-item,
@@ -278,21 +523,28 @@
   }
   .run-landing .ld-deck {
     height: auto !important;
+    max-height: none !important;
     display: flex;
     flex-direction: column;
-    gap: 48px;
-    padding: 64px 0;
+    gap: 96px;
+    padding: 64px 16px;
   }
-  .run-landing .ld-deck-card {
+  .run-landing .ld-deck-frame {
     position: static !important;
-    transform: none !important;
-    opacity: 1 !important;
+    height: auto !important;
+    max-width: 823px !important;
+  }
+  .run-landing .ld-deck-frame > div {
+    height: auto !important;
+    width: 100% !important;
+    top: 0 !important;
   }
   .run-landing .ld-deck-desc {
     position: static;
-    width: auto;
     max-width: 480px;
+    transform: none;
     opacity: 1;
+    margin-bottom: 20px;
   }
   .run-landing .ld-fly {
     transform: none !important;
