@@ -19,9 +19,9 @@ export function CtaBanner() {
         <div className="absolute inset-0 flex flex-col items-center justify-center px-5 text-center text-white">
           <Image src="/run-icon.png" alt="" width={120} height={120} className="mb-6 size-16 invert md:mb-8 md:size-[100px] xl:size-[120px]" />
           <h2 className="ld-heading mb-4 text-white md:mb-6">
-            There is nothing
+            A little more room
             <br />
-            to set up.
+            in your day.
           </h2>
           <SignUpBar className="mt-4" />
         </div>
