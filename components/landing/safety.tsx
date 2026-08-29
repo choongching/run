@@ -121,7 +121,8 @@ export function Safety() {
           </h2>
         </div>
         <p className="ld-lead max-w-[560px] text-muted-foreground">
-          It reads on its own. It never sends, moves, or changes anything until you say yes.
+          It can read your mail and your files any time. It cannot send, move, or delete a thing
+          without you.
         </p>
       </div>
 
