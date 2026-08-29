@@ -138,7 +138,7 @@ export function LandingNav() {
       aria-label="Main navigation"
       data-nav-theme={theme}
       data-nav-hover={hovered}
-      className="run-rise fixed left-1/2 top-4 z-10 flex w-max -translate-x-1/2 p-0 [--rise-delay:360ms]"
+      className="fixed left-1/2 top-4 z-10 flex w-max -translate-x-1/2 p-0"
       onPointerLeave={(e) => {
         if (e.pointerType !== 'touch' && canHover()) leave()
       }}
