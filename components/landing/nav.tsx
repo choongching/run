@@ -158,7 +158,7 @@ export function LandingNav() {
         <span
           ref={pillRef}
           aria-hidden
-          className="ld-nav-pill pointer-events-none absolute left-1.5 top-1.5 h-11 w-0 rounded-[12px] bg-card"
+          className="ld-nav-pill pointer-events-none absolute left-0 top-1.5 h-11 w-0 rounded-[12px] bg-card"
         />
         <Link
           href="/"
