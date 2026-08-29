@@ -25,7 +25,7 @@ export function Footer() {
             href="/register"
             className="ld-btn flex h-[42px] w-fit items-center gap-2 rounded-[12px] bg-[#120C08] px-4 text-[15px] font-medium text-white transition-colors hover:bg-[#473D37]"
           >
-            <span>Get started</span>
+            <span>Try Run today</span>
             <ArrowRight className="ld-btn-chevron size-4" strokeWidth={2} />
           </Link>
         </div>
