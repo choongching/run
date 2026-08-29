@@ -315,6 +315,11 @@
   animation: ld-t-in 400ms cubic-bezier(0.22, 1, 0.36, 1) both, ld-t-press 220ms ease both, ld-t-away 250ms ease both;
   animation-delay: var(--d, 0s), var(--p, 0s), var(--d2, 0s);
 }
+/* A press that stays: the button is pressed at --p and remains. */
+.run-landing [data-active='true'] .ld-t-press.ld-t-stay {
+  animation: ld-t-in 400ms cubic-bezier(0.22, 1, 0.36, 1) both, ld-t-press 220ms ease both;
+  animation-delay: var(--d, 0s), var(--p, 0s);
+}
 @keyframes ld-t-in {
   from { opacity: 0; transform: translateY(6px); }
   to { opacity: 1; transform: translateY(0); }

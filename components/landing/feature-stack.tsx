@@ -8,6 +8,7 @@ import { GmailIcon } from '@/components/icons/gmail'
 import { gsap, ScrollTrigger, useGSAP } from '@/lib/landing/gsap'
 import { prefersReducedMotion } from '@/lib/landing/motion'
 import { cn } from '@/lib/utils'
+import { at, Spinner } from '@/components/landing/stage'
 
 // Three big photo cards stacked like a deck, one small piece of the product
 // floating on each. Built to the reference's measurements (spec 7.2 / 7.3):
@@ -189,23 +190,6 @@ export function FeatureStack() {
 // active one, the photo stands alone, the way a paused video shows its
 // poster.
 const toast = 'ld-t w-full max-w-[600px] rounded-xl bg-white/96 p-3 shadow-[0_18px_60px_-24px_rgba(0,0,0,0.35)] backdrop-blur-sm'
-
-function at(d: number) {
-  return { '--d': `${d}s` } as React.CSSProperties
-}
-
-// A step row: a spinner that turns `spins` times from `start`, then a check.
-function Spinner({ start, spins }: { start: number; spins: number }) {
-  return (
-    <span className="relative flex size-6 shrink-0 items-center justify-center">
-      <span
-        className="ld-t-spin absolute inset-0 rounded-full border border-dashed border-muted-foreground/60"
-        style={{ '--d': `${start}s`, '--n': spins } as React.CSSProperties}
-      />
-      <Check className="ld-t size-3.5 text-primary" strokeWidth={2} style={at(start + spins * 0.9)} />
-    </span>
-  )
-}
 
 function WorkingToast() {
   return (

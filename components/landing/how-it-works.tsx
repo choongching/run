@@ -1,7 +1,12 @@
-import { Check } from 'lucide-react'
+'use client'
+
+import { at, Spinner, Stage } from '@/components/landing/stage'
 
 // The README's six beats, folded to three. Each card's picture is the
-// product surface that beat happens on.
+// product surface that beat happens on, and each plays its beat once, the
+// first time it comes into view: the sentence writes itself, the card
+// fills in and gets its yes, the steps tick off and stop to ask. Nothing
+// here loops; the frame rests on its last state.
 export function HowItWorks() {
   return (
     <section aria-label="How it works" className="flex flex-col items-center gap-10 px-4 pb-16 pt-6 md:px-8 md:pb-28 lg:gap-12">
@@ -13,10 +18,7 @@ export function HowItWorks() {
           title="You state the intent."
           body="One box, one sentence. The box types real examples while it waits."
         >
-          <div className="flex h-12 w-full items-center rounded-lg border border-border bg-card px-3.5 text-sm text-muted-foreground">
-            <span className="truncate">Summarize my inbox each morning and flag anything that needs a reply</span>
-            <span aria-hidden className="ml-0.5 h-4 w-px shrink-0 bg-foreground" />
-          </div>
+          <Typed words="Summarize my inbox each morning and flag anything that needs a reply" />
         </Card>
         <Card
           delay={90}
@@ -24,10 +26,18 @@ export function HowItWorks() {
           body="A few quick questions on one card, ending with what starts it off: you, or the clock. Nothing runs before your yes."
         >
           <div className="flex w-full flex-col gap-2 rounded-lg border border-border bg-card p-3.5 text-[13px]">
-            <span className="text-muted-foreground">Name</span>
-            <span className="font-medium">Inbox Assistant</span>
-            <span className="text-muted-foreground">And my routine is</span>
-            <span className="font-medium">Weekday mornings, 08:00</span>
+            <span className="ld-t text-muted-foreground" style={at(0.2)}>Name</span>
+            <span className="ld-t font-medium" style={at(0.6)}>Inbox Assistant</span>
+            <span className="ld-t text-muted-foreground" style={at(1.2)}>And my routine is</span>
+            <span className="ld-t font-medium" style={at(1.6)}>Weekday mornings, 08:00</span>
+            <span aria-hidden className="mt-1 flex justify-end">
+              <span
+                className="ld-t-press ld-t-stay flex h-7 items-center rounded-lg bg-primary px-2.5 text-xs font-medium text-primary-foreground"
+                style={{ '--d': '2.2s', '--p': '3s' } as React.CSSProperties}
+              >
+                Looks right
+              </span>
+            </span>
           </div>
         </Card>
         <Card
@@ -36,19 +46,38 @@ export function HowItWorks() {
           body="Reading needs no permission and it narrates each step. Anything that changes something stops and shows you the whole thing."
         >
           <div className="flex w-full flex-col gap-2 rounded-lg border border-border bg-card p-3.5 text-[13px]">
-            <span className="flex items-center gap-2 text-muted-foreground">
-              <Check className="size-3.5" strokeWidth={2} />
+            <span className="ld-t flex items-center gap-2 text-muted-foreground" style={at(0.2)}>
+              <Spinner start={0.2} spins={1} />
               Read an email
             </span>
-            <span className="flex items-center gap-2 text-muted-foreground">
-              <Check className="size-3.5" strokeWidth={2} />
+            <span className="ld-t flex items-center gap-2 text-muted-foreground" style={at(1.2)}>
+              <Spinner start={1.2} spins={2} />
               Searched the web for &quot;invoice terms&quot;
             </span>
-            <span className="font-medium text-primary">Waiting for your approval</span>
+            <span className="ld-t font-medium text-primary" style={at(3.3)}>Waiting for your approval</span>
           </div>
         </Card>
       </div>
     </section>
+  )
+}
+
+// A sentence that writes itself a word at a time, the caret arriving with
+// the last word and staying put. Words, not letters: each one is a small
+// opacity move, so nothing reflows while it types.
+function Typed({ words }: { words: string }) {
+  const list = words.split(' ')
+  return (
+    <div className="flex h-12 w-full items-center rounded-lg border border-border bg-card px-3.5 text-sm">
+      <span className="flex min-w-0 gap-x-1 overflow-hidden whitespace-nowrap text-muted-foreground">
+        {list.map((w, i) => (
+          <span key={i} className="ld-t" style={at(0.3 + i * 0.11)}>
+            {w}
+          </span>
+        ))}
+      </span>
+      <span aria-hidden className="ld-t ml-0.5 h-4 w-px shrink-0 bg-foreground" style={at(0.3 + list.length * 0.11)} />
+    </div>
   )
 }
 
@@ -65,7 +94,7 @@ function Card({
 }) {
   return (
     <div data-reveal style={{ '--reveal-delay': `${delay}ms` } as React.CSSProperties} className="ld-card flex w-[300px] shrink-0 snap-start flex-col gap-4 p-5 md:w-auto md:min-h-[420px] md:gap-5 md:p-7">
-      <div className="flex h-[150px] items-center justify-center rounded-lg bg-muted p-5 md:h-[180px] md:p-6">{children}</div>
+      <Stage className="flex h-[150px] items-center justify-center rounded-lg bg-muted p-5 md:h-[180px] md:p-6">{children}</Stage>
       <h3 className="text-xl font-semibold leading-tight tracking-tight md:text-2xl">{title}</h3>
       <p className="text-base leading-relaxed text-muted-foreground">{body}</p>
     </div>
