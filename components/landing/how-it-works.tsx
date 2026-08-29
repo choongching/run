@@ -5,7 +5,7 @@ import { Check } from 'lucide-react'
 export function HowItWorks() {
   return (
     <section aria-label="How it works" className="flex flex-col items-center gap-10 px-4 pb-16 pt-6 md:px-8 md:pb-28 lg:gap-12">
-      <div data-reveal className="flex flex-col items-center gap-4 text-center">
+      <div data-depth className="flex flex-col items-center gap-4 text-center">
         <h2 className="ld-heading">Describing what you want is the setup.</h2>
       </div>
       <div className="flex w-full max-w-[1376px] snap-x snap-mandatory gap-4 overflow-x-auto no-scrollbar md:grid md:grid-cols-3 md:gap-6 md:overflow-visible">

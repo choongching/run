@@ -17,7 +17,7 @@ export function Footer() {
   return (
     <footer className="ld-footer relative z-1 w-full bg-card">
       <div className="mx-auto flex min-h-[56svh] max-w-[2120px] flex-col px-4 pb-6 pt-8 md:h-[517px] md:flex-row md:justify-between md:px-8 xl:pt-20">
-        <div data-reveal className="mb-8">
+        <div data-depth className="mb-8">
           <p className="ld-heading mb-4 md:mb-6 xl:mb-8">
             Say what you need.
             <br />

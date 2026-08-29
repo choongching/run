@@ -16,7 +16,7 @@ export function CtaBanner() {
         <HeroPoster src="/landing/cta-poster.webp" priority={false} />
         <HeroMedia sources={CTA_CLIPS} />
         <div aria-hidden className="absolute inset-0 bg-[rgba(20,24,20,0.3)]" />
-        <div data-reveal className="absolute inset-0 flex flex-col items-center justify-center px-5 text-center text-white">
+        <div data-depth className="absolute inset-0 flex flex-col items-center justify-center px-5 text-center text-white">
           <Image src="/run-icon.png" alt="" width={120} height={120} className="mb-6 size-16 invert md:mb-8 md:size-[100px] xl:size-[120px]" />
           <h2 className="ld-heading mb-4 text-white md:mb-6">
             A little more room

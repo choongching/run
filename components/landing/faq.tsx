@@ -62,7 +62,7 @@ export function Faq() {
 
   return (
     <section id="faq" aria-label="FAQ" className="flex w-full flex-col items-center px-4 pb-[100px] pt-[160px] md:px-0 xl:pb-[160px]">
-      <h2 data-reveal className="ld-heading mb-8 leading-none">FAQ</h2>
+      <h2 data-depth className="ld-heading mb-8 leading-none">FAQ</h2>
       <div
         ref={groupRef}
         data-reveal
