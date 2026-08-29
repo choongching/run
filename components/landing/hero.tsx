@@ -26,6 +26,11 @@ const TICKER_MS = 2500
 
 function Ticker() {
   const [index, setIndex] = useState(0)
+  // Where the run has got to, kept outside React state so the timer can be
+  // armed from plain code: arming it inside a state updater would arm it
+  // twice in development, where React runs updaters twice, and the cadence
+  // would compound.
+  const at = useRef(0)
 
   useEffect(() => {
     if (prefersReducedMotion()) return
@@ -36,14 +41,12 @@ function Ticker() {
       // A hidden tab throttles timers to about one a minute; rather than drip
       // lines out while nobody is looking, wait for the tab to come back.
       if (document.hidden) return
-      setIndex((i) => {
-        const next = i + 1
-        if (next < TICKER.length - 1) timer = window.setTimeout(step, TICKER_MS)
-        return Math.min(next, TICKER.length - 1)
-      })
+      at.current = Math.min(at.current + 1, TICKER.length - 1)
+      setIndex(at.current)
+      if (at.current < TICKER.length - 1) timer = window.setTimeout(step, TICKER_MS)
     }
     const onVisible = () => {
-      if (!document.hidden && !cancelled) {
+      if (!document.hidden && !cancelled && at.current < TICKER.length - 1) {
         window.clearTimeout(timer)
         timer = window.setTimeout(step, TICKER_MS)
       }

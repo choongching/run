@@ -42,8 +42,20 @@ export function Faq() {
   const [minHeight, setMinHeight] = useState<number>()
 
   useEffect(() => {
-    const el = groupRef.current
-    if (el) setMinHeight(el.offsetHeight + 80)
+    // Measured with the first item open (the initial state), and again on
+    // resize, because the number belongs to a width: the phone's taller
+    // list locked onto the desktop layout would leave a blank band.
+    const measure = () => {
+      const el = groupRef.current
+      if (!el) return
+      // Clear the previous lock first, or the measurement includes it and
+      // every resize adds another 80px.
+      el.style.minHeight = ''
+      setMinHeight(el.offsetHeight + 80)
+    }
+    measure()
+    window.addEventListener('resize', measure)
+    return () => window.removeEventListener('resize', measure)
   }, [])
 
   return (
