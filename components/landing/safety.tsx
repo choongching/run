@@ -115,9 +115,9 @@ export function Safety() {
             You decide.
           </h2>
           <h2 className="ld-rule-b ld-heading whitespace-nowrap opacity-0 max-lg:hidden" aria-hidden>
-            When you say no,
+            You say no.
             <br />
-            it stays no.
+            It stops.
           </h2>
         </div>
         <p className="ld-lead max-w-[560px] text-muted-foreground">
