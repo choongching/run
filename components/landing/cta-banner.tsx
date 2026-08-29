@@ -16,7 +16,7 @@ export function CtaBanner() {
             Say what you need and it exists. It asks a couple of questions to be sure, then starts
             working.
           </p>
-          <LandingComposer jobs={false} placeholder="What should your first agent do?" className="mt-2 max-w-[560px]" />
+          <LandingComposer typing={false} placeholder="What should your first agent do?" className="mt-4" />
         </div>
       </div>
     </section>

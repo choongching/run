@@ -129,8 +129,8 @@ export function Hero() {
           <Ticker />
         </div>
       </div>
-      <div className="ld-hero-form absolute inset-x-4 bottom-8 z-1 flex justify-center md:bottom-12">
-        <LandingComposer />
+      <div className="ld-hero-form absolute inset-x-4 bottom-4 z-1 flex justify-center">
+        <LandingComposer typing={false} placeholder="What should Run do?" />
       </div>
     </section>
   )
