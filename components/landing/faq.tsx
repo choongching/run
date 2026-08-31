@@ -75,7 +75,7 @@ export function Faq() {
           return (
             <div
               key={item.q}
-              className="ld-faq-item group relative z-0 flex w-full cursor-pointer items-start justify-between gap-8 rounded-[16px] border-2 border-transparent bg-card p-4 md:p-6"
+              className="ld-faq-item group relative z-0 flex w-full cursor-pointer items-start justify-between gap-8 rounded-3xl border-2 border-transparent bg-card p-4 md:p-6"
               onClick={() => setOpen(expanded ? -1 : i)}
             >
               <div className="min-w-0 flex-1">

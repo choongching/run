@@ -9,7 +9,7 @@ import { prefersReducedMotion } from '@/lib/landing/motion'
 
 // The reference's footer (spec 12.2): a full-width white card, 517px tall,
 // its bottom corners the page's last edge before the curtain. Left, the
-// page's line again as a two-line serif heading with the italic turn and
+// page's line again as a two-line heading with the lighter turn and
 // the one dark button on the page; right, three short link lists.
 const LISTS = [
   { title: 'Product', links: [['How it works', '#how'], ['Safety', '#safety'], ['FAQ', '#faq']] },
@@ -29,7 +29,7 @@ export function Footer() {
           </p>
           <Link
             href="/register"
-            className="ld-btn flex h-[42px] w-fit items-center gap-2 rounded-[12px] bg-[#120C08] px-4 text-[15px] font-medium text-white transition-colors hover:bg-[#473D37]"
+            className="ld-btn flex h-[42px] w-fit items-center gap-2 rounded-2xl bg-[#120C08] px-4 text-[15px] font-medium text-white transition-colors hover:bg-[#473D37]"
           >
             <span>Try Run today</span>
             <ArrowRight className="ld-btn-chevron size-4" strokeWidth={2} />
@@ -67,11 +67,12 @@ export function Curtain() {
   useGSAP(
     () => {
       if (prefersReducedMotion()) return
+      // Scale only; the stylesheet centres the mark with flex, so there is
+      // no translate for GSAP to misread (docs/lessons.md).
       gsap.fromTo(
         '.ld-wordmark',
-        { xPercent: -50, scale: 0.7, transformOrigin: '50% 100%' },
+        { scale: 0.7, transformOrigin: '50% 100%' },
         {
-          xPercent: -50,
           scale: 1,
           ease: 'none',
           scrollTrigger: {
@@ -90,8 +91,13 @@ export function Curtain() {
   )
 
   return (
-    <div ref={ref} aria-hidden className="ld-curtain">
-      <span className="ld-wordmark">Run</span>
+    <div ref={ref} className="ld-curtain">
+      {/* A curtain that says "Try Run" is a link. */}
+      {/* The letters run off the edges on purpose, so the name is spelled
+          out for assistive tech. */}
+      <Link href="/register" aria-label="Try Run" className="ld-wordmark">
+        Try Run
+      </Link>
     </div>
   )
 }

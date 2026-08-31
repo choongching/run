@@ -9,11 +9,13 @@
       a few very large surfaces (a full-bleed photo, a 823px card, a 724px
       banner) and a 6px corner on something that size reads as square. The
       page uses the reference's measured 64px on those surfaces at desktop
-      (24px below 1280), 16px on ordinary cards, 12px on the bar and the nav
-      items, and only here.
+      (24px below 1280), and lifts the radius ladder one step for
+      everything else: rounded-xl 8px, rounded-2xl 12px, rounded-3xl 16px
+      (scoped rules below). Chips keep the app's 6px.
 
-   2. Type size. The app caps a page at 24px. This page opens at 84px. Same
-      reason the home hero is exempt: it is a headline, not a page title.
+   2. Type size. The app caps a page at 24px. This page opens at about 80px.
+      Same reason the home hero is exempt: it is a headline, not a page
+      title. The family is not a departure: Geist throughout.
 
    Colour is the app's tokens throughout (paper, card, border, ink, green), so
    a token change in globals.css lands here too. */
@@ -23,13 +25,26 @@
   color: var(--foreground);
   overflow-x: clip;
 }
+/* Departure 1: the radius ladder, one step up; rounded-lg stays 6px. The
+   theme is declared inline, so the utilities carry the value rather than
+   the variable and a scoped token override does nothing; these unlayered
+   rules outrank the utilities layer instead. */
+.run-landing .rounded-xl {
+  border-radius: 8px;
+}
+.run-landing .rounded-2xl {
+  border-radius: 12px;
+}
+.run-landing .rounded-3xl {
+  border-radius: 16px;
+}
 
 /* ---------- surfaces ---------- */
 
 .run-landing .ld-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 16px;
+  border-radius: var(--radius-3xl);
 }
 .run-landing .ld-surface {
   border-radius: 24px;
@@ -39,48 +54,57 @@
     border-radius: 64px;
   }
 }
-.run-landing .ld-surface-sm {
-  border-radius: 16px;
-}
 
 /* ---------- type ramp ---------- */
 
-/* Headings are the serif at the reference's measured sizes (86.5 / 58 / 33
-   / 25px at 1440). Weight 400 only: the face has one weight and its italic
-   is the turn in a two-line headline. */
+/* Headings are the app's one family (inherited; styleguide 3), in the
+   voice of the home hero: semibold, tracked tight, balanced. Geist is wider
+   and darker than the serif this ramp replaced, so every step is smaller
+   than the reference's measured 86.5 / 58 / 33 / 25px.
+
+   Weights are the app's three and no more: 400 body, 500 labels and
+   buttons, 600 headings and card titles. Geist has no italic, so the
+   second line of a two-line headline turns by weight and ink instead:
+   regular against the semibold first line (two steps apart, so the
+   contrast reads as meant, not as a rendering slip), softened to 70% and a
+   tenth smaller, never slanted. */
 .run-landing .ld-display,
 .run-landing .ld-heading,
 .run-landing .ld-subheading {
-  font-family: var(--font-landing-serif), Georgia, 'Times New Roman', serif;
-  font-weight: 400;
+  font-weight: 600;
   text-wrap: balance;
 }
+.run-landing .ld-display em,
+.run-landing .ld-heading em {
+  font-style: normal;
+  font-weight: 400;
+  font-size: 0.9em;
+  opacity: 0.7;
+}
 .run-landing .ld-display {
-  /* A step above the reference's 86.5px at 1440 (founder's call, 2026-08-29):
-     about 100px there, capped at 120. */
-  font-size: clamp(52px, 7vw, 120px);
-  line-height: 0.95;
-  letter-spacing: -0.02em;
+  /* About 80px at 1440, capped at 88. */
+  font-size: clamp(44px, 5.6vw, 88px);
+  line-height: 1;
+  letter-spacing: -0.03em;
 }
 .run-landing .ld-heading {
-  font-size: clamp(36px, 4.05vw, 70px);
-  line-height: 1.05;
-  letter-spacing: -0.01em;
+  font-size: clamp(32px, 3.3vw, 52px);
+  line-height: 1.08;
+  letter-spacing: -0.025em;
 }
 .run-landing .ld-subheading {
-  font-size: clamp(24px, 2.31vw, 40px);
-  line-height: 1.1;
+  font-size: clamp(22px, 1.8vw, 28px);
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+/* The deck's side descriptions sit in a 257px column beside the card and
+   take one step down from the card-title size. */
+.run-landing .ld-deck-title {
+  font-size: clamp(20px, 1.6vw, 24px);
 }
 .run-landing .ld-lead {
   font-size: clamp(17px, 1.3vw, 19px);
-  line-height: 1.45;
-}
-.run-landing .ld-eyebrow {
-  font-family: var(--font-geist-mono);
-  font-size: 12px;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--muted-foreground);
+  line-height: 1.5;
 }
 
 /* ---------- the pill nav ---------- */
@@ -91,7 +115,7 @@
    background layer and the text; Login's glass; the pressed brown; the
    blue focus ring. */
 .run-landing .ld-nav-ring {
-  border-radius: 16px;
+  border-radius: var(--radius-3xl);
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(227, 221, 207, 0.4);
   -webkit-backdrop-filter: blur(13px);
@@ -105,7 +129,7 @@
   position: absolute;
   inset: 0;
   z-index: 0;
-  border-radius: 12px;
+  border-radius: var(--radius-2xl);
   background: #fff;
   transition: background-color 300ms ease;
 }
@@ -124,10 +148,10 @@
   transition: color 300ms ease;
 }
 .run-landing .ld-nav-wordmark {
-  font-family: var(--font-landing-serif), Georgia, serif;
-  font-size: 21px;
+  font-size: 17px;
+  font-weight: 600;
   line-height: 1;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 .run-landing .ld-nav-mark {
   transition: filter 300ms ease;
@@ -248,39 +272,42 @@
 
 /* ---------- feature deck ---------- */
 
-/* The description sits beside its card on desktop, its bottom edge 45px
-   below the card's vertical centre, hugging the viewport edge (spec 7.2:
-   text right edge 28px left of the card, or 30px right of it). Below the
-   tablet width it sits above the card, left-aligned to it. GSAP only ever
-   moves transform and opacity on it. */
+/* The description sits beside its card on desktop, centred on the card's
+   vertical middle (the reference hangs it 45px lower), 28px left of the
+   card or 30px right of it (spec 7.2). Below the tablet width it sits
+   above the card, left-aligned to it. Placed by edges and flex, never by a
+   transform (see docs/lessons.md, GSAP and stylesheet transforms); GSAP
+   only ever fades it. */
 .run-landing .ld-deck-desc {
   position: absolute;
-  top: -20px;
   left: 0;
+  bottom: calc(100% + 20px);
   max-width: 500px;
-  transform: translateY(-100%);
   opacity: 0;
 }
 @media (max-width: 767px) {
   .run-landing .ld-deck-desc {
-    top: -25px;
+    bottom: calc(100% + 25px);
     max-width: 90%;
   }
 }
 @media (min-width: 1280px) {
   .run-landing .ld-deck-desc {
-    top: calc(50% + 45px);
-    max-width: 257px;
-    transform: translateY(-100%);
+    top: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: 257px;
+    max-width: none;
   }
   .run-landing .ld-deck-desc[data-side='left'] {
-    left: 0;
-    transform: translate(calc(-100% - 28px), -100%);
+    left: auto;
+    right: calc(100% + 28px);
   }
   .run-landing .ld-deck-desc[data-side='right'] {
-    left: auto;
-    right: 0;
-    transform: translate(calc(100% + 30px), -100%);
+    left: calc(100% + 30px);
+    right: auto;
   }
 }
 
@@ -453,6 +480,13 @@
   bottom: 0;
   z-index: 0;
   height: 480px;
+  overflow: hidden;
+  /* Flex centres a child wider than itself by overflowing it equally on
+     both sides; an absolutely positioned line box would start-align once
+     it overflowed and clip only on the right. */
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
   background: linear-gradient(#ffffff 0%, #f9f8f5 30%, #c3eaf4 100%);
 }
 @media (min-width: 1280px) {
@@ -460,21 +494,24 @@
     height: 900px;
   }
 }
-/* The serif wordmark in white, its baseline on the bottom edge and the
+/* The wordmark in white, its baseline on the bottom edge and the
    descender-less letters clipped a little by the viewport, as the
    reference's are. Sized in viewport widths so it sits inside the reveal at
-   every width. */
+   every width. At 30vw "Try Run" is wider than the window and its letters
+   run off both sides and the bottom edge, on purpose: the curtain clips it,
+   so nothing scrolls sideways. Centred by the curtain's flex, never by a
+   transform (see docs/lessons.md, GSAP and stylesheet transforms). */
 .run-landing .ld-wordmark {
-  position: absolute;
-  left: 50%;
+  position: relative;
   bottom: -0.06em;
-  transform: translateX(-50%);
-  font-family: var(--font-landing-serif), Georgia, serif;
-  font-size: 35vw;
+  flex: none;
+  font-weight: 600;
+  font-size: 30vw;
   line-height: 0.8;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.04em;
   color: #fff;
   white-space: nowrap;
+  text-decoration: none;
 }
 /* The page goes white behind the CTA banner, so the white footer under it
    has no visible top edge and only its bottom corners show, over the
@@ -485,12 +522,19 @@
 
 /* ---------- arrival ---------- */
 
-/* Sections rise into place once as they enter (components/landing/reveal).
-   Composite-only: opacity and transform, 640ms on the home page's curve,
+/* Arrival (components/landing/reveal). Both registers start readable,
+   never from invisible: a chapter (data-depth) at 40% ink and 90% size,
+   scrubbed to full by the scroll; contents (data-reveal) at 40% ink and
+   24px low, rising once as they enter. Composite-only: opacity and
+   transform, 640ms on the home page's curve,
    staggered by --reveal-delay. The transform is cleared once it lands so
    nothing inside is left with a transformed ancestor. */
+.run-landing [data-depth] {
+  opacity: 0.4;
+  transform: scale(0.9);
+}
 .run-landing [data-reveal] {
-  opacity: 0;
+  opacity: 0.4;
   transform: translateY(24px);
   transition: opacity 640ms cubic-bezier(0.22, 0.61, 0.36, 1), transform 640ms cubic-bezier(0.22, 0.61, 0.36, 1);
   transition-delay: var(--reveal-delay, 0ms);
@@ -507,14 +551,14 @@
    turns every transition off and lays the two pinned sections out flat in
    their end state, so the page still says everything it says. */
 @media (prefers-reduced-motion: reduce) {
-  .run-landing [data-reveal] {
+  .run-landing [data-reveal],
+  .run-landing [data-depth] {
     opacity: 1;
     transform: none;
     transition: none;
   }
   .run-landing .ld-hero-media,
   .run-landing .ld-hero-form,
-  .run-landing .ld-nav-item,
   .run-landing .ld-faq-panel,
   .run-landing .ld-faq-chevron,
   .run-landing .ld-btn-chevron {
@@ -543,10 +587,11 @@
   }
   .run-landing .ld-deck-desc {
     position: static;
+    display: block;
+    width: auto;
     max-width: 480px;
-    transform: none;
-    opacity: 1;
     margin-bottom: 20px;
+    opacity: 1;
   }
   .run-landing .ld-fly {
     transform: none !important;
