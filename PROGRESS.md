@@ -8,18 +8,18 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** The Safety section was rebuilt on a measurement of
-the reference's collage. Six pieces, three of our own photographs and three
-product cards, sit around the rule from the first frame at half size, grow
-to full size over the first 45% of the pin and draw in, eased, into a
-collage for the whole 2.2 viewport heights; the rule gives way to "You say
-no. It stops." in the last 30%. Nothing flies in from off screen and nothing
-rotates any more. Every number came from sampling the live reference every
-60px of scroll (Lenis and GSAP ScrollTrigger, the same stack as ours); the
-spike is in the internal docs. Verified at 1440, 1024 and 412 in a real
-Chrome: the collage at desktop and tablet, a three-card column on the
-phone. All on `main`. Still for a real device: keyboard, safe areas, reduced
-motion.
+**Where we left off:** The Safety section now replays the reference's
+collage exactly rather than approximating it. The founder asked for the
+same outcome state for state, so the live reference was sampled every 20px
+of scroll from a viewport before its pin to the pin's release, and that
+table (six pieces' centres and scales, three opacities, 137 frames) drives
+ours through one scrubbed ScrollTrigger with interpolation. Measured against
+the reference with the same probe: centres within 4 to 13px over 2,860px of
+travel, scale within 0.01, opacity within 0.1. Positions and sizes scale
+with the viewport, so the collage keeps its shape at tablet; on the phone
+the cards stack and the photographs step out; under reduced motion the
+finished collage is laid out by CSS. All on `main`. Still for a real device:
+keyboard, safe areas, reduced motion by hand.
 
 Before that, the clock that runs routines went into the repo, and the
 README explains in one place why it is a timer and not a queue, decided with
@@ -200,6 +200,32 @@ Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
 
 ---
+
+## 2026-08-31 (night): The Safety collage, exact
+
+- **From pattern to replay.** The first rebuild fitted eases to the
+  reference; the founder asked for the same outcome in every state. A finer
+  probe (every 20px, 139 samples, from one viewport before the pin to its
+  release) showed why a fit could never be exact: the motion starts a
+  viewport early, scale runs linearly from nothing across the approach and
+  the first 37% of the pin, the pieces spread during the approach and draw
+  in during the pin, and per piece one axis is eased while the other is
+  linear. It also showed a mistake in the first build: their pieces are
+  anchored top-left at the centre and moved by transform, so a visible
+  centre is translate plus half the size; ours had sat half a piece too far
+  out. Their number fades out with the first heading at the swap, which
+  ours now does too.
+- **So the samples are the animation.** `lib/landing/collage-frames.ts`
+  holds the table; one proxy value scrubbed from `top bottom` to the pin's
+  end drives an interpolated lookup that positions six pieces and fades
+  three texts every frame. The same probe run against our page: maximum
+  centre error 4 to 13px, scale within 0.01, opacity within 0.1, all of it
+  sampling lag against a 0.25s scrub.
+- **Widths.** Positions and sizes are px at 1440 scaled by the viewport
+  (CSS for the resting state, JS for the replay), so at 1024 the collage
+  keeps its shape and fits; on the phone the three cards stack and the
+  photographs step out; reduced motion shows the finished collage. Checked
+  in a real Chrome at 1440, 1024 and 412 with no console errors.
 
 ## 2026-08-31 (evening): The Safety section, rebuilt on a measurement
 

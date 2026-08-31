@@ -6,7 +6,8 @@ import { Check } from 'lucide-react'
 
 import { GoogleDriveIcon } from '@/components/icons/google-drive'
 import { ApprovalCard, MiniButton } from '@/components/landing/story-cards'
-import { gsap, useGSAP } from '@/lib/landing/gsap'
+import { gsap, ScrollTrigger, useGSAP } from '@/lib/landing/gsap'
+import { FRAMES, PIECE_SIZES, PIN_PX, type Frame } from '@/lib/landing/collage-frames'
 import { prefersReducedMotion } from '@/lib/landing/motion'
 
 function Step({ children }: { children: React.ReactNode }) {
@@ -19,39 +20,52 @@ function Step({ children }: { children: React.ReactNode }) {
 }
 
 // Where the reference page counts up to a number, Run has a rule. The
-// section pins for 2.2 viewport heights and six pieces, three photographs
-// and three cards, sit around the rule from the first frame: small (0.53)
-// and spread wide and flat, then growing to full size over the first 45% of
-// the pin and drawing in, eased, into a collage for the whole of it. Part
-// way through, the rule gives way to its consequence. Nothing flies in from
-// off screen and nothing rotates; the measurements behind every number here
-// are in docs/lassie-infographic-spike-2026-08-31.md. No counter: there is
-// no number worth animating yet, and an invented one would be the first
-// lie on the page.
+// section replays the reference's collage exactly: six pieces, three
+// photographs and three cards, driven frame by frame from a table sampled
+// off the live reference (lib/landing/collage-frames.ts) over one scrubbed
+// ScrollTrigger that runs from the moment the section's top reaches the
+// bottom of the viewport to the end of a 1960px pin. During the approach the
+// pieces grow from nothing and spread; during the pin they grow to full size
+// and draw into the collage; at 73 to 86% the rule fades out and its
+// consequence fades in from 86 to 100%. Nothing here is an easing guess: the
+// spike (docs/lassie-infographic-spike-2026-08-31.md) found that x and y
+// follow different curves per piece, so the samples are interpolated
+// instead. No counter: there is no number worth animating yet, and an
+// invented one would be the first lie on the page.
 //
-// Resting positions are CSS (percentages of the section, from the measured
-// collage at 1440 by 900); GSAP only ever adds an offset and a scale, so
-// reduced motion, which clears the transforms, shows the finished collage.
-// Below the tablet width the six pieces sit in a column under the text and
-// nothing pins.
+// Positions are section-relative px at 1440 by 900, scaled by the viewport.
+// Under reduced motion, and below the tablet width, nothing runs: the CSS
+// puts each piece at its final centre (--x, --y) on desktop, and below 1024
+// the cards stack in a column and the photographs step out.
 
-// Each piece's centre relative to the section's centre at 1440 by 900, and
-// its box, from which the CSS left and top are derived.
-type Piece = { fx: number; fy: number; w: number; h: number }
-const at1440 = ({ fx, fy, w, h }: Piece) =>
-  ({
-    left: `${(((720 + fx - w / 2) / 1440) * 100).toFixed(2)}%`,
-    top: `${(((450 + fy - h / 2) / 900) * 100).toFixed(2)}%`,
-    '--w': `${w}px`,
-  }) as React.CSSProperties
-const PIECES = {
-  photoTL: { fx: -548, fy: -310, w: 236, h: 261 },
-  stepsTL: { fx: -500, fy: -180, w: 300, h: 110 },
-  photoTR: { fx: 400, fy: -300, w: 273, h: 277 },
-  routineBL: { fx: -550, fy: 160, w: 340, h: 120 },
-  photoBR: { fx: 269, fy: 174, w: 238, h: 228 },
-  driveBR: { fx: 380, fy: 160, w: 320, h: 120 },
-} satisfies Record<string, Piece>
+const PIECES = ['photoTL', 'stepsTL', 'photoTR', 'routineBL', 'photoBR', 'driveBR'] as const
+
+// Linear interpolation between the two frames around u.
+function frameAt(u: number): Frame {
+  let lo = 0
+  let hi = FRAMES.length - 1
+  while (hi - lo > 1) {
+    const mid = (lo + hi) >> 1
+    if (FRAMES[mid].u <= u) lo = mid
+    else hi = mid
+  }
+  const A = FRAMES[lo]
+  const B = FRAMES[hi]
+  const t = B.u === A.u ? 0 : Math.min(1, Math.max(0, (u - A.u) / (B.u - A.u)))
+  const mix = (x: number, y: number) => x + (y - x) * t
+  return {
+    u,
+    p: A.p.map((pa, i) => [mix(pa[0], B.p[i][0]), mix(pa[1], B.p[i][1]), mix(pa[2], B.p[i][2])]),
+    a: mix(A.a, B.a),
+    b: mix(A.b, B.b),
+    n: mix(A.n, B.n),
+  }
+}
+
+const finalOf = (i: number) => {
+  const [x, y] = FRAMES[FRAMES.length - 1].p[i]
+  return { '--x': x, '--y': y, '--w': PIECE_SIZES[i][0], '--h': PIECE_SIZES[i][1] } as React.CSSProperties
+}
 
 export function Safety() {
   const ref = useRef<HTMLElement>(null)
@@ -62,42 +76,56 @@ export function Safety() {
       const mm = gsap.matchMedia()
       mm.add('(min-width: 1024px)', () => {
         const section = ref.current!
-        const items = gsap.utils.toArray<HTMLElement>('.ld-fly', section)
-        const vh = window.innerHeight
-        const heights = window.innerWidth >= 1280 ? 2.2 : 1.2
-        const k = Math.min(1, window.innerWidth / 1440)
+        const items = PIECES.map((id) => section.querySelector<HTMLElement>(`[data-piece="${id}"]`)!)
+        const ruleA = section.querySelector<HTMLElement>('.ld-rule-a')!
+        const ruleB = section.querySelector<HTMLElement>('.ld-rule-b')!
+        const lead = section.querySelector<HTMLElement>('.ld-lead')!
+        const scale = () => ({ kx: window.innerWidth / 1440, ky: window.innerHeight / 900 })
 
-        const tl = gsap.timeline({
-          defaults: { ease: 'none' },
+        const apply = (u: number) => {
+          const f = frameAt(u)
+          const { kx, ky } = scale()
+          f.p.forEach(([cx, cy, sc], i) => {
+            gsap.set(items[i], { xPercent: -50, yPercent: -50, x: cx * kx, y: cy * ky, scale: sc })
+          })
+          gsap.set(ruleA, { opacity: f.a })
+          gsap.set(ruleB, { opacity: f.b })
+          gsap.set(lead, { opacity: f.n })
+        }
+        apply(0)
+
+        // The pin: section top at viewport top, for the reference's 1960px
+        // scaled to this viewport.
+        const pin = ScrollTrigger.create({
+          trigger: section,
+          start: 'top top',
+          end: () => `+=${PIN_PX * scale().ky}`,
+          pin: true,
+          anticipatePin: 1,
+        })
+        // The replay: one proxy value scrubbed from the approach to the pin's
+        // end, with the reference's smoothing, applied through the table.
+        const proxy = { u: 0 }
+        gsap.to(proxy, {
+          u: 1,
+          ease: 'none',
+          onUpdate: () => apply(proxy.u),
           scrollTrigger: {
             trigger: section,
-            start: 'center center',
-            end: `+=${vh * heights}`,
-            pin: true,
+            start: 'top bottom',
+            end: () => pin.end,
             scrub: 0.25,
-            anticipatePin: 1,
+            invalidateOnRefresh: true,
           },
         })
-        // The spread: wider than the collage and flatter. The reference
-        // measures x 1.34 and y 0.22 times the resting offset; ours is 1.2
-        // wide so the left-hand pieces start inside the frame.
-        items.forEach((el) => {
-          const p = PIECES[el.dataset.piece as keyof typeof PIECES]
-          tl.fromTo(el, { scale: 0.53 }, { scale: 1, duration: 0.45 }, 0)
-          tl.fromTo(el, { x: p.fx * 0.2 * k, y: -p.fy * 0.78 * k }, { x: 0, y: 0, duration: 1, ease: 'power2.out' }, 0)
-        })
-        // The rule steps out at 70 to 80%, its consequence in at 80 to 100%.
-        tl.to('.ld-rule-a', { opacity: 0, duration: 0.1 }, 0.7)
-        tl.fromTo('.ld-rule-b', { opacity: 0 }, { opacity: 1, duration: 0.2 }, 0.8)
       })
     },
     { scope: ref }
   )
 
-  const card = 'ld-fly ld-card lg:absolute lg:w-(--w)'
-  // Below the tablet width the photographs step out: three of them at full
-  // width would be twelve hundred pixels of decoration in the column.
-  const photo = 'ld-fly relative overflow-hidden rounded-3xl max-lg:hidden lg:absolute lg:w-(--w)'
+  const piece = 'ld-piece max-lg:w-full lg:absolute lg:left-1/2 lg:top-1/2'
+  const card = `${piece} ld-card`
+  const photo = `${piece} ld-piece-photo relative overflow-hidden rounded-3xl max-lg:hidden`
 
   return (
     <section
@@ -106,7 +134,7 @@ export function Safety() {
       aria-label="Safety"
       className="relative flex flex-col items-center justify-center gap-10 px-4 py-16 md:px-8 lg:h-svh lg:gap-0 lg:py-0"
     >
-      <div data-reveal className="relative z-2 flex max-w-[720px] flex-col items-center gap-5 text-center">
+      <div className="relative z-2 flex max-w-[720px] flex-col items-center gap-5 text-center">
         {/* Two headings in one slot: the second sits over the first and
             only shows once the pin has carried the rule in. */}
         <div className="grid [&>*]:[grid-area:1/1]">
@@ -127,30 +155,32 @@ export function Safety() {
         </p>
       </div>
 
-      <div className="contents max-lg:flex max-lg:w-full max-lg:max-w-[480px] max-lg:flex-col max-lg:gap-3">
-        <div data-piece="photoTL" className={`${photo} aspect-[236/261] w-full`} style={at1440(PIECES.photoTL)}>
+      {/* The layer the pieces live in: the section's own box on desktop, a
+          column below it. */}
+      <div className="contents max-lg:flex max-lg:w-full max-lg:max-w-[480px] max-lg:flex-col max-lg:gap-3 lg:pointer-events-none">
+        <div data-piece="photoTL" className={photo} style={finalOf(0)}>
           <Image src="/landing/deck-1.webp" alt="" fill sizes="300px" className="object-cover" />
         </div>
-        <div data-piece="stepsTL" className={`${card} z-1 flex w-full flex-col gap-2 p-4`} style={at1440(PIECES.stepsTL)}>
+        <div data-piece="stepsTL" className={`${card} flex flex-col gap-2 p-4`} style={finalOf(1)}>
           <Step>Searched your inbox, last 2 days</Step>
           <Step>Read 3 emails</Step>
           <Step>Searched the web for &quot;Northwind pricing&quot;</Step>
         </div>
-        <div data-piece="photoTR" className={`${photo} aspect-[273/277] w-full`} style={at1440(PIECES.photoTR)}>
+        <div data-piece="photoTR" className={photo} style={finalOf(2)}>
           <Image src="/landing/deck-2.webp" alt="" fill sizes="300px" className="object-cover" />
         </div>
-        <div data-piece="routineBL" className={`${card} flex w-full flex-col gap-2.5 p-4`} style={at1440(PIECES.routineBL)}>
+        <div data-piece="routineBL" className={`${card} flex flex-col gap-2.5 p-4`} style={finalOf(3)}>
           <span className="text-sm font-medium">Run this every weekday at 08:00?</span>
-          <span className="whitespace-nowrap font-mono text-xs text-muted-foreground">Next: Mon 31 Aug · Tue 1 Sep · Wed 2 Sep</span>
+          <span className="font-mono text-xs text-muted-foreground xl:whitespace-nowrap">Next: Mon 31 Aug · Tue 1 Sep · Wed 2 Sep</span>
           <div className="flex gap-2">
             <MiniButton size="sm">Edit</MiniButton>
             <MiniButton size="sm" primary>Confirm</MiniButton>
           </div>
         </div>
-        <div data-piece="photoBR" className={`${photo} aspect-[238/228] w-full`} style={at1440(PIECES.photoBR)}>
+        <div data-piece="photoBR" className={photo} style={finalOf(4)}>
           <Image src="/landing/deck-3.webp" alt="" fill sizes="300px" className="object-cover" />
         </div>
-        <div data-piece="driveBR" className="ld-fly z-1 w-full lg:absolute lg:w-(--w)" style={at1440(PIECES.driveBR)}>
+        <div data-piece="driveBR" className={piece} style={finalOf(5)}>
           <ApprovalCard
             title="Move a file in Drive"
             icon={<GoogleDriveIcon className="size-3.5" />}

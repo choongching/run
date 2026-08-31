@@ -377,6 +377,24 @@
   }
 }
 
+/* ---------- the safety collage ---------- */
+
+/* Each piece's resting place on desktop, from the replay table's last
+   frame (--x, --y in px at 1440 by 900, scaled to the viewport). This is
+   what shows before the script runs and under reduced motion; once the
+   replay is live GSAP owns the transform outright and writes every frame. */
+@media (min-width: 1024px) {
+  .run-landing .ld-piece {
+    /* Sizes scale with the viewport the way the positions do (--w, --h are
+       px at 1440), so the collage keeps its shape at tablet widths. */
+    width: calc(var(--w) / 1440 * 100vw);
+    transform: translate(calc(-50% + var(--x) / 1440 * 100vw), calc(-50% + var(--y) / 900 * 100svh));
+  }
+  .run-landing .ld-piece-photo {
+    height: calc(var(--h) / 1440 * 100vw);
+  }
+}
+
 /* ---------- FAQ ---------- */
 
 /* Height animates through a grid row, which is the one way a height can
@@ -603,8 +621,8 @@
     margin-bottom: 20px;
     opacity: 1;
   }
-  .run-landing .ld-fly {
-    transform: none !important;
+  .run-landing .ld-rule-a,
+  .run-landing .ld-lead {
     opacity: 1 !important;
   }
 }
