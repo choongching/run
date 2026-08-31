@@ -20,8 +20,8 @@ function Step({ children }: { children: React.ReactNode }) {
 }
 
 // Where the reference page counts up to a number, Run has a rule. The
-// section replays the reference's collage exactly: six pieces, three
-// photographs and three cards, driven frame by frame from a table sampled
+// section replays the reference's collage exactly: seven pieces, three
+// photographs and four cards (the seventh is ours, see collage-frames.ts), driven frame by frame from a table sampled
 // off the live reference (lib/landing/collage-frames.ts) over one scrubbed
 // ScrollTrigger that runs from the moment the section's top reaches the
 // bottom of the viewport to the end of a 1960px pin. During the approach the
@@ -38,7 +38,7 @@ function Step({ children }: { children: React.ReactNode }) {
 // puts each piece at its final centre (--x, --y) on desktop, and below 1024
 // the cards stack in a column and the photographs step out.
 
-const PIECES = ['photoTL', 'stepsTL', 'photoTR', 'routineBL', 'photoBR', 'driveBR'] as const
+const PIECES = ['photoTL', 'stepsTL', 'photoTR', 'routineBL', 'photoBR', 'driveBR', 'saidNoTR'] as const
 
 // Linear interpolation between the two frames around u.
 function frameAt(u: number): Frame {
@@ -189,6 +189,10 @@ export function Safety() {
               ['To', 'Board / 2026'],
             ]}
           />
+        </div>
+        <div data-piece="saidNoTR" className={`${card} flex flex-col gap-2 p-4`} style={finalOf(6)}>
+          <span className="text-[13px] text-muted-foreground">You said no</span>
+          <span className="text-sm">Nothing ran. The agent is told the decision is final.</span>
         </div>
       </div>
     </section>
