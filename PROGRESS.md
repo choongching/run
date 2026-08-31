@@ -15,7 +15,7 @@ of scroll from a viewport before its pin to the pin's release, and that
 table (six pieces' centres and scales, three opacities, 137 frames) drives
 ours through one scrubbed ScrollTrigger with interpolation. Measured against
 the reference with the same probe: centres within 4 to 13px over 2,860px of
-travel, scale within 0.01, opacity within 0.1. Positions and sizes scale
+travel, scale within 0.01, opacity within 0.1. A seventh card, ours, rides the top-right photograph. Positions and sizes scale
 with the viewport, so the collage keeps its shape at tablet; on the phone
 the cards stack and the photographs step out; under reduced motion the
 finished collage is laid out by CSS. All on `main`. Still for a real device:
@@ -200,6 +200,18 @@ Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
 
 ---
+
+## 2026-08-31 (night, later): A seventh piece
+
+- The founder felt the top-right photograph stood alone. Checked against
+  the live reference: it does there too (six pieces, the person photograph
+  unaccompanied), so this is ours, not theirs. The "You said no. Nothing
+  ran." card, cut earlier, rides that photograph the way the reference's
+  Metlife card rides the top-left one: its track is the photograph's
+  measured track plus a fixed offset scaled with the piece, so it grows and
+  settles with it. It pairs with the swapped headline "You say no. It
+  stops." Also fixed on the way: the replay's size table had not taken a
+  seventh entry, which rendered the section as a server error until it did.
 
 ## 2026-08-31 (night): The Safety collage, exact
 
