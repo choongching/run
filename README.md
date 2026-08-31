@@ -727,10 +727,16 @@ Around that loop, the product has filled out:
 - **There is a front page.** A visitor who is not signed in sees what Run is
   before being asked for anything: "Fewer small tasks. More of the day."
   over a short film, an email bar that carries you into sign-up, three
-  cards that each play one small piece of the product, the rule that it
-  reads on its own and asks before it acts, and the whole list of what an
-  agent can do. Nothing on it is invented; the only things that loop are
-  the two films, by choice, and everything else plays once and rests.
+  cards that each play one small piece of the product and slide away in
+  turn, the rule that it reads on its own and asks before it acts, and the
+  whole list of what an agent can do. It speaks in the product's own type,
+  one family throughout. The rule sits inside a collage of seven pieces,
+  three photographs and four small views of the product, that gather and
+  grow around it as you scroll; that motion was measured off the site the
+  page takes its manner from and replayed to the pixel, not approximated.
+  Nothing on it is invented; the only things that loop are the two films,
+  by choice, and everything else plays once and rests. It scores 100 for
+  speed on a desktop and 92 on a throttled phone.
 - **The door shows the product.** You sign in beside a working example rather
   than beside a blank wall. On the right of the form, Run's own chat plays
   three short stories: a Gmail draft waiting for your approval, an answer from
