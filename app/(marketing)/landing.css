@@ -111,9 +111,13 @@
 
 /* Ported from the reference's DOM outline (spec 4). Every value here is
    theirs: the ring's 16px radius, white/10 border, stone-40 fill and 13px
-   blur; the items' 12px radius and 14px text; 300ms fades on both the
-   background layer and the text; Login's glass; the pressed brown; the
-   blue focus ring. The radii are literal: the --radius-* tokens all
+   blur; the items' 12px radius and 14px text; Login's glass; the pressed
+   brown; the blue focus ring. One departure: the reference fades the
+   background layer and the text over 300ms ease, and snaps the whites
+   back the instant the pointer leaves. Ease front-loads the change (over
+   half of it lands in the first 70ms) so both directions read as a cut;
+   here both layers cross-fade over 400ms on a symmetric curve, in and
+   out alike. The radii are literal: the --radius-* tokens all
    resolve to the app's --radius, which is smaller than the landing's
    ladder, and the shared hover pill is a rounded-2xl utility (12px), so
    a token here would leave the resting items squarer than the pill. */
@@ -125,6 +129,7 @@
   backdrop-filter: blur(13px);
 }
 .run-landing .ld-nav-a {
+  --ld-nav-ease: cubic-bezier(0.4, 0, 0.2, 1);
   text-decoration: none;
 }
 /* Each item's own background layer. */
@@ -134,7 +139,7 @@
   z-index: 0;
   border-radius: 12px;
   background: #fff;
-  transition: background-color 300ms ease;
+  transition: background-color 400ms var(--ld-nav-ease);
 }
 /* The text layer: 14px, line-height 1, 14px side padding. */
 .run-landing .ld-nav-text {
@@ -148,7 +153,7 @@
   font-size: 14px;
   line-height: 1;
   color: var(--foreground);
-  transition: color 300ms ease;
+  transition: color 400ms var(--ld-nav-ease);
 }
 .run-landing .ld-nav-wordmark {
   font-size: 17px;
@@ -157,7 +162,7 @@
   letter-spacing: -0.02em;
 }
 .run-landing .ld-nav-mark {
-  transition: filter 300ms ease;
+  transition: filter 400ms var(--ld-nav-ease);
 }
 /* Login: a translucent wash rather than white. Grey glass with white text
    over the photograph; the ring's stone with dark text elsewhere. */
@@ -210,11 +215,6 @@
 }
 .run-landing .ld-nav-a:focus-visible .ld-nav-text {
   color: var(--foreground);
-}
-/* For 500ms after the pointer leaves, the backgrounds return without a
-   fade (spec 4.3). */
-.run-landing [data-nav-snap='true'] .ld-nav-bg {
-  transition-duration: 0s;
 }
 
 /* ---------- the sign-up bar ---------- */
