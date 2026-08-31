@@ -8,17 +8,25 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** The Safety section now replays the reference's
-collage exactly rather than approximating it. The founder asked for the
-same outcome state for state, so the live reference was sampled every 20px
-of scroll from a viewport before its pin to the pin's release, and that
-table (six pieces' centres and scales, three opacities, 137 frames) drives
-ours through one scrubbed ScrollTrigger with interpolation. Measured against
-the reference with the same probe: centres within 4 to 13px over 2,860px of
-travel, scale within 0.01, opacity within 0.1. A seventh card, ours, rides the top-right photograph. Positions and sizes scale
-with the viewport, so the collage keeps its shape at tablet; on the phone
-the cards stack and the photographs step out; under reduced motion the
-finished collage is laid out by CSS. All on `main`. Still for a real device:
+**Where we left off:** One long day on the front page, six pull requests.
+It now speaks in the product's own type: the serif display face is gone,
+every heading is Geist in three weights, and the second line of a two-line
+headline turns by weight and ink rather than by slanting. The deck's cards
+slide away solid, one exit finishing before the next entrance, with the
+section held until the last card has played. The closing curtain says "Try
+Run" and is a link. Then the Safety section was rebuilt twice: first on the
+pattern of the reference's collage, then, when the founder asked for the
+same outcome in every state, on a replay of it. The live reference was
+sampled every 20px of scroll from a viewport before its pin to the pin's
+release, and that table now drives seven pieces (three photographs, four
+cards, one of them ours) and three text fades frame by frame. Measured
+against the reference with the same probe: centres within 4 to 13px over
+2,860px of travel. Phone and tablet were walked in a real Chrome, Lighthouse
+ran on a production build (desktop 100 / 96 / 100 / 100, phone 92 / 96 /
+100 / 100) and its three findings were fixed. All on `main`. Open, for the
+founder to choose: richer cards in the collage (values, timestamps, a status
+chip, a mark tile), three distinct photographs, and the swapped heading at
+the reference's 70px rather than our 50px. Still for a real device:
 keyboard, safe areas, reduced motion by hand.
 
 Before that, the clock that runs routines went into the repo, and the
