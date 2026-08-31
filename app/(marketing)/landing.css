@@ -113,9 +113,12 @@
    theirs: the ring's 16px radius, white/10 border, stone-40 fill and 13px
    blur; the items' 12px radius and 14px text; 300ms fades on both the
    background layer and the text; Login's glass; the pressed brown; the
-   blue focus ring. */
+   blue focus ring. The radii are literal: the --radius-* tokens all
+   resolve to the app's --radius, which is smaller than the landing's
+   ladder, and the shared hover pill is a rounded-2xl utility (12px), so
+   a token here would leave the resting items squarer than the pill. */
 .run-landing .ld-nav-ring {
-  border-radius: var(--radius-3xl);
+  border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(227, 221, 207, 0.4);
   -webkit-backdrop-filter: blur(13px);
@@ -129,7 +132,7 @@
   position: absolute;
   inset: 0;
   z-index: 0;
-  border-radius: var(--radius-2xl);
+  border-radius: 12px;
   background: #fff;
   transition: background-color 300ms ease;
 }
