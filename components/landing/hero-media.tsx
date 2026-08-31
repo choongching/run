@@ -27,18 +27,38 @@ const CROSSFADE_MS = 900
 //
 // Two <video> elements take turns: while one plays, the next clip is
 // loaded behind it, and at the end the other fades in over it.
-export function HeroMedia({ sources = CLIPS }: { sources?: string[] }) {
+// `lazy` holds the clips back until the frame is within a viewport of the
+// screen, for footage far down the page: the closing banner's clip is a
+// megabyte and was loading with the hero's.
+export function HeroMedia({ sources = CLIPS, lazy = false }: { sources?: string[]; lazy?: boolean }) {
   const wrap = useRef<HTMLDivElement>(null)
+  const [near, setNear] = useState(!lazy)
   const [available, setAvailable] = useState<string[] | null>(() =>
     typeof window !== 'undefined' && prefersReducedMotion() ? [] : null
   )
+  const nearRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const el = nearRef.current
+    if (near || !el) return
+    const io = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setNear(true)
+          io.disconnect()
+        }
+      },
+      { rootMargin: '100% 0px' }
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [near])
   // Which slot is in front, and which clip each slot holds.
   const [front, setFront] = useState(0)
   const [clips, setClips] = useState<[number, number]>([0, 1])
 
   // Find out which clips exist, once, without downloading them.
   useEffect(() => {
-    if (available !== null) return
+    if (available !== null || !near) return
     let cancelled = false
     Promise.all(
       sources.map((src) =>
@@ -52,7 +72,7 @@ export function HeroMedia({ sources = CLIPS }: { sources?: string[] }) {
     return () => {
       cancelled = true
     }
-  }, [available, sources])
+  }, [available, near, sources])
 
   // The front video plays while the hero is on screen and the tab is
   // visible, and pauses otherwise: the hero scrolls away under the rest
@@ -82,7 +102,9 @@ export function HeroMedia({ sources = CLIPS }: { sources?: string[] }) {
     }
   }, [available, front])
 
-  if (available === null || available.length === 0) return null
+  if (available === null || available.length === 0) {
+    return lazy && !near ? <div ref={nearRef} aria-hidden className="absolute inset-0" /> : null
+  }
 
   const onEnded = () => {
     const back = 1 - front

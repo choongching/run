@@ -473,7 +473,14 @@
 }
 /* The reference's gradient, stop for stop: white, its paper at 30%, then
    its pale blue. Founder's call (2026-08-29): copy the footer exactly. */
+.run-landing .ld-curtain[data-on='true'] {
+  visibility: visible;
+}
 .run-landing .ld-curtain {
+  /* Hidden until the footer is near (footer.tsx toggles data-on): a
+     fixed layer behind the page is otherwise painted for the whole scroll,
+     and Lighthouse took its 30vw wordmark for the page's largest paint. */
+  visibility: hidden;
   position: fixed;
   left: 0;
   right: 0;
@@ -523,18 +530,21 @@
 /* ---------- arrival ---------- */
 
 /* Arrival (components/landing/reveal). Both registers start readable,
-   never from invisible: a chapter (data-depth) at 40% ink and 90% size,
-   scrubbed to full by the scroll; contents (data-reveal) at 40% ink and
-   24px low, rising once as they enter. Composite-only: opacity and
+   never from invisible: a chapter (data-depth) at 60% ink and 90% size,
+   scrubbed to full by the scroll; contents (data-reveal) at 60% ink and
+   24px low, rising once as they enter. 60% is where a heading's ink still
+   clears AA contrast before anyone scrolls (40% did not, per Lighthouse);
+   muted body text at 60% is transitional and resolves on the first
+   scroll. Composite-only: opacity and
    transform, 640ms on the home page's curve,
    staggered by --reveal-delay. The transform is cleared once it lands so
    nothing inside is left with a transformed ancestor. */
 .run-landing [data-depth] {
-  opacity: 0.4;
+  opacity: 0.6;
   transform: scale(0.9);
 }
 .run-landing [data-reveal] {
-  opacity: 0.4;
+  opacity: 0.6;
   transform: translateY(24px);
   transition: opacity 640ms cubic-bezier(0.22, 0.61, 0.36, 1), transform 640ms cubic-bezier(0.22, 0.61, 0.36, 1);
   transition-delay: var(--reveal-delay, 0ms);

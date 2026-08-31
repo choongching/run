@@ -4,7 +4,7 @@ import { useRef } from 'react'
 import Link from 'next/link'
 import { ArrowRight } from 'lucide-react'
 
-import { gsap, useGSAP } from '@/lib/landing/gsap'
+import { gsap, ScrollTrigger, useGSAP } from '@/lib/landing/gsap'
 import { prefersReducedMotion } from '@/lib/landing/motion'
 
 // The reference's footer (spec 12.2): a full-width white card, 517px tall,
@@ -66,7 +66,25 @@ export function Curtain() {
 
   useGSAP(
     () => {
-      if (prefersReducedMotion()) return
+      const curtain = ref.current
+      if (!curtain) return
+      if (prefersReducedMotion()) {
+        curtain.dataset.on = 'true'
+        return
+      }
+      // The curtain is shown only while the footer is on screen, which is
+      // the only time anything of it can be seen (landing.css explains).
+      // Enter and leave-back only: at the very bottom the scroll position
+      // equals the trigger's end, which ScrollTrigger reports as inactive,
+      // and an isActive toggle switched the curtain off exactly where it
+      // shows.
+      ScrollTrigger.create({
+        trigger: document.querySelector('.ld-footer'),
+        start: 'top bottom',
+        end: 'max',
+        onEnter: () => { curtain.dataset.on = 'true' },
+        onLeaveBack: () => { curtain.dataset.on = 'false' },
+      })
       // Scale only; the stylesheet centres the mark with flex, so there is
       // no translate for GSAP to misread (docs/lessons.md).
       gsap.fromTo(

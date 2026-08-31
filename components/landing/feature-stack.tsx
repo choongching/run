@@ -9,7 +9,7 @@ import { gsap, ScrollTrigger, useGSAP } from '@/lib/landing/gsap'
 import { prefersReducedMotion } from '@/lib/landing/motion'
 import { cn } from '@/lib/utils'
 import { at, Spinner } from '@/components/landing/stage'
-import { Chip } from '@/components/landing/story-cards'
+import { Chip, MiniButton } from '@/components/landing/story-cards'
 
 // Three big photo cards stacked like a deck, one small piece of the product
 // floating on each. Built to the reference's measurements (spec 7.2 / 7.3):
@@ -301,9 +301,9 @@ function ApprovalToast() {
         </div>
       </div>
       <div aria-hidden className="relative flex h-11 items-center justify-end gap-2">
-        <span className="ld-t ld-t-out flex h-8 items-center rounded-xl border border-border bg-card px-3 text-[13px] font-medium" style={{ '--d': '0.6s', '--d2': '2.6s' } as React.CSSProperties}>Cancel</span>
+        <MiniButton className="ld-t ld-t-out" style={{ '--d': '0.6s', '--d2': '2.6s' } as React.CSSProperties}>Cancel</MiniButton>
         {/* The yes: the button presses at 2.4s, then gives way to the receipt. */}
-        <span className="ld-t ld-t-press ld-t-out flex h-8 items-center rounded-xl bg-primary px-3 text-[13px] font-medium text-primary-foreground" style={{ '--d': '0.6s', '--p': '2.4s', '--d2': '2.6s' } as React.CSSProperties}>Approve</span>
+        <MiniButton primary className="ld-t ld-t-press ld-t-out" style={{ '--d': '0.6s', '--p': '2.4s', '--d2': '2.6s' } as React.CSSProperties}>Approve</MiniButton>
         <span className="ld-t absolute right-0 flex items-center gap-2 text-[13px] text-muted-foreground" style={at(2.8)}>
           <Check className="size-3.5 text-primary" strokeWidth={2} />
           Draft created in your Gmail

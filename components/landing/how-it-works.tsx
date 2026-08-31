@@ -1,6 +1,7 @@
 'use client'
 
 import { at, Spinner, Stage } from '@/components/landing/stage'
+import { MiniButton } from '@/components/landing/story-cards'
 
 // The README's six beats, folded to three. Each card's picture is the
 // product surface that beat happens on, and each plays its beat once, the
@@ -31,12 +32,9 @@ export function HowItWorks() {
             <span className="ld-t text-muted-foreground" style={at(1.2)}>And my routine is</span>
             <span className="ld-t font-medium" style={at(1.6)}>Weekday mornings, 08:00</span>
             <span aria-hidden className="mt-1 flex justify-end">
-              <span
-                className="ld-t-press ld-t-stay flex h-7 items-center rounded-xl bg-primary px-2.5 text-xs font-medium text-primary-foreground"
-                style={{ '--d': '2.2s', '--p': '3s' } as React.CSSProperties}
-              >
+              <MiniButton primary size="sm" className="ld-t-press ld-t-stay" style={{ '--d': '2.2s', '--p': '3s' } as React.CSSProperties}>
                 Looks right
-              </span>
+              </MiniButton>
             </span>
           </div>
         </Card>
