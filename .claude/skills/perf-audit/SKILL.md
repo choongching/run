@@ -357,3 +357,32 @@ And the standing gate is the right thing to run even when no app code
 changed: `perf-check --prod --base https://tryrun.today` on 2026-08-28 was
 green (TTFB 73 to 90ms, redirects 32 to 45ms, chunk 275KB, JS 1.9MB), which
 proves the branch touched nothing it should not have.
+
+## Lighthouse, the recipe that worked (2026-08-31)
+
+Run it against `npm run build && npm run start` on 127.0.0.1:3000 with the
+dev server killed first (the `.next` trap in verify-in-browser). Set
+`CHROME_PATH` to the installed Chrome. `npx --yes lighthouse <url> --quiet
+--chrome-flags=--headless=new --only-categories=performance,accessibility,
+best-practices,seo` with `--preset=desktop` or `--form-factor=mobile`;
+`--screenEmulation.width=1024 --screenEmulation.mobile=false` gives a tablet.
+TRAP: `--output=json --output-path=x.json` still wrote the HTML report; the
+LHR is embedded in it after `window.__LIGHTHOUSE_JSON__ = ` up to
+`;</script>`, and `fullPageScreenshot` is a top-level key, not an audit.
+
+Landing page, 2026-08-31: desktop 100 / 96 / 100 / 100, phone 92 / 96 / 100 /
+100. Three findings were real and fixed, one pattern each:
+
+- **An LCP element you cannot see.** The curtain wordmark, fixed behind the
+  page, was the largest paint. Anything painted at load and covered counts;
+  hide it (`visibility: hidden`) until it can be seen.
+- **Media below the fold loading with the hero.** The closing banner's 1.1MB
+  film. `HeroMedia` has a `lazy` prop that waits for an IntersectionObserver
+  with `rootMargin: '100% 0px'`; use it for any footage not in the first
+  screen. 3.6MB to 2.45MB on arrival.
+- **An entrance floor that fails contrast.** Headings at 40% opacity before
+  the first scroll read as 2.4:1; 60% clears AA for headings. Muted body
+  text at 60% is still 2.2:1 until the scroll; accepted and written down.
+
+Known floor: the phone's 3.3s LCP is now the nav text, which is hydration on
+the 4x throttled CPU. Do not chase it in the landing code.

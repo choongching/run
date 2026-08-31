@@ -171,3 +171,28 @@ four separate faults in the sidebar collapse in one pass.
 - Testing a full setup interview costs about five runs off the monthly meter,
   so plan the run rather than repeating it idly. The founder often takes over
   the test agent mid-flow; ask before cleaning up anything they touched.
+
+## Phone and tablet without the Chrome tool (2026-08-31)
+
+`resize_window` lied again this session (fullscreen or not), and the Chrome
+tool's wheel scrolling through Lenis is erratic: five ticks moved 500px one
+moment and 4000px the next, so a frame you want is rarely the frame you get.
+The instrument that works is puppeteer-core, already on the machine inside
+the npx lighthouse cache (`~/.npm/_npx/*/node_modules/puppeteer-core`), driving
+the installed Chrome (`/Applications/Google Chrome.app/Contents/MacOS/Google
+Chrome`) against a PRODUCTION build on 127.0.0.1:3000:
+
+- `setViewport({ width: 412, height: 823, isMobile: true, hasTouch: true })`
+  and again at 1024 by 768; `goto(..., { waitUntil: 'networkidle0' })`.
+- Scroll with `page.mouse.wheel({ deltaY })` in steps of 0.85 of the viewport
+  with ~900ms waits, so Lenis and ScrollTrigger see real wheel events, and
+  `page.screenshot()` at each stop. Collect `pageerror` and console errors.
+- Stitch the stops into one contact sheet with PIL and read that, rather
+  than thirteen images one at a time.
+- Probe state with `page.evaluate` at the exact position you care about; the
+  curtain bug this session (see the motion skill) was invisible in
+  screenshots and obvious in `dataset.on`.
+
+Do NOT use Lighthouse's full-page screenshot for layout: it stretches every
+`100svh` section to the height of the whole document, so the hero alone
+filled 9,700px and nothing below it was captured.

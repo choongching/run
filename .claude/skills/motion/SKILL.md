@@ -166,3 +166,38 @@ So the test for ambient motion is not "does it hit the frame rate". It is
 answer it is `document.getAnimations()` in the console after the arrivals have
 finished. An empty array is the pass. Anything with `iterations: Infinity` in
 it is a battery bill, however smooth it measures.
+
+## GSAP owns `transform`; never centre its target in CSS (2026-08-31)
+
+GSAP parses whatever transform the stylesheet applied into pixel x/y and
+ADDS its own xPercent/yPercent on top, so a `translateX(-50%)` used for
+centring became a full-width shift the moment the tween ran (the curtain
+wordmark sat a whole width to the left; the deck descriptions sat half a
+height too low). The separate `translate` property is no escape: the build
+(Lightning CSS) rewrites it into `transform`. Place a GSAP target with edges
+and flex, or give GSAP an inner element of its own. And an overflowing
+`white-space: nowrap` line box start-aligns, so a 30vw word wider than the
+viewport clipped on the right only; flex on the parent centres it with equal
+overflow both sides.
+
+## Two ScrollTrigger facts that cost an afternoon (2026-08-31)
+
+- **A pin and the timeline it holds must share one end.** They had separate
+  lengths; when the deck's entrances were pushed later, the third card
+  arrived after the section had let go. The pin's `end` now reads the
+  master's `scrollTrigger.end` as a function, which relies on the master
+  being created first (triggers refresh in creation order).
+- **At the very bottom, `scroll === end` reads as inactive.** An `onToggle`
+  on `isActive` switched the curtain off exactly where it shows. Use
+  `onEnter` / `onLeaveBack` when the end of the trigger is the end of the
+  page.
+
+## Sequence exits before entrances, and let a card be a card (2026-08-31)
+
+Founder decisions on the deck, taken in one sitting and to be kept: an exit
+finishes (description at 2.5 beats, toast at 3.2) before the next entrance
+starts at 4, so two descriptions never cross-fade; the cards themselves stay
+solid and sharp and slide out, the reference's way (a fade and a blur were
+each built and cut the same afternoon: through a half-faded card you see a
+second sharp card, and blur read as a different page); descriptions only
+fade, never rise or scale; entrances never start from 0% opacity.
