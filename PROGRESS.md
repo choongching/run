@@ -8,21 +8,18 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** The front page now speaks in the product's own
-type (Geist, three weights, no serif), the deck plays its three cards in
-sequence with the section pinned until the last one has played, and the
-closing curtain says "Try Run". Then the leftovers were closed: the phone
-and tablet layouts were walked screen by screen in a real 412px and 1024px
-Chrome (nothing broken, nothing overflowing), and Lighthouse ran on a
-production build: 100 / 96 / 100 / 100 on desktop and 92 / 96 / 100 / 100 on
-a throttled phone, for performance, accessibility, best practices and SEO.
-Three things it turned up were fixed: the curtain wordmark was being counted
-as the page's largest paint while hidden behind the page (it is now
-invisible until the footer nears), the closing film loaded with the hero's
-(it now waits until it is a screen away, 1.1MB less on arrival), and the
-entrance floor rose to 60% so headings clear contrast before anyone scrolls.
-All on `main`. Still for a real device: how the phone keyboard and safe
-areas behave, and reduced motion.
+**Where we left off:** The Safety section was rebuilt on a measurement of
+the reference's collage. Six pieces, three of our own photographs and three
+product cards, sit around the rule from the first frame at half size, grow
+to full size over the first 45% of the pin and draw in, eased, into a
+collage for the whole 2.2 viewport heights; the rule gives way to "You say
+no. It stops." in the last 30%. Nothing flies in from off screen and nothing
+rotates any more. Every number came from sampling the live reference every
+60px of scroll (Lenis and GSAP ScrollTrigger, the same stack as ours); the
+spike is in the internal docs. Verified at 1440, 1024 and 412 in a real
+Chrome: the collage at desktop and tablet, a three-card column on the
+phone. All on `main`. Still for a real device: keyboard, safe areas, reduced
+motion.
 
 Before that, the clock that runs routines went into the repo, and the
 README explains in one place why it is a timer and not a queue, decided with
@@ -203,6 +200,33 @@ Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
 
 ---
+
+## 2026-08-31 (evening): The Safety section, rebuilt on a measurement
+
+- **The founder asked how the reference builds its "98%" collage**, the
+  section where pieces move as you scroll, and for ours to be redesigned on
+  it. Rather than guess from screenshots, the live page was sampled every
+  60px of scroll through the pinned stretch, reading each piece's transform
+  and every heading's opacity. Findings, all measured: a 2.2 viewport
+  height pin; six pieces visible from the start at 0.53 scale, spread wide
+  and flat; scale to 1.0 linearly over the first 45%; positions easing
+  (power curve, deltas shrinking by about 0.8 a step) into a collage for the
+  whole pin; no rotation; the number never moves; the headline swaps at 70
+  to 100%. Spike: `docs/lassie-infographic-spike-2026-08-31.md`.
+- **Ours now does the same, with our words.** The rule "It reads. You
+  decide." stays the anchor (no invented number, the 2026-08-29 decision).
+  Three photographs from the deck and three cards (the step list, the
+  routine question, the Drive approval) take the measured resting
+  positions, nudged inward so nothing clips the viewport or covers the
+  lead. Positions live in CSS as percentages of the section; GSAP adds only
+  an offset and a scale, so reduced motion shows the finished collage.
+  "You said no", "This month" and the chips card were cut: three cards is
+  the density that leaves the words room.
+- **Verified in a real Chrome at three widths** with a script that scrolls
+  by wheel and samples the DOM: at 1440 every piece lands on its target to
+  the pixel and the swap runs 70 to 100%; at 1024 the collage holds and the
+  routine card no longer wraps its dates; at 412 the photographs step out
+  and the three cards stack. No console errors, lint and typecheck clean.
 
 ## 2026-08-31 (later): The leftovers, measured
 
