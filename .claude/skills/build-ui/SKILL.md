@@ -427,3 +427,23 @@ not the background status.
 
 Lint passes, typecheck passes, no console errors, and the change is expressed
 through tokens/recipes so the next screen inherits it for free.
+
+## Scoped token overrides do not work here: the theme is inline (2026-08-31)
+
+The styleguide's rescaling trick (`.run-chat-type` overriding `--text-*`)
+works because those are `@theme` variables. The radius scale lives in
+`@theme inline`, so `rounded-xl` compiles to the VALUE, not
+`var(--radius-xl)`, and `.run-landing { --radius-xl: 8px }` changed nothing
+(measured: every utility still 6px). The landing page's one-step-up ladder
+is therefore three unlayered scoped rules, `.run-landing .rounded-xl { 8px }`
+and so on, which outrank the utilities layer; the raw `rounded-[12px]`s and
+invented `ld-r-*` classes are gone. Before overriding any token in a scope,
+check which `@theme` block declares it.
+
+Two more from the landing pass: a shared fragment component beats a
+copy-pasted class string the moment a radius rename touches seven places
+(`Chip` and `MiniButton` in `components/landing/story-cards.tsx`, the
+latter in two sizes); and a review of your own diff by separate agents
+(standards, spec, then reuse / simplification / efficiency / altitude) found
+eleven real things in code that had just been verified live, including the
+two transform bugs above. Run it before shipping anything this size.
