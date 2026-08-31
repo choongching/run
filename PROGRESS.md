@@ -9,23 +9,20 @@ the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
 **Where we left off:** The front page now speaks in the product's own
-type. The serif display face lasted two days; every heading is Geist, the
-app's one family, in three weights only (regular for body, medium for
-labels and buttons, semibold for headings), and the second line of each
-two-line headline turns by weight, ink and a tenth of size rather than by
-slanting. The founder then walked the page with us section by section:
-the intro lost its mark, nothing starts invisible any more, the small
-product pieces sit one step rounder than the app, the nav mark is centred
-in its pill, the hero's turn line is smaller, and the closing curtain says
-"Try Run" and is a link. The deck was reworked most: the cards slide up
-solid the way the reference's do, an exit always finishes before the next
-entrance begins, the section stays pinned until the third card has played,
-and the three descriptions were rewritten plainly, made smaller, centred
-on their cards, and only fade. An audit at the end (two review agents,
-four cleanup agents) found and fixed a misplaced curtain, a flush-left
-wordmark, a phone-only cross-fade and a radius ladder built at the wrong
-depth. All on `main`. Next, unchanged: a look on an actual phone and at
-tablet width, then a Lighthouse pass.
+type (Geist, three weights, no serif), the deck plays its three cards in
+sequence with the section pinned until the last one has played, and the
+closing curtain says "Try Run". Then the leftovers were closed: the phone
+and tablet layouts were walked screen by screen in a real 412px and 1024px
+Chrome (nothing broken, nothing overflowing), and Lighthouse ran on a
+production build: 100 / 96 / 100 / 100 on desktop and 92 / 96 / 100 / 100 on
+a throttled phone, for performance, accessibility, best practices and SEO.
+Three things it turned up were fixed: the curtain wordmark was being counted
+as the page's largest paint while hidden behind the page (it is now
+invisible until the footer nears), the closing film loaded with the hero's
+(it now waits until it is a screen away, 1.1MB less on arrival), and the
+entrance floor rose to 60% so headings clear contrast before anyone scrolls.
+All on `main`. Still for a real device: how the phone keyboard and safe
+areas behave, and reduced motion.
 
 Before that, the clock that runs routines went into the repo, and the
 README explains in one place why it is a timer and not a queue, decided with
@@ -206,6 +203,40 @@ Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
 
 ---
+
+## 2026-08-31 (later): The leftovers, measured
+
+- **Phone and tablet, for real this time.** The browser tool cannot resize
+  its window, so a small script drove the installed Chrome at 412 by 823
+  and 1024 by 768 against a production build, scrolling a screen at a time
+  with real wheel events and photographing each stop: 13 screens on the
+  phone, 16 on the tablet. Every section lays out as designed, the deck
+  captions sit above their cards, capabilities become a swipe row, nothing
+  overflows sideways, no console errors. Lighthouse's own full-page
+  screenshot was useless for this: it stretches a full-height hero to the
+  height of the whole page.
+- **Lighthouse on a production build.** Desktop 98 / 96 / 100 / 100 before,
+  100 / 96 / 100 / 100 after; phone 91 / 96 / 100 / 100 before, 92 / 96 /
+  100 / 100 after (performance, accessibility, best practices, SEO). Three
+  findings acted on. The largest paint was the 30vw "Try Run" behind the
+  page, painted from the first frame though nothing of it can be seen
+  until the footer; the curtain is now hidden until the footer is on
+  screen, and the toggle uses enter and leave-back rather than active,
+  because at the very bottom the scroll equals the trigger's end and
+  ScrollTrigger calls that inactive, which switched the curtain off exactly
+  where it shows (caught by probing the DOM at the bottom, not by looking).
+  The closing banner's 1.1MB film loaded together with the hero's; the
+  media component gained a `lazy` mode and it now waits until the banner is
+  a screen away, taking the page from 3.6MB to 2.45MB on arrival. And the
+  40% entrance floor failed contrast on every heading before the first
+  scroll; 60% clears it. The muted lead paragraphs still sit at 2.2:1 until
+  you scroll, a transitional state that is accepted and written down. The
+  phone's 3.3s largest paint is now the nav's own text, which is hydration
+  time on a 4x throttled CPU, noted rather than chased.
+- **Small cleanups shipped alongside.** One shared `MiniButton` (two sizes)
+  replaces four hand-rolled copies; the nav fold's width animation is
+  recorded in the code as an accepted exception to the composite-only
+  rule, since the effect is the reflow.
 
 ## 2026-08-31: The front page in the product's own type, and a walk through it
 

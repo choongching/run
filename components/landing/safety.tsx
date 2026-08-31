@@ -4,7 +4,7 @@ import { useRef } from 'react'
 import { Check } from 'lucide-react'
 
 import { GoogleDriveIcon } from '@/components/icons/google-drive'
-import { ApprovalCard, Chip } from '@/components/landing/story-cards'
+import { ApprovalCard, Chip, MiniButton } from '@/components/landing/story-cards'
 import { gsap, useGSAP } from '@/lib/landing/gsap'
 import { prefersReducedMotion } from '@/lib/landing/motion'
 
@@ -12,21 +12,6 @@ function Step({ children }: { children: React.ReactNode }) {
   return (
     <span className="flex items-center gap-2 text-[13px] text-muted-foreground">
       <Check className="size-3.5 shrink-0" strokeWidth={2} />
-      {children}
-    </span>
-  )
-}
-
-function MiniButton({ primary, children }: { primary?: boolean; children: React.ReactNode }) {
-  return (
-    <span
-      aria-hidden
-      className={
-        primary
-          ? 'flex h-7 items-center rounded-xl bg-primary px-3 text-[13px] font-medium text-primary-foreground'
-          : 'flex h-7 items-center rounded-xl border border-border bg-card px-3 text-[13px] font-medium'
-      }
-    >
       {children}
     </span>
   )
@@ -152,8 +137,8 @@ export function Safety() {
           <span className="text-sm font-medium">Run this every weekday at 08:00?</span>
           <span className="font-mono text-xs text-muted-foreground">Next: Mon 31 Aug · Tue 1 Sep · Wed 2 Sep</span>
           <div className="flex gap-2">
-            <MiniButton>Edit</MiniButton>
-            <MiniButton primary>Confirm</MiniButton>
+            <MiniButton size="sm">Edit</MiniButton>
+            <MiniButton size="sm" primary>Confirm</MiniButton>
           </div>
         </div>
         <div className={`${fly} flex w-full flex-col gap-2 p-3.5 lg:bottom-[10%] lg:left-[32%] lg:w-[240px] lg:-rotate-2`}>

@@ -104,15 +104,36 @@ export function ApprovalCard({
   )
 }
 
+// A button as it looks inside a product fragment: never interactive here,
+// so a span. `md` (32px) is the approval row's size, `sm` (28px) the size
+// inside a smaller card. Shared by every fragment on the page.
+export function MiniButton({
+  primary,
+  size = 'md',
+  className = '',
+  style,
+  children,
+}: {
+  primary?: boolean
+  size?: 'sm' | 'md'
+  className?: string
+  style?: React.CSSProperties
+  children: React.ReactNode
+}) {
+  const height = size === 'sm' ? 'h-7' : 'h-8'
+  const tone = primary ? 'bg-primary text-primary-foreground' : 'border border-border bg-card'
+  return (
+    <span className={`flex ${height} items-center rounded-xl px-3 text-[13px] font-medium ${tone} ${className}`} style={style}>
+      {children}
+    </span>
+  )
+}
+
 export function ApproveRow({ decline = 'Cancel', approve = 'Approve' }: { decline?: string; approve?: string }) {
   return (
     <div aria-hidden className="flex justify-end gap-2">
-      <span className="flex h-8 items-center rounded-xl border border-border bg-card px-3 text-[13px] font-medium">
-        {decline}
-      </span>
-      <span className="flex h-8 items-center rounded-xl bg-primary px-3 text-[13px] font-medium text-primary-foreground">
-        {approve}
-      </span>
+      <MiniButton>{decline}</MiniButton>
+      <MiniButton primary>{approve}</MiniButton>
     </div>
   )
 }

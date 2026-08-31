@@ -6,7 +6,7 @@ import { prefersReducedMotion } from '@/lib/landing/motion'
 // The page's arrival, section by section, in two registers.
 //
 // data-depth is how a chapter opens: the block comes up out of the distance,
-// at 90% and 40% ink while it is still low on the screen, full size and
+// at 90% and 60% ink while it is still low on the screen, full size and
 // full ink by the time it is centred. Never from nothing: a heading that is
 // invisible until you scroll is a blank page for anyone who stops early, so
 // both registers start readable, and the start state lives in landing.css

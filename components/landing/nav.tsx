@@ -63,7 +63,10 @@ export function LandingNav() {
   }, [])
 
   // Folding the wordmark: word width -> 0 over 0.6s power4.out (spec 4.3).
-  // A parked pill follows the items as they shift.
+  // A parked pill follows the items as they shift. This animates width,
+  // against the motion skill's composite-only rule, and is accepted: the
+  // effect IS the items beside it reflowing, it runs once per crossing of
+  // the line for 0.6s, and the nav is five small items.
   useGSAP(
     () => {
       const el = wordmarkRef.current
