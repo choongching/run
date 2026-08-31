@@ -46,7 +46,7 @@ const GROUPS = [
 export function Capabilities() {
   return (
     <section aria-label="What it can do" className="flex flex-col items-center gap-10 px-4 py-16 md:px-8 md:py-28 lg:gap-12">
-      <div data-depth className="flex max-w-[800px] flex-col items-center gap-4 text-center">
+      <div data-depth className="flex max-w-[800px] flex-col items-center gap-5 text-center">
         <h2 className="ld-heading">Everything it can do.</h2>
         <p className="ld-lead max-w-[600px] text-muted-foreground">
           If it is not on this list, Run cannot do it.
@@ -60,7 +60,7 @@ export function Capabilities() {
               {g.icon}
               {g.title}
             </div>
-            <ul className="rounded-lg border border-border">
+            <ul className="rounded-xl border border-border">
               {g.rows.map(([label, mark]) => (
                 <li
                   key={label}
@@ -68,7 +68,7 @@ export function Capabilities() {
                 >
                   <span>{label}</span>
                   {mark && (
-                    <span className="rounded-md bg-primary/8 px-2 py-0.5 font-mono text-xs text-primary">{mark}</span>
+                    <span className="rounded-lg bg-primary/8 px-2 py-0.5 font-mono text-xs text-primary">{mark}</span>
                   )}
                 </li>
               ))}

@@ -8,19 +8,24 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** The front page has been through a second pass,
-section by section, against the site it takes its manner from. The hero
-says "Fewer small tasks. More of the day." over the founder's own clip and
-steps back as you scroll; the navigation pill is copied from the reference
-to the pixel in every state; each chapter heading comes up out of the
-distance; the deck's cards each play a short story and fade out as they
-leave; the three How-it-works pictures play theirs too; the FAQ and the
-How-it-works copy are shorter and asked the way a person would; the
-footer and closing curtain match the reference, and the copy in every
-section was read aloud and cut until it sounded like a person (Safety:
-"It reads. You decide."; Capabilities: "Everything it can do."). All of
-it is on `main`, eleven small pull requests after the big one. Next: a
-look on an actual phone and at tablet width, then a Lighthouse pass.
+**Where we left off:** The front page now speaks in the product's own
+type. The serif display face lasted two days; every heading is Geist, the
+app's one family, in three weights only (regular for body, medium for
+labels and buttons, semibold for headings), and the second line of each
+two-line headline turns by weight, ink and a tenth of size rather than by
+slanting. The founder then walked the page with us section by section:
+the intro lost its mark, nothing starts invisible any more, the small
+product pieces sit one step rounder than the app, the nav mark is centred
+in its pill, the hero's turn line is smaller, and the closing curtain says
+"Try Run" and is a link. The deck was reworked most: the cards slide up
+solid the way the reference's do, an exit always finishes before the next
+entrance begins, the section stays pinned until the third card has played,
+and the three descriptions were rewritten plainly, made smaller, centred
+on their cards, and only fade. An audit at the end (two review agents,
+four cleanup agents) found and fixed a misplaced curtain, a flush-left
+wordmark, a phone-only cross-fade and a radius ladder built at the wrong
+depth. All on `main`. Next, unchanged: a look on an actual phone and at
+tablet width, then a Lighthouse pass.
 
 Before that, the clock that runs routines went into the repo, and the
 README explains in one place why it is a timer and not a queue, decided with
@@ -201,6 +206,57 @@ Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
 
 ---
+
+## 2026-08-31: The front page in the product's own type, and a walk through it
+
+- **Geist throughout.** The styleguide says one family and no serif, and the
+  landing page had a serif display face. It is gone: hero, section
+  headings, card titles, the nav wordmark and the curtain are all Geist,
+  sized down to suit a wider face (about 80px hero, 52px headings, 24px
+  card titles), semibold with tight tracking like the home hero. Three
+  weights only. Geist has no italic, so the "turn" line of a two-line
+  headline is regular weight, 70% ink and a tenth smaller instead.
+- **The founder's pass, in order.** Intro: mark removed, and no entrance
+  starts at zero opacity any more (40% floor, declared in CSS so the first
+  paint already shows it). Product pieces: one step rounder (12px
+  containers, 8px rows and buttons, chips at the app's 6px), settled after
+  16/12/8 read as too soft. Curtain: "Try Run", 30vw, clipped at the edges
+  on purpose, now a link to sign-up. Nav: mark and word centred in the
+  pill (the wrapper had been sized for the serif; it now measures itself).
+  Hero: the turn line a tenth smaller for contrast.
+- **The deck, reworked.** Cards slide up and out solid, the reference's way
+  (a fade and a blur were each tried and cut the same afternoon). Exits
+  finish before the next entrance starts, so no two descriptions ever
+  cross-fade. The pin now lasts exactly as long as the timeline, so the
+  third card arrives and plays while the section is still centred (before,
+  it arrived after the section had let go, which read as having to scroll
+  past it). The three descriptions were rewritten as claims ("It does the
+  small tasks.", "It asks before anything goes out.", "It answers from your
+  own files."), made smaller, centred on the card, and only fade.
+- **Two bugs found by measuring.** The curtain wordmark sat a full width
+  left of centre: GSAP reads a stylesheet transform as pixels and adds its
+  own on top, and the build rewrites the `translate` property into a
+  transform too, so the wordmark and the deck descriptions are now placed
+  by edges and flex and GSAP owns any transform outright (recorded in the
+  internal lessons file). And a line wider than the viewport start-aligns
+  rather than centring, which had the wordmark clipping on one side only.
+- **The audit.** Two review agents (standards, spec) and four cleanup
+  agents (reuse, simplification, efficiency, altitude) ran over the diff.
+  Fixed from their findings: a phone-only cross-fade left over from a
+  slide the descriptions no longer do, dead tweens and dead CSS, a
+  hand-measured nav width, history written into comments, a duplicated
+  chip component, and the radius ladder rebuilt as scoped rules on the
+  standard `rounded-*` classes rather than invented ones. Left and noted:
+  the shared mini-button component (four heights in four places), and the
+  nav fold still animating width, both pre-existing.
+- **Verified in Chrome throughout** by reading computed styles: font family
+  and weights on every heading, radii on every fragment, the nav wrapper at
+  37px open and 0 folded with 14px either side of the mark, the curtain
+  centred to the pixel, the deck section's top constant while pinned, each
+  description at opacity 1 with no transform when its card is active. No
+  console errors; typecheck and lint clean. Not verified here: phone and
+  tablet widths (the browser tool cannot resize this window) and reduced
+  motion.
 
 ## 2026-08-29 (evening): The front page, section by section against the reference
 

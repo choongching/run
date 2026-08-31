@@ -18,8 +18,9 @@ const ITEMS = [
 // around the line does not make it flicker.
 const COLLAPSE_AT = 400
 const EXPAND_AT = 360
-// The wordmark's wrapper (spec 4.2): 53px, folding to 0.
-const WORDMARK_WIDTH = 53
+// The wordmark's wrapper folds to 0 and back to its own width; GSAP
+// measures 'auto', so a change of face or size cannot leave air beside the
+// word (a hand-set constant did exactly that once).
 
 // The fixed pill nav, ported element for element from the reference's DOM
 // (docs/reference/dom-outline-1440.txt, spec 4): a frosted ring drawn 4px
@@ -61,13 +62,13 @@ export function LandingNav() {
     }
   }, [])
 
-  // Folding the wordmark: 53 -> 0 over 0.6s power4.out (spec 4.3). A parked
-  // pill follows the items as they shift.
+  // Folding the wordmark: word width -> 0 over 0.6s power4.out (spec 4.3).
+  // A parked pill follows the items as they shift.
   useGSAP(
     () => {
       const el = wordmarkRef.current
       if (!el) return
-      const width = collapsed ? 0 : WORDMARK_WIDTH
+      const width = collapsed ? 0 : 'auto'
       if (prefersReducedMotion()) {
         gsap.set(el, { width })
         return
@@ -161,15 +162,15 @@ export function LandingNav() {
         className="ld-nav-ring pointer-events-none absolute left-[-4px] top-[-4px] h-[52px] w-[calc(100%+8px)] xl:left-[-6px] xl:top-[-6px] xl:h-[56px] xl:w-[calc(100%+12px)]"
       />
       {/* The shared pill. Width 0 until a pointer or focus parks it. */}
-      <span ref={pillRef} aria-hidden className="pointer-events-none absolute left-0 top-0 h-11 w-0 rounded-[12px] bg-white" />
+      <span ref={pillRef} aria-hidden className="pointer-events-none absolute left-0 top-0 h-11 w-0 rounded-2xl bg-white" />
       <Link href="/" aria-label="Run home" className="ld-nav-a group relative h-11 outline-none" onFocus={(e) => park(e.currentTarget, true)}>
         <span className="ld-nav-bg" />
         <div className="ld-nav-text">
           <Image src="/run-icon.png" alt="" width={21} height={21} className="ld-nav-mark" priority />
-          {/* 53px wrapper, no gap beside the mark: the word carries its own
-              6px lead inside, so folding the wrapper to 0 leaves the mark
+          {/* No gap beside the mark: the word carries its own 6px lead
+              inside the wrapper, so folding the wrapper to 0 leaves the mark
               centred in its pill. */}
-          <span ref={wordmarkRef} className="inline-block w-[53px] overflow-hidden whitespace-nowrap">
+          <span ref={wordmarkRef} className="inline-block overflow-hidden whitespace-nowrap">
             <span className="ld-nav-wordmark ml-1.5">Run</span>
           </span>
         </div>

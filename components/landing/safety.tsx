@@ -4,7 +4,7 @@ import { useRef } from 'react'
 import { Check } from 'lucide-react'
 
 import { GoogleDriveIcon } from '@/components/icons/google-drive'
-import { ApprovalCard } from '@/components/landing/story-cards'
+import { ApprovalCard, Chip } from '@/components/landing/story-cards'
 import { gsap, useGSAP } from '@/lib/landing/gsap'
 import { prefersReducedMotion } from '@/lib/landing/motion'
 
@@ -23,8 +23,8 @@ function MiniButton({ primary, children }: { primary?: boolean; children: React.
       aria-hidden
       className={
         primary
-          ? 'flex h-7 items-center rounded-lg bg-primary px-3 text-[13px] font-medium text-primary-foreground'
-          : 'flex h-7 items-center rounded-lg border border-border bg-card px-3 text-[13px] font-medium'
+          ? 'flex h-7 items-center rounded-xl bg-primary px-3 text-[13px] font-medium text-primary-foreground'
+          : 'flex h-7 items-center rounded-xl border border-border bg-card px-3 text-[13px] font-medium'
       }
     >
       {children}
@@ -144,12 +144,12 @@ export function Safety() {
         </div>
         <div className={`${fly} flex w-full flex-wrap gap-1.5 p-4 lg:left-[3%] lg:top-[56%] lg:w-[260px] lg:rotate-2`}>
           <span className="mb-1 w-full text-[13px] text-muted-foreground">Read for this answer</span>
-          <span className="flex h-6 items-center rounded-md border border-border bg-card px-2 text-xs">Q2 board deck.pdf</span>
-          <span className="flex h-6 items-center rounded-md border border-border bg-card px-2 text-xs">Retention, weekly</span>
-          <span className="flex h-6 items-center rounded-md border border-border bg-card px-2 text-xs">northwind.com/pricing</span>
+          <Chip>Q2 board deck.pdf</Chip>
+          <Chip>Retention, weekly</Chip>
+          <Chip>northwind.com/pricing</Chip>
         </div>
         <div className={`${fly} flex w-full flex-col gap-2.5 p-4 lg:right-[3%] lg:top-[56%] lg:w-[300px] lg:-rotate-3`}>
-          <span className="text-sm font-semibold">Run this every weekday at 08:00?</span>
+          <span className="text-sm font-medium">Run this every weekday at 08:00?</span>
           <span className="font-mono text-xs text-muted-foreground">Next: Mon 31 Aug · Tue 1 Sep · Wed 2 Sep</span>
           <div className="flex gap-2">
             <MiniButton>Edit</MiniButton>

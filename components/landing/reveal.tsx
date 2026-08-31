@@ -6,8 +6,11 @@ import { prefersReducedMotion } from '@/lib/landing/motion'
 // The page's arrival, section by section, in two registers.
 //
 // data-depth is how a chapter opens: the block comes up out of the distance,
-// at 80% and clear while it is still low on the screen, full size and full
-// ink by the time it is centred. It is scrubbed by the scroll, so it is as
+// at 90% and 40% ink while it is still low on the screen, full size and
+// full ink by the time it is centred. Never from nothing: a heading that is
+// invisible until you scroll is a blank page for anyone who stops early, so
+// both registers start readable, and the start state lives in landing.css
+// so the first paint already shows it. Scrubbed by the scroll, so it is as
 // slow as the hand on the wheel and comes back the same way. Scale and
 // opacity only. The intro, and every section heading below it, use this.
 //
@@ -35,22 +38,18 @@ export function Reveal() {
       })
     })
     document.querySelectorAll<HTMLElement>('[data-depth]').forEach((el) => {
-      gsap.fromTo(
-        el,
-        { scale: 0.8, opacity: 0 },
-        {
-          scale: 1,
-          opacity: 1,
-          ease: 'none',
-          scrollTrigger: {
-            trigger: el,
-            start: 'top 90%',
-            end: 'center 55%',
-            scrub: true,
-            invalidateOnRefresh: true,
-          },
-        }
-      )
+      gsap.to(el, {
+        scale: 1,
+        opacity: 1,
+        ease: 'none',
+        scrollTrigger: {
+          trigger: el,
+          start: 'top 90%',
+          end: 'center 55%',
+          scrub: true,
+          invalidateOnRefresh: true,
+        },
+      })
     })
   }, [])
   return null

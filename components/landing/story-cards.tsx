@@ -22,15 +22,24 @@ function Step({ children }: { children: React.ReactNode }) {
 
 function Ask({ children }: { children: React.ReactNode }) {
   return (
-    <div className="max-w-[78%] self-end rounded-lg bg-muted px-3.5 py-2.5 text-sm leading-[1.45]">
+    <div className="max-w-[78%] self-end rounded-xl bg-muted px-3.5 py-2.5 text-sm leading-[1.45]">
       {children}
     </div>
   )
 }
 
-function Chip({ children }: { children: React.ReactNode }) {
+// A source or file chip. Shared by every product fragment on the page.
+export function Chip({
+  children,
+  className = '',
+  style,
+}: {
+  children: React.ReactNode
+  className?: string
+  style?: React.CSSProperties
+}) {
   return (
-    <span className="flex h-6 items-center gap-1.5 rounded-md border border-border bg-card px-2 text-xs">
+    <span className={`flex h-6 items-center gap-1.5 rounded-lg border border-border bg-card px-2 text-xs ${className}`} style={style}>
       {children}
     </span>
   )
@@ -51,7 +60,7 @@ function Head({
     <div className="flex items-center justify-between border-b border-border pb-3.5">
       <div className="flex items-center gap-2.5">
         <span className={cn('size-7 rounded-full', tint)} />
-        <span className="text-[15px] font-semibold">{name}</span>
+        <span className="text-[15px] font-medium">{name}</span>
       </div>
       <Chip>
         {icon}
@@ -75,7 +84,7 @@ export function ApprovalCard({
   className?: string
 }) {
   return (
-    <div className={cn('overflow-hidden rounded-lg border border-ring/60 bg-card', className)}>
+    <div className={cn('overflow-hidden rounded-xl border border-ring/60 bg-card', className)}>
       <div className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium">
         {icon}
         {title}
@@ -98,10 +107,10 @@ export function ApprovalCard({
 export function ApproveRow({ decline = 'Cancel', approve = 'Approve' }: { decline?: string; approve?: string }) {
   return (
     <div aria-hidden className="flex justify-end gap-2">
-      <span className="flex h-8 items-center rounded-lg border border-border bg-card px-3 text-[13px] font-medium">
+      <span className="flex h-8 items-center rounded-xl border border-border bg-card px-3 text-[13px] font-medium">
         {decline}
       </span>
-      <span className="flex h-8 items-center rounded-lg bg-primary px-3 text-[13px] font-medium text-primary-foreground">
+      <span className="flex h-8 items-center rounded-xl bg-primary px-3 text-[13px] font-medium text-primary-foreground">
         {approve}
       </span>
     </div>
@@ -145,7 +154,7 @@ export function DriveStory({ className }: { className?: string }) {
         <Chip>Q2 board deck.pdf</Chip>
         <Chip>Retention, weekly</Chip>
       </div>
-      <div className="mt-auto flex h-11 items-center rounded-lg border border-border px-3.5 text-sm text-muted-foreground">
+      <div className="mt-auto flex h-11 items-center rounded-xl border border-border px-3.5 text-sm text-muted-foreground">
         Ask a follow-up question
       </div>
     </div>
