@@ -105,7 +105,8 @@ export function LandingNav() {
   const park = (item: HTMLElement, instant = false) => {
     const pill = pillRef.current
     if (!pill) return
-    const to = { x: item.offsetLeft, width: item.offsetWidth }
+    // opacity: 1 because a re-entry can catch the pill mid fade-out.
+    const to = { x: item.offsetLeft, width: item.offsetWidth, opacity: 1 }
     if (instant || pill.offsetWidth === 0 || prefersReducedMotion()) {
       gsap.killTweensOf(pill)
       gsap.set(pill, to)
@@ -118,20 +119,29 @@ export function LandingNav() {
     setHovered(true)
     park(item)
   }
-  // Leaving the nav: the pill vanishes at once and the items' own white
-  // backgrounds come back without a fade for 500ms, so nothing flashes on
-  // the way out (spec 4.3).
-  const snapTimer = useRef(0)
+  // Leaving the nav: the items' own whites fade back in over 400ms (the
+  // CSS transition), and the pill fades out on the same clock so the item
+  // it was parked under never dips to clear in between. Only once the pill
+  // is invisible does it fold to width 0, ready to be set in place next
+  // time. (The reference snaps both; spec 4.3. Departed from on purpose:
+  // the founder wanted the whites to come and go softly.)
   const leave = () => {
     const pill = pillRef.current
     if (!pill) return
     mark(null)
     setHovered(false)
-    gsap.killTweensOf(pill)
-    gsap.set(pill, { width: 0 })
-    navRef.current?.setAttribute('data-nav-snap', 'true')
-    window.clearTimeout(snapTimer.current)
-    snapTimer.current = window.setTimeout(() => navRef.current?.removeAttribute('data-nav-snap'), 500)
+    if (prefersReducedMotion()) {
+      gsap.killTweensOf(pill)
+      gsap.set(pill, { width: 0, opacity: 1 })
+      return
+    }
+    gsap.to(pill, {
+      opacity: 0,
+      duration: 0.4,
+      ease: 'power1.inOut',
+      overwrite: true,
+      onComplete: () => gsap.set(pill, { width: 0, opacity: 1 }),
+    })
   }
 
   const theme = overFaq ? 'light' : overHero ? 'dark' : 'light'
@@ -156,7 +166,7 @@ export function LandingNav() {
       onBlur={(e) => {
         if (navRef.current?.contains(e.relatedTarget as Node)) return
         const pill = pillRef.current
-        if (pill && !hovered) gsap.set(pill, { width: 0 })
+        if (pill && !hovered) gsap.set(pill, { width: 0, opacity: 1 })
       }}
     >
       {/* The ring, 4px outside the items, 6px on desktop (spec 4.2). */}
