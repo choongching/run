@@ -169,6 +169,12 @@ export function RoutinesList({
         return
       }
       router.refresh()
+    } catch {
+      // A fetch that never reached the server (offline, dropped connection)
+      // used to reject silently: no toast, no change, a button that looked
+      // ignored. Same words as a server failure; the person's next move is
+      // the same either way.
+      toast.error(`Could not ${doing}.`)
     } finally {
       setBusy(null)
     }
@@ -551,7 +557,14 @@ export function RoutinesList({
       ))}
 
       <RoutineSheet
-        routine={selected}
+        // The routine comes from the CURRENT list, not the snapshot taken at
+        // open. Pause and Resume finish with router.refresh(), and the fresh
+        // status has to reach the open sheet or its footer button never
+        // flips: the founder pressed Resume, the database obeyed, and the
+        // sheet went on saying Paused (2026-09-21). The snapshot still backs
+        // the sheet while a deleted routine animates out, which is the only
+        // reason `selected` exists at all.
+        routine={(selected && routines.find((r) => r.id === selected.id)) ?? selected}
         open={open}
         onOpenChange={setOpen}
         onPause={(id) => void patch(id, { action: 'pause' }, 'pause it')}
