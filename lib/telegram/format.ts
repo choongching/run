@@ -79,16 +79,38 @@ export function formatReport(args: {
         } found nothing new.</i>\n`
       : ''
 
-  const footer = `\n<a href="${link}">Open in Run</a>`
-  const full = `<b>${headline}</b>\n\n${body}\n${quiet}${footer}`
+  const build = (text: string, linkLabel: string) =>
+    `<b>${headline}</b>\n\n${text}\n${quiet}\n<a href="${link}">${linkLabel}</a>`
+
+  const full = build(body, 'Open in Run')
   if (full.length <= MAX_MESSAGE_CHARS) return { text: full, truncated: false }
 
-  // Measured as near-impossible (longest real report 3,103 characters), but a
-  // send over the cap fails outright, so the fallback sends what always fits:
-  // the headline and the link. Deliberately NOT a cut-off body, because half a
-  // report is worse than an honest pointer to the whole one.
+  // Over the cap, a send fails outright. The first version of this fallback
+  // sent only the headline and a "too long" apology, on the theory that half
+  // a report is worse than a pointer; the founder hit it live (2026-09-21)
+  // and read it as breakage. Now the run prompt asks for a glanceable reply
+  // when Telegram delivery is on, and the rare overflow sends every whole
+  // paragraph that fits, with the link renamed so it says where the rest is.
+  // The full report is already in the thread before delivery starts.
+  //
+  // Cutting only at paragraph breaks, then at a space, can never split an
+  // escaped entity or a tag: the body is fully escaped (no tags) and an
+  // entity contains neither newlines nor spaces.
+  const paragraphs = body.split('\n\n')
+  while (paragraphs.length > 1) {
+    paragraphs.pop()
+    const candidate = build(paragraphs.join('\n\n'), 'Read the rest in Run')
+    if (candidate.length <= MAX_MESSAGE_CHARS)
+      return { text: candidate, truncated: true }
+  }
+
+  // One paragraph that alone overflows the cap: cut it at the last space
+  // that fits. The budget subtracts everything around the body.
+  const overhead = build('', 'Read the rest in Run').length
+  const room = body.slice(0, MAX_MESSAGE_CHARS - overhead)
+  const atSpace = room.slice(0, room.lastIndexOf(' '))
   return {
-    text: `<b>${headline}</b>\n\nThis report is too long to send here.\n${footer}`,
+    text: build(`${atSpace}…`, 'Read the rest in Run'),
     truncated: true,
   }
 }

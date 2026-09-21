@@ -228,7 +228,12 @@ ${routine.carry}
     : ''
 }
 Rules for this run:
-- Write your findings as one reply into the chat, in your usual voice. Lead with the single most important thing.
+- Write your findings as one reply into the chat, in your usual voice. Lead with the single most important thing.${
+  routine.deliver_telegram
+    ? `
+- Your reply also lands on the user's phone as a notification. Keep it short enough to read in one glance: the few things that matter, a line or two each, no preamble and no recap. If something needs depth, name it in one line; the user can ask you in the chat.`
+    : ''
+}
 - Reads are fine on your own. Do NOT send, create, move, or change anything anywhere: if the work calls for it, describe what you would do and tell the user they can ask you in the chat.
 - If you cannot do the work (nothing to read, no access), say so plainly in one or two sentences.
 - End by briefly noting anything worth their attention next time, if there is anything.
