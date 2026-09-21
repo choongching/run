@@ -8,7 +8,16 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** One long day on the front page, six pull requests.
+**Where we left off:** A short evening on the front page's navigation bar,
+one pull request, merged. Every tab now has the same rounded corners as the
+white pill that slides under the pointer (they had been squarer, because the
+landing's radius tokens quietly resolve to the app's smaller value), and the
+white backgrounds no longer cut in and out: they dissolve over 400ms when the
+pointer enters and return just as softly when it leaves, and the pill fades
+with them. Confirmed by the founder on screen. The next step is the founder's
+choice among the open Safety items below, or a real device pass.
+
+Before that, one long day on the front page, six pull requests.
 It now speaks in the product's own type: the serif display face is gone,
 every heading is Geist in three weights, and the second line of a two-line
 headline turns by weight and ink rather than by slanting. The deck's cards
@@ -208,6 +217,35 @@ Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
 
 ---
+
+## 2026-09-01: The navigation bar, softened
+
+- **Corners.** In the resting state the tabs' white backgrounds were squarer
+  than the white pill that appears on hover. The tabs and the frosted ring
+  took their radius from the app's radius tokens, and on this page every
+  one of those tokens resolves to the app's 6px value, while the pill is a
+  utility class the landing lifts to 12px. The radii are now written as
+  numbers: 12px for every tab, Log in included, 16px for the ring, which
+  sits 4px outside the tabs so the corners stay concentric. The comment
+  beside them says why a token would bring the mismatch back.
+- **Fades.** The founder asked for the other tabs' whites to fade out
+  softly when the pointer reaches Log in, and to come back just as softly
+  when it leaves. Measured frame by frame in Chrome before touching
+  anything: on hover the whites faded over 300ms on the browser's default
+  curve, which lands more than half the change in the first 70ms, so it
+  read as a cut; on leave, a rule copied from the reference set the
+  transition to zero and the whites were back in the same frame. Now the
+  backgrounds, the text and the mark all cross-fade over 400ms on a
+  symmetric curve, the same in both directions; the snap rule is gone; and
+  the shared pill fades out on the same clock instead of vanishing, so the
+  tab it was covering never dips to clear while its own white returns.
+  Re-entering mid-fade restores the pill; reduced motion still sets
+  everything at once. Both are deliberate departures from the reference and
+  are noted as such in the code. Verified after the change with the same
+  frame recorder (pill opacity stepping evenly from 0.94 to 0.02 over 400ms;
+  tab transition computing to 400ms on the new curve), and the founder
+  confirmed it on screen.
+- Merged to `main` via pull request #319.
 
 ## 2026-08-31 (night, later): A seventh piece
 
