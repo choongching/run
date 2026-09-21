@@ -8,7 +8,23 @@ top of the log below, written point by point. Never delete old entries, this is
 the project's history. This file is public; never write secrets, passwords, API
 keys, or internal-only plans in here.
 
-**Where we left off:** A short evening on the front page's navigation bar,
+**Where we left off:** A day on routines, driven by two things the founder
+hit for real. First, a routine report crossed Telegram's message cap and the
+phone got an apology instead of a report. Fixed at both ends and merged: a
+routine that delivers to Telegram is now told its reply lands on a phone,
+so it writes for a glance, and a report that still grows too long arrives
+cut at a paragraph with the link renamed to say where the rest is. Nothing
+is lost either way; the full report is in the thread first. Second,
+unpausing a routine looked impossible. It never was: the sheet showed a
+snapshot taken when it opened, so Resume flipped the routine in the
+database while the sheet went on saying Paused with the same button, and
+pressing Pause a second time quietly re-paused. The sheet now follows the
+list, and a request that dies before reaching the server says so instead
+of saying nothing. That fix is in pull request #322, open, waiting for the
+founder to press Resume on the real thing. Next: merge #322 and confirm
+the paused weekly routine resumes on screen.
+
+Before that, a short evening on the front page's navigation bar,
 one pull request, merged. Every tab now has the same rounded corners as the
 white pill that slides under the pointer (they had been squarer, because the
 landing's radius tokens quietly resolve to the app's smaller value), and the
@@ -217,6 +233,41 @@ Drive, and the database plan upgrade that unlocks leaked-password checking
 and backups.
 
 ---
+
+## 2026-09-21: Routines, twice
+
+- **The report that would not fit.** Telegram refuses any message over
+  4,096 characters, and one of the founder's routine reports finally
+  crossed the line, so the phone got the old fallback: a headline and
+  "This report is too long to send here." True, safe, and it reads as
+  breakage. Fixed at both ends, decided with the founder. A routine that
+  delivers to Telegram now has one more line in its run brief: the reply
+  lands on a phone, keep it readable in one glance, a line or two per
+  thing, depth by pointer. And when a report still overflows, the message
+  carries every whole paragraph that fits and the link at the bottom
+  becomes "Read the rest in Run"; a single paragraph too long for the cap
+  is cut at the last space. The apology message is gone. The full report
+  is saved in the thread before delivery starts, so nothing is ever lost.
+  Verified with a twelve-check script against the formatter: cuts land
+  only at paragraph breaks or spaces, escaped characters never split, and
+  a length sweep never produced a message over the cap. Merged to `main`
+  via pull request #321.
+- **The routine that would not unpause.** The founder paused a routine and
+  could not bring it back. Diagnosed by replaying their real stored
+  schedules through the resume code (all parse, all produce correct next
+  runs, so the server was never refusing) and then reading the click path.
+  The routine sheet rendered a snapshot of the routine taken when it
+  opened and never updated it, so Resume updated the database while the
+  sheet kept saying Paused with the same button, and a second press of
+  Pause quietly re-paused, which is exactly the mark left on the
+  founder's routine: touched, status unchanged. The sheet now reads its
+  routine from the current list, falling back to the snapshot only while
+  a deleted routine animates out, and a request that never reaches the
+  server shows the same failure message as a server error instead of
+  nothing. In pull request #322, open; the founder's own Resume press is
+  the remaining verification.
+- Also merged this session: the navigation bar log entry that had been
+  waiting since the first of the month (pull request #320).
 
 ## 2026-09-01: The navigation bar, softened
 

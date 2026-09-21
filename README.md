@@ -184,9 +184,10 @@ and leaves for you, so an unattended run never becomes an unattended action.
 
 The report can reach your phone instead. Switch a routine on for Telegram and
 it arrives as a message when the run finishes. Each routine has its own switch,
-and you connect once, from Connectors or from the routine itself. A run that
-finds nothing sends nothing, and the next real report says how many quiet runs
-there were.
+and you connect once, from Connectors or from the routine itself. A report
+bound for a phone is written for one: short enough to read in a glance, with
+the detail one tap away in the chat. A run that finds nothing sends nothing,
+and the next real report says how many quiet runs there were.
 
 Routines spend the same monthly runs as your chats. One that runs out of them,
 or fails three times running, pauses itself and says so, because a routine that
