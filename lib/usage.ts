@@ -37,6 +37,10 @@ import type {
 // worse than one that was briefly wrong.
 const PRICING: Record<string, { input: number; output: number }> = {
   'claude-sonnet-5': { input: 2.0, output: 10.0 },
+  // Opus 5.5 replaced 4.8 in the picker on 2026-09-24 (launch price, checked
+  // against the announcement that day). The 4.8 row stays: agents already set
+  // to it keep running and their turns must keep pricing correctly.
+  'claude-opus-5-5': { input: 4.0, output: 20.0 },
   'claude-opus-4-8': { input: 5.0, output: 25.0 },
   'claude-haiku-4-5': { input: 1.0, output: 5.0 },
 }
