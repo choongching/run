@@ -51,7 +51,7 @@ import { dispatchPrefill } from '@/lib/chat/prefill'
 // here (not imported) so the Anthropic SDK never gets bundled into the client.
 const MODEL_CHOICES = [
   { id: 'claude-sonnet-5', tier: 'Balanced', sub: 'Claude Sonnet 5', hint: 'Recommended for most agents' },
-  { id: 'claude-opus-4-8', tier: 'Deeper', sub: 'Claude Opus 4.8', hint: 'Most capable, a little slower' },
+  { id: 'claude-opus-5-5', tier: 'Deeper', sub: 'Claude Opus 5.5', hint: 'Most capable, for the hardest work' },
   { id: 'claude-haiku-4-5', tier: 'Faster', sub: 'Claude Haiku 4.5', hint: 'Quick and light' },
 ] as const
 

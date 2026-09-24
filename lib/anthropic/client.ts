@@ -15,7 +15,7 @@ export const MANAGED_AGENTS_BETA = 'managed-agents-2026-04-01'
 // Models offered in the agent form. First entry is the default for new agents.
 export const AGENT_MODELS = [
   { id: 'claude-sonnet-5', label: 'Claude Sonnet 5 (recommended)' },
-  { id: 'claude-opus-4-8', label: 'Claude Opus 4.8' },
+  { id: 'claude-opus-5-5', label: 'Claude Opus 5.5' },
   { id: 'claude-haiku-4-5', label: 'Claude Haiku 4.5' },
 ] as const
 
