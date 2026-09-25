@@ -7,8 +7,10 @@ import {
   FileText,
   Loader2,
   Paperclip,
+  Search,
   Upload,
 } from 'lucide-react'
+import { toast } from 'sonner'
 
 import {
   AgentsIcon,
@@ -52,6 +54,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
+import {
+  Avatar,
+  AvatarFallback,
+} from '@/components/ui/avatar'
+import { Calendar } from '@/components/ui/calendar'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Switch } from '@/components/ui/switch'
 import { Textarea } from '@/components/ui/textarea'
@@ -356,6 +376,35 @@ function ControlsSection() {
           </Specimen>
         </Entry>
         <Entry
+          name="Search input"
+          path="recipe (styleguide §7b)"
+          use="Filtering a list the person can already see."
+          when="Above a long list. It filters; it never fetches. If the list is short enough to scan, no search."
+          how="An Input with a leading muted magnifier: relative wrapper, icon absolute at the leading edge, pl-8 on the input."
+        >
+          <Specimen label="h-9 rounded-lg, leading magnifier">
+            <div className="relative w-64">
+              <Search className="absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+              <Input className="pl-8" placeholder="Filter sources" />
+            </div>
+          </Specimen>
+        </Entry>
+        <Entry
+          name="Avatar"
+          path="components/ui/avatar.tsx"
+          use="The person, in the account menu and Settings."
+          when="People only, never agents (agents get the Bot glyph or their tile). The fallback is the initial on a chart color."
+          how="AvatarImage when a picture exists, AvatarFallback always, size-8 in the sidebar."
+        >
+          <Specimen label="fallback initial">
+            <Avatar className="size-8">
+              <AvatarFallback className="bg-chart-3 text-xs font-medium text-white">
+                A
+              </AvatarFallback>
+            </Avatar>
+          </Specimen>
+        </Entry>
+        <Entry
           name="Switch"
           path="components/ui/switch.tsx"
           use="An on/off that commits the moment it is clicked."
@@ -464,6 +513,95 @@ function OverlaysSection() {
                 </DialogFooter>
               </DialogContent>
             </Dialog>
+          </Specimen>
+        </Entry>
+        <Entry
+          name="Toast"
+          path="components/ui/sonner.tsx"
+          use="The outcome of an action that just happened, said once and gone."
+          when="Failures always ('Could not resume it.'), successes only when the result is elsewhere ('Done. The result is in the agent's chat.'). Never for teaching, never persistent. A quoted title trims its trailing stop before our punctuation lands."
+          how="toast.success(...) / toast.error(...) from sonner; the Toaster is mounted once in the root layout."
+        >
+          <Specimen label="toast.success · toast.error (click)">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => toast.success('Done. The result is in the chat.')}
+            >
+              Fire success
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => toast.error('Could not resume it.')}
+            >
+              Fire error
+            </Button>
+          </Specimen>
+        </Entry>
+        <Entry
+          name="Popover & Calendar"
+          path="components/ui/popover.tsx · calendar.tsx"
+          use="A small anchored surface; the routine schedule's date picker lives in one."
+          when="For picking, not for reading: content that only informs belongs in a tooltip or on the page. The pickers' triggers wear the SelectTrigger's exact shape so a row of mixed controls reads as one family."
+          how="PopoverTrigger via render prop, Calendar inside PopoverContent (see components/routines/pickers.tsx)."
+        >
+          <Specimen label="popover with a calendar">
+            <Popover>
+              <PopoverTrigger render={<Button variant="outline" size="sm" />}>
+                Pick a date
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar mode="single" />
+              </PopoverContent>
+            </Popover>
+          </Specimen>
+        </Entry>
+        <Entry
+          name="Sheet"
+          path="components/ui/sheet.tsx"
+          use="The mobile drawer: the sidebar below md arrives in one."
+          when="Only as a full-screen surface on a phone (w-full max-w-none below md, its own close button grown to the 44px tap floor). A record on desktop is a Dialog, never a side drawer: the founder chose after seeing both."
+          how="SheetTrigger via render prop; content unmounts on close, so keyed inner state re-seeds like a dialog's."
+        >
+          <Specimen label="sheet (desktop preview of the mobile drawer)">
+            <Sheet>
+              <SheetTrigger render={<Button variant="outline" size="sm" />}>
+                Open a sheet
+              </SheetTrigger>
+              <SheetContent side="left">
+                <SheetHeader>
+                  <SheetTitle>Drawer</SheetTitle>
+                  <SheetDescription>
+                    Below md this surface is full screen with a tap-floor
+                    close button.
+                  </SheetDescription>
+                </SheetHeader>
+              </SheetContent>
+            </Sheet>
+          </Specimen>
+        </Entry>
+        <Entry
+          name="Rich hover card"
+          path="recipe (components/usage/usage-meter.tsx)"
+          use="A breakdown that would not fit a one-line tooltip."
+          when="Hand-rolled, never the tooltip primitive: that is a dark one-line chip. The surface stays fully opaque (an alpha tint turns a floating card into glass), the whole card is the click target, and hover-only means phone-only omission: say so where you use it."
+          how="Relative wrapper + mouseenter state + absolute bottom-full card, anchored from the edge nearest the container's edge so it opens inward. A card hanging off INLINE content is portalled to body instead, and then it closes on scroll and resize."
+        >
+          <Specimen label="the card, shown open">
+            <div className="relative inline-block">
+              <div className="w-64 rounded-lg border border-border bg-card p-3 shadow-sm">
+                <p className="text-sm font-medium">This month</p>
+                <div className="mt-2 flex justify-between text-xs text-muted-foreground">
+                  <span>Chats</span>
+                  <span>96 runs</span>
+                </div>
+                <div className="mt-1 flex justify-between text-xs text-muted-foreground">
+                  <span>Routines</span>
+                  <span>41 runs</span>
+                </div>
+              </div>
+            </div>
           </Specimen>
         </Entry>
         <Entry
@@ -617,6 +755,33 @@ function ContainersSection() {
           </Specimen>
         </Entry>
         <Entry
+          name="Meta chip"
+          path="recipe (styleguide §7b)"
+          use="A quiet fact riding a row's trailing edge (which agent, what plan)."
+          when="Trailing edge only, where it lines up down the list. Below sm it stands down and its words join the detail line: a phone row has no width to lend. It is a fact, not a button: never font-medium."
+          how="flex h-6 items-center gap-1.5 rounded-md border border-border px-2 text-xs text-muted-foreground."
+        >
+          <Specimen label="meta chip">
+            <span className="flex h-6 items-center gap-1.5 rounded-md border border-border px-2 text-xs text-muted-foreground">
+              <AgentsIcon className="size-3.5" />
+              Inbox Assistant
+            </span>
+          </Specimen>
+        </Entry>
+        <Entry
+          name="Status dot"
+          path="recipe (components/routines/routines-list.tsx)"
+          use="One glance at whether a thing is running, on the corner of its tile."
+          when="Only where a row already has a tile to ride. The dot alone is unreadable, so it is 10px with a ring lifting it off the corner, says its word on hover, and keeps it for screen readers via aria-label."
+          how="size-2.5 rounded-full ring-2 ring-card; bg-chart-1 running, hollow border when paused, bg-chart-4 when it needs the person. The span needs block or it is a border smeared down a line box."
+        >
+          <Specimen label="running · paused · needs you">
+            <span className="block size-2.5 rounded-full bg-chart-1 ring-2 ring-card" />
+            <span className="block size-2.5 rounded-full border border-muted-foreground/50 bg-transparent ring-2 ring-card" />
+            <span className="block size-2.5 rounded-full bg-chart-4 ring-2 ring-card" />
+          </Specimen>
+        </Entry>
+        <Entry
           name="EmptyBox & empty states"
           path="components/section-card.tsx · recipe (styleguide §7)"
           use="Nothing here yet, said in the slot the rows would fill."
@@ -629,6 +794,11 @@ function ContainersSection() {
           >
             Add notes or files to any of your agents. They all end up here.
           </EmptyBox>
+          <Specimen label="COMPACT (sidebar, docked panels): one line, no icon">
+            <div className="w-56 rounded-lg border border-dashed border-border px-2.5 py-2 text-xs text-muted-foreground">
+              Your agents will live here
+            </div>
+          </Specimen>
         </Entry>
         <Entry
           name="Drop zone"
@@ -668,6 +838,44 @@ function ContainersSection() {
   )
 }
 
+// What is deliberately not here, so its absence is a decision and not a gap.
+function AbsencesSection() {
+  return (
+    <SectionCard title="Not on this page, on purpose" className="mb-5">
+      <ul className="flex list-disc flex-col gap-2 pl-4 text-sm text-muted-foreground">
+        <li>
+          The conversation cards (approval, review, interview, connect, the
+          steps fold): they live in the chat with real state behind them, and
+          the sign-in door shows them as stories. Their recipes are in
+          styleguide 7b.
+        </li>
+        <li>
+          The sidebar shell: it is around every page, this one included, and
+          is never restyled per page.
+        </li>
+        <li>
+          The home composer and its job rail (§7c) and the auth door (§7d):
+          one-of-a-kind surfaces, documented where they live.
+        </li>
+        <li>
+          Motion: the run-* entrance vocabulary belongs to the motion skill.
+          The rule that matters here: nothing loops, ever; the cards of
+          this very page arrive once via run-settle and then hold still.
+        </li>
+        <li>
+          The landing page: a sanctioned parallel system with its own radius
+          ladder and type scale, scoped under .run-landing.
+        </li>
+        <li>
+          Mobile rules (§5b) apply to everything above: 44px tap floor, 16px
+          inputs, full-screen takeovers. Check this page at a phone width; the
+          rules should already be visible.
+        </li>
+      </ul>
+    </SectionCard>
+  )
+}
+
 export function LibraryBody() {
   return (
     <>
@@ -675,6 +883,7 @@ export function LibraryBody() {
       <ControlsSection />
       <OverlaysSection />
       <ContainersSection />
+      <AbsencesSection />
     </>
   )
 }
